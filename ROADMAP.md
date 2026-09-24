@@ -235,8 +235,8 @@ authentik ist ein **zusätzlicher** Anmeldeweg. Konten, Teams und Rechte bleiben
 - Issuer-URL, Client-ID, Client-Secret (verschlüsselt gespeichert). Knopf „Verbindung testen“ lädt die Discovery und prüft die Schlüssel.
 - Ablauf: Authorization Code Flow mit PKCE, `state` und `nonce`; das ID-Token wird gegen die JWKS von authentik geprüft (Signatur, Issuer, Audience, Ablauf).
 - **Kontozuordnung** über `sub` (stabil, ändert sich nicht bei Umbenennung). Bestehende lokale Konten werden verknüpft, indem der Benutzer angemeldet in seinem Profil „Mit authentik verknüpfen“ wählt. Eine automatische Zuordnung über die E-Mail-Adresse nur, wenn authentik `email_verified` liefert und der Admin es erlaubt.
-- **Automatisches Anlegen** (optional): Erste Anmeldung über authentik legt ein Konto samt persönlichem Bereich an.
-- **Gruppen → Rollen und Teams** (optional): z. B. `dashboard-admins` → Instanz-Admin, `team-it` → Team „IT“ als Editor. Wird bei jeder Anmeldung abgeglichen; von Hand vergebene Mitgliedschaften bleiben unberührt.
+- **Automatisches Anlegen:** Die erste Anmeldung über authentik legt ein Konto samt persönlichem Bereich an (abschaltbar).
+- **Gruppen → Rollen und Teams, nur beim Anlegen:** Eine Zuordnungstabelle in den Admin-Einstellungen bestimmt die *Startwerte* des neuen Kontos, z. B. `dashboard-admins` → Instanz-Admin, `team-it` → Team „IT“ als Editor, `team-buero` → Team „Büro“ als Viewer. Danach gehören Rollen und Mitgliedschaften dem Dashboard: Admins und Team-Owner ändern sie von Hand, spätere Anmeldungen überschreiben nichts. Ändern sich die Gruppen in authentik, bleibt das Konto unverändert; ein Admin kann bei Bedarf pro Benutzer „Startwerte aus authentik neu übernehmen“ auslösen (mit Vorschau der Änderungen, im Audit-Log vermerkt).
 - **Modus „nur authentik“:** blendet das Passwortfeld aus. Ausgenommen sind als Notzugang markierte lokale Admin-Konten (erreichbar über `/login?local`), damit ein Ausfall von authentik nicht aussperrt.
 - **Abmelden:** beendet die Dashboard-Sitzung und leitet optional an den `end_session_endpoint` von authentik weiter.
 - **Deaktivierte Benutzer:** Sitzungen über authentik haben eine kürzere absolute Laufzeit (Standard 12 h). Wer in authentik gesperrt wird, kommt danach nicht mehr hinein.
@@ -599,7 +599,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 ### Phase 2: Mehrbenutzer und Teams (v0.3)
 
 - [ ] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen
-- [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, optionales automatisches Anlegen, Gruppen → Rollen/Teams, Modus „nur authentik“ mit Notzugang
+- [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang
 - [ ] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste
 - [ ] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche
 - [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“
@@ -828,13 +828,13 @@ dashboard/
 | Benutzerzahl | 1–10 Benutzer → SQLite im WAL-Modus, kein PostgreSQL |
 | E-Mail | Vorhandener SMTP-Server für Einladungen, Passwort-Reset, Sicherheitsmeldungen und Digest |
 | Single Sign-on | authentik per OIDC als zusätzlicher Anmeldeweg in Phase 2, lokale Anmeldung als Notzugang |
+| authentik-Gruppen | Bestimmen beim automatischen Anlegen eines Kontos die Start-Rolle und Start-Teams; danach werden Rollen und Teams nur im Dashboard gepflegt, kein Abgleich bei späteren Anmeldungen |
 
 ## 14. Offene Fragen
 
 1. **Versionen:** Welche Kimai- und Invoice-Ninja-Versionen laufen (v5 self-hosted?), und bieten holiday-/abrechnung-bundle eigene API-Endpunkte?
 2. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Import und korrigiert die Prioritäten in 7.1.
-3. **authentik-Gruppen:** Sollen Gruppen aus authentik Rollen und Teams automatisch steuern, oder werden Teams nur im Dashboard gepflegt? Und sollen Konten bei der ersten Anmeldung automatisch angelegt werden?
-4. **Benachrichtigungen:** Gibt es neben E-Mail weitere Kanäle (ntfy, Gotify, Matrix)?
-5. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 8.2/8.5 ab.
-6. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
-7. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
+3. **Benachrichtigungen:** Gibt es neben E-Mail weitere Kanäle (ntfy, Gotify, Matrix)?
+4. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 8.2/8.5 ab.
+5. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
+6. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
