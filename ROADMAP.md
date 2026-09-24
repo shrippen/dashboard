@@ -398,7 +398,7 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines
 
 ### 8.1 Kimai (Zeiterfassung)
 
-**Daten:** `GET /api/timesheets` (Filter `begin`, `end`, `exported`), `/api/timesheets/active`, `/api/projects`, `/api/customers`, `/api/activities`. Ziel ist die **jeweils aktuelle Kimai-2-Version**; Authentifizierung nur per Bearer-API-Token (die alte Anmeldung über `X-AUTH-USER`/`X-AUTH-TOKEN` wird nicht unterstützt). Falls die eigenen Bundles Endpunkte anbieten, kommen Abwesenheiten und Soll-Arbeitszeit aus dem **kimai-holiday-bundle** und der Abrechnungsstatus aus dem **kimai-abrechnung-bundle**.
+**Daten:** `GET /api/timesheets` (Filter `begin`, `end`, `exported`), `/api/timesheets/active`, `/api/projects`, `/api/customers`, `/api/activities`. Ziel ist die **jeweils aktuelle Kimai-2-Version**; Authentifizierung nur per Bearer-API-Token (die alte Anmeldung über `X-AUTH-USER`/`X-AUTH-TOKEN` wird nicht unterstützt). Abwesenheiten und Feiertage kommen aus der API des **kimai-holiday-bundle** (`/api/holiday/absences?year=`, `/api/holiday/public-holidays?year=`). Offene Abrechnungsposten im Sinne des **kimai-abrechnung-bundle** (abrechenbar, nicht exportiert, beendet) liefert die Kimai-Kern-API direkt (`/api/timesheets?billable=1&exported=0&state=stopped`).
 
 **Kennzahlen:** Stunden (Woche/Monat/Jahr), davon abrechenbar, Auslastung gegen Soll, Stunden je Kunde/Projekt, Budgetverbrauch je Projekt, nicht exportierte Stunden und deren Alter.
 
@@ -839,6 +839,7 @@ dashboard/
 | E-Mail | Vorhandener SMTP-Server für Einladungen, Passwort-Reset, Sicherheitsmeldungen und Digest |
 | Single Sign-on | authentik per OIDC als zusätzlicher Anmeldeweg in Phase 2, lokale Anmeldung als Notzugang |
 | Kimai, Invoice Ninja | Unterstützt wird jeweils die aktuelle Version (Kimai 2, Invoice Ninja v5 self-hosted) |
+| Kimai-Bundles | Holiday-Bundle über `/api/holiday/*`; Abrechnungsstatus über die Kimai-Kern-API |
 | Benachrichtigungen | Alle Kanäle über Apprise, je Benutzer konfigurierbar |
 | Steuerstatus | Freiberuflich, umsatzsteuerpflichtig (keine Kleinunternehmerregelung, keine Gewerbesteuer). Die Kleinunternehmer-Regel entfällt; dazu kommen Regeln zu USt-Zahllast, Vorsteuer und fehlender Umsatzsteuer |
 | Sprache | Deutsch und Englisch, je Benutzer wählbar; Hinweise und E-Mails in der Sprache des Empfängers |
@@ -846,7 +847,6 @@ dashboard/
 
 ## 14. Offene Fragen
 
-1. **Eigene Kimai-Bundles:** Bieten kimai-holiday-bundle und kimai-abrechnung-bundle API-Endpunkte (Abwesenheiten, Soll-Arbeitszeit, Abrechnungsstatus), oder sollen sie welche bekommen?
-2. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Import und korrigiert die Prioritäten in 7.1.
-3. **Umsatzsteuer im Detail:** Ist-Versteuerung (bei Freiberuflern üblich) oder Soll-Versteuerung? Voranmeldung monatlich oder quartalsweise, mit Dauerfristverlängerung? Das sind nur Standardwerte, sie sind im Editor änderbar.
-4. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
+1. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Import und korrigiert die Prioritäten in 7.1.
+2. **Umsatzsteuer im Detail:** Ist-Versteuerung (bei Freiberuflern üblich) oder Soll-Versteuerung? Voranmeldung monatlich oder quartalsweise, mit Dauerfristverlängerung? Das sind nur Standardwerte, sie sind im Editor änderbar.
+3. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
