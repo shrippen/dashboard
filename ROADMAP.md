@@ -1,8 +1,8 @@
 # Roadmap: IT- & Freelance-Dashboard
 
-Ein selbst gehostetes Dashboard, das als **Startseite mit Links, Statusanzeigen und Feeds** Dashy ablöst und zugleich Daten aus **Kimai**, **Invoice Ninja**, **Snipe-IT** und **Dawarich** zusammenführt, sie im **shrippen Design Default** darstellt und daraus **Hinweise, Erinnerungen und Ratschläge** ableitet. Auslieferung als **ein Docker-Container**.
+Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **Startseite mit Links, Statusanzeigen und Feeds** ab, führt zugleich Daten aus **Kimai**, **Invoice Ninja**, **Snipe-IT** und **Dawarich** zusammen und leitet daraus **Hinweise, Erinnerungen und Ratschläge** ab. Konfiguriert wird im **eingebauten Editor**, gestaltet über ein **Theme-System**, von dem nur das Theme **shrippen** mitgeliefert wird. Auslieferung als **ein Docker-Container** mit eigener Anmeldung.
 
-> Stand: Entwurf v0.1 · Arbeitstitel `dashboard`
+> Stand: Entwurf v0.2 · Arbeitstitel `dashboard`
 >
 > **Arbeitsort:** Die gesamte Entwicklung findet in diesem Repository (`shrippen/dashboard`) statt. Das Design-System-Repo `shrippen/shrippen.github.io` ist nur Quelle, es wird von hier aus nicht verändert.
 
@@ -15,56 +15,67 @@ Ein selbst gehostetes Dashboard, das als **Startseite mit Links, Statusanzeigen 
 - Ein Blick am Morgen genügt: Was brennt (überfällige Rechnungen, ablaufende Garantien), was ist offen (nicht abgerechnete Stunden), wie läuft das Jahr (Umsatz, Auslastung, Stundensatz).
 - Hinweise sind **regelbasiert, erklärbar und konfigurierbar**: Jede Meldung sagt, *warum* sie erscheint, welche Daten dahinterstehen und wohin man klickt, um sie zu erledigen.
 - **Querverbindungen** zwischen den Diensten sind der eigentliche Mehrwert (z. B. „Du warst laut Dawarich 6 h bei Kunde X, in Kimai ist nichts gebucht“).
-- Nur **lesender** Zugriff auf die Dienste. Das Dashboard verändert nichts in Kimai, Invoice Ninja usw.
 - **Startseite wie bisher:** Die täglich genutzten Dashy-Funktionen (Links, Icons, Status, Suche, RSS, Uhr, Wetter) sind übernommen, sodass Dashy abgeschaltet werden kann.
-- Ein Container, ein Volume, Konfiguration über YAML und Umgebungsvariablen.
+- **Mehrere Benutzer und Teams:** Benutzer arbeiten völlig getrennt voneinander oder teilen sich in Teams Verbindungen, Widgets und Boards. Rechte lassen sich bis auf einzelne Widgets vergeben, jeder hat sein eigenes Layout.
+- **Alles in der Oberfläche einstellbar:** Konfigurationseditor mit Formularen, Drag & Drop und Code-Ansicht, Versionsverlauf und Import/Export.
+- **Eigene Themes:** Themes lassen sich in der Oberfläche anlegen und bearbeiten. Mitgeliefert wird nur das shrippen-Theme (dunkel und „Leinen“).
+- **Eigene Anmeldung** im Dashboard, unabhängig vom Reverse Proxy.
+- Nur **lesender** Zugriff auf die Dienste. Das Dashboard verändert nichts in Kimai, Invoice Ninja usw.
+- Ein Container, ein Volume.
 
 **Nicht-Ziele (vorerst)**
 
 - Kein Ersatz für die Fach-UIs (Rechnungen schreiben bleibt in Invoice Ninja).
-- Keine Mehrbenutzer-/Mandantenfähigkeit.
+- Keine Mandantentrennung auf Instanzebene (mehrere voneinander unabhängige Organisationen mit eigenen Admins). Teams und getrennte Benutzer innerhalb einer Instanz reichen.
+- Keine Theme-Galerie oder Weitergabe von Themes über das Internet; Themes werden als Datei exportiert und importiert.
 - Keine Steuerberatung: Steuerhinweise sind Erinnerungen mit konfigurierbaren Werten, keine verbindliche Auskunft.
 
 ---
 
 ## 2. Grundlage: Dashy erweitern oder eigene App?
 
-| Kriterium | Dashy als Basis | Homepage / Glance | **Eigene schlanke App (empfohlen)** |
+| Kriterium | Dashy als Basis | Homepage / Glance | **Eigene App (empfohlen)** |
 |---|---|---|---|
 | Links/Startseite | sehr gut | sehr gut | wird nachgebaut (nur genutzte Funktionen, Import aus Dashy) |
 | Eigene Widgets | Vue-2-Komponenten, Fork + eigener Build nötig | `customapi`/`custom-api`-Widgets, nur Anzeige | frei |
-| API-Aufrufe | größtenteils im Browser (CORS-Proxy, Tokens im Frontend) | serverseitig | serverseitig, Tokens bleiben im Container |
-| Verlauf/Trends | nein | nein | ja (SQLite-Snapshots) |
-| Regel-Engine, Snooze, Quittieren | nein | nein | ja |
-| Push/Digest (ntfy, E-Mail) | nein | nein | ja |
-| Styling nach Design System | Custom-CSS-Theme, begrenzt | Custom-CSS, begrenzt | nativ mit `shrippen.css` |
+| API-Aufrufe | größtenteils im Browser (CORS-Proxy, Tokens im Frontend) | serverseitig | serverseitig, Tokens verschlüsselt im Container |
+| Mehrbenutzer, Teams, Rechte je Widget | nur einfache Benutzer/Gäste | nein | ja |
+| Konfigurationseditor | ja, für eine gemeinsame Datei | nein | ja, je Benutzer/Team, mit Verlauf |
+| Verlauf/Trends, Regel-Engine, Push/Digest | nein | nein | ja |
+| Styling nach Design System, eigene Themes | Custom-CSS-Theme, begrenzt | Custom-CSS, begrenzt | Theme-System auf Basis der Design-Tokens |
 
-**Empfehlung:** Eigene App mit Backend. Die Kernanforderung „Hinweise auf Basis der Daten“ braucht einen Server mit Zeitplan, Zustand (quittiert, pausiert) und Verlauf. Das kann kein reines Startseiten-Tool leisten, und ein Dashy-Fork bindet an Vue 2 und dessen Build.
+**Empfehlung:** Eigene App mit Backend. Hinweise, Mehrbenutzerbetrieb mit Rechten auf Widget-Ebene und ein Editor, der pro Benutzer oder Team speichert, lassen sich auf keinem der Startseiten-Tools sauber aufsetzen.
 
-**Dashy wird abgelöst:** Die wahrscheinlich genutzten Dashy-Funktionen werden migriert (Abschnitt 4), die `conf.yml` wird per Importer übernommen. Das geschieht direkt nach dem Fundament in Phase 1, weil die Startseite sofort täglichen Nutzen bringt. Bis zum Umstieg laufen beide parallel; für diese Zeit lassen sich Hinweise und Kennzahlen über `/embed/*` und `/api/summary` auch in Dashy einbetten.
+**Dashy wird abgelöst:** Die wahrscheinlich genutzten Dashy-Funktionen werden migriert (Abschnitt 7), die `conf.yml` wird über einen Import-Assistenten übernommen. Bis zum Umstieg laufen beide parallel; für diese Zeit lassen sich Hinweise und Kennzahlen über `/embed/*` (mit persönlichem Embed-Token) auch in Dashy einbetten.
 
 ---
 
 ## 3. Architektur
 
 ```
-┌──────────────────────────── Docker-Container ────────────────────────────┐
-│                                                                          │
-│  Scheduler ──► Quellen ─────► Snapshot-Store ──► Kennzahlen ──► Regeln    │
-│  (APScheduler)  kimai          (SQLite, /data)    (Metrics)      (Rules)  │
-│                 invoiceninja          │                          │        │
-│                 snipeit, dawarich     │                          ▼        │
-│                 rss, http_status,     ▼                     Hinweise      │
-│                 open_meteo, glances  Widgets (link, rss, kpi, hints …)    │
-│                                                     (Status, Snooze, Ack) │
-│                                                          │         │      │
-│  Web-UI (Jinja + HTMX, shrippen.css) ◄── Widgets + Hinweise        │      │
-│  JSON-API /api/*  ·  Embeds /embed/*  ·  /healthz                   │      │
-│                                                Benachrichtigungen ◄─┘      │
-│                                                (ntfy, Gotify, E-Mail,     │
-│                                                 Apprise)                  │
-└──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────── Docker-Container ─────────────────────────────────┐
+│                                                                                   │
+│  Anmeldung ─► Sitzung ─► Berechtigungsprüfung (jede Anfrage, jedes Widget-Fragment) │
+│                                   │                                               │
+│  Web-UI (Jinja + HTMX)  ◄─────────┼──────── Boards, Widgets, Themes, Editor        │
+│  JSON-API /api/*  ·  /embed/*     │                                               │
+│                                   ▼                                               │
+│  Scheduler ─► Quellen ─► Cache/Snapshots ─► Kennzahlen ─► Regeln ─► Hinweise       │
+│               (je Verbindung    (SQLite oder                    (Zustand je        │
+│                und Zugangsdaten) PostgreSQL)                     Benutzer/Team)    │
+│                                                                      │            │
+│                                                   Benachrichtigungen ◄┘ (je Benutzer)│
+└───────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Grundprinzip:** Getrennte Schichten.
+
+- **Quellen** holen Daten, nur auf dem Server, mit Cache und Timeout. Ein RSS-Feed oder eine Statusprüfung ist dabei eine Quelle wie Kimai.
+- **Widgets** zeigen nur an und rufen nie selbst etwas ab.
+- **Regeln** lesen dieselben Daten und erzeugen Hinweise.
+- **Berechtigungen** werden zentral in der Service-Schicht geprüft, nie nur in Vorlagen. Jede Datenbankabfrage ist auf die Bereiche beschränkt, die der Benutzer sehen darf.
+
+**Datenbank statt Konfigurationsdatei:** Weil Editor und Mehrbenutzerbetrieb schreiben, ist die **Datenbank die Quelle der Wahrheit** für Boards, Widgets, Verbindungen, Themes und Rechte. YAML bleibt als Import-/Export-Format und für eine optionale Erstbefüllung (`seed.yml`). Über Umgebungsvariablen kommen nur Betriebswerte (Basis-URL, Datenbank, Hauptschlüssel, SMTP).
 
 **Stack-Vorschlag**
 
@@ -72,73 +83,225 @@ Ein selbst gehostetes Dashboard, das als **Startseite mit Links, Statusanzeigen 
 |---|---|---|
 | Sprache | Python 3.12 | gute HTTP-/Datums-Bibliotheken, die vorhandenen Tools (`preview/server.py`, `tools/*.py`) sind schon Python |
 | Web | FastAPI + Jinja2 + HTMX | serverseitig gerendert, kaum JavaScript, passt zum CSS-only Design System |
+| Datenbank | SQLAlchemy 2 + Alembic; SQLite (WAL) als Standard, PostgreSQL optional | ein Volume für kleine Installationen, Postgres für größere Teams; Migrationen bei jedem Update |
+| Anmeldung | `argon2-cffi`, serverseitige Sitzungen, `pyotp` (TOTP), später `webauthn` und OIDC (`authlib`) | eigene Anmeldung ohne externen Dienst |
+| Geheimnisse | `cryptography` (AES-GCM), Hauptschlüssel aus Docker Secret | API-Tokens verschlüsselt in der Datenbank |
 | HTTP | `httpx` (async) | parallele Abrufe, Timeouts, Retries |
 | Zeitplan | APScheduler | Intervall je Quelle, dazu Cron-Jobs für Digests |
 | Fremdinhalte | `feedparser`, `nh3` | RSS lesen und HTML bereinigen |
-| Speicher | SQLite auf `/data` | Snapshots, Hinweiszustand, Verlauf; ein Volume, einfaches Backup |
-| Diagramme | uPlot oder Chart.js, Farben aus den Tokens | leicht, keine Build-Kette |
-| Konfiguration | `config.yml` + Env-Variablen bzw. Docker Secrets, validiert mit Pydantic | Fehler beim Start statt zur Laufzeit |
-
-**Grundprinzip:** Drei getrennte Schichten. **Quellen** holen Daten, nur auf dem Server, mit Cache und Timeout. Ein RSS-Feed oder eine Statusprüfung ist dabei eine Quelle wie Kimai. **Widgets** zeigen nur an und rufen nie selbst etwas ab. **Regeln** lesen dieselben Daten und erzeugen Hinweise. Startseite und Auswertung teilen sich damit Code und Abrufe.
+| Editor | SortableJS (vorgebaut, ins Repo kopiert), Formulare aus JSON-Schema | Drag & Drop ohne Framework und ohne Build-Kette |
+| Diagramme | uPlot oder Chart.js, Farben aus den Theme-Tokens | leicht, keine Build-Kette |
+| Validierung | Pydantic | ein Schema je Widget-Typ für Editor, Import und API |
 
 **Datenfluss**
 
-1. **Quelle** (Connector) holt Rohdaten und normalisiert sie in Pydantic-Modelle (`TimeEntry`, `Invoice`, `Asset`, `License`, `Visit` …).
+1. **Quelle** holt Rohdaten über eine **Verbindung** und normalisiert sie in Pydantic-Modelle (`TimeEntry`, `Invoice`, `Asset`, `License`, `Visit` …). Der Cache-Schlüssel ist *Verbindung + Zugangsdaten*: Eine geteilte Verbindung wird einmal abgerufen, eine Verbindung mit persönlichen Zugangsdaten einmal je Benutzer.
 2. **Snapshot-Store** legt pro Lauf einen Zeitstempel-Snapshot ab (für Trends und „seit gestern neu“).
 3. **Kennzahlen** werden daraus berechnet (Umsatz YTD, Auslastung, offene Posten …).
-4. **Regeln** laufen über Kennzahlen und Rohdaten und erzeugen **Hinweise** mit stabilem Fingerprint (`regel-id + objekt-id`). Ein Hinweis bleibt so über Läufe hinweg derselbe, kann quittiert oder bis zu einem Datum pausiert werden und verschwindet von selbst, wenn die Bedingung wegfällt.
-5. **Widgets** und **Benachrichtigungen** lesen nur Quellen-Cache, Hinweise und Kennzahlen.
+4. **Regeln** laufen je Bereich über Kennzahlen und Rohdaten und erzeugen **Hinweise** mit stabilem Fingerprint (`regel-id + objekt-id`). Ein Hinweis bleibt so über Läufe hinweg derselbe, kann quittiert oder bis zu einem Datum pausiert werden und verschwindet von selbst, wenn die Bedingung wegfällt.
+5. **Widgets** und **Benachrichtigungen** lesen nur Cache, Hinweise und Kennzahlen, und zwar nur für Benutzer mit Zugriff.
 
 **Hinweis-Modell**
 
 ```yaml
 id: kimai.unbilled_hours:customer-12
+space: personal:alex    # Bereich, zu dem der Hinweis gehört
 severity: warn          # info | warn | critical
 title: "38 h bei Kunde Muster GmbH noch nicht abgerechnet"
 why: "Nicht exportierte Zeiteinträge älter als 30 Tage (ältester: 12.08.)"
 action: { label: "In Kimai öffnen", url: "https://kimai.example/…" }
 due: 2026-10-10         # optional, für Fristen
 source: [kimai, invoiceninja]
-state: open             # open | snoozed | acknowledged | resolved
+state: open             # open | snoozed | acknowledged | resolved (je Benutzer oder für das Team)
 ```
 
 **Regeln** gibt es in zwei Formen:
 
-- **Deklarativ** in `config.yml` für einfache Schwellwerte (Tage, Beträge, Prozent), die man ohne Code anpasst.
+- **Einstellbar** im Editor für einfache Schwellwerte (Tage, Beträge, Prozent), je Bereich.
 - **Als Python-Klasse** für Regeln über mehrere Dienste hinweg (Abgleich Dawarich ↔ Kimai). Jede Regel hat ID, Standard-Schwellwerte, Beschreibung und einen Unit-Test mit Fixture-Daten.
 
 ---
 
-## 4. Startseite: Migration der Dashy-Funktionen
+## 4. Mehrbenutzer, Anmeldung und Berechtigungen
+
+### 4.1 Datenmodell
+
+```
+Instanz
+├── Benutzer ──(Mitglied mit Rolle)──► Team
+├── Bereiche (Spaces)
+│   ├── persönlich   — genau einer je Benutzer, nur für ihn sichtbar
+│   ├── Team         — einer je Team, für alle Mitglieder gemäß Rolle
+│   └── Instanz      — global, von Instanz-Admins gepflegt (z. B. gemeinsame Links, Standard-Theme)
+│
+│   Jeder Bereich enthält:
+│   ├── Verbindungen      Dienst-URL + Zugangsdaten (verschlüsselt), z. B. „Kimai Firma“
+│   ├── Widget-Bibliothek konfigurierte Widgets (Typ + Einstellungen + Verbindung)
+│   ├── Boards            Seiten → Abschnitte → Platzierungen (Verweise auf Widgets)
+│   ├── Regel-Einstellungen, Fristen, Ziele
+│   └── Themes
+│
+├── Freigaben   Ressource → Benutzer oder Team, mit Recht
+└── Persönliche Overlays   Layout-Anpassungen eines Benutzers an fremden Boards
+```
+
+### 4.2 Rollen und Rechte
+
+**Instanz-Rollen**
+
+| Rolle | Darf |
+|---|---|
+| Instanz-Admin | Benutzer und Teams verwalten, Einladungen, Instanz-Bereich, Instanz-Themes inkl. eigenem CSS und Schriften, Anmeldeeinstellungen, Audit-Log. **Sieht keine persönlichen Bereiche anderer** (kein Einblick in Standortdaten oder Umsätze, kein „Anmelden als“) |
+| Benutzer | Eigener persönlicher Bereich, Mitgliedschaften in Teams |
+
+**Team-Rollen**
+
+| Rolle | Darf |
+|---|---|
+| Owner | Mitglieder und Rollen verwalten, Verbindungen mit Zugangsdaten anlegen, alles im Team-Bereich |
+| Editor | Widgets und Boards im Team-Bereich anlegen und ändern, vorhandene Verbindungen nutzen |
+| Viewer | Team-Boards ansehen, eigenes Layout-Overlay anlegen |
+
+**Rechte auf einzelne Ressourcen** (Freigaben, zusätzlich zur Rolle; auch in einen anderen Bereich hinein):
+
+| Recht | Bedeutung |
+|---|---|
+| `view` | Widget/Board sehen, seine Daten anzeigen |
+| `use` | Widget auf eigenen Boards platzieren; Verbindung in eigenen Widgets verwenden (ohne die Zugangsdaten je zu sehen) |
+| `edit` | Einstellungen ändern |
+| `manage` | Freigeben, löschen |
+
+Rechte lassen sich innerhalb eines Teams auch **einschränken**: Ein Team-Widget „Umsatz“ kann z. B. nur für Owner sichtbar sein, obwohl das Board allen Mitgliedern gehört. Wer ein Widget nicht sehen darf, bekommt es gar nicht erst ausgeliefert, auch nicht als leere Kachel.
+
+### 4.3 Wiederverwendung und Layouts
+
+- **Widget-Bibliothek:** Ein Widget wird einmal eingerichtet (z. B. „Offene Rechnungen“) und auf beliebig vielen Boards **platziert**. Platzierungen sind Verweise: Eine Änderung am Widget wirkt überall. Alternativ „Als Kopie übernehmen“ für eine unabhängige Variante.
+- **Team-Widgets im persönlichen Board:** Mit `use` lässt sich ein Team-Widget auf das eigene Start-Board legen. Wird das Recht entzogen, zeigt die Platzierung „kein Zugriff mehr“ statt Daten.
+- **Persönliche Layouts:** Jeder Benutzer hat eigene Boards und ein eigenes Start-Board. An Team-Boards kann er ein **Overlay** anlegen (Reihenfolge, Größe, eingeklappt, ausgeblendet), ohne das Board für andere zu ändern. „Auf Team-Layout zurücksetzen“ löscht das Overlay.
+- **Persönliche Einstellungen:** Theme, hell/dunkel, Sprache, Start-Board, Benachrichtigungskanäle, Ruhezeiten, eigene Suchmaschine.
+- **Vorlagen:** Boards lassen sich als Vorlage speichern (ohne Zugangsdaten) und von anderen Benutzern oder Teams übernehmen, z. B. „Freelance-Übersicht“.
+
+### 4.4 Verbindungen: geteilte und persönliche Zugangsdaten
+
+Eine geteilte Verbindung heißt **geteilte Daten**: Wer ein Widget auf einer Verbindung sehen darf, sieht, was deren Token sieht. Deshalb gibt es zwei Arten:
+
+| Art | Beispiel | Wirkung |
+|---|---|---|
+| **Geteilte Zugangsdaten** | Snipe-IT des Teams mit einem Lese-Token | Alle mit Zugriff sehen dieselben Daten; ein Abruf für alle |
+| **Persönliche Zugangsdaten** | Kimai des Teams, jeder hinterlegt sein eigenes Token | Dasselbe Team-Widget zeigt jedem Benutzer seine eigenen Daten; wer kein Token hinterlegt hat, sieht einen Hinweis „Zugang einrichten“ |
+
+Beim Freigeben einer Verbindung mit geteilten Zugangsdaten warnt der Editor ausdrücklich. **Dawarich** ist standardmäßig nur als persönliche Verbindung erlaubt; eine Freigabe muss ein Instanz-Admin für die Instanz einschalten.
+
+### 4.5 Szenarien
+
+| Szenario | Umsetzung |
+|---|---|
+| **Autark:** mehrere Personen auf einer Instanz, nichts gemeinsam | Jeder nutzt nur seinen persönlichen Bereich mit eigenen Verbindungen. Teams bleiben leer. Der Admin sieht nur Konten, keine Inhalte |
+| **Team:** gemeinsame IT-Landschaft | Team-Bereich mit geteilter Snipe-IT-Verbindung, Team-Boards „IT“ und „Links“, Rechte nach Rolle |
+| **Gemischt:** Freelancer mit kleinem Team | Persönlicher Bereich für Umsatz, Steuer und Dawarich; Team-Bereich für Links, Snipe-IT und Kimai mit persönlichen Zugangsdaten; Team-Widgets auf dem eigenen Start-Board |
+
+Hinweise gehören zu einem Bereich. Hinweise aus persönlichen Bereichen haben persönlichen Zustand. Bei Team-Hinweisen stellt der Team-Owner ein, ob „quittiert“ für das ganze Team gilt (z. B. „Audit überfällig“) oder für jeden einzeln.
+
+### 4.6 Anmeldung
+
+Das Dashboard hat eine **eigene Anmeldung**. Der Reverse Proxy übernimmt nur TLS, keine Authentifizierung; Header-basierte Proxy-Anmeldung wird bewusst nicht unterstützt.
+
+- **Erstes Konto:** Beim ersten Start gibt der Container einen einmaligen Einrichtungscode im Log aus. Nur damit lässt sich der erste Instanz-Admin anlegen, sodass niemand eine frisch gestartete Instanz übernehmen kann.
+- **Konten:** Einladungslinks durch Admins (Standard), Selbstregistrierung abschaltbar (Standard: aus).
+- **Passwörter:** Argon2id, Mindestlänge 12, keine Kompositionsregeln. Zurücksetzen per E-Mail, wenn SMTP eingerichtet ist, sonst durch einen Admin (neuer Einladungslink).
+- **Zweiter Faktor:** TOTP mit Wiederherstellungscodes; für Admins erzwingbar. Später Passkeys (WebAuthn).
+- **Sitzungen:** serverseitig in der Datenbank, Cookie `HttpOnly; Secure; SameSite=Lax`, neue Sitzungs-ID bei Anmeldung, Leerlauf- und absolutes Zeitlimit, Liste aktiver Sitzungen mit „abmelden“.
+- **Schutz:** CSRF-Token für Formulare und HTMX-Anfragen, Drosselung je IP und Konto, gleiche Fehlermeldung für falschen Benutzer und falsches Passwort.
+- **API- und Embed-Tokens:** Persönliche Tokens mit Ablaufdatum und eingeschränktem Umfang (nur lesen, nur bestimmte Boards), z. B. für das Dashy-iframe während des Umstiegs oder Skripte.
+- **Später optional:** Anmeldung über OIDC (Authentik, Keycloak, Pocket ID …) als *zusätzliche* Methode. Konten, Teams und Rechte bleiben im Dashboard.
+- **Audit-Log:** Anmeldungen, fehlgeschlagene Versuche, Änderungen an Rechten, Verbindungen und Zugangsdaten, Board-Änderungen.
+
+---
+
+## 5. Konfigurationseditor
+
+Alles, was vorher in `config.yml` stand, wird in der Oberfläche eingestellt. Bearbeiten darf, wer im jeweiligen Bereich `edit` hat.
+
+| Teil | Funktion |
+|---|---|
+| **Board-Editor** | Bearbeitungsmodus direkt auf dem Board: Abschnitte anlegen, Widgets per Drag & Drop anordnen, Spalten und Größen, Widget aus der Bibliothek einfügen oder neu anlegen. Bei fremden Boards ohne `edit` bearbeitet derselbe Modus das persönliche Overlay |
+| **Widget-Formulare** | Automatisch aus dem Pydantic-Schema des Widget-Typs erzeugt: Felder, Hilfetexte, Validierung. Auswahl der Verbindung zeigt nur Verbindungen mit `use`. **Vorschau** rendert das Widget mit den ungespeicherten Einstellungen |
+| **Verbindungen** | Dienst, URL, Art der Zugangsdaten (geteilt/persönlich), Token-Feld nur schreibbar (gespeicherte Tokens werden nie angezeigt), Knopf „Verbindung testen“ |
+| **Regeln und Ziele** | Schwellwerte, Ziele, Fristen und Steuerwerte je Bereich, mit Standardwerten und Erklärung |
+| **Code-Ansicht** | Board oder Bereich als YAML bearbeiten; validiert gegen dieselben Schemas, Fehler mit Zeilennummer. Zunächst Textfeld mit serverseitiger Prüfung, später CodeMirror |
+| **Verlauf** | Jede Speicherung ist eine Revision (wer, wann, Unterschiede). Wiederherstellen einer älteren Revision. Gleichzeitiges Bearbeiten wird über eine Versionsnummer erkannt („wurde inzwischen von X geändert“) |
+| **Import/Export** | YAML je Board oder Bereich (ohne Zugangsdaten, dafür Platzhalter); Dashy-Import als Assistent; Theme-Import/-Export |
+| **Erstbefüllung** | Optional `seed.yml` beim ersten Start, um eine Instanz reproduzierbar aufzusetzen (Konfiguration als Code) |
+| **Rechte und Freigaben** | Dialog „Freigeben“ an jedem Widget, Board und jeder Verbindung; Übersicht „Wer hat Zugriff?“ |
+
+---
+
+## 6. Themes
+
+### 6.1 Theme-Modell
+
+Ein Theme ist ein **Satz von Design-Tokens** für den dunklen und den hellen Modus, dazu optional Schriften und eigenes CSS. Alle Komponenten verwenden ausschließlich Tokens (`var(--…)`), daher funktioniert jedes Theme mit jedem Widget.
+
+- **Theme-Vertrag:** Die Token-Liste aus `tokens/variables.css` des Design Systems (Hintergründe, Text, Akzent, Semantik, Rollen wie `--field`, `--hl`, Radius, Schriften) ist die versionierte Theme-Schnittstelle. Neue Tokens bekommen Standardwerte, damit ältere Themes weiter funktionieren.
+- **Mitgeliefert:** nur **shrippen** (dunkel = Standard, hell = „Leinen“). Es ist schreibgeschützt; Änderungen beginnen mit „Duplizieren“.
+- **Format** für Import/Export als ZIP:
+
+```
+mein-theme.zip
+├── theme.json     ← Name, Version, Autor, Theme-Vertrag-Version, Modi
+├── tokens.css     ← :root { … } und :root[data-theme="light"] { … }
+├── custom.css     ← optional, nur Instanz-Admins
+└── fonts/         ← optional, woff2, nur Instanz-Admins
+```
+
+### 6.2 Theme-Editor
+
+- Token-Gruppen mit Farbwählern und Zahlenfeldern, dunkel und hell nebeneinander.
+- **Live-Vorschau** an einem Beispiel-Board und an der Komponenten-Übersicht (`/styleguide`).
+- **Kontrastprüfung** aller Text-/Hintergrund-Paare nach WCAG AA mit Warnungen, bevor gespeichert wird.
+- Schriftwahl aus den mitgelieferten und hochgeladenen Schriften.
+
+### 6.3 Wo Themes gelten
+
+- Themes liegen in Bereichen: Instanz-Themes für alle, Team-Themes für Mitglieder, persönliche Themes nur für den Ersteller.
+- Auswahl in dieser Reihenfolge: **persönliche Wahl → Team-Standard → Instanz-Standard (shrippen)**. Team-Boards können optional ein Theme erzwingen (z. B. für einen Wandbildschirm).
+- **Sicherheit:** Normale Benutzer ändern nur Token-Werte, die serverseitig geprüft werden (Farben, Längen, Schriftnamen aus der Liste). Eigenes CSS und Schriften nur für Instanz-Admins. Die Content-Security-Policy (`img-src 'self' data:`, `font-src 'self'`, `connect-src 'self'`) verhindert, dass CSS Daten nach außen lädt.
+- Ein Stylelint-Check im Repo verbietet feste Farbwerte außerhalb der Token-Dateien, damit der Theme-Vertrag hält.
+
+---
+
+## 7. Startseite: Migration der Dashy-Funktionen
 
 Das Dashboard übernimmt die Rolle von Dashy als Startseite. Migriert werden die Funktionen, die in einem typischen Homelab-Dashy tatsächlich genutzt werden. Alles andere ist bewusst ausgelassen oder durch etwas Einfacheres ersetzt.
 
-### 4.1 Funktionsumfang
+### 7.1 Funktionsumfang
 
 | Dashy-Funktion | Umsetzung im Dashboard | Priorität |
 |---|---|---|
-| Seiten (`pages`), Abschnitte (`sections`), Einträge (`items`) | Gleiche Struktur in `config.yml`: `pages → sections → widgets` | Muss |
+| Seiten (`pages`), Abschnitte (`sections`), Einträge (`items`) | Boards → Abschnitte → Widgets | Muss |
 | Eintrag: `title`, `description`, `url`, `icon`, `target` (`newtab`, `sametab`) | Widget `link`; `modal` und `workspace` entfallen (öffnen als neuer Tab) | Muss |
-| Icons: `favicon`, `si-*` (Simple Icons), `hl-*` (Dashboard Icons), URL, lokale Datei | Server holt das Icon einmal, bereinigt SVGs und legt es unter `/data/icons` ab; Font-Awesome-Icons (`fas fa-*`) werden zu einem Monogramm-Icon im Design-System-Stil | Muss |
+| Icons: `favicon`, `si-*` (Simple Icons), `hl-*` (Dashboard Icons), URL, lokale Datei | Server holt das Icon einmal, bereinigt SVGs und legt es unter `/data/icons` ab; Upload im Editor; Font-Awesome-Icons (`fas fa-*`) werden zu einem Monogramm-Icon im Design-System-Stil | Muss |
 | Statusprüfung (`statusCheck`, `statusCheckUrl`, `statusCheckAcceptCodes`, `statusCheckAllowInsecure`, `statusCheckInterval`) | Quelle `http_status` auf dem Server; Punkt auf der Kachel mit Antwortzeit im Tooltip; Status nie nur über Farbe | Muss |
 | Suche/Filter durch Tippen, Tastenkürzel je Eintrag (`hotkey`) | Suchfeld (`/` fokussiert), filtert Kacheln live, `Enter` öffnet den ersten Treffer, Ziffern-Hotkeys | Muss |
-| Websuche als Rückfall (`webSearch`, `searchEngine`) | Keine Treffer → Suche an konfigurierte Suchmaschine (z. B. SearXNG, DuckDuckGo) | Muss |
-| Abschnitt-Anzeige (`collapsed`, `cols`, `itemSize`, `sortBy`) | `collapsed`, `cols`, `size: small|medium|large`, `sort: manual|alphabetical`; Zustand „eingeklappt“ im `localStorage` | Muss |
-| Seitenkopf und Fuß (`pageInfo`: Titel, Beschreibung, Nav-Links, Footer) | `site`-Block in `config.yml`, gerendert mit `.nav` und `.foot` | Muss |
+| Websuche als Rückfall (`webSearch`, `searchEngine`) | Keine Treffer → Suche an konfigurierte Suchmaschine (je Benutzer einstellbar) | Muss |
+| Abschnitt-Anzeige (`collapsed`, `cols`, `itemSize`, `sortBy`) | `collapsed`, `cols`, `size: small|medium|large`, `sort: manual|alphabetical`; eingeklappt/ausgeklappt im persönlichen Overlay gespeichert | Muss |
+| Seitenkopf und Fuß (`pageInfo`: Titel, Beschreibung, Nav-Links, Footer) | Einstellungen des Bereichs/der Instanz, gerendert mit `.nav` und `.foot` | Muss |
 | Widget `rss-feed` | Widget `rss`: Abruf und Bereinigung auf dem Server, Cache, Anzahl und Intervall einstellbar | Muss |
 | Widget `clock` | Widget `clock`: rein im Browser, Zeitzonen, Datum | Muss |
 | Widget `weather` / `weather-forecast` | Widget `weather` über Open-Meteo (kein API-Key); OpenWeatherMap optional | Muss |
-| Widget `iframe` | Widget `iframe`; erlaubte Ziele stehen in der Content-Security-Policy (`frame-src`) aus der Konfiguration | Soll |
+| Themes, Theme-Wechsler, Custom CSS | Theme-System mit Editor (Abschnitt 6); mitgeliefert nur shrippen | Muss |
+| Konfigurations-Editor in der UI | Konfigurationseditor (Abschnitt 5), je Bereich, mit Verlauf | Muss |
+| Anmeldung, Gast-Sichtbarkeit (`hideForGuests`, `hideForUsers` …) | Eigene Anmeldung und Rechte je Widget (Abschnitt 4) | Muss |
+| Widget `iframe` | Widget `iframe`; erlaubte Ziele pflegt ein Instanz-Admin, sie landen in der Content-Security-Policy (`frame-src`) | Soll |
 | Widgets `gl-*` (Glances: CPU, RAM, Disk, Load) | Quelle `glances` + Widget `sysinfo` (passt zur IT-Landschaft) | Soll |
 | Widget `public-ip` | Widget `public_ip` | Soll |
-| Minimal-Ansicht (`/minimal`) | Seite `?view=compact`: nur Suche und Kacheln | Soll |
+| Minimal-Ansicht (`/minimal`) | Board-Ansicht `?view=compact`: nur Suche und Kacheln | Soll |
 | Als App installieren (PWA) | Web-App-Manifest und Icon | Soll |
-| Themes, Theme-Wechsler, Custom CSS | Ersetzt durch Design System, dunkel/hell | Nein |
-| Konfigurations-Editor in der UI, Cloud-Backup | Konfiguration bleibt YAML (versioniert in Git). Später ggf. schreibgeschützte Ansicht | Nein |
-| Eingebaute Anmeldung, Keycloak, Gast-Sichtbarkeit (`hideForGuests` …) | Anmeldung über den Reverse Proxy | Nein |
-| Übrige Dashy-Widgets (Krypto, GitHub-Trending, Sport …) | Nicht migriert, der Importer listet sie auf. Bei Bedarf als eigener Widget-Typ | Später |
+| Cloud-Backup der Konfiguration | Export als YAML/ZIP, Datenbank-Backup des Volumes | Nein |
+| Keycloak-Anbindung | Später OIDC als zusätzliche Anmeldemethode (Abschnitt 4.6) | Später |
+| Übrige Dashy-Widgets (Krypto, GitHub-Trending, Sport …) | Nicht migriert, der Import-Assistent listet sie auf. Bei Bedarf als eigener Widget-Typ | Später |
 
-### 4.2 Widget-Modell
+### 7.2 Widget-Modell
 
 Startseite und Auswertung nutzen dasselbe Modell (siehe Architektur): **Quellen** holen Daten auf dem Server, **Widgets** zeigen sie nur an.
 
@@ -153,7 +316,7 @@ Startseite und Auswertung nutzen dasselbe Modell (siehe Architektur): **Quellen*
 | `public_ip` | `public_ip` | 1 h |
 | `kpi`, `hints`, `table`, `chart` | Dienst-Quellen, Regeln | je Quelle |
 
-Jedes Widget wird als eigenes HTMX-Fragment geladen und aktualisiert. Fällt eine Quelle aus, zeigt nur dieses Widget den Fehler und den letzten Stand mit Alter an.
+Jedes Widget wird als eigenes HTMX-Fragment geladen und aktualisiert; jede Fragment-Anfrage prüft die Rechte erneut. Fällt eine Quelle aus, zeigt nur dieses Widget den Fehler und den letzten Stand mit Alter an.
 
 **Link-Kachel mit Infozeile:** Die Verbindung zwischen Launcher und Auswertung. Die Kachel verlinkt auf den Dienst und zeigt zusätzlich einen Live-Wert und die Zahl offener Hinweise:
 
@@ -164,46 +327,47 @@ Jedes Widget wird als eigenes HTMX-Fragment geladen und aktualisiert. Fällt ein
 └───────────────────────────┘  └─────────────────────────────┘  └────────────────────────────┘
 ```
 
-### 4.3 Importer für `conf.yml`
+### 7.3 Import-Assistent für `conf.yml`
 
-`dashboard import-dashy conf.yml > config.pages.yml` übersetzt eine Dashy-Konfiguration:
+Im Editor (oder per `dashboard import-dashy conf.yml --space <bereich>`) wird eine Dashy-Konfiguration in einen gewählten Bereich übernommen. Vor dem Speichern zeigt der Assistent eine Vorschau und einen Bericht.
 
 | Dashy | Dashboard |
 |---|---|
-| `pageInfo` | `site` |
+| `pageInfo` | Kopf-/Fußeinstellungen des Bereichs |
 | `appConfig.statusCheck`, `statusCheckInterval` | Standardwerte für `link.status` |
-| `appConfig.webSearch` | `search.engine` |
-| `appConfig.theme`, `customCss`, `layout` | ignoriert (im Bericht vermerkt) |
-| `sections[].items[]` | Widgets `link` (inkl. Icon, Status, Hotkey, Target) |
+| `appConfig.webSearch` | Suchmaschine des Bereichs |
+| `appConfig.theme`, `customCss`, `layout` | ignoriert (im Bericht vermerkt); Theme bleibt shrippen |
+| `appConfig.auth` (Benutzer, `hideForUsers`, `hideForGuests`) | nicht automatisch; der Bericht listet die Einschränkungen, damit sie als Rechte nachgezogen werden können |
+| `sections[].items[]` | Widgets `link` in der Bibliothek + Platzierungen (inkl. Icon, Status, Hotkey, Target) |
 | `sections[].widgets[]` (`rss-feed`, `clock`, `weather`, `iframe`, `gl-*`, `public-ip`) | entsprechende Widget-Typen |
 | `sections[].displayData` | `collapsed`, `cols`, `size`, `sort` |
-| `pages[]` (Unterseiten, eigene YAML-Dateien) | weitere Einträge unter `pages` |
-| alles andere | Bericht „nicht übernommen“ am Ende der Ausgabe |
+| `pages[]` (Unterseiten, eigene YAML-Dateien) | weitere Boards |
+| alles andere | Bericht „nicht übernommen“ |
 
-Getestet wird der Importer mit einer anonymisierten Kopie der eigenen `conf.yml` als Fixture.
+Getestet wird der Import mit einer anonymisierten Kopie der eigenen `conf.yml` als Fixture.
 
-### 4.4 Umstieg
+### 7.4 Umstieg
 
 1. Dashboard läuft parallel zu Dashy (anderer Port oder Subdomain).
-2. `conf.yml` importieren, Bericht durchgehen, fehlende Icons oder Widgets nachziehen.
+2. Admin-Konto einrichten, `conf.yml` in den eigenen oder einen Team-Bereich importieren, Bericht durchgehen, fehlende Icons oder Widgets nachziehen.
 3. Einige Tage beide nutzen. Kriterium für den Wechsel: Alle täglich genutzten Links, Statusanzeigen und Feeds sind da, die Suche ist mindestens so schnell.
-4. Browser-Startseite umstellen, Dashy-Container stoppen, `conf.yml` archivieren.
+4. Weitere Benutzer einladen, Browser-Startseite umstellen, Dashy-Container stoppen, `conf.yml` archivieren.
 
-### 4.5 Technische Leitplanken
+### 7.5 Technische Leitplanken
 
 - **Keine Aufrufe aus dem Browser** zu Diensten oder Feeds. Kein CORS-Proxy, keine Tokens im Frontend.
 - **Fremde Inhalte bereinigen:** RSS-HTML mit `nh3` (erlaubte Tags: Absätze, Links, Hervorhebungen), Links mit `rel="noopener noreferrer"`. SVG-Icons ohne Skripte und externe Verweise, ausgeliefert als `<img>`.
-- **Content-Security-Policy:** Skripte nur aus dem eigenen Container, `frame-src` nur für konfigurierte iframe-Ziele.
-- **Kleines JavaScript:** Suche, Hotkeys, Uhr und Einklappen in reinem JavaScript (wenige KB), ohne Build-Kette. Alles andere per HTMX.
+- **Content-Security-Policy:** Skripte nur aus dem eigenen Container, `frame-src` nur für freigegebene iframe-Ziele.
+- **Wenig JavaScript:** Suche, Hotkeys, Uhr und Einklappen in reinem JavaScript (wenige KB); der Editor als eigenes Modul mit SortableJS. Keine Build-Kette, alles andere per HTMX.
 - **Zeitlimits:** Statusprüfungen und Feeds mit kurzen Timeouts und Backoff, damit langsame Ziele nichts blockieren.
 
 ---
 
-## 5. Die Dienste: Daten und Hinweise
+## 8. Die Dienste: Daten und Hinweise
 
-Alle Abrufe laufen read-only mit eigenen API-Tokens. Endpunkte beim Bau gegen die jeweilige Version prüfen (Kimai: `/api/doc`, Dawarich: `/api-docs`).
+Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines Bereichs (Abschnitt 4.4). Endpunkte beim Bau gegen die jeweilige Version prüfen (Kimai: `/api/doc`, Dawarich: `/api-docs`).
 
-### 5.1 Kimai (Zeiterfassung)
+### 8.1 Kimai (Zeiterfassung)
 
 **Daten:** `GET /api/timesheets` (Filter `begin`, `end`, `exported`), `/api/timesheets/active`, `/api/projects`, `/api/customers`, `/api/activities`. Authentifizierung per Bearer-API-Token (ältere Versionen: `X-AUTH-USER`/`X-AUTH-TOKEN`). Falls die eigenen Bundles Endpunkte anbieten, kommen Abwesenheiten und Soll-Arbeitszeit aus dem **kimai-holiday-bundle** und der Abrechnungsstatus aus dem **kimai-abrechnung-bundle**.
 
@@ -220,7 +384,7 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens. Endpunkte beim Bau gegen di
 | `kimai.overtime` | Wochenstunden > Grenze (z. B. 45 h) zwei Wochen in Folge | info |
 | `kimai.monthly_close` | Monatsende: Einträge des Vormonats noch nicht exportiert | warn |
 
-### 5.2 Invoice Ninja v5 (Rechnungen, Zahlungen, Ausgaben)
+### 8.2 Invoice Ninja v5 (Rechnungen, Zahlungen, Ausgaben)
 
 **Daten:** `GET /api/v1/invoices` (u. a. `client_status=unpaid|overdue`), `/payments`, `/clients`, `/quotes`, `/recurring_invoices`, `/expenses`. Header `X-API-TOKEN` und `X-Requested-With: XMLHttpRequest`.
 
@@ -238,7 +402,7 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens. Endpunkte beim Bau gegen di
 | `in.small_business_limit` | Kleinunternehmergrenze § 19 UStG: Vorjahr > 25.000 € oder laufendes Jahr nähert sich 100.000 € | warn / critical |
 | `in.client_concentration` | Ein Kunde > 50 % des Umsatzes (Klumpenrisiko), > 5/6 über 12 Monate (Hinweis auf Prüfung Rentenversicherungspflicht als arbeitnehmerähnlicher Selbständiger) | info / warn |
 
-### 5.3 Snipe-IT (Assets, Lizenzen)
+### 8.3 Snipe-IT (Assets, Lizenzen)
 
 **Daten:** `GET /api/v1/hardware` (inkl. `warranty_expires`, `asset_eol_date`, Status, Zuweisung), `/hardware/audit/due`, `/hardware/audit/overdue`, `/licenses`, `/consumables`, `/maintenances`. Bearer-Token.
 
@@ -256,11 +420,11 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens. Endpunkte beim Bau gegen di
 | `snipe.expense_missing` | Asset mit Kaufdatum im laufenden Jahr ohne passende Ausgabe in Invoice Ninja (Betrag ± Toleranz, Datum ± 14 Tage) | info |
 | `snipe.gwg_hint` | Anschaffung > 800 € netto → Abschreibung statt GWG-Sofortabzug prüfen | info |
 
-### 5.4 Dawarich (Standortverlauf)
+### 8.4 Dawarich (Standortverlauf)
 
 **Daten:** `GET /api/v1/points` (`start_at`, `end_at`), `/api/v1/visits`, `/api/v1/areas`, `/api/v1/stats`. Authentifizierung per API-Key. **Sensible Daten:** Es werden nur Aggregate gespeichert (Aufenthalte in definierten Bereichen, Tages-km), keine Rohpunkte.
 
-**Idee:** In Dawarich werden **Areas** für Kundenstandorte, Büro und Zuhause angelegt. In `config.yml` wird jede Area einem Kimai-Kunden zugeordnet.
+**Idee:** In Dawarich werden **Areas** für Kundenstandorte, Büro und Zuhause angelegt. Im Editor wird jede Area einem Kimai-Kunden zugeordnet.
 
 **Kennzahlen:** Tage beim Kunden je Monat, Fahrtstrecke je Tag, Abwesenheitsdauer von zu Hause, besuchte Länder/Orte (Reisen).
 
@@ -272,7 +436,7 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens. Endpunkte beim Bau gegen di
 | `geo.per_diem` | Abwesenheit > 8 h / 24 h an Kundentagen → Verpflegungsmehraufwand (Sätze konfigurierbar) | info |
 | `geo.no_data` | Seit > 24 h keine neuen Punkte (Tracking-App aus?) | warn |
 
-### 5.5 Übergreifend: Fristen und Wochenrückblick
+### 8.5 Übergreifend: Fristen und Wochenrückblick
 
 | Regel | Inhalt |
 |---|---|
@@ -282,20 +446,20 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens. Endpunkte beim Bau gegen di
 | `digest.weekly` | Montag: Stunden, Umsatz, offene Posten, neue Hinweise der Woche |
 | `digest.monthly` | Monatsanfang: Vormonat abschließen (Export in Kimai → Rechnung in Invoice Ninja → Fahrtkosten aus Dawarich) |
 
-Alle Beträge, Sätze und Fristen stehen in `config.yml` und werden pro Jahr gepflegt.
+Alle Beträge, Sätze und Fristen werden im Editor je Bereich gepflegt, typischerweise im persönlichen Bereich, und pro Jahr aktualisiert.
 
 ---
 
-## 6. Design: shrippen Design Default
+## 9. Design: shrippen Design Default
 
-Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die App-Komponenten und optional das Light-Theme „Leinen“.
+Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die App-Komponenten. Das Design System liefert zugleich das einzige mitgelieferte Theme (Abschnitt 6).
 
 **Einbindung**
 
-- `shrippen.css`, `shrippen.js` und die Schriften werden als **Kopie in dieses Repo** gelegt (`app/static/vendor/shrippen/`, Quelle und Stand in einer `VERSION`-Datei vermerkt). Das Dashboard funktioniert so auch ohne Internet und wandert nicht ungeprüft mit dem CDN mit. Aktualisiert wird bewusst per Skript (`tools/sync-design.sh`).
-- Schriften (Rajdhani 500/600/700, JetBrains Mono 400/500) werden **lokal** aus `fonts/` ausgeliefert, nicht von Google Fonts (Datenschutz, offline).
-- Theme-Umschalter dunkel/hell über `<html data-theme="light">`, Wahl im `localStorage`.
-- Sprachumschaltung DE/EN kommt über den vorhandenen `.lang`-Mechanismus mit.
+- `shrippen.css`, `shrippen.js` und die Schriften werden als **Kopie in dieses Repo** gelegt (`app/static/vendor/shrippen/`, Quelle und Stand in einer `VERSION`-Datei vermerkt). Die Token-Werte daraus bilden `themes/shrippen/`. Das Dashboard funktioniert so auch ohne Internet und wandert nicht ungeprüft mit dem CDN mit. Aktualisiert wird bewusst per Skript (`tools/sync-design.sh`).
+- Schriften (Rajdhani 500/600/700, JetBrains Mono 400/500) werden **lokal** ausgeliefert, nicht von Google Fonts (Datenschutz, offline).
+- Hell/dunkel über `<html data-theme="light">`; die Wahl wird im Benutzerprofil gespeichert, nicht nur im Browser.
+- Sprachumschaltung DE/EN kommt über den vorhandenen `.lang`-Mechanismus mit, die Wahl ebenfalls im Profil.
 
 **Vorhandene Komponenten wiederverwenden**
 
@@ -306,8 +470,8 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 | Status eines Connectors (ok, lädt, Fehler) | `.pill` mit `data-state` |
 | Tabellen (offene Rechnungen, Assets) | `.table-wrap` + `.table` |
 | Navigation, Fuß | `.nav`, `.foot` |
-| Filter, Umschalter | `.seg`, `.switch`, `.select` |
-| Snooze-Dialog | `.dialog`, `.scrim` |
+| Filter, Umschalter, Editor-Formulare | `.seg`, `.switch`, `.select`, `.field`, `.input`, `.range` |
+| Snooze-, Freigabe- und Editor-Dialoge | `.dialog`, `.scrim` |
 | Rückmeldung nach Aktion | `.toast` |
 
 **Neue Komponenten (leben in diesem Repo, `app/static/dashboard.css`)**
@@ -324,15 +488,19 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 | `.clock`, `.weather` | Kompakte Kopf-Widgets (Rajdhani, tabellarische Ziffern) |
 | `.hint` | Hinweis mit Stufe, Quelle, „Warum?“-Aufklappbereich, Aktionen (öffnen, pausieren, quittieren). Stufe nie nur über Farbe, sondern auch über Icon und Text |
 | `.timeline` | Fristen der nächsten 30 Tage |
+| `.editbar`, `.dropzone` | Leiste des Bearbeitungsmodus (Speichern, Verwerfen, Verlauf), Ablagefläche beim Ziehen |
+| `.share` | Freigabe-Dialog: Benutzer/Team, Recht, Warnung bei geteilten Zugangsdaten |
+| `.swatch`, `.contrast` | Farbfeld und Kontrastanzeige im Theme-Editor |
+| `.login` | Anmeldeseite, Einrichtung, zweiter Faktor |
 | Diagramm-Palette | Reihenfolge `--blue`, `--aqua`, `--yellow`, `--orange`, `--purple`, `--green`; Achsen `--fg3`, Gitter `--bg2` |
 
-Die Komponenten nutzen ausschließlich die Tokens des Design Systems (`var(--…)`), keine eigenen Hex-Werte. Ob sie später ins Design System wandern, ist eine eigene Entscheidung außerhalb dieses Projekts.
+Die Komponenten nutzen ausschließlich Theme-Tokens (`var(--…)`), keine eigenen Hex-Werte (per Stylelint geprüft). Nur so funktionieren sie mit jedem Theme. Ob sie später ins Design System wandern, ist eine eigene Entscheidung außerhalb dieses Projekts.
 
 **Layout-Skizze: Start (Dashy-Ersatz)**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│ ◆ dashboard  Start  Übersicht  Freelance  IT  Reisen  Fristen DE|EN ☼│
+│ ◆ dashboard  Start  Übersicht  Freelance  IT  Reisen  ✎  ☼  ◉ alex  │
 ├─────────────────────────────────────────────────────────────────────┤
 │ [ / Suchen oder Websuche …                    ]   09:14 · 17° ☁     │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -351,7 +519,7 @@ Die Komponenten nutzen ausschließlich die Tokens des Design Systems (`var(--…
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│ ◆ dashboard  Start  Übersicht  Freelance  IT  Reisen  Fristen DE|EN ☼│
+│ ◆ dashboard  Start  Übersicht  Freelance  IT  Reisen  ✎  ☼  ◉ alex  │
 ├─────────────────────────────────────────────────────────────────────┤
 │ [Umsatz YTD]  [Offene Posten]  [Stunden Monat]  [Auslastung]  [Ø €/h]│
 ├───────────────────────────────────────┬─────────────────────────────┤
@@ -368,89 +536,118 @@ Die Komponenten nutzen ausschließlich die Tokens des Design Systems (`var(--…
 
 ---
 
-## 7. Phasen
+## 10. Phasen
 
-Jede Phase endet mit einem lauffähigen, getaggten Image.
+Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichsmodell kommen bewusst ganz an den Anfang: Mehrbenutzerfähigkeit nachträglich einzubauen hieße, jede Abfrage und jedes Widget noch einmal anzufassen.
 
 ### Phase 0: Fundament (v0.1)
 
-- [ ] Repo-Struktur, `pyproject.toml`, Ruff, Pytest, pre-commit
-- [ ] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften, Theme-Umschalter
-- [ ] Konfiguration: `config.yml` + Env/Secrets, Pydantic-Validierung, `config.example.yml`
-- [ ] Quellen-Schnittstelle (`fetch()`, `healthcheck()`, Cache, TTL), Widget-Schnittstelle (Schema + Vorlage + HTMX-Fragment), Scheduler, SQLite-Schema (Snapshots, Hinweise)
-- [ ] Hinweis-Engine: Fingerprint, Zustände, Snooze/Ack
+- [ ] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit
+- [ ] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften
+- [ ] Datenbank mit SQLAlchemy + Alembic (SQLite, PostgreSQL getestet in CI)
+- [ ] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
+- [ ] Anmeldung: Einrichtungscode, lokale Konten (Argon2id), Sitzungen, CSRF, Drosselung, Abmelden
+- [ ] Zentrale Berechtigungsprüfung in der Service-Schicht, Tests als Rechte-Matrix (Rolle × Recht × Ressource)
+- [ ] Verschlüsselung der Zugangsdaten (AES-GCM, Hauptschlüssel aus Docker Secret)
+- [ ] Quellen-Schnittstelle (`fetch()`, `healthcheck()`, Cache je Verbindung + Zugangsdaten), Widget-Schnittstelle (Schema + Vorlage + HTMX-Fragment), Scheduler
+- [ ] Hinweis-Engine: Fingerprint, Zustände je Benutzer/Team, Snooze/Ack
 - [ ] Dockerfile (multi-stage, non-root, `HEALTHCHECK`), `docker-compose.example.yml`
 - [ ] GitHub Actions: Tests, Image-Build `linux/amd64` + `linux/arm64`, Push nach GHCR
-- [ ] Demo-Modus mit Fixture-Daten (für Entwicklung und Screenshots ohne echte Daten)
+- [ ] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots)
 
-### Phase 1: Startseite, Dashy-Migration (v0.2)
+### Phase 1: Startseite, Editor und Dashy-Migration (v0.2)
 
-- [ ] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, lokal, Monogramm) und Icon-Cache
+- [ ] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache
 - [ ] Quelle `http_status` und Statuspunkt auf den Kacheln
-- [ ] Seiten, einklappbare Abschnitte, `cols`, Kachelgrößen, Sortierung
+- [ ] Boards, einklappbare Abschnitte, `cols`, Kachelgrößen, Sortierung
 - [ ] Suche mit Filter, `Enter`, Hotkeys, Websuche als Rückfall
 - [ ] Widgets `rss`, `clock`, `weather` (Open-Meteo)
 - [ ] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
-- [ ] Importer `dashboard import-dashy` mit Bericht, getestet an der eigenen `conf.yml`
-- [ ] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`
-- [ ] Parallelbetrieb, dann Umstieg nach Checkliste (Abschnitt 4.4)
+- [ ] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen
+- [ ] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml`
+- [ ] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
+- [ ] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten
+- [ ] Parallelbetrieb, dann Umstieg nach Checkliste (Abschnitt 7.4)
 
-**Ergebnis:** Dashy ist abgeschaltet, das Dashboard ist die Browser-Startseite.
+**Ergebnis:** Dashy ist abgeschaltet, das Dashboard ist die Browser-Startseite, alles wird in der Oberfläche gepflegt.
 
-### Phase 2: Freelance-Kern: Kimai + Invoice Ninja (v0.3, MVP der Auswertung)
+### Phase 2: Mehrbenutzer und Teams (v0.3)
 
-- [ ] Kimai-Connector und Kennzahlen, Regeln aus 5.1
-- [ ] Invoice-Ninja-Connector und Kennzahlen, Regeln aus 5.2
+- [ ] Einladungen, Selbstregistrierung (abschaltbar), Passwort zurücksetzen (SMTP oder Admin)
+- [ ] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste
+- [ ] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche
+- [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“
+- [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen
+- [ ] Verbindungen mit persönlichen Zugangsdaten
+- [ ] Persönliche API- und Embed-Tokens
+- [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche)
+
+### Phase 3: Themes (v0.4)
+
+- [ ] Theme-Vertrag (Token-Liste, Version, Standardwerte) und Laden der Themes je Bereich
+- [ ] shrippen als einziges mitgeliefertes, schreibgeschütztes Theme (dunkel + Leinen)
+- [ ] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA
+- [ ] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins
+- [ ] Auswahlreihenfolge persönlich → Team → Instanz, optional erzwungenes Theme je Board
+- [ ] Seite `/styleguide` mit allen Komponenten im aktuellen Theme
+
+### Phase 4: Freelance-Kern: Kimai + Invoice Ninja (v0.5, MVP der Auswertung)
+
+- [ ] Kimai-Quelle und Kennzahlen, Regeln aus 8.1
+- [ ] Invoice-Ninja-Quelle und Kennzahlen, Regeln aus 8.2
 - [ ] Abgleich Kimai ↔ Invoice Ninja: nicht abgerechnete Stunden je Kunde, effektiver Stundensatz
-- [ ] Seiten „Übersicht“ und „Freelance“ mit `.kpi`, `.hint`, `.progress`, Tabelle offener Posten
-- [ ] Deep-Links von jedem Hinweis in die Fach-UI
+- [ ] Boards „Übersicht“ und „Freelance“ als Vorlagen mit `.kpi`, `.hint`, `.progress`, Tabelle offener Posten
+- [ ] Regel-Einstellungen im Editor; Deep-Links von jedem Hinweis in die Fach-UI
 - [ ] Infozeilen und Hinweis-Zähler auf den Link-Kacheln von Kimai und Invoice Ninja
 
-**Ergebnis:** Das Dashboard wird täglich genutzt und ersetzt den manuellen Blick in beide Tools.
+**Ergebnis:** Das Dashboard ersetzt den täglichen Blick in beide Tools.
 
-### Phase 3: IT-Landschaft: Snipe-IT (v0.4)
+### Phase 5: IT-Landschaft: Snipe-IT (v0.6)
 
-- [ ] Snipe-IT-Connector, Regeln aus 5.3
-- [ ] Seite „IT“: Assets nach Status, Garantie-/Lizenz-Zeitleiste, Audits
+- [ ] Snipe-IT-Quelle, Regeln aus 8.3
+- [ ] Board-Vorlage „IT“: Assets nach Status, Garantie-/Lizenz-Zeitleiste, Audits
 - [ ] Abgleich Snipe-IT ↔ Invoice-Ninja-Ausgaben (`snipe.expense_missing`)
 
-### Phase 4: Standort: Dawarich (v0.5)
+### Phase 6: Standort: Dawarich (v0.7)
 
-- [ ] Dawarich-Connector, nur Aggregate speichern
-- [ ] Zuordnung Area → Kimai-Kunde in `config.yml`
-- [ ] Regeln aus 5.4: Besuch ohne Buchung, Fahrtkosten, Verpflegungspauschalen
-- [ ] Seite „Reisen“: Kundentage, km je Monat, Vorschlag für Fahrtkosten-Position
+- [ ] Dawarich-Quelle, nur Aggregate speichern, standardmäßig nur persönliche Verbindung
+- [ ] Zuordnung Area → Kimai-Kunde im Editor
+- [ ] Regeln aus 8.4: Besuch ohne Buchung, Fahrtkosten, Verpflegungspauschalen
+- [ ] Board-Vorlage „Reisen“: Kundentage, km je Monat, Vorschlag für Fahrtkosten-Position
 
-### Phase 5: Erinnerungen und Benachrichtigungen (v0.6)
+### Phase 7: Erinnerungen und Benachrichtigungen (v0.8)
 
-- [ ] Fristen-Kalender (Abschnitt 5.5), Seite „Fristen“, iCal-Feed `/calendar.ics`
-- [ ] Benachrichtigungen über Apprise (ntfy, Gotify, E-Mail, Matrix …), je Stufe konfigurierbar
+- [ ] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token)
+- [ ] Benachrichtigungen über Apprise (ntfy, Gotify, E-Mail, Matrix …), Kanäle und Mindeststufe je Benutzer
 - [ ] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
 - [ ] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
 
-### Phase 6: Trends und Prognosen (v0.7)
+### Phase 8: Trends und Prognosen (v0.9)
 
 - [ ] Verlaufsdiagramme aus Snapshots (Umsatz, Stunden, offene Posten)
 - [ ] Hochrechnung Jahresumsatz, Kleinunternehmergrenze, Steuerrücklage
 - [ ] Vergleich Vorjahr, saisonale Muster, Liquiditätsvorschau (offene Posten + wiederkehrende Rechnungen − feste Ausgaben)
 
-### Phase 7: Ausbau (v1.0)
+### Phase 9: Ausbau (v1.0)
 
-- [ ] Weitere Dashy-Widgets nach Bedarf (Liste aus dem Importer-Bericht)
-- [ ] Weitere Connectors über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf
-- [ ] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar, nur Aggregate, keine Standortdaten)
-- [ ] Komponenten-Übersicht (`.launch`, `.kpi`, `.hint`, `.timeline` …) als Seite `/styleguide` im Dashboard, damit sie bei Bedarf ins Design System übernommen werden können
+- [ ] Passkeys (WebAuthn), OIDC als zusätzliche Anmeldemethode
+- [ ] CodeMirror in der Code-Ansicht
+- [ ] Weitere Dashy-Widgets nach Bedarf (Liste aus dem Import-Bericht)
+- [ ] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf
+- [ ] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar je Benutzer, nur Aggregate, keine Standortdaten)
 
 ---
 
-## 8. Betrieb und Sicherheit
+## 11. Betrieb und Sicherheit
 
-- **Tokens:** Pro Dienst ein eigener, möglichst eingeschränkter API-Benutzer (nur lesen). Übergabe per Docker Secrets oder Env, nie in `config.yml` im Repo.
-- **Zugriff:** Kein eigenes Login in v0.x. Das Dashboard läuft hinter dem Reverse Proxy mit Authentifizierung (Authelia, Authentik oder Basic Auth). Optional eingebaute Basic Auth als Rückfallebene.
-- **Netz:** Ausgehende Verbindungen nur zu den konfigurierten Diensten, Feeds, Statuszielen und Icon-Quellen. Keine externen CDNs zur Laufzeit; Icons werden einmal geholt und lokal zwischengespeichert.
-- **Daten:** SQLite unter `/data`, Aufbewahrung konfigurierbar (z. B. Snapshots 24 Monate, Dawarich-Aggregate 12 Monate).
-- **Robustheit:** Ein ausgefallener Dienst lässt das Dashboard nicht ausfallen. Die Kachel zeigt den letzten Stand mit Alter und `.pill[data-state="failed"]`, dazu ein Hinweis `system.connector_down`.
-- **Beobachtbarkeit:** `/healthz`, strukturierte Logs, optional `/metrics` (Prometheus).
+- **Anmeldung:** Eigene Anmeldung (Abschnitt 4.6). Der Reverse Proxy terminiert nur TLS; das Dashboard setzt `Secure`-Cookies und erwartet HTTPS (`BASE_URL`).
+- **Zugangsdaten der Dienste:** Werden im Editor eingegeben und mit AES-GCM verschlüsselt in der Datenbank gespeichert. Der Hauptschlüssel kommt aus einem Docker Secret; ohne ihn sind Datenbank-Backups für Tokens wertlos. Schlüsselwechsel per Befehl `dashboard rotate-key`. Empfohlen: pro Dienst ein eigener Benutzer mit Leserechten.
+- **Trennung:** Jede Abfrage ist auf erlaubte Bereiche beschränkt; Tests prüfen für jede Route, dass fremde Bereiche nicht erreichbar sind. Instanz-Admins verwalten Konten, sehen aber keine persönlichen Inhalte.
+- **Netz:** Ausgehende Verbindungen nur zu den konfigurierten Diensten, Feeds, Statuszielen und Icon-Quellen. Keine externen CDNs zur Laufzeit; Icons werden einmal geholt und lokal zwischengespeichert. Weil Benutzer selbst URLs für Statusprüfungen, Feeds und Verbindungen eintragen, kann ein Instanz-Admin festlegen, welche Netze und Hosts erreichbar sein dürfen (Positivliste). Das verhindert, dass eingeladene Benutzer das Dashboard als Scanner für das interne Netz missbrauchen.
+- **Daten:** Datenbank und Icons unter `/data`, Aufbewahrung konfigurierbar (z. B. Snapshots 24 Monate, Dawarich-Aggregate 12 Monate, Audit-Log 12 Monate). Löschen eines Benutzers löscht seinen persönlichen Bereich vollständig.
+- **Backup:** `dashboard backup` erzeugt ein konsistentes Abbild (SQLite-Backup-API bzw. `pg_dump`) plus Icons und Themes.
+- **Robustheit:** Ein ausgefallener Dienst lässt das Dashboard nicht ausfallen. Das Widget zeigt den letzten Stand mit Alter und `.pill[data-state="failed"]`, dazu ein Hinweis `system.connector_down` im Bereich der Verbindung.
+- **Beobachtbarkeit:** `/healthz`, strukturierte Logs, optional `/metrics` (Prometheus, nur mit Token).
 
 **Beispiel `docker-compose.yml`**
 
@@ -461,84 +658,88 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/data
-      - ./config.yml:/app/config.yml:ro
+      # optional: - ./seed.yml:/app/seed.yml:ro
     environment:
       TZ: Europe/Berlin
-      KIMAI_URL: https://kimai.example.lan
-      INVOICENINJA_URL: https://invoice.example.lan
-      SNIPEIT_URL: https://assets.example.lan
-      DAWARICH_URL: https://dawarich.example.lan
-    secrets: [kimai_token, invoiceninja_token, snipeit_token, dawarich_api_key]
+      BASE_URL: https://dashboard.example.lan
+      DATABASE_URL: sqlite:////data/dashboard.db   # oder postgresql://…
+      SMTP_URL: smtp://mail.example.lan:587        # optional, für Einladungen und Passwort-Reset
+    secrets: [master_key]
     ports: ["8080:8080"]
 
 secrets:
-  kimai_token:        { file: ./secrets/kimai_token }
-  invoiceninja_token: { file: ./secrets/invoiceninja_token }
-  snipeit_token:      { file: ./secrets/snipeit_token }
-  dawarich_api_key:   { file: ./secrets/dawarich_api_key }
+  master_key: { file: ./secrets/master_key }   # z. B. `openssl rand -base64 32`
 ```
 
-**Beispiel `config.yml` (Ausschnitt)**
+**Beispiel YAML-Export eines Bereichs (Ausschnitt)**
+
+Dasselbe Format dient für Export, Import, Code-Ansicht und `seed.yml`. Zugangsdaten werden nie exportiert.
 
 ```yaml
-locale: de
+space: personal:alex
+settings:
+  locale: de
+  search: { engine: "https://searx.example.lan/search?q={query}" }
+  goals: { revenue_year: 90000, billable_ratio: 0.7, hours_week_max: 45 }
+  tax:
+    vat_return: { interval: monthly, extension: true }
+    prepayments: { amount: 1200 }
 
-site:
-  title: dashboard
-  nav: [{ title: Gitea, url: https://git.example.lan }]
-search:
-  engine: https://searx.example.lan/search?q={query}
+connections:
+  - id: kimai
+    type: kimai
+    url: https://kimai.example.lan
+    credentials: personal          # jeder Benutzer hinterlegt sein eigenes Token
+  - id: dawarich
+    type: dawarich
+    url: https://dawarich.example.lan
+    credentials: shared            # Token wird im Editor eingegeben, nicht hier
+    areas:
+      "Muster GmbH Büro": { kimai_customer: 12 }
+      "Home": { home: true }
+    km_rate: 0.30
+    per_diem: { over_8h: 14, full_day: 28 }
 
-pages:
-  - name: Start
-    sections:
-      - title: Freelance
-        cols: 3
-        widgets:
-          - { type: link, title: Kimai, url: https://kimai.example.lan, icon: hl-kimai,
-              status: http, info: kimai.today, hotkey: 1 }
-          - { type: link, title: Invoice Ninja, url: https://invoice.example.lan,
-              icon: hl-invoiceninja, status: http, info: invoiceninja.open }
-      - title: News
-        widgets:
-          - { type: rss, url: https://www.heise.de/rss/heise-atom.xml, limit: 8, refresh: 30m }
-      - title: Kopf
-        widgets:
-          - { type: clock, timezones: [Europe/Berlin] }
-          - { type: weather, lat: 52.52, lon: 13.40 }
-  - name: Übersicht
-    sections:
-      - widgets: [{ type: kpi, metric: invoiceninja.revenue_ytd }, { type: hints }]
-goals:
-  revenue_year: 90000
-  billable_ratio: 0.7
-  hours_week_max: 45
+widgets:
+  - id: kimai-link
+    type: link
+    title: Kimai
+    url: https://kimai.example.lan
+    icon: hl-kimai
+    status: http
+    info: { connection: kimai, metric: today }
+    hotkey: 1
+  - id: heise
+    type: rss
+    url: https://www.heise.de/rss/heise-atom.xml
+    limit: 8
+    refresh: 30m
+  - id: open-invoices
+    type: table
+    connection: invoiceninja
+    query: open_invoices
 
 rules:
   kimai.unbilled_hours: { warn_days: 30, critical_days: 60 }
   in.invoice_overdue:   { dunning_after_days: 14 }
-  snipe.warranty_expiring: { info_days: 60, warn_days: 14 }
 
-dawarich:
-  areas:
-    "Muster GmbH Büro": { kimai_customer: 12 }
-    "Home": { home: true }
-  km_rate: 0.30
-  per_diem: { over_8h: 14, full_day: 28 }
+boards:
+  - name: Start
+    theme: null                    # persönliche Wahl bzw. Standard
+    sections:
+      - title: Freelance
+        cols: 3
+        widgets: [kimai-link, team:it/snipeit-link]   # Verweis auf ein Team-Widget
+      - title: News
+        widgets: [heise]
 
-tax:
-  vat_return: { interval: monthly, extension: true }
-  prepayments: { amount: 1200 }
-
-notify:
-  apprise: ["ntfy://ntfy.example.lan/dashboard"]
-  digest: { daily: "07:30", weekly: "mon 07:30" }
-  min_severity: warn
+shares:
+  - { resource: widget:open-invoices, to: team:buero, right: view }
 ```
 
 ---
 
-## 9. Vorgeschlagene Repo-Struktur
+## 12. Vorgeschlagene Repo-Struktur
 
 ```
 dashboard/
@@ -546,41 +747,55 @@ dashboard/
 ├── README.md
 ├── Dockerfile
 ├── docker-compose.example.yml
-├── config.example.yml
+├── seed.example.yml
 ├── pyproject.toml
+├── alembic/                 ← Datenbank-Migrationen
 ├── app/
 │   ├── main.py              ← FastAPI, Routen, Scheduler-Start
-│   ├── config.py            ← Pydantic-Settings
-│   ├── store.py             ← SQLite: Snapshots, Hinweise
+│   ├── settings.py          ← Betriebswerte aus Env/Secrets
+│   ├── db/                  ← SQLAlchemy-Modelle, Sitzung, Revisionen
+│   ├── auth/                ← Konten, Passwörter, Sitzungen, CSRF, TOTP, Tokens, Einrichtungscode
+│   ├── access/              ← Bereiche, Rollen, Freigaben, zentrale Prüfung (`can(user, right, resource)`)
+│   ├── crypto.py            ← Verschlüsselung der Zugangsdaten
 │   ├── sources/             ← base.py, kimai.py, invoiceninja.py, snipeit.py, dawarich.py,
 │   │                          rss.py, http_status.py, open_meteo.py, glances.py, public_ip.py
 │   ├── widgets/             ← base.py, link.py, rss.py, clock.py, weather.py, iframe.py,
-│   │                          sysinfo.py, kpi.py, hints.py …
-│   ├── icons.py             ← Icon-Auflösung (favicon, si-, hl-, URL), SVG-Bereinigung, Cache
+│   │                          sysinfo.py, kpi.py, hints.py, table.py …
+│   ├── editor/              ← Board-Editor, Formulare aus Schema, YAML-Import/-Export, Dashy-Import
+│   ├── themes/              ← Theme-Vertrag, Laden, Prüfen, Import/Export
+│   ├── icons.py             ← Icon-Auflösung (favicon, si-, hl-, URL, Upload), SVG-Bereinigung, Cache
 │   ├── metrics/             ← Kennzahlen je Bereich
 │   ├── rules/               ← Regeln je Dienst + cross.py (dienstübergreifend) + deadlines.py
 │   ├── notify/              ← Apprise, Digest-Vorlagen
+│   ├── cli.py               ← import-dashy, backup, rotate-key, create-admin
 │   ├── templates/           ← Jinja-Seiten und Partials (HTMX)
 │   └── static/
 │       ├── vendor/shrippen/ ← Kopie von shrippen.css / shrippen.js / Schriften + VERSION
-│       ├── dashboard.js     ← Suche, Hotkeys, Uhr, Einklappen (ohne Build)
-│       └── dashboard.css    ← nur neue Komponenten (.launch, .kpi, .hint, .feed …)
+│       ├── vendor/sortable/ ← SortableJS (vorgebaut)
+│       ├── dashboard.js     ← Suche, Hotkeys, Uhr, Einklappen
+│       ├── editor.js        ← Drag & Drop, Vorschau (nur im Bearbeitungsmodus geladen)
+│       └── dashboard.css    ← nur neue Komponenten, ausschließlich mit Tokens
+├── themes/
+│   └── shrippen/            ← einziges mitgeliefertes Theme (theme.json, tokens.css)
 ├── tools/
-│   ├── sync-design.sh       ← holt eine bestimmte Version des Design Systems nach vendor/
-│   └── import_dashy.py      ← conf.yml → config.yml, mit Bericht
+│   └── sync-design.sh       ← holt eine bestimmte Version des Design Systems nach vendor/ und themes/shrippen/
 └── tests/
     ├── fixtures/            ← anonymisierte API-Antworten je Dienst, Dashy-conf.yml, RSS-Beispiele
+    ├── access/              ← Rechte-Matrix, Bereichstrennung je Route
+    ├── auth/                ← Anmeldung, Sitzungen, CSRF, Drosselung
     └── rules/               ← ein Test pro Regel
 ```
 
 ---
 
-## 10. Offene Fragen
+## 13. Offene Fragen
 
 1. **Versionen:** Welche Kimai- und Invoice-Ninja-Versionen laufen (v5 self-hosted?), und bieten holiday-/abrechnung-bundle eigene API-Endpunkte?
-2. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Importer und korrigiert die Prioritäten in 4.1.
-3. **Benachrichtigungen:** Welcher Kanal ist vorhanden (ntfy, Gotify, E-Mail, Matrix)?
-4. **Zugriffsschutz:** Welcher Reverse Proxy / welche Authentifizierung ist im Einsatz?
-5. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 5.2/5.5 ab.
-6. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
-7. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
+2. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Import und korrigiert die Prioritäten in 7.1.
+3. **Benutzerzahl:** Wie viele Benutzer und Teams sind realistisch? Davon hängt ab, ob SQLite als Standard reicht oder PostgreSQL empfohlen wird.
+4. **E-Mail:** Gibt es einen SMTP-Server für Einladungen und Passwort-Reset?
+5. **OIDC:** Soll später eine Anmeldung über einen vorhandenen Identity Provider (Authentik, Keycloak, Pocket ID …) dazukommen?
+6. **Benachrichtigungen:** Welche Kanäle sind vorhanden (ntfy, Gotify, E-Mail, Matrix)?
+7. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 8.2/8.5 ab.
+8. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
+9. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
