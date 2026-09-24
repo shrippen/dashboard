@@ -2,7 +2,7 @@
 
 Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **Startseite mit Links, Statusanzeigen und Feeds** ab, führt zugleich Daten aus **Kimai**, **Invoice Ninja**, **Snipe-IT** und **Dawarich** zusammen und leitet daraus **Hinweise, Erinnerungen und Ratschläge** ab. Konfiguriert wird im **eingebauten Editor**, gestaltet über ein **Theme-System**, von dem nur das Theme **shrippen** mitgeliefert wird. Auslieferung als **ein Docker-Container** mit eigener Anmeldung.
 
-> Stand: Entwurf v0.2 · Arbeitstitel `dashboard`
+> Stand: Entwurf v0.3 · Arbeitstitel `dashboard`
 >
 > **Arbeitsort:** Die gesamte Entwicklung findet in diesem Repository (`shrippen/dashboard`) statt. Das Design-System-Repo `shrippen/shrippen.github.io` ist nur Quelle, es wird von hier aus nicht verändert.
 
@@ -61,8 +61,8 @@ Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **
 │  JSON-API /api/*  ·  /embed/*     │                                               │
 │                                   ▼                                               │
 │  Scheduler ─► Quellen ─► Cache/Snapshots ─► Kennzahlen ─► Regeln ─► Hinweise       │
-│               (je Verbindung    (SQLite oder                    (Zustand je        │
-│                und Zugangsdaten) PostgreSQL)                     Benutzer/Team)    │
+│               (je Verbindung    (SQLite,                        (Zustand je        │
+│                und Zugangsdaten) /data)                          Benutzer/Team)    │
 │                                                                      │            │
 │                                                   Benachrichtigungen ◄┘ (je Benutzer)│
 └───────────────────────────────────────────────────────────────────────────────────┘
@@ -83,8 +83,9 @@ Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **
 |---|---|---|
 | Sprache | Python 3.12 | gute HTTP-/Datums-Bibliotheken, die vorhandenen Tools (`preview/server.py`, `tools/*.py`) sind schon Python |
 | Web | FastAPI + Jinja2 + HTMX | serverseitig gerendert, kaum JavaScript, passt zum CSS-only Design System |
-| Datenbank | SQLAlchemy 2 + Alembic; SQLite (WAL) als Standard, PostgreSQL optional | ein Volume für kleine Installationen, Postgres für größere Teams; Migrationen bei jedem Update |
-| Anmeldung | `argon2-cffi`, serverseitige Sitzungen, `pyotp` (TOTP), später `webauthn` und OIDC (`authlib`) | eigene Anmeldung ohne externen Dienst |
+| Datenbank | SQLAlchemy 2 + Alembic; SQLite im WAL-Modus | reicht für 1–10 Benutzer problemlos, ein Volume, einfaches Backup; Migrationen bei jedem Update. Durch SQLAlchemy bleibt PostgreSQL später möglich, wird aber nicht unterstützt oder getestet |
+| Anmeldung | `argon2-cffi`, serverseitige Sitzungen, `pyotp` (TOTP), `authlib` (OIDC für authentik), später `webauthn` | eigene Anmeldung, dazu Single Sign-on über authentik |
+| E-Mail | `aiosmtplib`, Vorlagen im Design System | Einladungen, Passwort-Reset, Sicherheitsmeldungen, Digest |
 | Geheimnisse | `cryptography` (AES-GCM), Hauptschlüssel aus Docker Secret | API-Tokens verschlüsselt in der Datenbank |
 | HTTP | `httpx` (async) | parallele Abrufe, Timeouts, Retries |
 | Zeitplan | APScheduler | Intervall je Quelle, dazu Cron-Jobs für Digests |
@@ -207,14 +208,38 @@ Hinweise gehören zu einem Bereich. Hinweise aus persönlichen Bereichen haben p
 Das Dashboard hat eine **eigene Anmeldung**. Der Reverse Proxy übernimmt nur TLS, keine Authentifizierung; Header-basierte Proxy-Anmeldung wird bewusst nicht unterstützt.
 
 - **Erstes Konto:** Beim ersten Start gibt der Container einen einmaligen Einrichtungscode im Log aus. Nur damit lässt sich der erste Instanz-Admin anlegen, sodass niemand eine frisch gestartete Instanz übernehmen kann.
-- **Konten:** Einladungslinks durch Admins (Standard), Selbstregistrierung abschaltbar (Standard: aus).
-- **Passwörter:** Argon2id, Mindestlänge 12, keine Kompositionsregeln. Zurücksetzen per E-Mail, wenn SMTP eingerichtet ist, sonst durch einen Admin (neuer Einladungslink).
-- **Zweiter Faktor:** TOTP mit Wiederherstellungscodes; für Admins erzwingbar. Später Passkeys (WebAuthn).
+- **Konten:** Einladungen per E-Mail durch Admins (Standard), Selbstregistrierung abschaltbar (Standard: aus). Alternativ legt die erste Anmeldung über authentik das Konto an (Abschnitt 4.7).
+- **Passwörter:** Argon2id, Mindestlänge 12, keine Kompositionsregeln. Zurücksetzen per E-Mail (zeitlich begrenzter Einmal-Link); ein Admin kann zusätzlich einen neuen Einladungslink erzeugen.
+- **Zweiter Faktor:** TOTP mit Wiederherstellungscodes für lokale Konten; für Admins erzwingbar. Bei Anmeldung über authentik übernimmt authentik den zweiten Faktor. Später Passkeys (WebAuthn).
+- **Sicherheitsmeldungen per E-Mail:** Anmeldung von neuem Gerät, geändertes Passwort, 2FA an/aus, neues API-Token.
 - **Sitzungen:** serverseitig in der Datenbank, Cookie `HttpOnly; Secure; SameSite=Lax`, neue Sitzungs-ID bei Anmeldung, Leerlauf- und absolutes Zeitlimit, Liste aktiver Sitzungen mit „abmelden“.
 - **Schutz:** CSRF-Token für Formulare und HTMX-Anfragen, Drosselung je IP und Konto, gleiche Fehlermeldung für falschen Benutzer und falsches Passwort.
 - **API- und Embed-Tokens:** Persönliche Tokens mit Ablaufdatum und eingeschränktem Umfang (nur lesen, nur bestimmte Boards), z. B. für das Dashy-iframe während des Umstiegs oder Skripte.
-- **Später optional:** Anmeldung über OIDC (Authentik, Keycloak, Pocket ID …) als *zusätzliche* Methode. Konten, Teams und Rechte bleiben im Dashboard.
-- **Audit-Log:** Anmeldungen, fehlgeschlagene Versuche, Änderungen an Rechten, Verbindungen und Zugangsdaten, Board-Änderungen.
+- **Audit-Log:** Anmeldungen (lokal und authentik), fehlgeschlagene Versuche, Änderungen an Rechten, Verbindungen und Zugangsdaten, Board-Änderungen.
+
+### 4.7 Single Sign-on mit authentik (OIDC)
+
+authentik ist ein **zusätzlicher** Anmeldeweg. Konten, Teams und Rechte bleiben im Dashboard; die lokale Anmeldung bleibt als Notzugang erhalten.
+
+**In authentik:** Provider vom Typ *OAuth2/OpenID Provider* (vertraulicher Client) und eine Application, z. B. mit Slug `dashboard`.
+
+| Einstellung | Wert |
+|---|---|
+| Redirect URI | `https://dashboard.example.lan/auth/oidc/callback` |
+| Scopes | `openid`, `profile`, `email` (die Standard-Zuordnung für `profile` liefert auch `groups`) |
+| Issuer / Discovery | `https://auth.example.lan/application/o/dashboard/` bzw. `…/.well-known/openid-configuration` |
+| Zugriff | Binding an die Gruppe `dashboard-users`, damit nur diese Benutzer sich anmelden können |
+
+**Im Dashboard** (Admin-Einstellungen, alternativ per Env beim ersten Start):
+
+- Issuer-URL, Client-ID, Client-Secret (verschlüsselt gespeichert). Knopf „Verbindung testen“ lädt die Discovery und prüft die Schlüssel.
+- Ablauf: Authorization Code Flow mit PKCE, `state` und `nonce`; das ID-Token wird gegen die JWKS von authentik geprüft (Signatur, Issuer, Audience, Ablauf).
+- **Kontozuordnung** über `sub` (stabil, ändert sich nicht bei Umbenennung). Bestehende lokale Konten werden verknüpft, indem der Benutzer angemeldet in seinem Profil „Mit authentik verknüpfen“ wählt. Eine automatische Zuordnung über die E-Mail-Adresse nur, wenn authentik `email_verified` liefert und der Admin es erlaubt.
+- **Automatisches Anlegen** (optional): Erste Anmeldung über authentik legt ein Konto samt persönlichem Bereich an.
+- **Gruppen → Rollen und Teams** (optional): z. B. `dashboard-admins` → Instanz-Admin, `team-it` → Team „IT“ als Editor. Wird bei jeder Anmeldung abgeglichen; von Hand vergebene Mitgliedschaften bleiben unberührt.
+- **Modus „nur authentik“:** blendet das Passwortfeld aus. Ausgenommen sind als Notzugang markierte lokale Admin-Konten (erreichbar über `/login?local`), damit ein Ausfall von authentik nicht aussperrt.
+- **Abmelden:** beendet die Dashboard-Sitzung und leitet optional an den `end_session_endpoint` von authentik weiter.
+- **Deaktivierte Benutzer:** Sitzungen über authentik haben eine kürzere absolute Laufzeit (Standard 12 h). Wer in authentik gesperrt wird, kommt danach nicht mehr hinein.
 
 ---
 
@@ -298,7 +323,7 @@ Das Dashboard übernimmt die Rolle von Dashy als Startseite. Migriert werden die
 | Minimal-Ansicht (`/minimal`) | Board-Ansicht `?view=compact`: nur Suche und Kacheln | Soll |
 | Als App installieren (PWA) | Web-App-Manifest und Icon | Soll |
 | Cloud-Backup der Konfiguration | Export als YAML/ZIP, Datenbank-Backup des Volumes | Nein |
-| Keycloak-Anbindung | Später OIDC als zusätzliche Anmeldemethode (Abschnitt 4.6) | Später |
+| Keycloak-Anbindung | Single Sign-on über authentik per OIDC (Abschnitt 4.7) | Muss |
 | Übrige Dashy-Widgets (Krypto, GitHub-Trending, Sport …) | Nicht migriert, der Import-Assistent listet sie auf. Bei Bedarf als eigener Widget-Typ | Später |
 
 ### 7.2 Widget-Modell
@@ -544,7 +569,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 - [ ] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit
 - [ ] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften
-- [ ] Datenbank mit SQLAlchemy + Alembic (SQLite, PostgreSQL getestet in CI)
+- [ ] Datenbank mit SQLAlchemy + Alembic (SQLite im WAL-Modus)
 - [ ] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
 - [ ] Anmeldung: Einrichtungscode, lokale Konten (Argon2id), Sitzungen, CSRF, Drosselung, Abmelden
 - [ ] Zentrale Berechtigungsprüfung in der Service-Schicht, Tests als Rechte-Matrix (Rolle × Recht × Ressource)
@@ -573,7 +598,8 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 2: Mehrbenutzer und Teams (v0.3)
 
-- [ ] Einladungen, Selbstregistrierung (abschaltbar), Passwort zurücksetzen (SMTP oder Admin)
+- [ ] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen
+- [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, optionales automatisches Anlegen, Gruppen → Rollen/Teams, Modus „nur authentik“ mit Notzugang
 - [ ] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste
 - [ ] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche
 - [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“
@@ -618,7 +644,8 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 ### Phase 7: Erinnerungen und Benachrichtigungen (v0.8)
 
 - [ ] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token)
-- [ ] Benachrichtigungen über Apprise (ntfy, Gotify, E-Mail, Matrix …), Kanäle und Mindeststufe je Benutzer
+- [ ] Benachrichtigungen über Apprise (ntfy, Gotify, Matrix …) und über den vorhandenen SMTP-Server; Kanäle und Mindeststufe je Benutzer
+- [ ] Digest als HTML-E-Mail im Design System (mit Textversion)
 - [ ] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
 - [ ] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
 
@@ -630,7 +657,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 9: Ausbau (v1.0)
 
-- [ ] Passkeys (WebAuthn), OIDC als zusätzliche Anmeldemethode
+- [ ] Passkeys (WebAuthn) für lokale Konten
 - [ ] CodeMirror in der Code-Ansicht
 - [ ] Weitere Dashy-Widgets nach Bedarf (Liste aus dem Import-Bericht)
 - [ ] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf
@@ -645,7 +672,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - **Trennung:** Jede Abfrage ist auf erlaubte Bereiche beschränkt; Tests prüfen für jede Route, dass fremde Bereiche nicht erreichbar sind. Instanz-Admins verwalten Konten, sehen aber keine persönlichen Inhalte.
 - **Netz:** Ausgehende Verbindungen nur zu den konfigurierten Diensten, Feeds, Statuszielen und Icon-Quellen. Keine externen CDNs zur Laufzeit; Icons werden einmal geholt und lokal zwischengespeichert. Weil Benutzer selbst URLs für Statusprüfungen, Feeds und Verbindungen eintragen, kann ein Instanz-Admin festlegen, welche Netze und Hosts erreichbar sein dürfen (Positivliste). Das verhindert, dass eingeladene Benutzer das Dashboard als Scanner für das interne Netz missbrauchen.
 - **Daten:** Datenbank und Icons unter `/data`, Aufbewahrung konfigurierbar (z. B. Snapshots 24 Monate, Dawarich-Aggregate 12 Monate, Audit-Log 12 Monate). Löschen eines Benutzers löscht seinen persönlichen Bereich vollständig.
-- **Backup:** `dashboard backup` erzeugt ein konsistentes Abbild (SQLite-Backup-API bzw. `pg_dump`) plus Icons und Themes.
+- **Backup:** `dashboard backup` erzeugt ein konsistentes Abbild (SQLite-Backup-API) plus Icons und Themes.
 - **Robustheit:** Ein ausgefallener Dienst lässt das Dashboard nicht ausfallen. Das Widget zeigt den letzten Stand mit Alter und `.pill[data-state="failed"]`, dazu ein Hinweis `system.connector_down` im Bereich der Verbindung.
 - **Beobachtbarkeit:** `/healthz`, strukturierte Logs, optional `/metrics` (Prometheus, nur mit Token).
 
@@ -662,13 +689,18 @@ services:
     environment:
       TZ: Europe/Berlin
       BASE_URL: https://dashboard.example.lan
-      DATABASE_URL: sqlite:////data/dashboard.db   # oder postgresql://…
-      SMTP_URL: smtp://mail.example.lan:587        # optional, für Einladungen und Passwort-Reset
-    secrets: [master_key]
+      SMTP_URL: smtp://dashboard@mail.example.lan:587?starttls=true
+      SMTP_FROM: "dashboard <dashboard@example.lan>"
+      # optional beim ersten Start, sonst in den Admin-Einstellungen:
+      OIDC_ISSUER: https://auth.example.lan/application/o/dashboard/
+      OIDC_CLIENT_ID: dashboard
+    secrets: [master_key, smtp_password, oidc_client_secret]
     ports: ["8080:8080"]
 
 secrets:
-  master_key: { file: ./secrets/master_key }   # z. B. `openssl rand -base64 32`
+  master_key:         { file: ./secrets/master_key }   # z. B. `openssl rand -base64 32`
+  smtp_password:      { file: ./secrets/smtp_password }
+  oidc_client_secret: { file: ./secrets/oidc_client_secret }
 ```
 
 **Beispiel YAML-Export eines Bereichs (Ausschnitt)**
@@ -754,7 +786,8 @@ dashboard/
 │   ├── main.py              ← FastAPI, Routen, Scheduler-Start
 │   ├── settings.py          ← Betriebswerte aus Env/Secrets
 │   ├── db/                  ← SQLAlchemy-Modelle, Sitzung, Revisionen
-│   ├── auth/                ← Konten, Passwörter, Sitzungen, CSRF, TOTP, Tokens, Einrichtungscode
+│   ├── auth/                ← Konten, Passwörter, Sitzungen, CSRF, TOTP, Tokens, Einrichtungscode, oidc.py (authentik)
+│   ├── mail/                ← SMTP-Versand, Vorlagen (Einladung, Reset, Sicherheit, Digest)
 │   ├── access/              ← Bereiche, Rollen, Freigaben, zentrale Prüfung (`can(user, right, resource)`)
 │   ├── crypto.py            ← Verschlüsselung der Zugangsdaten
 │   ├── sources/             ← base.py, kimai.py, invoiceninja.py, snipeit.py, dawarich.py,
@@ -782,20 +815,26 @@ dashboard/
 └── tests/
     ├── fixtures/            ← anonymisierte API-Antworten je Dienst, Dashy-conf.yml, RSS-Beispiele
     ├── access/              ← Rechte-Matrix, Bereichstrennung je Route
-    ├── auth/                ← Anmeldung, Sitzungen, CSRF, Drosselung
+    ├── auth/                ← Anmeldung, Sitzungen, CSRF, Drosselung, OIDC gegen einen Test-Provider
     └── rules/               ← ein Test pro Regel
 ```
 
 ---
 
-## 13. Offene Fragen
+## 13. Entscheidungen
+
+| Thema | Entscheidung |
+|---|---|
+| Benutzerzahl | 1–10 Benutzer → SQLite im WAL-Modus, kein PostgreSQL |
+| E-Mail | Vorhandener SMTP-Server für Einladungen, Passwort-Reset, Sicherheitsmeldungen und Digest |
+| Single Sign-on | authentik per OIDC als zusätzlicher Anmeldeweg in Phase 2, lokale Anmeldung als Notzugang |
+
+## 14. Offene Fragen
 
 1. **Versionen:** Welche Kimai- und Invoice-Ninja-Versionen laufen (v5 self-hosted?), und bieten holiday-/abrechnung-bundle eigene API-Endpunkte?
 2. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Import und korrigiert die Prioritäten in 7.1.
-3. **Benutzerzahl:** Wie viele Benutzer und Teams sind realistisch? Davon hängt ab, ob SQLite als Standard reicht oder PostgreSQL empfohlen wird.
-4. **E-Mail:** Gibt es einen SMTP-Server für Einladungen und Passwort-Reset?
-5. **OIDC:** Soll später eine Anmeldung über einen vorhandenen Identity Provider (Authentik, Keycloak, Pocket ID …) dazukommen?
-6. **Benachrichtigungen:** Welche Kanäle sind vorhanden (ntfy, Gotify, E-Mail, Matrix)?
-7. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 8.2/8.5 ab.
-8. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
-9. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
+3. **authentik-Gruppen:** Sollen Gruppen aus authentik Rollen und Teams automatisch steuern, oder werden Teams nur im Dashboard gepflegt? Und sollen Konten bei der ersten Anmeldung automatisch angelegt werden?
+4. **Benachrichtigungen:** Gibt es neben E-Mail weitere Kanäle (ntfy, Gotify, Matrix)?
+5. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 8.2/8.5 ab.
+6. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
+7. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
