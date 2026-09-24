@@ -85,6 +85,8 @@ Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **
 | Web | FastAPI + Jinja2 + HTMX | serverseitig gerendert, kaum JavaScript, passt zum CSS-only Design System |
 | Datenbank | SQLAlchemy 2 + Alembic; SQLite im WAL-Modus | reicht für 1–10 Benutzer problemlos, ein Volume, einfaches Backup; Migrationen bei jedem Update. Durch SQLAlchemy bleibt PostgreSQL später möglich, wird aber nicht unterstützt oder getestet |
 | Anmeldung | `argon2-cffi`, serverseitige Sitzungen, `pyotp` (TOTP), `authlib` (OIDC für authentik), später `webauthn` | eigene Anmeldung, dazu Single Sign-on über authentik |
+| Übersetzung | Babel + Jinja2-i18n (gettext, `.po`-Dateien) | Oberfläche, Hinweise und E-Mails auf Deutsch und Englisch; Zahlen, Beträge und Datumsangaben im Format der Sprache |
+| Benachrichtigungen | Apprise | ein Baustein für alle Kanäle (ntfy, Gotify, Matrix, Telegram, E-Mail …), je Benutzer eine Liste von Apprise-URLs |
 | E-Mail | `aiosmtplib`, Vorlagen im Design System | Einladungen, Passwort-Reset, Sicherheitsmeldungen, Digest |
 | Geheimnisse | `cryptography` (AES-GCM), Hauptschlüssel aus Docker Secret | API-Tokens verschlüsselt in der Datenbank |
 | HTTP | `httpx` (async) | parallele Abrufe, Timeouts, Retries |
@@ -108,13 +110,15 @@ Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **
 id: kimai.unbilled_hours:customer-12
 space: personal:alex    # Bereich, zu dem der Hinweis gehört
 severity: warn          # info | warn | critical
-title: "38 h bei Kunde Muster GmbH noch nicht abgerechnet"
-why: "Nicht exportierte Zeiteinträge älter als 30 Tage (ältester: 12.08.)"
-action: { label: "In Kimai öffnen", url: "https://kimai.example/…" }
+message: kimai.unbilled_hours          # Übersetzungsschlüssel, kein fertiger Text
+params: { hours: 38, customer: "Muster GmbH", days: 30, oldest: 2026-08-12 }
+action: { label: open_in_kimai, url: "https://kimai.example/…" }
 due: 2026-10-10         # optional, für Fristen
 source: [kimai, invoiceninja]
 state: open             # open | snoozed | acknowledged | resolved (je Benutzer oder für das Team)
 ```
+
+Hinweise speichern **Schlüssel und Parameter statt fertiger Sätze**. So erscheint derselbe Hinweis für jeden Benutzer in seiner Sprache („38 h bei Kunde Muster GmbH noch nicht abgerechnet“ / „38 h for Muster GmbH not yet billed“), und Zahlen und Datumsangaben werden passend formatiert.
 
 **Regeln** gibt es in zwei Formen:
 
@@ -390,11 +394,11 @@ Getestet wird der Import mit einer anonymisierten Kopie der eigenen `conf.yml` a
 
 ## 8. Die Dienste: Daten und Hinweise
 
-Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines Bereichs (Abschnitt 4.4). Endpunkte beim Bau gegen die jeweilige Version prüfen (Kimai: `/api/doc`, Dawarich: `/api-docs`).
+Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines Bereichs (Abschnitt 4.4). Unterstützt wird jeweils die aktuelle Version eines Dienstes. Jede Quelle meldet die gefundene Version im Verbindungstest; ist sie älter als die getestete Mindestversion, erscheint ein Hinweis `system.version_outdated`. Die Fixtures der Tests werden bei jedem größeren Update der Dienste neu aufgenommen. Endpunkte beim Bau gegen die jeweilige Version prüfen (Kimai: `/api/doc`, Dawarich: `/api-docs`).
 
 ### 8.1 Kimai (Zeiterfassung)
 
-**Daten:** `GET /api/timesheets` (Filter `begin`, `end`, `exported`), `/api/timesheets/active`, `/api/projects`, `/api/customers`, `/api/activities`. Authentifizierung per Bearer-API-Token (ältere Versionen: `X-AUTH-USER`/`X-AUTH-TOKEN`). Falls die eigenen Bundles Endpunkte anbieten, kommen Abwesenheiten und Soll-Arbeitszeit aus dem **kimai-holiday-bundle** und der Abrechnungsstatus aus dem **kimai-abrechnung-bundle**.
+**Daten:** `GET /api/timesheets` (Filter `begin`, `end`, `exported`), `/api/timesheets/active`, `/api/projects`, `/api/customers`, `/api/activities`. Ziel ist die **jeweils aktuelle Kimai-2-Version**; Authentifizierung nur per Bearer-API-Token (die alte Anmeldung über `X-AUTH-USER`/`X-AUTH-TOKEN` wird nicht unterstützt). Falls die eigenen Bundles Endpunkte anbieten, kommen Abwesenheiten und Soll-Arbeitszeit aus dem **kimai-holiday-bundle** und der Abrechnungsstatus aus dem **kimai-abrechnung-bundle**.
 
 **Kennzahlen:** Stunden (Woche/Monat/Jahr), davon abrechenbar, Auslastung gegen Soll, Stunden je Kunde/Projekt, Budgetverbrauch je Projekt, nicht exportierte Stunden und deren Alter.
 
@@ -411,9 +415,9 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines
 
 ### 8.2 Invoice Ninja v5 (Rechnungen, Zahlungen, Ausgaben)
 
-**Daten:** `GET /api/v1/invoices` (u. a. `client_status=unpaid|overdue`), `/payments`, `/clients`, `/quotes`, `/recurring_invoices`, `/expenses`. Header `X-API-TOKEN` und `X-Requested-With: XMLHttpRequest`.
+**Daten:** `GET /api/v1/invoices` (u. a. `client_status=unpaid|overdue`), `/payments`, `/clients`, `/quotes`, `/recurring_invoices`, `/expenses`. Header `X-API-TOKEN` und `X-Requested-With: XMLHttpRequest`. Ziel ist die **jeweils aktuelle Invoice-Ninja-v5-Version** (self-hosted).
 
-**Kennzahlen:** Umsatz netto/brutto (Monat, YTD, Vorjahr), offene Posten und deren Alter, Zahlungsdauer je Kunde (Days Sales Outstanding), Umsatzanteil je Kunde, Ausgaben, grober Überschuss, effektiver Stundensatz (Umsatz / Kimai-Stunden).
+**Kennzahlen:** Umsatz netto (Monat, YTD, Vorjahr; die Umsatzsteuer ist kein Umsatz), vereinnahmte Umsatzsteuer, Vorsteuer aus Ausgaben, voraussichtliche Zahllast, offene Posten und deren Alter, Zahlungsdauer je Kunde (Days Sales Outstanding), Umsatzanteil je Kunde, Ausgaben, grober Überschuss, effektiver Stundensatz (Umsatz / Kimai-Stunden).
 
 | Regel | Bedingung (Standard) | Stufe |
 |---|---|---|
@@ -423,8 +427,10 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines
 | `in.quote_open` | Angebot versendet, nach 14 Tagen ohne Reaktion | info (Nachfassen) |
 | `in.recurring_ending` | Wiederkehrende Rechnung endet in < 30 Tagen | info |
 | `in.revenue_vs_goal` | Umsatz YTD unter anteiligem Jahresziel | info |
-| `in.tax_reserve` | Empfohlene Steuerrücklage (x % der Zahlungseingänge) gegen erfasste Rücklage | info |
-| `in.small_business_limit` | Kleinunternehmergrenze § 19 UStG: Vorjahr > 25.000 € oder laufendes Jahr nähert sich 100.000 € | warn / critical |
+| `in.tax_reserve` | Empfohlene Rücklage: Umsatzsteuer-Zahllast des laufenden Zeitraums + x % des Netto-Überschusses für die Einkommensteuer, verglichen mit der erfassten Rücklage | info |
+| `in.vat_liability` | Voraussichtliche USt-Zahllast des laufenden Voranmeldungszeitraums (Umsatzsteuer aus Zahlungseingängen bei Ist-Versteuerung bzw. aus Rechnungen bei Soll-Versteuerung, minus Vorsteuer aus Ausgaben) | info, vor der Frist warn |
+| `in.missing_vat` | Rechnung an inländischen Kunden ohne Umsatzsteuer, oder an EU-Kunden ohne USt-IdNr. bei 0 % (Reverse Charge prüfen) | warn |
+| `in.expense_no_input_vat` | Ausgabe ohne erfasste Vorsteuer, obwohl der Lieferant üblicherweise Umsatzsteuer ausweist | info |
 | `in.client_concentration` | Ein Kunde > 50 % des Umsatzes (Klumpenrisiko), > 5/6 über 12 Monate (Hinweis auf Prüfung Rentenversicherungspflicht als arbeitnehmerähnlicher Selbständiger) | info / warn |
 
 ### 8.3 Snipe-IT (Assets, Lizenzen)
@@ -465,9 +471,10 @@ Alle Abrufe laufen read-only mit eigenen API-Tokens über die Verbindungen eines
 
 | Regel | Inhalt |
 |---|---|
-| `tax.vat_return` | Umsatzsteuer-Voranmeldung zum 10. (Monat/Quartal, Dauerfristverlängerung konfigurierbar) |
+| `tax.vat_return` | Umsatzsteuer-Voranmeldung zum 10. (Monat/Quartal, Dauerfristverlängerung konfigurierbar), mit der voraussichtlichen Zahllast aus `in.vat_liability` |
+| `tax.vat_annual` | Umsatzsteuer-Jahreserklärung |
 | `tax.prepayment` | ESt-Vorauszahlungen 10.03., 10.06., 10.09., 10.12. mit Betrag aus Konfiguration |
-| `tax.annual` | Jahresabschluss/EÜR-Erinnerung mit eigener Frist |
+| `tax.annual` | EÜR und Einkommensteuererklärung mit eigener Frist (freiberuflich: keine Gewerbesteuer) |
 | `digest.weekly` | Montag: Stunden, Umsatz, offene Posten, neue Hinweise der Woche |
 | `digest.monthly` | Monatsanfang: Vormonat abschließen (Export in Kimai → Rechnung in Invoice Ninja → Fahrtkosten aus Dawarich) |
 
@@ -484,7 +491,7 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 - `shrippen.css`, `shrippen.js` und die Schriften werden als **Kopie in dieses Repo** gelegt (`app/static/vendor/shrippen/`, Quelle und Stand in einer `VERSION`-Datei vermerkt). Die Token-Werte daraus bilden `themes/shrippen/`. Das Dashboard funktioniert so auch ohne Internet und wandert nicht ungeprüft mit dem CDN mit. Aktualisiert wird bewusst per Skript (`tools/sync-design.sh`).
 - Schriften (Rajdhani 500/600/700, JetBrains Mono 400/500) werden **lokal** ausgeliefert, nicht von Google Fonts (Datenschutz, offline).
 - Hell/dunkel über `<html data-theme="light">`; die Wahl wird im Benutzerprofil gespeichert, nicht nur im Browser.
-- Sprachumschaltung DE/EN kommt über den vorhandenen `.lang`-Mechanismus mit, die Wahl ebenfalls im Profil.
+- Sprachumschaltung DE/EN mit dem `.lang`-Umschalter des Design Systems. Anders als auf den Landing Pages werden die Seiten aber auf dem Server in der gewählten Sprache gerendert (nicht beide Sprachen im HTML); die Wahl steht im Profil.
 
 **Vorhandene Komponenten wiederverwenden**
 
@@ -569,6 +576,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 - [ ] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit
 - [ ] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften
+- [ ] Übersetzung von Anfang an: alle Texte über gettext (DE/EN), Formatierung mit Babel, Sprache aus Profil bzw. `Accept-Language` beim ersten Besuch; CI prüft, dass keine Übersetzung fehlt
 - [ ] Datenbank mit SQLAlchemy + Alembic (SQLite im WAL-Modus)
 - [ ] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
 - [ ] Anmeldung: Einrichtungscode, lokale Konten (Argon2id), Sitzungen, CSRF, Drosselung, Abmelden
@@ -644,15 +652,16 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 ### Phase 7: Erinnerungen und Benachrichtigungen (v0.8)
 
 - [ ] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token)
-- [ ] Benachrichtigungen über Apprise (ntfy, Gotify, Matrix …) und über den vorhandenen SMTP-Server; Kanäle und Mindeststufe je Benutzer
-- [ ] Digest als HTML-E-Mail im Design System (mit Textversion)
+- [ ] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten; E-Mail-Benachrichtigungen nutzen den vorhandenen SMTP-Server
+- [ ] Texte der Benachrichtigungen in der Sprache des Empfängers
+- [ ] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers
 - [ ] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
 - [ ] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
 
 ### Phase 8: Trends und Prognosen (v0.9)
 
 - [ ] Verlaufsdiagramme aus Snapshots (Umsatz, Stunden, offene Posten)
-- [ ] Hochrechnung Jahresumsatz, Kleinunternehmergrenze, Steuerrücklage
+- [ ] Hochrechnung Jahresumsatz, Umsatzsteuer-Zahllast und Steuerrücklage
 - [ ] Vergleich Vorjahr, saisonale Muster, Liquiditätsvorschau (offene Posten + wiederkehrende Rechnungen − feste Ausgaben)
 
 ### Phase 9: Ausbau (v1.0)
@@ -710,11 +719,11 @@ Dasselbe Format dient für Export, Import, Code-Ansicht und `seed.yml`. Zugangsd
 ```yaml
 space: personal:alex
 settings:
-  locale: de
+  locale: de             # de | en; Standard für neue Benutzer im Bereich
   search: { engine: "https://searx.example.lan/search?q={query}" }
   goals: { revenue_year: 90000, billable_ratio: 0.7, hours_week_max: 45 }
   tax:
-    vat_return: { interval: monthly, extension: true }
+    vat: { method: ist, return_interval: monthly, extension: true }   # ist | soll; monthly | quarterly
     prepayments: { amount: 1200 }
 
 connections:
@@ -800,6 +809,7 @@ dashboard/
 │   ├── metrics/             ← Kennzahlen je Bereich
 │   ├── rules/               ← Regeln je Dienst + cross.py (dienstübergreifend) + deadlines.py
 │   ├── notify/              ← Apprise, Digest-Vorlagen
+│   ├── i18n/                ← de/ und en/ (.po/.mo), Babel-Konfiguration
 │   ├── cli.py               ← import-dashy, backup, rotate-key, create-admin
 │   ├── templates/           ← Jinja-Seiten und Partials (HTMX)
 │   └── static/
@@ -828,13 +838,15 @@ dashboard/
 | Benutzerzahl | 1–10 Benutzer → SQLite im WAL-Modus, kein PostgreSQL |
 | E-Mail | Vorhandener SMTP-Server für Einladungen, Passwort-Reset, Sicherheitsmeldungen und Digest |
 | Single Sign-on | authentik per OIDC als zusätzlicher Anmeldeweg in Phase 2, lokale Anmeldung als Notzugang |
+| Kimai, Invoice Ninja | Unterstützt wird jeweils die aktuelle Version (Kimai 2, Invoice Ninja v5 self-hosted) |
+| Benachrichtigungen | Alle Kanäle über Apprise, je Benutzer konfigurierbar |
+| Steuerstatus | Freiberuflich, umsatzsteuerpflichtig (keine Kleinunternehmerregelung, keine Gewerbesteuer). Die Kleinunternehmer-Regel entfällt; dazu kommen Regeln zu USt-Zahllast, Vorsteuer und fehlender Umsatzsteuer |
+| Sprache | Deutsch und Englisch, je Benutzer wählbar; Hinweise und E-Mails in der Sprache des Empfängers |
 | authentik-Gruppen | Bestimmen beim automatischen Anlegen eines Kontos die Start-Rolle und Start-Teams; danach werden Rollen und Teams nur im Dashboard gepflegt, kein Abgleich bei späteren Anmeldungen |
 
 ## 14. Offene Fragen
 
-1. **Versionen:** Welche Kimai- und Invoice-Ninja-Versionen laufen (v5 self-hosted?), und bieten holiday-/abrechnung-bundle eigene API-Endpunkte?
+1. **Eigene Kimai-Bundles:** Bieten kimai-holiday-bundle und kimai-abrechnung-bundle API-Endpunkte (Abwesenheiten, Soll-Arbeitszeit, Abrechnungsstatus), oder sollen sie welche bekommen?
 2. **Dashy:** Welche Widgets nutzt die aktuelle `conf.yml` wirklich? Eine anonymisierte Kopie dient als Testfall für den Import und korrigiert die Prioritäten in 7.1.
-3. **Benachrichtigungen:** Gibt es neben E-Mail weitere Kanäle (ntfy, Gotify, Matrix)?
-4. **Steuerstatus:** Kleinunternehmer oder regelbesteuert, USt-VA monatlich oder quartalsweise? Davon hängen die Standardregeln in 8.2/8.5 ab.
-5. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
-6. **Sprache:** UI zweisprachig (DE/EN wie die Landing Pages) oder nur Deutsch?
+3. **Umsatzsteuer im Detail:** Ist-Versteuerung (bei Freiberuflern üblich) oder Soll-Versteuerung? Voranmeldung monatlich oder quartalsweise, mit Dauerfristverlängerung? Das sind nur Standardwerte, sie sind im Editor änderbar.
+4. **Dawarich:** Sind Kundenstandorte schon als Areas angelegt, und ist der Abgleich mit Kimai gewünscht?
