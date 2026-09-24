@@ -3,6 +3,8 @@
 Ein selbst gehostetes Dashboard, das Daten aus **Kimai**, **Invoice Ninja**, **Snipe-IT** und **Dawarich** zusammenführt, sie im **shrippen Design Default** darstellt und daraus **Hinweise, Erinnerungen und Ratschläge** ableitet. Auslieferung als **ein Docker-Container**.
 
 > Stand: Entwurf v0.1 · Arbeitstitel `dashboard`
+>
+> **Arbeitsort:** Die gesamte Entwicklung findet in diesem Repository (`shrippen/dashboard`) statt. Das Design-System-Repo `shrippen/shrippen.github.io` ist nur Quelle, es wird von hier aus nicht verändert.
 
 ---
 
@@ -195,7 +197,7 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 
 **Einbindung**
 
-- `shrippen.css` und `shrippen.js` werden **versioniert ins Image kopiert** (Build-Schritt holt `docs/v1/` aus `shrippen/shrippen.github.io`), damit das Dashboard auch ohne Internet funktioniert und nicht ungeprüft mit dem CDN mitwandert.
+- `shrippen.css`, `shrippen.js` und die Schriften werden als **Kopie in dieses Repo** gelegt (`app/static/vendor/shrippen/`, Quelle und Stand in einer `VERSION`-Datei vermerkt). Das Dashboard funktioniert so auch ohne Internet und wandert nicht ungeprüft mit dem CDN mit. Aktualisiert wird bewusst per Skript (`tools/sync-design.sh`).
 - Schriften (Rajdhani 500/600/700, JetBrains Mono 400/500) werden **lokal** aus `fonts/` ausgeliefert, nicht von Google Fonts (Datenschutz, offline).
 - Theme-Umschalter dunkel/hell über `<html data-theme="light">`, Wahl im `localStorage`.
 - Sprachumschaltung DE/EN kommt über den vorhandenen `.lang`-Mechanismus mit.
@@ -213,7 +215,7 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 | Snooze-Dialog | `.dialog`, `.scrim` |
 | Rückmeldung nach Aktion | `.toast` |
 
-**Neue Komponenten (upstream ins Design System zurückführen)**
+**Neue Komponenten (leben in diesem Repo, `app/static/dashboard.css`)**
 
 | Komponente | Zweck |
 |---|---|
@@ -223,7 +225,7 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 | `.timeline` | Fristen der nächsten 30 Tage |
 | Diagramm-Palette | Reihenfolge `--blue`, `--aqua`, `--yellow`, `--orange`, `--purple`, `--green`; Achsen `--fg3`, Gitter `--bg2` |
 
-Diese Komponenten werden zuerst im Dashboard entwickelt und danach in `css/components.css` des Design-System-Repos übernommen (plus Eintrag in `PROJECTS.md` und `projects.json`).
+Die Komponenten nutzen ausschließlich die Tokens des Design Systems (`var(--…)`), keine eigenen Hex-Werte. Ob sie später ins Design System wandern, ist eine eigene Entscheidung außerhalb dieses Projekts.
 
 **Layout-Skizze**
 
@@ -302,7 +304,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image.
 - [ ] Dashy-Ablösung (optional): Import `conf.yml` als Link-Kacheln, oder Einbettung über `/embed/*`
 - [ ] Weitere Connectors über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf
 - [ ] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar, nur Aggregate, keine Standortdaten)
-- [ ] Neue Komponenten (`.kpi`, `.hint`, `.timeline`) ins Design System übernehmen, Landing Page unter `shrippen.github.io/dashboard`
+- [ ] Komponenten-Übersicht (`.kpi`, `.hint`, `.timeline`) als Seite `/styleguide` im Dashboard, damit sie bei Bedarf ins Design System übernommen werden können
 
 ---
 
@@ -394,9 +396,10 @@ dashboard/
 │   ├── notify/              ← Apprise, Digest-Vorlagen
 │   ├── templates/           ← Jinja-Seiten und Partials (HTMX)
 │   └── static/
-│       ├── vendor/shrippen/ ← shrippen.css / shrippen.js (versioniert, per Build geholt)
-│       ├── fonts/
+│       ├── vendor/shrippen/ ← Kopie von shrippen.css / shrippen.js / Schriften + VERSION
 │       └── dashboard.css    ← nur neue Komponenten (.kpi, .hint, .timeline)
+├── tools/
+│   └── sync-design.sh       ← holt eine bestimmte Version des Design Systems nach vendor/
 └── tests/
     ├── fixtures/            ← anonymisierte API-Antworten je Dienst
     └── rules/               ← ein Test pro Regel
