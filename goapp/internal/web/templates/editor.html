@@ -100,6 +100,12 @@
       <label for="title">{{t "field.title"}}</label>
       <input id="title" name="title" value="{{if .Widget}}{{.Widget.Title}}{{end}}">
 
+      <label for="connection_id">{{t "field.connection"}}</label>
+      <select id="connection_id" name="connection_id">
+        <option value="">–</option>
+        {{range .Connections}}<option value="{{.ID}}"{{if and $.Widget (eqID $.Widget.ConnectionID .ID)}} selected{{end}}>{{.Name}}</option>{{end}}
+      </select>
+
       <label for="config">Config (JSON)</label>
       <textarea id="config" name="config">{{if .ConfigJSON}}{{.ConfigJSON}}{{else}}{}{{end}}</textarea>
 

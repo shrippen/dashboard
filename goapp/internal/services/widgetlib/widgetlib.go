@@ -9,9 +9,11 @@
 package widgetlib
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -19,10 +21,17 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
+	data "dashboard/internal/repos/data"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/hints"
+	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
 	"dashboard/internal/widgets"
 )
+
+// genericSources are query sources that resolve through the widget's own
+// connection service ("data" -> "kimai.data", "invoiceninja.data", ...).
+var genericSources = map[string]bool{"data": true, "test": true}
 
 var (
 	ErrNotFound         = util.ErrNotFound
@@ -276,6 +285,172 @@ func Delete(d *sql.DB, who *access.Principal, widgetID int64) error {
 		}
 		return content.RemoveWidget(tx, widget.ID)
 	})
+}
+
+// ── Display ──
+
+// Slot is one query's result, ready for a widget template.
+type Slot struct {
+	Data              any
+	Error             string
+	OkAt              time.Time
+	MissingCredential string // connection name, "" if credentials are fine
+}
+
+// Fragment is a widget's live view: its queries' results shaped by its
+// type's View function, plus its connection's hint badge. Ports the
+// display half of Python's app/services/widgets.py ("load").
+type Fragment struct {
+	WidgetID  int64
+	Type      string
+	Title     string
+	Config    any
+	Slots     map[string]Slot
+	HintCount int
+	HintLevel enums.Severity
+	View      map[string]any
+}
+
+func sourceFor(q widgets.Query, target *model.Connection) string {
+	if target != nil && genericSources[q.Source] {
+		return target.Service + "." + q.Source
+	}
+	return q.Source
+}
+
+// Load runs a widget's queries against its connection (svcdata.Get, so
+// caching and credential resolution apply) and shapes the results via its
+// type's View function.
+func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.Widget, fresh svcdata.Freshness) (*Fragment, error) {
+	kind, ok := widgets.Get(widget.Type)
+	if !ok {
+		return nil, ErrUnknownType
+	}
+	cfg, _ := widgets.Decode(widget.Type, widget.Config)
+	frag := &Fragment{WidgetID: widget.ID, Type: widget.Type, Title: widget.Title, Config: cfg, Slots: map[string]Slot{}}
+
+	var conn *model.Connection
+	var settings map[string]any
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		if widget.ConnectionID != nil {
+			c, err := content.Connection(tx, *widget.ConnectionID)
+			if err != nil {
+				return err
+			}
+			conn = c
+		}
+		space, err := content.Space(tx, widget.SpaceID)
+		if err != nil {
+			return err
+		}
+		if space != nil {
+			settings = space.Settings
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if settings == nil {
+		settings = map[string]any{}
+	}
+
+	// ConnUse.INFO (a widget naming a connection by key, e.g. the link
+	// widget's status line) is not wired up yet; those queries surface as
+	// "connection.missing" until that's ported alongside the remaining
+	// start widgets.
+	for _, q := range kind.Queries(cfg) {
+		var target *model.Connection
+		if q.Conn == widgets.ConnWidget {
+			target = conn
+		}
+		if q.Conn != widgets.ConnNone && target == nil {
+			frag.Slots[q.Name] = Slot{Error: "connection.missing"}
+			continue
+		}
+		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, fresh)
+	}
+
+	if conn != nil {
+		count, level, err := hints.CountFor(d, who, conn.ID)
+		if err != nil {
+			return nil, err
+		}
+		frag.HintCount, frag.HintLevel = count, level
+	}
+
+	if kind.Extra == widgets.ExtraPoints && conn != nil {
+		trend := cfg.(widgets.TrendConfig)
+		points, err := loadPoints(d, conn, who.UserID, string(trend.Metric), trend.Days)
+		if err != nil {
+			return nil, err
+		}
+		frag.Slots["points"] = Slot{Data: points}
+	}
+
+	if kind.View != nil {
+		viewCtx := widgets.ViewCtx{Today: time.Now().UTC().Format("2006-01-02"), Settings: settings}
+		if conn != nil {
+			viewCtx.Service, viewCtx.Options = conn.Service, conn.Options
+		}
+		results := map[string]any{}
+		for name, slot := range frag.Slots {
+			if slot.Data != nil {
+				results[name] = slot.Data
+			}
+		}
+		frag.View = kind.View(cfg, results, viewCtx)
+	}
+	if kind.Extra == widgets.ExtraHints {
+		hcfg := cfg.(widgets.HintsConfig)
+		views, err := hints.Active(d, who, enums.Severity(hcfg.MinSeverity), hcfg.Sources, hcfg.Limit)
+		if err != nil {
+			return nil, err
+		}
+		frag.View = map[string]any{"Hints": views}
+	}
+
+	return frag, nil
+}
+
+func runQuery(ctx context.Context, d *sql.DB, source string, params map[string]any, conn *model.Connection, userID int64, fresh svcdata.Freshness) Slot {
+	res, err := svcdata.Get(ctx, d, source, params, conn, &userID, fresh)
+	if err != nil {
+		if errors.Is(err, svcdata.ErrMissingCredential) {
+			name := ""
+			if conn != nil {
+				name = conn.Name
+			}
+			return Slot{MissingCredential: name}
+		}
+		return Slot{Error: "source.unknown"}
+	}
+	return Slot{Data: res.Data, Error: res.Error, OkAt: res.OkAt}
+}
+
+// loadPoints returns a trend widget's daily snapshots (written by the
+// analysis job), scoped to the connection and credential owner.
+func loadPoints(d *sql.DB, conn *model.Connection, userID int64, metric string, days int) ([][2]any, error) {
+	owner := svcdata.CredentialOwner(conn, &userID)
+	ownerID := int64(0)
+	if owner != nil {
+		ownerID = *owner
+	}
+	scope := fmt.Sprintf("%d:%d", conn.ID, ownerID)
+	since := time.Now().UTC().AddDate(0, 0, -days).Format("2006-01-02")
+
+	var out [][2]any
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		points, err := data.Points(tx, scope, metric, since)
+		if err != nil {
+			return err
+		}
+		for _, p := range points {
+			out = append(out, [2]any{p.Day, p.Value})
+		}
+		return nil
+	})
+	return out, err
 }
 
 // snapshot stores a revision of a widget's own fields. Simplification vs.

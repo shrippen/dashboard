@@ -8,6 +8,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/boards"
+	"dashboard/internal/services/connections"
 	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
 )
@@ -244,9 +245,28 @@ func (d Deps) handleWidgetNewForm(w http.ResponseWriter, r *http.Request) {
 		d.handleAuthError(w, r, err)
 		return
 	}
+	conns, err := connections.Listing(d.DB, ctx.Who, enums.RightUse)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	_ = Page(w, ctx, "widget_form", http.StatusOK, map[string]any{
-		"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "IsNew": true,
+		"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "Connections": conns, "IsNew": true,
 	})
+}
+
+// connectionID parses the widget form's optional "connection_id" field
+// ("" means no connection).
+func connectionID(r *http.Request) *int64 {
+	raw := r.FormValue("connection_id")
+	if raw == "" {
+		return nil
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return nil
+	}
+	return &id
 }
 
 func (d Deps) handleWidgetCreate(w http.ResponseWriter, r *http.Request) {
@@ -262,20 +282,28 @@ func (d Deps) handleWidgetCreate(w http.ResponseWriter, r *http.Request) {
 	spaceID, _ := strconv.ParseInt(r.FormValue("space_id"), 10, 64)
 	config, err := parseConfigJSON(r.FormValue("config"))
 	if err != nil {
-		_ = Page(w, ctx, "widget_form", http.StatusBadRequest, map[string]any{
-			"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "IsNew": true, "Error": err.Error(),
-		})
+		d.widgetFormError(w, ctx, true, nil, r.FormValue("config"), err)
 		return
 	}
 
-	id, err := widgetlib.Create(d.DB, ctx.Who, spaceID, r.FormValue("type"), r.FormValue("title"), config, nil, nil)
+	id, err := widgetlib.Create(d.DB, ctx.Who, spaceID, r.FormValue("type"), r.FormValue("title"), config, connectionID(r), nil)
 	if err != nil {
-		_ = Page(w, ctx, "widget_form", http.StatusBadRequest, map[string]any{
-			"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "IsNew": true, "Error": err.Error(),
-		})
+		d.widgetFormError(w, ctx, true, nil, r.FormValue("config"), err)
 		return
 	}
 	http.Redirect(w, r, "/widgets/"+strconv.FormatInt(id, 10)+"/edit", http.StatusSeeOther)
+}
+
+func (d Deps) widgetFormError(w http.ResponseWriter, ctx Ctx, isNew bool, widget any, configJSON string, err error) {
+	conns, connErr := connections.Listing(d.DB, ctx.Who, enums.RightUse)
+	if connErr != nil {
+		http.Error(w, connErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	_ = Page(w, ctx, "widget_form", http.StatusBadRequest, map[string]any{
+		"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "Connections": conns,
+		"Widget": widget, "ConfigJSON": configJSON, "IsNew": isNew, "Error": err.Error(),
+	})
 }
 
 func parseConfigJSON(raw string) (map[string]any, error) {
@@ -305,9 +333,15 @@ func (d Deps) handleWidgetEditForm(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
+	conns, err := connections.Listing(d.DB, ctx.Who, enums.RightUse)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	configJSON, _ := json.MarshalIndent(widget.Config, "", "  ")
 	_ = Page(w, ctx, "widget_form", http.StatusOK, map[string]any{
-		"Widget": widget, "ConfigJSON": string(configJSON), "Types": widgets.AllTypes(), "IsNew": false,
+		"Widget": widget, "ConfigJSON": string(configJSON), "Types": widgets.AllTypes(),
+		"Connections": conns, "IsNew": false,
 	})
 }
 
@@ -329,14 +363,11 @@ func (d Deps) handleWidgetUpdate(w http.ResponseWriter, r *http.Request) {
 	version, _ := strconv.Atoi(r.FormValue("version"))
 	config, err := parseConfigJSON(r.FormValue("config"))
 	if err == nil {
-		err = widgetlib.Update(d.DB, ctx.Who, id, version, r.FormValue("title"), config, nil, nil)
+		err = widgetlib.Update(d.DB, ctx.Who, id, version, r.FormValue("title"), config, connectionID(r), nil)
 	}
 	if err != nil {
 		widget, _, _ := widgetlib.Detail(d.DB, ctx.Who, id)
-		_ = Page(w, ctx, "widget_form", http.StatusBadRequest, map[string]any{
-			"Widget": widget, "ConfigJSON": r.FormValue("config"), "Types": widgets.AllTypes(),
-			"IsNew": false, "Error": err.Error(),
-		})
+		d.widgetFormError(w, ctx, false, widget, r.FormValue("config"), err)
 		return
 	}
 	http.Redirect(w, r, "/widgets", http.StatusSeeOther)

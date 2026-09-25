@@ -21,27 +21,7 @@ const (
 )
 
 func areaMapping(env Env) map[string]metrics.AreaMapping {
-	opts := env.Options[string(enums.ServiceDawarich)]
-	raw, _ := opts["areas"].(map[string]any)
-	out := map[string]metrics.AreaMapping{}
-	for name, v := range raw {
-		m, ok := v.(map[string]any)
-		if !ok {
-			continue
-		}
-		am := metrics.AreaMapping{}
-		if home, ok := m["home"].(bool); ok {
-			am.Home = home
-		}
-		switch cid := m["customer_id"].(type) {
-		case float64:
-			am.CustomerID = int64(cid)
-		case int64:
-			am.CustomerID = cid
-		}
-		out[name] = am
-	}
-	return out
+	return metrics.ParseAreaMapping(env.Options[string(enums.ServiceDawarich)])
 }
 
 func booked(kimai *sources.KimaiDataset) map[[2]any]bool {

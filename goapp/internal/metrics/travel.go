@@ -32,6 +32,31 @@ type AreaMapping struct {
 	Home       bool
 }
 
+// ParseAreaMapping decodes a Dawarich connection's "areas" option
+// (name -> {"customer_id": N} | {"home": true}).
+func ParseAreaMapping(options map[string]any) map[string]AreaMapping {
+	raw, _ := options["areas"].(map[string]any)
+	out := map[string]AreaMapping{}
+	for name, v := range raw {
+		m, ok := v.(map[string]any)
+		if !ok {
+			continue
+		}
+		am := AreaMapping{}
+		if home, ok := m["home"].(bool); ok {
+			am.Home = home
+		}
+		switch cid := m["customer_id"].(type) {
+		case float64:
+			am.CustomerID = int64(cid)
+		case int64:
+			am.CustomerID = cid
+		}
+		out[name] = am
+	}
+	return out
+}
+
 func areaOf(visit sources.DawarichVisit, areas []sources.DawarichArea) *sources.DawarichArea {
 	if visit.AreaID != 0 {
 		for i := range areas {

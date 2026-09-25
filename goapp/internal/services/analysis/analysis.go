@@ -18,11 +18,14 @@ import (
 
 	"dashboard/internal/db"
 	"dashboard/internal/enums"
+	"dashboard/internal/metrics"
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
+	data "dashboard/internal/repos/data"
 	"dashboard/internal/rules"
 	"dashboard/internal/services/hints"
 	"dashboard/internal/services/svcdata"
+	"dashboard/internal/sources"
 )
 
 const connectorRule = "system.connector_down"
@@ -163,6 +166,9 @@ func runConnection(ctx context.Context, d *sql.DB, conn *model.Connection, users
 
 		sc.datasets[conn.Service] = result.Data
 		sc.options[conn.Service] = conn.Options
+		if err := snapshot(d, conn, owner, result.Data, today); err != nil {
+			slog.Error("analysis: snapshot failed", "connection", conn.Name, "err", err)
+		}
 		env := rules.Env{Today: today, Settings: settings, Datasets: sc.datasets, Options: sc.options}
 		findings, ids := apply(rules.ForScope(conn.Service), result.Data, env)
 		n, err = syncHints(d, conn.SpaceID, owner, &conn.ID, ids, findings)
@@ -172,6 +178,38 @@ func runConnection(ctx context.Context, d *sql.DB, conn *model.Connection, users
 		fresh += n
 	}
 	return fresh, nil
+}
+
+// snapshot stores one value per metric and day, for the trend widget.
+func snapshot(d *sql.DB, conn *model.Connection, owner *int64, dataset any, today time.Time) error {
+	values := map[string]float64{}
+	switch conn.Service {
+	case "invoiceninja":
+		stats := metrics.NinjaSummaryOf(dataset.(*sources.NinjaDataset), today, "", "")
+		values["revenue_ytd"] = stats.RevenueYTD
+		values["open_amount"] = stats.OpenAmount
+	case "kimai":
+		stats := metrics.KimaiSummaryOf(dataset.(*sources.KimaiDataset), today, 0)
+		values["month_min"] = float64(stats.MonthMin)
+	}
+	if len(values) == 0 {
+		return nil
+	}
+
+	ownerID := int64(0)
+	if owner != nil {
+		ownerID = *owner
+	}
+	scope := fmt.Sprintf("%d:%d", conn.ID, ownerID)
+	day := today.Format("2006-01-02")
+	return db.WithTx(d, func(tx *sql.Tx) error {
+		for metric, value := range values {
+			if err := data.PutPoint(tx, scope, metric, day, value); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func runScope(d *sql.DB, sc *scope, today time.Time) (int, error) {

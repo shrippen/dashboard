@@ -9,6 +9,7 @@
 package boards
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -23,7 +24,9 @@ import (
 	"dashboard/internal/repos/content"
 	"dashboard/internal/repos/misc"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
+	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
 )
 
@@ -425,6 +428,17 @@ func PlacedWidget(d *sql.DB, who *access.Principal, placementID int64) (*model.W
 		return nil
 	})
 	return w, err
+}
+
+// Fragment loads one placed widget's live data for lazy tile rendering
+// (the board page's own render only shows title/type; the tile then
+// hx-gets this to fill in).
+func Fragment(ctx context.Context, d *sql.DB, who *access.Principal, placementID int64, fresh svcdata.Freshness) (*widgetlib.Fragment, error) {
+	w, err := PlacedWidget(d, who, placementID)
+	if err != nil {
+		return nil, err
+	}
+	return widgetlib.Load(ctx, d, who, w, fresh)
 }
 
 func orNotFound(err error) error {

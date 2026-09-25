@@ -103,6 +103,57 @@ func annual(today time.Time, tax TaxSettings, horizon time.Time) []TaxDeadline {
 	return found
 }
 
+// ParseTaxSettings decodes a space's "tax" settings key. ok is false when
+// the space has no tax settings configured at all.
+func ParseTaxSettings(settings map[string]any) (TaxSettings, bool) {
+	raw, ok := settings["tax"].(map[string]any)
+	if !ok {
+		return TaxSettings{}, false
+	}
+	tax := TaxSettings{}
+	if vat, ok := raw["vat"].(map[string]any); ok {
+		if interval, ok := vat["return_interval"].(string); ok {
+			tax.VATReturnInterval = interval
+		}
+		if ext, ok := vat["extension"].(bool); ok {
+			tax.VATExtension = ext
+		}
+	}
+	if prepay, ok := raw["prepayments"].(map[string]any); ok {
+		if amount, ok := prepay["amount"].(float64); ok {
+			tax.PrepaymentAmount = &amount
+		}
+	}
+	if annual, ok := raw["annual_due"].(string); ok {
+		tax.AnnualDueMonthDay = annual
+	}
+	return tax, true
+}
+
+// TaxVATInterval is the "monthly" (default) or "quarterly" VAT return
+// interval from a space's "tax" settings key.
+func TaxVATInterval(settings map[string]any) string {
+	raw, _ := settings["tax"].(map[string]any)
+	vat, _ := raw["vat"].(map[string]any)
+	interval, _ := vat["return_interval"].(string)
+	if interval == "" {
+		return "monthly"
+	}
+	return interval
+}
+
+// TaxVATMethod is the "ist" (cash, default) or "soll" (accrual) VAT
+// accounting method from a space's "tax" settings key.
+func TaxVATMethod(settings map[string]any) string {
+	raw, _ := settings["tax"].(map[string]any)
+	vat, _ := raw["vat"].(map[string]any)
+	method, _ := vat["method"].(string)
+	if method == "" {
+		return "ist"
+	}
+	return method
+}
+
 // UpcomingDeadlines returns every tax deadline within `days`, soonest first.
 func UpcomingDeadlines(tax TaxSettings, today time.Time, days int) []TaxDeadline {
 	horizon := today.AddDate(0, 0, days)

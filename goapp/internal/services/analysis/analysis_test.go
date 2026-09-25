@@ -14,6 +14,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
+	data "dashboard/internal/repos/data"
 	"dashboard/internal/services/analysis"
 )
 
@@ -126,5 +127,15 @@ func TestRunAllProducesKimaiHints(t *testing.T) {
 	d.QueryRow("SELECT COUNT(*) FROM hints WHERE resolved_at IS NULL").Scan(&totalOpen2)
 	if totalOpen2 != totalOpen {
 		t.Fatalf("expected stable hint count across runs, got %d then %d", totalOpen, totalOpen2)
+	}
+
+	// The trend widget reads these back via repos/data.Points.
+	today := time.Now().UTC()
+	points, err := data.Points(d, "1:0", "month_min", today.AddDate(0, 0, -1).Format("2006-01-02"))
+	if err != nil {
+		t.Fatalf("points: %v", err)
+	}
+	if len(points) != 1 || points[0].Value != 0 {
+		t.Fatalf("expected one month_min snapshot of 0, got %+v", points)
 	}
 }

@@ -19,6 +19,24 @@ import (
 	"dashboard/internal/web"
 )
 
+// fakeKimaiServer answers the Kimai API with zero of everything, enough
+// for kimai.data to succeed without a real Kimai instance.
+func fakeKimaiServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/timesheets", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Total-Pages", "1")
+		w.Write([]byte(`[]`))
+	})
+	mux.HandleFunc("/api/projects", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
+	mux.HandleFunc("/api/customers", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
+	mux.HandleFunc("/api/timesheets/active", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
+	mux.HandleFunc("/api/holiday/absences", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNotFound) })
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	return srv
+}
+
 func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	t.Helper()
 	crypto.Init("test-master-key")
@@ -41,6 +59,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterThemeRoutes(mux)
 	deps.RegisterConnectionRoutes(mux)
 	deps.RegisterEditorRoutes(mux)
+	deps.RegisterStaticRoutes(mux)
 
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
@@ -441,6 +460,105 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 	// picker; what must be gone is its unplace form for this placement id.
 	if strings.Contains(string(boardBody), "/placements/"+string(placementMatch[1])+"/unplace") {
 		t.Fatalf("expected the placement's unplace form gone from the board after unplace:\n%s", boardBody)
+	}
+}
+
+// TestWidgetFragmentRendersKimaiKpi drives a "kpi" widget end to end: a
+// real Kimai connection (a local fake server), a widget bound to it, placed
+// on the start board, then the lazy-loaded fragment route that renders its
+// live value.
+func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	kimai := fakeKimaiServer(t)
+
+	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new"))
+	if spaceMatch == nil {
+		t.Fatal("no space option found in new-connection form")
+	}
+	spaceID := string(spaceMatch[1])
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/connections", url.Values{
+		"csrf": {csrf}, "space_id": {spaceID}, "service": {"kimai"}, "name": {"Kimai"},
+		"url": {kimai.URL}, "mode": {"shared"}, "secret": {"tok"}, "tls": {"verify"},
+	})
+	if err != nil {
+		t.Fatalf("create connection: %v", err)
+	}
+	resp.Body.Close()
+	editLocation := resp.Header.Get("Location")
+	connMatch := regexp.MustCompile(`/connections/(\d+)/edit`).FindStringSubmatch(editLocation)
+	if connMatch == nil {
+		t.Fatalf("no connection id in redirect %q", editLocation)
+	}
+	connID := connMatch[1]
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/widgets", url.Values{
+		"csrf": {csrf}, "space_id": {spaceID}, "type": {"kpi"}, "title": {"Hours today"},
+		"connection_id": {connID}, "config": {`{"metric":"hours_today"}`},
+	})
+	if err != nil {
+		t.Fatalf("create widget: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after widget create, got %d", resp.StatusCode)
+	}
+
+	boardResp := getFollowingRedirect(t, srv, client, "/")
+	boardBody, _ := io.ReadAll(boardResp.Body)
+	boardResp.Body.Close()
+	boardURL := boardResp.Request.URL.Path
+	sectionMatch := regexp.MustCompile(`/boards/\d+/sections/(\d+)/place`).FindSubmatch(boardBody)
+	if sectionMatch == nil {
+		t.Fatalf("no section place form found on board page:\n%s", boardBody)
+	}
+	sectionID := string(sectionMatch[1])
+	versionMatch := regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
+	widgetIDMatch := regexp.MustCompile(`<option value="(\d+)">Hours today`).FindSubmatch(boardBody)
+	if widgetIDMatch == nil {
+		t.Fatalf("expected Hours today in the place-widget picker:\n%s", boardBody)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+sectionID+"/place", url.Values{
+		"csrf": {csrf}, "widget_id": {string(widgetIDMatch[1])}, "version": {string(versionMatch[1])},
+	})
+	if err != nil {
+		t.Fatalf("place: %v", err)
+	}
+	resp.Body.Close()
+
+	boardResp = getFollowingRedirect(t, srv, client, boardURL)
+	boardBody, _ = io.ReadAll(boardResp.Body)
+	boardResp.Body.Close()
+	placementMatch := regexp.MustCompile(`/placements/(\d+)/unplace`).FindSubmatch(boardBody)
+	if placementMatch == nil {
+		t.Fatalf("no placement found on board:\n%s", boardBody)
+	}
+
+	fragBody := mustGet(t, srv, client, "/widget-fragments/"+string(placementMatch[1]))
+	if !strings.Contains(string(fragBody), "kpi-value") {
+		t.Fatalf("expected a rendered kpi value, got:\n%s", fragBody)
+	}
+	if strings.Contains(string(fragBody), "widget.unsupported") {
+		t.Fatalf("kpi widget unexpectedly unsupported:\n%s", fragBody)
+	}
+
+	// The board page itself only lazy-loads the tile via htmx, plus vendors
+	// the htmx script that makes that work.
+	if !strings.Contains(string(boardBody), "hx-get=\"/widget-fragments/"+string(placementMatch[1])+"\"") {
+		t.Fatalf("expected the board tile to hx-get its fragment:\n%s", boardBody)
+	}
+	if !strings.Contains(string(boardBody), "/static/vendor/htmx/htmx.min.js") {
+		t.Fatal("expected the board page to load htmx")
+	}
+	htmxBody := mustGet(t, srv, client, "/static/vendor/htmx/htmx.min.js")
+	if len(htmxBody) < 1000 {
+		t.Fatalf("expected htmx.min.js to be served, got %d bytes", len(htmxBody))
 	}
 }
 

@@ -19,6 +19,12 @@
 </style>
 {{end}}
 
+{{/* Loaded only by pages with hx-get tiles (the board page), not every
+     page, to keep the login/setup flow free of it. */}}
+{{define "htmx"}}
+<script src="/static/vendor/htmx/htmx.min.js" defer></script>
+{{end}}
+
 {{define "header"}}
 <header>
   <a href="/">dashboard</a>

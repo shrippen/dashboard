@@ -6,15 +6,18 @@ import (
 	"strconv"
 
 	"dashboard/internal/services/boards"
+	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/services/util"
 	"dashboard/internal/services/widgetlib"
+	"dashboard/internal/widgets"
 )
 
-// RegisterBoardRoutes wires the home page and board view.
+// RegisterBoardRoutes wires the home page, board view and widget fragments.
 func (d Deps) RegisterBoardRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /{$}", d.handleHome)
 	mux.HandleFunc("GET /boards/{id}", d.handleBoardView)
+	mux.HandleFunc("GET /widget-fragments/{id}", d.handleWidgetFragment)
 }
 
 func (d Deps) handleHome(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +87,39 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 	_ = Page(w, ctx, "board", http.StatusOK, map[string]any{
 		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL, "Library": library,
 	})
+}
+
+// handleWidgetFragment renders one placed widget's live data (lazy-loaded
+// by the board page via htmx), so a slow source never blocks the page.
+func (d Deps) handleWidgetFragment(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Viewer(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	fresh := svcdata.Cached
+	if r.URL.Query().Has("refresh") {
+		fresh = svcdata.Force
+	}
+	frag, err := boards.Fragment(r.Context(), d.DB, ctx.Who, id, fresh)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+
+	kind, ok := widgets.Get(frag.Type)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	_ = Page(w, ctx, kind.Template, http.StatusOK, map[string]any{"Frag": frag})
 }
 
 func (d Deps) handleBoardError(w http.ResponseWriter, r *http.Request, err error) {

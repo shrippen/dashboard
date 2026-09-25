@@ -9,38 +9,11 @@ import (
 )
 
 func taxSettings(env Env) (metrics.TaxSettings, bool) {
-	raw, ok := env.Settings["tax"].(map[string]any)
-	if !ok {
-		return metrics.TaxSettings{}, false
-	}
-	tax := metrics.TaxSettings{}
-	if vat, ok := raw["vat"].(map[string]any); ok {
-		if interval, ok := vat["return_interval"].(string); ok {
-			tax.VATReturnInterval = interval
-		}
-		if ext, ok := vat["extension"].(bool); ok {
-			tax.VATExtension = ext
-		}
-	}
-	if prepay, ok := raw["prepayments"].(map[string]any); ok {
-		if amount, ok := prepay["amount"].(float64); ok {
-			tax.PrepaymentAmount = &amount
-		}
-	}
-	if annual, ok := raw["annual_due"].(string); ok {
-		tax.AnnualDueMonthDay = annual
-	}
-	return tax, true
+	return metrics.ParseTaxSettings(env.Settings)
 }
 
 func vatMethod(env Env) string {
-	raw, _ := env.Settings["tax"].(map[string]any)
-	vat, _ := raw["vat"].(map[string]any)
-	method, _ := vat["method"].(string)
-	if method == "" {
-		return "ist"
-	}
-	return method
+	return metrics.TaxVATMethod(env.Settings)
 }
 
 func init() {

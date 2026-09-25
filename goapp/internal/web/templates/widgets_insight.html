@@ -1,0 +1,138 @@
+{{/* Insight widget fragments (kpi/table/chart/progress/deadlines/trend/
+     hints), lazy-loaded by the board page via htmx GET /widget-fragments/{id}.
+     Ports app/web/templates/widgets/*.html. */}}
+
+{{define "widget-slot-state"}}
+  {{if .MissingCredential}}
+    <p class="slot-note"><a href="/me/credentials">{{t "widget.setup_access" "name" .MissingCredential}}</a></p>
+  {{else if and .Error (not .Data)}}
+    <p class="slot-note is-error"><span class="pill" data-state="failed">{{t "widget.error"}}</span> <code>{{.Error}}</code></p>
+  {{else if .Error}}
+    <p class="slot-note"><span class="pill" data-state="reviewing">{{t "widget.stale"}}</span> {{t "widget.as_of" "when" (ago .OkAt)}}</p>
+  {{end}}
+{{end}}
+
+{{define "widgets/kpi"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $k := .Frag.View.KPI}}
+<div class="kpi">
+  <span class="kpi-label">{{t (printf "opt.%s" $.Frag.Config.Metric)}}</span>
+  <b class="kpi-value">
+    {{if eq $k.Kind "money"}}{{money $k.Value $k.Currency}}
+    {{else if eq $k.Kind "percent"}}{{pct $k.Value}}
+    {{else if eq $k.Kind "hours"}}{{num $k.Value 1}} h
+    {{else}}{{num $k.Value 0}}{{end}}
+  </b>
+  {{if $k.HasDelta}}<span class="kpi-delta" data-trend="{{if ge $k.Delta 0.0}}up{{else}}down{{end}}">{{pct $k.Delta}} {{t "kpi.vs_last_year"}}</span>{{end}}
+  {{if eq $k.SubKey "kpi.of_target"}}<span class="kpi-sub">{{t "kpi.of_target" "hours" (num $k.SubHours 1)}}</span>
+  {{else if eq $k.SubKey "kpi.hours"}}<span class="kpi-sub">{{t "kpi.hours" "hours" (num $k.SubHours 1)}}</span>
+  {{else if eq $k.SubKey "kpi.invoices"}}<span class="kpi-sub">{{t "kpi.invoices" "count" $k.SubCount}}</span>
+  {{else if eq $k.SubKey "kpi.vat_period"}}<span class="kpi-sub">{{t "kpi.vat_period" "start" (day $k.SubStart) "end" (day $k.SubEnd)}}</span>
+  {{else if eq $k.SubKey "kpi.of_goal"}}<span class="kpi-sub">{{t "kpi.of_goal" "goal" (money $k.SubGoal $k.Currency)}}</span>
+  {{else if eq $k.SubKey "kpi.cash_30"}}<span class="kpi-sub">{{t "kpi.cash_30"}}</span>
+  {{else if eq $k.SubKey "kpi.reserve"}}<span class="kpi-sub">{{t "kpi.reserve" "rate" $k.SubRate}}</span>
+  {{else if eq $k.SubKey "kpi.assets"}}<span class="kpi-sub">{{t "kpi.assets" "count" $k.SubCount}}</span>
+  {{end}}
+</div>
+{{else}}{{if .Frag.View.Unsupported}}<p class="slot-note">{{t "widget.unsupported"}}</p>{{end}}{{end}}
+{{end}}
+
+{{define "widgets/table"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{$cols := .Frag.View.Cols}}{{$rows := .Frag.View.Rows}}
+{{if .Frag.View.Unsupported}}<p class="slot-note">{{t "widget.unsupported"}}</p>
+{{else if $cols}}
+<div class="table-wrap"><table class="table compact">
+  <thead><tr>{{range $cols}}<th>{{t (printf "col.%s" .Label)}}</th>{{end}}</tr></thead>
+  <tbody>
+  {{range $rows}}
+    <tr>{{$row := .}}{{range $i, $col := $cols}}{{$v := index $row.Values $i}}<td>
+      {{if eq $col.Format "money"}}{{money $v}}
+      {{else if eq $col.Format "pct"}}{{pct $v}}
+      {{else if eq $col.Format "bar"}}<div class="progress-bar"><i style="--p:{{barPct $v}}%" data-tier="{{tier $v}}"></i></div><small>{{pct $v}}</small>
+      {{else if eq $col.Format "hours"}}{{num $v 1}} h
+      {{else if eq $col.Format "km"}}{{num $v 0}} km
+      {{else if eq $col.Format "day"}}{{if $v}}{{day $v}}{{else}}–{{end}}
+      {{else if eq $col.Format "late"}}{{if gt $v 0}}<span class="late">{{t "col.days" "days" $v}}</span>{{else}}–{{end}}
+      {{else if eq $col.Format "upcoming"}}{{t (printf "upcoming.%s" $v)}}
+      {{else}}{{if $v}}{{$v}}{{else}}–{{end}}{{end}}
+    </td>{{end}}</tr>
+  {{else}}<tr><td colspan="{{len $cols}}" class="muted">{{t "widget.empty"}}</td></tr>
+  {{end}}
+  </tbody></table></div>
+{{if gt .Frag.View.More 0}}<p class="muted small">{{t "table.more" "count" .Frag.View.More}}</p>{{end}}
+{{end}}
+{{end}}
+
+{{define "widgets/chart"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{$bars := .Frag.View.Bars}}
+{{if .Frag.View.Unsupported}}<p class="slot-note">{{t "widget.unsupported"}}</p>
+{{else if $bars}}
+<svg class="chart" viewBox="0 0 1000 220" role="img" aria-label="{{t (printf "chart.%s" $.Frag.Config.Chart)}}">
+  <line class="axis" x1="10" y1="200" x2="1000" y2="200"/>
+  {{range $bars}}
+  <rect class="bar prev" x="{{.PrevX}}" y="{{.PrevY}}" width="{{.PrevW}}" height="{{.PrevH}}"><title>{{.Label}} ({{t "chart.prev"}}): {{if eq $.Frag.View.Unit "money"}}{{money .Prev}}{{else}}{{num .Prev 1}}{{end}}</title></rect>
+  <rect class="bar" x="{{.ValueX}}" y="{{.ValueY}}" width="{{.ValueW}}" height="{{.ValueH}}"><title>{{.Label}}: {{if eq $.Frag.View.Unit "money"}}{{money .Value}}{{else}}{{num .Value 1}}{{end}}</title></rect>
+  {{if .AxisLabel}}<text x="{{.LabelX}}" y="214" text-anchor="middle">{{.AxisLabel}}</text>{{end}}
+  {{end}}
+</svg>
+<p class="legend"><span><i></i>{{t "chart.this"}}</span><span><i class="prev"></i>{{t "chart.prev"}}</span></p>
+{{end}}
+{{end}}
+
+{{define "widgets/progress"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+<div class="meters">
+{{range .Frag.View.Items}}
+  <div class="progress">
+    <div class="progress-head"><span>{{if .LabelKey}}{{t .LabelKey}}{{else}}{{.Label}}{{end}}</span><span>{{pct .Pct}}</span></div>
+    <div class="progress-bar"><i style="--p:{{barPct .Pct}}%" data-tier="{{tier .Pct}}"></i></div>
+    {{if .HasGoal}}<small class="muted">{{money .Value}} / {{money .Goal}}</small>{{end}}
+  </div>
+{{else}}{{if .Frag.View}}<p class="muted">{{t "widget.empty"}}</p>{{end}}
+{{end}}
+</div>
+{{end}}
+
+{{define "widgets/deadlines"}}
+{{if not .Frag.View.Configured}}<p class="slot-note">{{t "deadlines.setup"}} <a href="/spaces/settings">{{t "nav.space_settings"}}</a></p>{{end}}
+<ol class="timeline">
+{{range .Frag.View.Items}}
+  <li{{if le .Left 3}} class="soon"{{end}}><time datetime="{{.Due}}">{{day .Due}}</time>
+    <span>{{if eq .Kind "vat_return"}}{{t "deadline.vat_return" "period" .Period}}{{else if eq .Kind "prepayment"}}{{t "deadline.prepayment"}}{{else}}{{t "deadline.annual" "year" .Year}}{{end}}{{if .Amount}} · {{money .Amount}}{{end}}</span></li>
+{{else}}{{if .Frag.View.Configured}}<li class="muted">{{t "widget.empty"}}</li>{{end}}
+{{end}}
+</ol>
+{{end}}
+
+{{define "widgets/trend"}}
+{{$v := .Frag.View}}
+{{if $v.Path}}
+<p class="kpi"><span class="kpi-label">{{t (printf "opt.%s" .Frag.Config.Metric)}}</span>
+  <b class="kpi-value">{{if eq $v.Unit "money"}}{{money $v.Now}}{{else}}{{num $v.Now 1}} h{{end}}</b></p>
+<svg class="chart spark-lg" viewBox="0 0 {{$v.W}} {{$v.H}}" preserveAspectRatio="none" role="img" aria-label="{{t (printf "opt.%s" .Frag.Config.Metric)}}">
+  <path class="trend-line" d="{{$v.Path}}"/>
+</svg>
+<p class="legend trend-legend"><span>{{day $v.First}}</span><span>{{if eq $v.Unit "money"}}{{t "trend.range" "low" (money $v.Low) "high" (money $v.High)}}{{else}}{{t "trend.range" "low" (num $v.Low 1) "high" (num $v.High 1)}}{{end}}</span><span>{{day $v.Last}}</span></p>
+{{else}}<p class="slot-note">{{t "trend.collecting"}}</p>{{end}}
+{{end}}
+
+{{define "widgets/hints"}}
+<ul class="hints">
+{{range .Frag.View.Hints}}
+  <li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
+    <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
+    <div class="hint-main">
+      <b>{{.Title}}</b>
+      <details><summary>{{t "hints.why"}}</summary><p>{{.Why}}</p>
+        <p class="muted">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}</p></details>
+    </div>
+    {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
+    {{if .ActionURL}}<div class="hint-actions"><a class="btn btn-outline btn-sm" href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a></div>{{end}}
+  </li>
+{{else}}<li class="hint-empty">{{t "hints.none"}}</li>
+{{end}}
+</ul>
+<p class="small"><a href="/hints">{{t "hints.all"}}</a></p>
+{{end}}

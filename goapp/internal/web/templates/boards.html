@@ -1,6 +1,6 @@
-{{/* Board view with real sections and tiles. Tiles show title/type only —
-     per-widget-type rendering (link status, RSS items, clock, KPIs, ...)
-     is a follow-up; the layout, overlay, rights and editing are live. */}}
+{{/* Board view with real sections and tiles. Insight tiles (kpi/table/
+     chart/...) lazy-load their live data via htmx; start tiles (link,
+     clock, ...) still show title/type only — that's a follow-up. */}}
 {{define "board"}}
 <!doctype html>
 <html lang="{{.Ctx.Locale}}">
@@ -9,6 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Board.Name}} · dashboard</title>
   <link rel="stylesheet" href="{{.ThemeURL}}">
+  {{template "htmx" .}}
   {{template "style" .}}
   <style>
     body { background: var(--bg0, Canvas); color: var(--fg1, CanvasText); }
@@ -63,8 +64,15 @@
                   <button type="submit" title="{{t "edit.remove"}}">×</button>
                 </form>
               {{end}}
-              <div class="kind">{{.Type}}</div>
-              <strong>{{.Title}}</strong>
+              {{if .Inline}}
+                <div class="kind">{{.Type}}</div>
+                <strong>{{.Title}}</strong>
+              {{else}}
+                {{if .Title}}<h3 class="tile-title">{{.Title}}</h3>{{end}}
+                <div hx-get="/widget-fragments/{{.PlacementID}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
+                  <span class="loading">{{t "widget.loading"}}</span>
+                </div>
+              {{end}}
             </div>
           {{end}}
         </div>
