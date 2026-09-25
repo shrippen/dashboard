@@ -832,6 +832,54 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 
 Mögliche Auswertungen: offene Aufgaben `- [ ]` mit Fälligkeit (Tasks-Plugin `📅 2026-10-01`) als Hinweise und in den Fristen; Notizen mit `wiedervorlage:` im Frontmatter; fehlende Tagesnotiz; wachsender Eingangsordner; Kundennotizen, deren letzte Änderung lange zurückliegt, während in Kimai für diesen Kunden gebucht wird.
 
+### Phase 13: Datenkreuzungen
+
+Analysen, die erst aus mehreren Diensten zusammen entstehen. Grundlage ist ein Kennzahl-Verlauf (täglicher Wert je Kennzahl), ein Versionsregister und eine Ereignis-Zeitleiste. Standortdaten werden nur lokal verrechnet.
+
+**Grundlage**
+- [x] Kennzahl-Verlauf, Versionswechsel und Ereignisse speichern *(Tabellen `samples`, `versions`, `events`; 400 Tage Verlauf)*
+
+**Geld und Zeit**
+- [ ] Vollkosten-Stundensatz je Kunde (Kimai, Invoice Ninja, Dawarich)
+- [ ] Gebundenes Geld in unfakturierter Arbeit (Alter × Satz)
+- [ ] Zahlungseingänge automatisch zuordnen und buchen (Sure → Invoice Ninja)
+- [ ] Belege, die fehlen (Sure gegen Invoice Ninja, Paperless, Mail)
+- [ ] Abhängigkeit von einem Kunden (Umsatz- und Stundenanteil, 5/6-Grenze)
+- [ ] Frei verfügbares Geld (Konto minus Steuern und Fixkosten)
+- [ ] Abo-Radar mit Nutzung (Sure, Paperless, authentik, Klicks)
+- [ ] Projektbudget-Prognose (Erschöpfungsdatum gegen Projektende)
+- [ ] Termine ohne Zeitbuchung (Kalender, Kimai, Feiertage, Abwesenheit)
+- [ ] Projektmarge mit allen Kosten
+- [ ] Auftragsloch früh sehen (Vorjahr gegen jetzt)
+- [ ] Fahrtenbuch-Auszug für die Steuer
+- [ ] Arbeitslast und Erholung
+
+**Homelab: Ursache und Wirkung**
+- [ ] Ereignis-Zeitleiste mit Vorgeschichte
+- [ ] Langsamer seit dem Update
+- [ ] Speicher- und Plattenprognose
+- [ ] Was seit dem letzten Backup neu ist
+- [ ] Gutes Fenster für Updates
+- [ ] Angriffsfläche je öffentlichem Dienst
+- [ ] Verdächtige Anmeldungen (authentik, Standort)
+- [ ] Auffällige Geräte im Netz (DNS-Filter, Router, Tailscale)
+- [ ] Nachweis für den Internetanbieter (§ 57 TKG)
+- [ ] Vorbereitung auf Unwetter
+- [ ] Downloads ohne VPN
+- [ ] Domain-Kette auf einen Blick
+
+**Kosten und Nutzen**
+- [ ] Dienste, die niemand nutzt
+- [ ] Stromkosten je Dienst
+- [ ] Wartung in günstige Stunden legen
+- [ ] Gesamtkosten des Homelabs
+- [ ] Betrieblicher Anteil der IT-Kosten
+- [ ] Ersetzen oder weiterbetreiben
+- [ ] Energieverbrauch bereinigt ums Wetter
+- [ ] Wochenrückblick mit Zusammenhängen
+- [ ] Schwellen, die nur nerven
+- [ ] Was ein Hinweis kostet
+
 ---
 
 ## 11. Betrieb und Sicherheit

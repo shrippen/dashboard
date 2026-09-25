@@ -161,6 +161,14 @@ func runSpace(ctx context.Context, d *sql.DB, sp *model.Space, mine []*model.Con
 	if err := addSecrets(d, mine, owners, scopeOf); err != nil {
 		slog.Error("analysis: secrets failed", "space", sp.ID, "err", err)
 	}
+	for _, sc := range scopes {
+		history, err := recordHistory(d, sc, time.Now().UTC())
+		if err != nil {
+			slog.Error("analysis: history failed", "space", sp.ID, "err", err)
+			continue
+		}
+		sc.datasets[metrics.HistoryDataset] = history
+	}
 
 	fresh := 0
 	for _, r := range runs {

@@ -196,3 +196,34 @@ func TestRunAllBundlesOutage(t *testing.T) {
 		t.Fatalf("outage %d, connector %d", count("system.outage"), count("system.connector_down"))
 	}
 }
+
+// TestRunAllRecordsHistory: each run stores today's key figures; a new
+// version becomes an update event.
+func TestRunAllRecordsHistory(t *testing.T) {
+	d := openTestDB(t)
+	sid := addSpace(t, d)
+	conn := &model.Connection{SpaceID: sid, Key: "immich", Name: "Immich", Service: "immich", URL: "demo://immich",
+		CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC()}
+	if err := content.AddConnection(d, conn); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := analysis.RunAll(context.Background(), d, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	series, err := data.SamplesSince(d, sid, 0, "2000-01-01")
+	if err != nil || len(series["immich.items"]) != 1 {
+		t.Fatalf("samples: %v %v", series, err)
+	}
+
+	// A different stored version means the service was updated since.
+	if err := data.SetVersion(d, sid, 0, "Immich", "v0.9", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := analysis.RunAll(context.Background(), d, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	events, err := data.EventsSince(d, []int64{sid}, 0, time.Now().Add(-time.Hour), 10)
+	if err != nil || len(events) != 1 || events[0].Subject != "Immich" || events[0].Kind != "update" {
+		t.Fatalf("events: %+v %v", events, err)
+	}
+}

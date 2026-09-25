@@ -66,5 +66,8 @@ func housekeeping(database *sql.DB) error {
 	if err := hints.Prune(database); err != nil {
 		return err
 	}
+	if err := analysis.PruneHistory(database, time.Now().UTC()); err != nil {
+		return err
+	}
 	return db.WithTx(database, func(tx *sql.Tx) error { return audit.Prune(tx) })
 }
