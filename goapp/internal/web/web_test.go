@@ -14,6 +14,7 @@ import (
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
 	"dashboard/internal/web"
 )
@@ -27,6 +28,9 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		t.Fatalf("open db: %v", err)
 	}
 	t.Cleanup(func() { database.Close() })
+	if _, err := themes.EnsureBuiltin(database); err != nil {
+		t.Fatalf("ensure builtin theme: %v", err)
+	}
 
 	deps := web.Deps{DB: database, Settings: settings.Settings{
 		SessionAbsoluteHours: 24, SessionIdleMinutes: 60,
@@ -34,6 +38,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	mux := http.NewServeMux()
 	deps.RegisterAuthRoutes(mux)
 	deps.RegisterBoardRoutes(mux)
+	deps.RegisterThemeRoutes(mux)
 
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
@@ -222,5 +227,31 @@ func TestBoardViewShowsPlacedWidget(t *testing.T) {
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "Start") {
 		t.Fatalf("expected the auto-created start board, got %d:\n%s", resp.StatusCode, body)
+	}
+}
+
+// TestThemeCSSRoute confirms the board's <link rel="stylesheet"> target
+// actually serves real CSS with theme tokens.
+func TestThemeCSSRoute(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	resp := getFollowingRedirect(t, srv, client, "/")
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	m := regexp.MustCompile(`href="(/theme/[^"]+\.css[^"]*)"`).FindSubmatch(body)
+	if m == nil {
+		t.Fatalf("expected a theme stylesheet link in the board page:\n%s", body)
+	}
+
+	cssResp, err := client.Get(srv.URL + string(m[1]))
+	if err != nil {
+		t.Fatalf("get theme css: %v", err)
+	}
+	defer cssResp.Body.Close()
+	css, _ := io.ReadAll(cssResp.Body)
+	if cssResp.StatusCode != http.StatusOK || !strings.Contains(string(css), "--bg-void") {
+		t.Fatalf("expected shrippen tokens in theme css, got %d:\n%s", cssResp.StatusCode, css)
 	}
 }

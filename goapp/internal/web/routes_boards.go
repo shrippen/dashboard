@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"dashboard/internal/services/boards"
+	"dashboard/internal/services/themes"
 	"dashboard/internal/services/util"
 )
 
@@ -54,7 +55,25 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = Page(w, ctx, "board", http.StatusOK, map[string]any{"Board": view, "NavBoards": navBoards})
+	var boardTheme *int64
+	if view.ThemeID != nil {
+		boardTheme = view.ThemeID
+	}
+	themeID, err := themes.Active(d.DB, ctx.Who, boardTheme, &view.Space.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, themeVersion, err := themes.Stylesheet(d.DB, themeID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	themeURL := "/theme/" + strconv.FormatInt(themeID, 10) + ".css?v=" + strconv.Itoa(themeVersion)
+
+	_ = Page(w, ctx, "board", http.StatusOK, map[string]any{
+		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL,
+	})
 }
 
 func (d Deps) handleBoardError(w http.ResponseWriter, r *http.Request, err error) {

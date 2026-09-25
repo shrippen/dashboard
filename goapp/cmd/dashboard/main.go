@@ -13,6 +13,7 @@ import (
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
 	"dashboard/internal/web"
 )
@@ -44,11 +45,16 @@ func main() {
 		slog.Error("ensure setup code", "err", err)
 		os.Exit(1)
 	}
+	if _, err := themes.EnsureBuiltin(database); err != nil {
+		slog.Error("ensure builtin theme", "err", err)
+		os.Exit(1)
+	}
 
 	deps := web.Deps{DB: database, Settings: cfg}
 	mux := http.NewServeMux()
 	deps.RegisterAuthRoutes(mux)
 	deps.RegisterBoardRoutes(mux)
+	deps.RegisterThemeRoutes(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 
