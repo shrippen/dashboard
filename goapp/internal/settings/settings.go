@@ -26,10 +26,18 @@ type Settings struct {
 	Demo    bool
 	Testing bool
 
-	MasterKey        string
-	SMTPURL          string
-	SMTPFrom         string
-	SMTPPassword     string
+	MasterKey    string
+	SMTPURL      string
+	SMTPFrom     string
+	SMTPPassword string
+
+	// AppriseAPIURL points at an existing Apprise API instance (e.g.
+	// https://apprise.example.lan). Go has no in-process Apprise library
+	// like Python does, so notify sends an HTTP POST to /notify there
+	// with the user's own apprise:// URLs in the request body, instead
+	// of bundling a second Apprise container.
+	AppriseAPIURL string
+
 	OIDCIssuer       string
 	OIDCClientID     string
 	OIDCClientSecret string
@@ -118,6 +126,7 @@ func Load() Settings {
 		OIDCIssuer:           envStr("OIDC_ISSUER", ""),
 		OIDCClientID:         envStr("OIDC_CLIENT_ID", ""),
 		OIDCClientSecret:     envStr("OIDC_CLIENT_SECRET", ""),
+		AppriseAPIURL:        envStr("APPRISE_API_URL", ""),
 		SeedFile:             envStr("SEED_FILE", ""),
 		SchedulerEnabled:     envBool("SCHEDULER_ENABLED", true),
 		LogLevel:             envStr("LOG_LEVEL", "INFO"),

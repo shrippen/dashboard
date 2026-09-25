@@ -12,6 +12,9 @@ services:
       FORWARDED_ALLOW_IPS: 172.16.0.0/12
       SMTP_URL: smtp://dashboard@mail.example.lan:587?starttls=true
       SMTP_FROM: "dashboard <dashboard@example.lan>"
+      # Existing Apprise API instance to send push notifications through
+      # (no bundled Apprise container here — reuse what you already run):
+      APPRISE_API_URL: https://apprise.example.lan
       # optional at first start; afterwards Admin → Instanz:
       # OIDC_ISSUER: https://auth.example.lan/application/o/dashboard/
       # OIDC_CLIENT_ID: dashboard
