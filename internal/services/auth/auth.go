@@ -28,6 +28,7 @@ import (
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/accounts"
 	auditsvc "dashboard/internal/services/audit"
+	"dashboard/internal/services/mail"
 	"dashboard/internal/settings"
 )
 
@@ -201,6 +202,7 @@ func Login(d *sql.DB, cfg settings.Settings, email, password, ip, agent string) 
 	}
 
 	var result LoginResult
+	var userID int64
 	err := db.WithTx(d, func(tx *sql.Tx) error {
 		user, err := users.ByEmail(tx, strings.TrimSpace(email))
 		if err != nil {
@@ -241,14 +243,16 @@ func Login(d *sql.DB, cfg settings.Settings, email, password, ip, agent string) 
 			return err
 		}
 		result = LoginResult{Token: token, Step: step}
+		userID = user.ID
 		return nil
 	})
 	if err != nil {
 		return LoginResult{}, err
 	}
 
-	// TODO(mail): Python sends a "new login" notice here when TOTP is off.
-	// Wire this once the mail service is ported (see agent.md task list).
+	if result.Step == StepDone {
+		noteLogin(d, userID, ip, agent)
+	}
 	return result, nil
 }
 
@@ -503,12 +507,13 @@ func TOTPConfirm(d *sql.DB, who *access.Principal, code, ip string) ([]string, e
 	if err != nil {
 		return nil, err
 	}
+	notify(d, who.UserID, mail.TOTPEnabled)
 	return codes, nil
 }
 
 // TOTPDisable turns TOTP off after a valid code or recovery code.
 func TOTPDisable(d *sql.DB, who *access.Principal, code, ip string) error {
-	return db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithTx(d, func(tx *sql.Tx) error {
 		user, err := users.Get(tx, who.UserID)
 		if err != nil {
 			return err
@@ -533,11 +538,16 @@ func TOTPDisable(d *sql.DB, who *access.Principal, code, ip string) error {
 		}
 		return auditsvc.Log(tx, &user.ID, "totp.disabled", "", ip, nil)
 	})
+	if err == nil {
+		notify(d, who.UserID, mail.TOTPDisabled)
+	}
+	return err
 }
 
 // TOTPVerify is the second login step: it lifts pending_2fa on success.
 func TOTPVerify(d *sql.DB, token, code, ip, agent string) error {
-	return db.WithTx(d, func(tx *sql.Tx) error {
+	var userID int64
+	err := db.WithTx(d, func(tx *sql.Tx) error {
 		row, err := auth.SessionByHash(tx, crypto.TokenHash(token))
 		if err != nil {
 			return err
@@ -564,8 +574,13 @@ func TOTPVerify(d *sql.DB, token, code, ip, agent string) error {
 		if err := users.Update(tx, user); err != nil { // persists a used recovery code, if any
 			return err
 		}
+		userID = user.ID
 		return auth.TouchSession(tx, row.ID, time.Now().UTC(), false)
 	})
+	if err == nil {
+		noteLogin(d, userID, ip, agent)
+	}
+	return err
 }
 
 func totpOK(user *model.User, code string) (bool, error) {
@@ -652,6 +667,9 @@ func CreateToken(d *sql.DB, who *access.Principal, name string, scope enums.Toke
 		out = NewAPIToken{ID: item.ID, Secret: secret}
 		return nil
 	})
+	if err == nil {
+		notify(d, who.UserID, mail.TokenCreated)
+	}
 	return out, err
 }
 
@@ -713,4 +731,18 @@ func PrincipalForToken(d *sql.DB, secret string, scope enums.TokenScope) (*acces
 		return nil
 	})
 	return who, err
+}
+
+// notify sends a security notice; mail problems never fail the action.
+func notify(d *sql.DB, userID int64, kind mail.SecurityKind) {
+	if err := mail.SecurityNotice(d, userID, kind); err != nil {
+		slog.Warn("security mail", "kind", kind, "err", err)
+	}
+}
+
+// noteLogin mails a new-device notice; failures are only logged.
+func noteLogin(d *sql.DB, userID int64, ip, agent string) {
+	if err := mail.NewLogin(d, userID, ip, agent); err != nil {
+		slog.Warn("new-login mail", "err", err)
+	}
 }

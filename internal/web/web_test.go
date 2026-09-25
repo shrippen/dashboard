@@ -16,7 +16,9 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/outbound"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/mail"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
 	"dashboard/internal/web"
@@ -53,9 +55,12 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		t.Fatalf("ensure builtin theme: %v", err)
 	}
 
-	deps := web.Deps{DB: database, Settings: settings.Settings{
-		SessionAbsoluteHours: 24, SessionIdleMinutes: 60,
-	}}
+	cfg := settings.Settings{
+		SessionAbsoluteHours: 24, SessionIdleMinutes: 60, Testing: true, BaseURL: "http://dash.test",
+	}
+	mail.Init(cfg)
+	outbound.TakeOutbox()
+	deps := web.Deps{DB: database, Settings: cfg}
 	mux := http.NewServeMux()
 	deps.RegisterAuthRoutes(mux)
 	deps.RegisterBoardRoutes(mux)
@@ -70,6 +75,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterTeamRoutes(mux)
 	deps.RegisterShareRoutes(mux)
 	deps.RegisterAdminRoutes(mux)
+	deps.RegisterAccountRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(mux)
@@ -241,7 +247,7 @@ func TestLoginWrongPasswordStaysOnLoginPage(t *testing.T) {
 	}
 	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(string(body), "fehlgeschlagen") {
+	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(string(body), "Passwort falsch") {
 		t.Fatalf("expected 401 with error message, got %d:\n%s", resp.StatusCode, body)
 	}
 }

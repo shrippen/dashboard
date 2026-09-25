@@ -16,6 +16,7 @@ import (
 	"dashboard/internal/repos/users"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/audit"
+	"dashboard/internal/services/mail"
 )
 
 // MinPassword is the minimum accepted password length.
@@ -218,7 +219,7 @@ func ChangePassword(d *sql.DB, who *access.Principal, current, newPassword, ip s
 	if err := CheckPasswordRules(newPassword); err != nil {
 		return err
 	}
-	return db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithTx(d, func(tx *sql.Tx) error {
 		u, err := users.Get(tx, who.UserID)
 		if err != nil {
 			return err
@@ -239,6 +240,10 @@ func ChangePassword(d *sql.DB, who *access.Principal, current, newPassword, ip s
 		}
 		return audit.Log(tx, &who.UserID, "password.changed", "", ip, nil)
 	})
+	if err != nil {
+		return err
+	}
+	return mail.SecurityNotice(d, who.UserID, mail.PasswordChanged)
 }
 
 func orEmpty(m map[string]any) map[string]any {

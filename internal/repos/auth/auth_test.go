@@ -119,7 +119,7 @@ func TestApiTokenRoundTrip(t *testing.T) {
 func TestInviteLifecycle(t *testing.T) {
 	q := openTestDB(t)
 	inv := &model.Invite{Email: "new@x.y", TokenHash: "ih", Role: enums.RoleUser,
-		Teams: []int64{1}, ExpiresAt: time.Now().UTC().Add(24 * time.Hour)}
+		Teams: []model.InviteTeam{{Team: "Ops", Role: enums.TeamViewer}}, ExpiresAt: time.Now().UTC().Add(24 * time.Hour)}
 	if err := auth.AddInvite(q, inv); err != nil {
 		t.Fatalf("add invite: %v", err)
 	}

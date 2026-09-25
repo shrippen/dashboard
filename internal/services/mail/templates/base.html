@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="{{.Lang}}">
+<body style="margin:0;padding:24px;background:{{.C.Bg}};color:{{.C.Fg}};font-family:-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:{{.C.Card}};border-top:4px solid {{.C.Accent}}">
+    <tr><td style="padding:24px 28px">
+      <h1 style="margin:0 0 12px;font-family:Rajdhani,'Segoe UI',sans-serif;font-size:24px;letter-spacing:.04em;text-transform:uppercase;color:{{.C.Head}}">{{.Title}}</h1>
+      {{range .Paragraphs}}<p style="margin:0 0 12px;color:{{$.C.Text}}">{{.}}</p>{{end}}
+      {{if .Items}}<table role="presentation" width="100%" style="border-collapse:collapse;margin:8px 0 16px">
+        {{range .Items}}<tr><td style="padding:6px 0;border-top:1px solid {{$.C.Line}};color:{{.Color}};font-family:monospace;font-size:12px;width:90px">{{.Label}}</td><td style="padding:6px 0;border-top:1px solid {{$.C.Line}};color:{{$.C.Fg}}">{{.Text}}</td></tr>{{end}}
+      </table>{{end}}
+      {{if .Button}}<p style="margin:20px 0 4px"><a href="{{.Button.URL}}" style="display:inline-block;background:{{.C.Accent}};color:{{.C.Bg}};padding:10px 22px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.08em">{{.Button.Label}}</a></p>{{end}}
+    </td></tr>
+  </table>
+  <p style="max-width:560px;margin:12px auto 0;font-family:monospace;font-size:11px;color:{{.C.Muted}}">{{.Footer}}</p>
+</body>
+</html>

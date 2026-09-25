@@ -212,10 +212,17 @@ type Invite struct {
 	Email     string
 	TokenHash string
 	Role      enums.InstanceRole
-	Teams     []int64
+	Teams     []InviteTeam
 	CreatedBy *int64
 	ExpiresAt time.Time
 	UsedAt    *time.Time
+}
+
+// InviteTeam is one team the invitee joins on acceptance (JSON shape kept
+// from the Python version: {"team": name, "role": role}).
+type InviteTeam struct {
+	Team string         `json:"team"`
+	Role enums.TeamRole `json:"role"`
 }
 
 type ResetToken struct {

@@ -1,0 +1,103 @@
+{{/* Public account pages share the login card frame. "auth_open" leaves
+     the card open; each page closes it with "auth_close". */}}
+{{define "auth_open"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand"><span class="mark"></span><b>dashboard</b></div>
+      {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+{{end}}
+
+{{define "auth_close"}}
+    </div>
+  </div>
+</body>
+</html>
+{{end}}
+
+{{define "locale_select"}}
+<label for="locale">{{t "field.locale"}}</label>
+<select id="locale" name="locale">
+  <option value="de"{{if eq (print .Ctx.Locale) "de"}} selected{{end}}>{{t "locale.de"}}</option>
+  <option value="en"{{if eq (print .Ctx.Locale) "en"}} selected{{end}}>{{t "locale.en"}}</option>
+</select>
+{{end}}
+
+{{define "invite"}}
+{{template "auth_open" .}}
+<h1>{{t "invite.title"}}</h1>
+{{if .Invite}}<p class="muted">{{.Invite.Email}}</p>{{end}}
+<form method="post" action="/invite/{{.Token}}">
+  <label for="name">{{t "field.name"}}</label>
+  <input id="name" name="name" required autofocus>
+  <label for="password">{{t "field.password"}}</label>
+  <input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
+  <p class="small muted">{{t "password.rules"}}</p>
+  {{template "locale_select" .}}
+  <button class="login-btn" type="submit">{{t "invite.submit"}}</button>
+</form>
+{{if .OIDCLabel}}<p class="small muted">{{t "invite.oidc"}} <a href="/auth/oidc/login">{{t "login.with" "provider" .OIDCLabel}}</a></p>{{end}}
+{{template "auth_close" .}}
+{{end}}
+
+{{define "register"}}
+{{template "auth_open" .}}
+<h1>{{t "register.title"}}</h1>
+<form method="post" action="/register">
+  <label for="email">{{t "field.email"}}</label>
+  <input id="email" name="email" type="email" required autofocus>
+  <label for="name">{{t "field.name"}}</label>
+  <input id="name" name="name" required>
+  <label for="password">{{t "field.password"}}</label>
+  <input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
+  <p class="small muted">{{t "password.rules"}}</p>
+  {{template "locale_select" .}}
+  <button class="login-btn" type="submit">{{t "register.submit"}}</button>
+</form>
+<p class="small muted"><a href="/login">{{t "login.back"}}</a></p>
+{{template "auth_close" .}}
+{{end}}
+
+{{define "reset_request"}}
+{{template "auth_open" .}}
+<h1>{{t "reset.title"}}</h1>
+{{if .Sent}}
+<p class="pill" data-state="ok">{{t "reset.sent"}}</p>
+{{else}}
+<form method="post" action="/reset">
+  <label for="email">{{t "field.email"}}</label>
+  <input id="email" name="email" type="email" required autofocus>
+  <button class="login-btn" type="submit">{{t "reset.request"}}</button>
+</form>
+{{end}}
+<p class="small muted"><a href="/login">{{t "login.back"}}</a></p>
+{{template "auth_close" .}}
+{{end}}
+
+{{define "reset"}}
+{{template "auth_open" .}}
+<h1>{{t "reset.new"}}</h1>
+<form method="post" action="/reset/{{.Token}}">
+  <label for="password">{{t "field.password"}}</label>
+  <input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required autofocus>
+  <p class="small muted">{{t "password.rules"}}</p>
+  <button class="login-btn" type="submit">{{t "action.save"}}</button>
+</form>
+{{template "auth_close" .}}
+{{end}}
+
+{{define "account_message"}}
+{{template "auth_open" .}}
+<p>{{t .Message}}</p>
+<p class="small muted"><a href="/login">{{t "login.back"}}</a></p>
+{{template "auth_close" .}}
+{{end}}

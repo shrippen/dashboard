@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "nav.logout"}} · dashboard</title>
+  <title>{{t "login.title"}} · dashboard</title>
   {{template "style" .}}
 </head>
 <body>
@@ -12,14 +12,19 @@
   <div class="login-wrap">
     <div class="login-card">
       <div class="login-brand"><span class="mark"></span><b>dashboard</b></div>
-      {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+      {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
       <form method="post" action="/login">
         <label for="email">{{t "field.email"}}</label>
-        <input id="email" name="email" type="email" required autofocus>
+        <input id="email" name="email" type="email" value="{{.Email}}" required autofocus>
         <label for="password">{{t "field.password"}}</label>
         <input id="password" name="password" type="password" required>
-        <button class="login-btn" type="submit">{{t "action.save"}}</button>
+        <button class="login-btn" type="submit">{{t "login.submit"}}</button>
       </form>
+      {{if .OIDCLabel}}
+      <p class="small muted">{{t "login.or"}}</p>
+      <a class="login-btn" href="/auth/oidc/login">{{t "login.with" "provider" .OIDCLabel}}</a>
+      {{end}}
+      <p class="small muted"><a href="/reset">{{t "login.forgot"}}</a>{{if .RegistrationOpen}} · <a href="/register">{{t "register.title"}}</a>{{end}}</p>
     </div>
   </div>
 </body>

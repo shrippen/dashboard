@@ -409,3 +409,9 @@ func orEmptySlice[T any](s []T) []T {
 	}
 	return s
 }
+
+// RemoveInvite deletes an invite (admin revoke).
+func RemoveInvite(q db.Queryer, inviteID int64) error {
+	_, err := q.Exec("DELETE FROM invites WHERE id = ?", inviteID)
+	return err
+}

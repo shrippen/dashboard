@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"dashboard/internal/services/admin"
 	"dashboard/internal/services/auth"
 )
 
@@ -53,7 +54,17 @@ func (d Deps) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	_ = d.Page(w, ctx, "login", http.StatusOK, nil)
+	_ = d.Page(w, ctx, "login", http.StatusOK, d.loginExtras(nil))
+}
+
+// loginExtras adds what the login page links to (self-registration).
+func (d Deps) loginExtras(values map[string]any) map[string]any {
+	if values == nil {
+		values = map[string]any{}
+	}
+	open, err := admin.RegistrationOpen(d.DB)
+	values["RegistrationOpen"] = err == nil && open
+	return values
 }
 
 func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
@@ -66,15 +77,16 @@ func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 	result, err := auth.Login(d.DB, d.Settings, r.FormValue("email"), r.FormValue("password"),
 		ClientIP(r), Agent(r))
 	if err != nil {
-		status := http.StatusUnauthorized
+		status, key := http.StatusUnauthorized, "login.failed"
 		if errors.Is(err, auth.ErrThrottled) {
-			status = http.StatusTooManyRequests
+			status, key = http.StatusTooManyRequests, "login.throttled"
 		}
-		_ = d.Page(w, ctx, "login", status, map[string]any{"Error": "Anmeldung fehlgeschlagen."})
+		_ = d.Page(w, ctx, "login", status, d.loginExtras(map[string]any{"Error": key, "Email": r.FormValue("email")}))
 		return
 	}
 
 	SetSessionCookie(w, result.Token, d.Settings.SecureCookies())
+
 	if result.Step == auth.StepTOTP {
 		http.Redirect(w, r, "/login/totp", http.StatusSeeOther)
 		return

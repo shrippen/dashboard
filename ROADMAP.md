@@ -649,7 +649,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 2: Mehrbenutzer und Teams (v0.3)
 
-- [ ] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen *(nur Python; Go hat weder SMTP-Outbound noch Routen für Einladung/Reset — Repo-Primitive `model.Invite`/`model.ResetToken` bestehen, kein Service/Route)*
+- [x] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen *(Go: `drivers/smtp`, `outbound/mail.go`, `services/mail`, `services/invites`; Schalter für Selbstregistrierung kommt mit den Instanz-Einstellungen)*
 - [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang *(nur Python; Go hat keine OIDC-Login-Route)*
 - [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste *(Go: `/me/security`)*
 - [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: `/teams`)*
