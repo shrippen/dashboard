@@ -18,6 +18,7 @@
     {% else %}
       {% if layer_edit %}<a class="btn btn-accent btn-sm" href="/b/{{ board.id }}">{{ t('edit.done') }}</a>
       {% else %}<a class="btn btn-outline btn-sm" href="/b/{{ board.id }}?layout">{{ t('edit.my_layout') }}</a>{% endif %}
+      <a class="btn btn-outline btn-sm" href="/b/{{ board.id }}{{ '' if compact else '?view=compact' }}">{{ t('board.full') if compact else t('board.compact') }}</a>
       {% if board.has_overlay %}<form method="post" action="/b/{{ board.id }}/overlay/reset">{{ csrf_input }}<button class="btn btn-outline btn-sm" type="submit">{{ t('edit.reset_layout') }}</button></form>{% endif %}
     {% endif %}
   </div>
@@ -38,7 +39,7 @@
 </div>
 {% endif %}
 
-<div class="board{% if side %} has-side{% endif %}" data-board="{{ board.id }}" data-version="{{ board.version }}"
+<div class="board{% if side and not compact %} has-side{% endif %}{% if compact %} is-compact{% endif %}" data-board="{{ board.id }}" data-version="{{ board.version }}"
      data-mode="{{ 'board' if edit else ('overlay' if layer_edit else '') }}">
   {% for area in ["main", "side"] %}
   {% set list = board.sections | selectattr("area", "equalto", area) | list %}

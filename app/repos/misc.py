@@ -5,7 +5,16 @@ from datetime import datetime
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.db.models import AuditEntry, InstanceSetting, Share, Theme
+from app.db.models import (
+    AuditEntry,
+    Connection,
+    InstanceSetting,
+    NotifyChannel,
+    Share,
+    Theme,
+    User,
+    UserCredential,
+)
 from app.enums import GranteeKind, ResourceKind
 
 AUDIT_PAGE = 200
@@ -93,3 +102,13 @@ def audit_page(s: Session, before: datetime | None = None) -> list[AuditEntry]:
 
 def prune_audit(s: Session, older_than: datetime) -> None:
     s.execute(delete(AuditEntry).where(AuditEntry.at < older_than))
+
+
+def encrypted_rows(s: Session) -> dict[str, list]:
+    """Every row holding an encrypted value (key rotation)."""
+    return {
+        "connections": list(s.scalars(select(Connection))),
+        "credentials": list(s.scalars(select(UserCredential))),
+        "users": list(s.scalars(select(User))),
+        "channels": list(s.scalars(select(NotifyChannel))),
+    }

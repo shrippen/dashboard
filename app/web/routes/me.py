@@ -7,10 +7,11 @@ import qrcode
 import qrcode.image.svg
 from fastapi import APIRouter, Depends, Form, Request
 
-from app.enums import ColorMode, Locale, TokenScope
-from app.services import accounts, auth, boards, connections, themes
+from app.enums import ColorMode, Locale, Severity, TokenScope
+from app.services import accounts, auth, boards, connections, notify, themes
 from app.services.accounts import AccountError
 from app.services.auth import AuthError
+from app.services.notify import NotifyError
 from app.web import deps
 from app.web.deps import Ctx
 from app.web.render import page
@@ -147,3 +148,52 @@ def credential_save(conn_id: int, secret: str = Form(...), ctx: Ctx = Depends(de
 def credential_delete(conn_id: int, ctx: Ctx = Depends(deps.require)):
     connections.drop_mine(ctx.who, conn_id)
     return deps.redirect("/me/credentials")
+
+
+# ── Notifications ──
+
+
+def _notify(request: Request, ctx: Ctx, **extra):
+    return page(request, ctx, "me/notify.html", channels=notify.channels(ctx.who), prefs=notify.prefs(ctx.who),
+                levels=list(Severity), weekdays=notify.WEEKDAYS, saved=request.query_params.get("saved"), **extra)
+
+
+@router.get("/notify")
+def notify_page(request: Request, ctx: Ctx = Depends(deps.require)):
+    return _notify(request, ctx)
+
+
+@router.post("/notify/channels")
+def channel_add(request: Request, name: str = Form(""), url: str = Form(...), level: int = Form(20),
+                ctx: Ctx = Depends(deps.require)):
+    try:
+        notify.add_channel(ctx.who, name, url, Severity(level))
+    except (NotifyError, ValueError) as exc:
+        return _notify(request, ctx, error=str(exc))
+    return deps.redirect("/me/notify?saved=1")
+
+
+@router.post("/notify/channels/{channel_id}/test")
+def channel_test(request: Request, channel_id: int, ctx: Ctx = Depends(deps.require)):
+    try:
+        notify.test_channel(ctx.who, channel_id)
+        result = {"ok": True, "message": "sent"}
+    except NotifyError as exc:
+        result = {"ok": False, "message": str(exc)}
+    return page(request, ctx, "partials/test_result.html", result=result, fragment=True)
+
+
+@router.post("/notify/channels/{channel_id}/delete")
+def channel_delete(channel_id: int, ctx: Ctx = Depends(deps.require)):
+    notify.delete_channel(ctx.who, channel_id)
+    return deps.redirect("/me/notify")
+
+
+@router.post("/notify/prefs")
+def notify_prefs(request: Request, quiet_from: str = Form(""), quiet_to: str = Form(""), daily: str = Form(""),
+                 weekly: str = Form(""), ctx: Ctx = Depends(deps.require)):
+    try:
+        notify.save_prefs(ctx.who, notify.Prefs(quiet_from, quiet_to, daily, weekly))
+    except NotifyError as exc:
+        return _notify(request, ctx, error=str(exc))
+    return deps.redirect("/me/notify?saved=1")

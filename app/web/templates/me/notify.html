@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('nav.notify'), t('notify.lead')) }}
+{% if saved %}<div class="callout callout-ok">{{ t('saved') }}</div>{% endif %}
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+<h2 class="sub-head">{{ t('notify.channels') }}</h2>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ t('field.name') }}</th><th>{{ t('field.url') }}</th><th>{{ t('field.min_severity') }}</th><th></th></tr></thead>
+  <tbody>{% for c in channels %}
+  <tr><td>{{ c.name }}</td><td><code>{{ c.hint }}</code></td><td>{{ t('severity.' ~ c.min_severity.name.lower()) }}</td>
+    <td class="row-actions"><button class="btn btn-outline btn-sm" type="button" hx-post="/me/notify/channels/{{ c.id }}/test" hx-target="#nt-{{ c.id }}">{{ t('conn.test') }}</button><span id="nt-{{ c.id }}"></span>
+      <form method="post" action="/me/notify/channels/{{ c.id }}/delete">{{ csrf_input }}<button class="link-btn danger" type="submit">{{ t('action.delete') }}</button></form></td></tr>
+  {% else %}<tr><td colspan="4">{{ t('notify.none') }}</td></tr>{% endfor %}</tbody></table></div>
+<form method="post" action="/me/notify/channels" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('field.name') }}</label><input class="input" name="name" placeholder="ntfy"></div>
+  <div class="field wide"><label>Apprise-URL</label><input class="input" name="url" required placeholder="ntfy://ntfy.example.lan/dashboard"><span class="field-hint">{{ t('notify.url_hint') }}</span></div>
+  <div class="field"><label>{{ t('field.min_severity') }}</label><select class="select" name="level">{% for l in levels %}<option value="{{ l.value }}"{% if l.value == 20 %} selected{% endif %}>{{ t('severity.' ~ l.name.lower()) }}</option>{% endfor %}</select></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.create') }}</button></div>
+</form>
+<h2 class="sub-head">{{ t('notify.timing') }}</h2>
+<form method="post" action="/me/notify/prefs" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('notify.quiet_from') }}</label><input class="input" name="quiet_from" type="time" value="{{ prefs.quiet_from }}"></div>
+  <div class="field"><label>{{ t('notify.quiet_to') }}</label><input class="input" name="quiet_to" type="time" value="{{ prefs.quiet_to }}"></div>
+  <div class="field"><label>{{ t('notify.digest_at') }}</label><input class="input" name="daily" type="time" value="{{ prefs.daily }}"><span class="field-hint">{{ t('notify.digest_hint') }}</span></div>
+  <div class="field"><label>{{ t('notify.weekly') }}</label><select class="select" name="weekly"><option value="">{{ t('notify.every_day') }}</option>{% for d in weekdays %}<option value="{{ d }}"{% if prefs.weekly == d %} selected{% endif %}>{{ t('weekday.' ~ d) }}</option>{% endfor %}</select></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button></div>
+</form>
+<h2 class="sub-head">{{ t('notify.calendar') }}</h2>
+<div class="panel"><p class="muted">{{ t('notify.calendar_hint') }}</p><pre class="codeblock">{{ base_url }}/calendar.ics?token=…</pre></div>
+{% endblock %}

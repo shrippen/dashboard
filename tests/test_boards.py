@@ -127,3 +127,13 @@ def test_widget_form_roundtrip(app, browser):
 
     bad = b.post("/widgets/new", {"type": "link", "space_id": space, "title": "X", "cfg.url": "ftp://x"})
     assert bad.status_code == 400
+
+
+def test_widget_preview_route(app, browser):
+    uid = make_user("a@x.de")
+    space = access.personal(who(uid)).id
+    b = browser("a@x.de")
+    response = b.post("/widget-preview", {"type": "note", "space_id": space, "title": "N", "cfg.text": "Hallo"})
+    assert response.status_code == 200 and "Hallo" in response.text
+    bad = b.post("/widget-preview", {"type": "link", "space_id": space, "title": "L"})
+    assert bad.status_code == 200 and "callout-danger" in bad.text

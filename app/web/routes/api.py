@@ -1,10 +1,10 @@
 """Token API and embeds (e.g. an iframe in Dashy during the switch)."""
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.enums import Severity, TokenScope
-from app.services import boards, hints
+from app.services import boards, calendar, hints
 from app.services.access import AccessDenied
 from app.web import deps
 from app.web.deps import Ctx
@@ -55,3 +55,9 @@ def embed_board(request: Request, board_id: int):
     board = boards.view(who, board_id)
     return page(request, ctx, "embed/board.html", board=board, embed=True,
                 token=request.query_params.get("token", ""))
+
+
+@router.get("/calendar.ics")
+def calendar_feed(request: Request):
+    who = _who(request, TokenScope.READ)
+    return Response(calendar.feed(who), media_type="text/calendar; charset=utf-8")

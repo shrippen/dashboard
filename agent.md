@@ -64,3 +64,21 @@ db/         SQLAlchemy, Session  drivers/  rohes HTTP/SMTP je Dienst
 - Texte nur über `t(key)` (Kataloge `app/i18n/*.yml`); Hinweise speichern Schlüssel + Parameter.
 - CSS nur mit Theme-Tokens, keine Hex-Werte außerhalb `themes/`.
 - Zugangsdaten nur verschlüsselt (`services/crypto`), nie im Log, nie im Export.
+
+## Bausteine
+```
+sources/services.py   <service>.data: ein gecachter Datensatz je Verbindung (+ .test)
+metrics/*.py          reine Funktionen: Datensatz → Kennzahlen (kein I/O)
+rules/*.py            @rule(id, scope, **defaults): Datensatz → Finding (kein I/O)
+widgets/*.py          WidgetType: Schema, Queries, view() (rein), Template
+services/analysis.py  Job: Datensätze laden, Regeln anwenden, hints.sync()
+demo/data.py          demo:// Verbindungen: erzeugte Daten, jede Regel feuert einmal
+```
+- Neue Regel: Funktion in `rules/`, Texte `hint.<message>.title|why` in beiden Katalogen, Test in `tests/test_rules.py`.
+- Neues Widget: Typ in `widgets/`, Template `web/templates/widgets/<key>.html`, `wtype.<key>` in den Katalogen.
+- Hinweis-Parameter typisiert übergeben (`money()`, `day()`, `num()` aus `rules/base.py`).
+
+## Gelernte Fehler
+- Routen mit Pfadparameter (`/widgets/{id}`) fangen spätere feste Pfade gleichen Präfixes ab (`/widgets/preview` → 422). Feste Pfade vorher definieren oder anders benennen.
+- Jinja-Makros aus anderen Dateien nur mit `import … with context`, sonst fehlt `t`.
+- Board-Freigabe muss Widgets aus dem Bereich des Boards sichtbar machen (`boards._seen_right`).

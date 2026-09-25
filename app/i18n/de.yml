@@ -93,6 +93,8 @@ board:
   untitled: Ohne Titel
   new: Neues Board
   delete: Board löschen
+  full: Alles zeigen
+  compact: Kompakt
 edit:
   edit: Bearbeiten
   done: Fertig
@@ -172,6 +174,7 @@ field:
   goal: Ziel
   table: Tabelle
   chart: Diagramm
+  info: Infozeile aus Verbindung
 opt:
   newtab: Neuer Tab
   sametab: Gleicher Tab
@@ -197,6 +200,9 @@ opt:
   trips: Fahrten
   revenue: Umsatz
   hours: Stunden
+  revenue_forecast: Umsatzprognose Jahr
+  cash_30: Zahlungseingang erwartet
+  month_min: Stunden Monat
 size:
   small: Klein
   medium: Mittel
@@ -253,6 +259,9 @@ wtype:
   deadlines:
     name: Fristen
     desc: Anstehende Fristen und Termine.
+  trend:
+    name: Verlauf
+    desc: Täglicher Verlauf einer Kennzahl (offene Posten, Umsatz, Stunden).
 widget:
   loading: lädt …
   error: Fehler
@@ -715,6 +724,8 @@ kpi:
   reserve: USt-Zahllast + {rate} % vom Überschuss
   assets: '{count} Assets'
   vs_last_year: zum Vorjahr
+  of_goal: Ziel {goal}
+  cash_30: offen + wiederkehrend, 30 Tage
 col:
   number: Nr.
   client: Kunde
@@ -833,3 +844,38 @@ settings:
   rules: Hinweise
   rule: Regel
   params: Werte
+notify:
+  lead: Hinweise per Push (Apprise) und als tägliche oder wöchentliche Mail.
+  channels: Kanäle
+  none: Noch keine Kanäle.
+  url_hint: Apprise-Format, z. B. ntfy://host/topic, gotify://host/token, mailto://…, tgram://…. Wird verschlüsselt gespeichert.
+  timing: Zeiten
+  quiet_from: Ruhezeit ab
+  quiet_to: Ruhezeit bis
+  digest_at: Zusammenfassung um
+  digest_hint: Leer = keine Zusammenfassung. Versand per E-Mail.
+  weekly: Zusammenfassung an
+  every_day: jedem Tag
+  calendar: Kalender
+  calendar_hint: Fristen und fällige Hinweise als iCal-Feed. Token unter Sicherheit anlegen (Umfang Lesen).
+  invalid_url: Apprise-URL ungültig.
+  failed: Versand fehlgeschlagen.
+  bad_time: Zeit ungültig (HH:MM).
+  test_title: 'dashboard: Test'
+  test_body: Dieser Kanal funktioniert.
+  title: 'dashboard: {count} neue Hinweise'
+  digest_subject: 'Dashboard: {count} Punkte'
+  digest_body: 'Offene Hinweise und anstehende Fristen:'
+weekday:
+  mon: Montag
+  tue: Dienstag
+  wed: Mittwoch
+  thu: Donnerstag
+  fri: Freitag
+  sat: Samstag
+  sun: Sonntag
+calendar:
+  name: Dashboard-Fristen
+trend:
+  range: '{low} – {high}'
+  collecting: Verlauf wird gesammelt (ein Wert pro Tag).

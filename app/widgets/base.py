@@ -29,6 +29,7 @@ class Extra(StrEnum):
 
     NONE = "none"
     HINTS = "hints"
+    POINTS = "points"
 
 
 @dataclass(frozen=True)

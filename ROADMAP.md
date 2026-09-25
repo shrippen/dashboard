@@ -2,9 +2,29 @@
 
 Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **Startseite mit Links, Statusanzeigen und Feeds** ab, führt zugleich Daten aus **Kimai**, **Invoice Ninja**, **Snipe-IT** und **Dawarich** zusammen und leitet daraus **Hinweise, Erinnerungen und Ratschläge** ab. Konfiguriert wird im **eingebauten Editor**, gestaltet über ein **Theme-System**, von dem nur das Theme **shrippen** mitgeliefert wird. Auslieferung als **ein Docker-Container** mit eigener Anmeldung.
 
-> Stand: Entwurf v0.3 · Arbeitstitel `dashboard`
+> Stand: v0.4 · Arbeitstitel `dashboard`
 >
 > **Arbeitsort:** Die gesamte Entwicklung findet in diesem Repository (`shrippen/dashboard`) statt. Das Design-System-Repo `shrippen/shrippen.github.io` ist nur Quelle, es wird von hier aus nicht verändert.
+
+---
+
+## Umsetzungsstand (2026-09-25)
+
+Phasen 0–8 sind umgesetzt, Phase 9 ist offen. Getestet mit Demo-Daten (`demo://`) und gemockten API-Antworten, **nicht gegen echte Instanzen**. Vor dem Produktivbetrieb die Verbindungstests je Dienst ausführen und die Hinweise auf Plausibilität prüfen.
+
+| Bereich | Stand |
+|---|---|
+| Anmeldung, Teams, Rechte, Freigaben, Overlays | umgesetzt, Rechte-Matrix in `tests/test_access.py` |
+| Editor, Bibliothek, Revisionen, YAML, Dashy-Import | umgesetzt; Code-Ansicht als Textfeld (CodeMirror offen) |
+| Themes | umgesetzt; Schrift-Upload fehlt |
+| Kimai, Invoice Ninja, Snipe-IT, Dawarich | Adapter, 32 Regeln, Widgets umgesetzt; Endpunkte gegen Doku, nicht gegen Live-Systeme geprüft |
+| Benachrichtigungen, Digest, iCal | umgesetzt (Apprise, SMTP) |
+| Trends, Prognosen | Tages-Snapshots, Verlauf, Jahresprognose, erwarteter Zahlungseingang |
+| Betrieb | CLI `dashboard backup`, `rotate-key`, `import` |
+
+**Abweichungen vom Plan:** Übersetzungen als YAML-Kataloge mit Schlüsseln (statt gettext). Das mitgelieferte Theme liegt in `app/themes/shrippen/`. Board-Vorlagen laufen über YAML-Export/-Import.
+
+**Bekannte Unsicherheiten:** Deep-Links in Invoice Ninja (`/#/invoices/<id>/edit`), Snipe-IT meldet keine Version, Dawarich-Felder für Besuche (`area_id`, `place`) werden tolerant gelesen.
 
 ---
 
@@ -574,95 +594,95 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 0: Fundament (v0.1)
 
-- [ ] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit
-- [ ] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften
-- [ ] Übersetzung von Anfang an: alle Texte über gettext (DE/EN), Formatierung mit Babel, Sprache aus Profil bzw. `Accept-Language` beim ersten Besuch; CI prüft, dass keine Übersetzung fehlt
-- [ ] Datenbank mit SQLAlchemy + Alembic (SQLite im WAL-Modus)
-- [ ] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
-- [ ] Anmeldung: Einrichtungscode, lokale Konten (Argon2id), Sitzungen, CSRF, Drosselung, Abmelden
-- [ ] Zentrale Berechtigungsprüfung in der Service-Schicht, Tests als Rechte-Matrix (Rolle × Recht × Ressource)
-- [ ] Verschlüsselung der Zugangsdaten (AES-GCM, Hauptschlüssel aus Docker Secret)
-- [ ] Quellen-Schnittstelle (`fetch()`, `healthcheck()`, Cache je Verbindung + Zugangsdaten), Widget-Schnittstelle (Schema + Vorlage + HTMX-Fragment), Scheduler
-- [ ] Hinweis-Engine: Fingerprint, Zustände je Benutzer/Team, Snooze/Ack
-- [ ] Dockerfile (multi-stage, non-root, `HEALTHCHECK`), `docker-compose.example.yml`
-- [ ] GitHub Actions: Tests, Image-Build `linux/amd64` + `linux/arm64`, Push nach GHCR
-- [ ] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots)
+- [x] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit *(Stylecheck-Skript statt Stylelint, kein pre-commit)*
+- [x] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften
+- [x] Übersetzung von Anfang an: alle Texte über gettext (DE/EN), Formatierung mit Babel, Sprache aus Profil bzw. `Accept-Language` beim ersten Besuch; CI prüft, dass keine Übersetzung fehlt *(YAML-Kataloge mit Schlüsseln statt gettext)*
+- [x] Datenbank mit SQLAlchemy + Alembic (SQLite im WAL-Modus)
+- [x] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
+- [x] Anmeldung: Einrichtungscode, lokale Konten (Argon2id), Sitzungen, CSRF, Drosselung, Abmelden
+- [x] Zentrale Berechtigungsprüfung in der Service-Schicht, Tests als Rechte-Matrix (Rolle × Recht × Ressource)
+- [x] Verschlüsselung der Zugangsdaten (AES-GCM, Hauptschlüssel aus Docker Secret)
+- [x] Quellen-Schnittstelle (`fetch()`, `healthcheck()`, Cache je Verbindung + Zugangsdaten), Widget-Schnittstelle (Schema + Vorlage + HTMX-Fragment), Scheduler
+- [x] Hinweis-Engine: Fingerprint, Zustände je Benutzer/Team, Snooze/Ack
+- [x] Dockerfile (multi-stage, non-root, `HEALTHCHECK`), `docker-compose.example.yml`
+- [x] GitHub Actions: Tests, Image-Build `linux/amd64` + `linux/arm64`, Push nach GHCR
+- [x] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots)
 
 ### Phase 1: Startseite, Editor und Dashy-Migration (v0.2)
 
-- [ ] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache
-- [ ] Quelle `http_status` und Statuspunkt auf den Kacheln
-- [ ] Boards, einklappbare Abschnitte, `cols`, Kachelgrößen, Sortierung
-- [ ] Suche mit Filter, `Enter`, Hotkeys, Websuche als Rückfall
-- [ ] Widgets `rss`, `clock`, `weather` (Open-Meteo)
-- [ ] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
-- [ ] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen
-- [ ] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml`
-- [ ] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
-- [ ] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten
+- [x] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache
+- [x] Quelle `http_status` und Statuspunkt auf den Kacheln
+- [x] Boards, einklappbare Abschnitte, `cols`, Kachelgrößen, Sortierung
+- [x] Suche mit Filter, `Enter`, Hotkeys, Websuche als Rückfall
+- [x] Widgets `rss`, `clock`, `weather` (Open-Meteo)
+- [x] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
+- [x] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen
+- [x] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml`
+- [x] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
+- [x] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten
 - [ ] Parallelbetrieb, dann Umstieg nach Checkliste (Abschnitt 7.4)
 
 **Ergebnis:** Dashy ist abgeschaltet, das Dashboard ist die Browser-Startseite, alles wird in der Oberfläche gepflegt.
 
 ### Phase 2: Mehrbenutzer und Teams (v0.3)
 
-- [ ] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen
-- [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang
-- [ ] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste
-- [ ] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche
-- [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“
-- [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen
-- [ ] Verbindungen mit persönlichen Zugangsdaten
-- [ ] Persönliche API- und Embed-Tokens
-- [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche)
+- [x] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen
+- [x] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang
+- [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste
+- [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche
+- [x] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“
+- [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie)*
+- [x] Verbindungen mit persönlichen Zugangsdaten
+- [x] Persönliche API- und Embed-Tokens
+- [x] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche)
 
 ### Phase 3: Themes (v0.4)
 
-- [ ] Theme-Vertrag (Token-Liste, Version, Standardwerte) und Laden der Themes je Bereich
-- [ ] shrippen als einziges mitgeliefertes, schreibgeschütztes Theme (dunkel + Leinen)
-- [ ] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA
-- [ ] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins
-- [ ] Auswahlreihenfolge persönlich → Team → Instanz, optional erzwungenes Theme je Board
-- [ ] Seite `/styleguide` mit allen Komponenten im aktuellen Theme
+- [x] Theme-Vertrag (Token-Liste, Version, Standardwerte) und Laden der Themes je Bereich
+- [x] shrippen als einziges mitgeliefertes, schreibgeschütztes Theme (dunkel + Leinen)
+- [x] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA
+- [ ] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins *(eigenes CSS ja, Schrift-Upload fehlt)*
+- [x] Auswahlreihenfolge persönlich → Team → Instanz, optional erzwungenes Theme je Board
+- [x] Seite `/styleguide` mit allen Komponenten im aktuellen Theme
 
 ### Phase 4: Freelance-Kern: Kimai + Invoice Ninja (v0.5, MVP der Auswertung)
 
-- [ ] Kimai-Quelle und Kennzahlen, Regeln aus 8.1
-- [ ] Invoice-Ninja-Quelle und Kennzahlen, Regeln aus 8.2
-- [ ] Abgleich Kimai ↔ Invoice Ninja: nicht abgerechnete Stunden je Kunde, effektiver Stundensatz
-- [ ] Boards „Übersicht“ und „Freelance“ als Vorlagen mit `.kpi`, `.hint`, `.progress`, Tabelle offener Posten
-- [ ] Regel-Einstellungen im Editor; Deep-Links von jedem Hinweis in die Fach-UI
-- [ ] Infozeilen und Hinweis-Zähler auf den Link-Kacheln von Kimai und Invoice Ninja
+- [x] Kimai-Quelle und Kennzahlen, Regeln aus 8.1
+- [x] Invoice-Ninja-Quelle und Kennzahlen, Regeln aus 8.2
+- [ ] Abgleich Kimai ↔ Invoice Ninja: nicht abgerechnete Stunden je Kunde, effektiver Stundensatz *(nicht abgerechnete Stunden ja, effektiver Stundensatz fehlt)*
+- [x] Boards „Übersicht“ und „Freelance“ als Vorlagen mit `.kpi`, `.hint`, `.progress`, Tabelle offener Posten
+- [x] Regel-Einstellungen im Editor; Deep-Links von jedem Hinweis in die Fach-UI
+- [x] Infozeilen und Hinweis-Zähler auf den Link-Kacheln von Kimai und Invoice Ninja
 
 **Ergebnis:** Das Dashboard ersetzt den täglichen Blick in beide Tools.
 
 ### Phase 5: IT-Landschaft: Snipe-IT (v0.6)
 
-- [ ] Snipe-IT-Quelle, Regeln aus 8.3
-- [ ] Board-Vorlage „IT“: Assets nach Status, Garantie-/Lizenz-Zeitleiste, Audits
-- [ ] Abgleich Snipe-IT ↔ Invoice-Ninja-Ausgaben (`snipe.expense_missing`)
+- [x] Snipe-IT-Quelle, Regeln aus 8.3
+- [x] Board-Vorlage „IT“: Assets nach Status, Garantie-/Lizenz-Zeitleiste, Audits
+- [x] Abgleich Snipe-IT ↔ Invoice-Ninja-Ausgaben (`snipe.expense_missing`)
 
 ### Phase 6: Standort: Dawarich (v0.7)
 
-- [ ] Dawarich-Quelle, nur Aggregate speichern, standardmäßig nur persönliche Verbindung
-- [ ] Zuordnung Area → Kimai-Kunde im Editor
-- [ ] Regeln aus 8.4: Besuch ohne Buchung, Fahrtkosten, Verpflegungspauschalen
-- [ ] Board-Vorlage „Reisen“: Kundentage, km je Monat, Vorschlag für Fahrtkosten-Position
+- [x] Dawarich-Quelle, nur Aggregate speichern, standardmäßig nur persönliche Verbindung
+- [x] Zuordnung Area → Kimai-Kunde im Editor
+- [x] Regeln aus 8.4: Besuch ohne Buchung, Fahrtkosten, Verpflegungspauschalen
+- [x] Board-Vorlage „Reisen“: Kundentage, km je Monat, Vorschlag für Fahrtkosten-Position
 
 ### Phase 7: Erinnerungen und Benachrichtigungen (v0.8)
 
-- [ ] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token)
-- [ ] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten; E-Mail-Benachrichtigungen nutzen den vorhandenen SMTP-Server
-- [ ] Texte der Benachrichtigungen in der Sprache des Empfängers
-- [ ] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers
-- [ ] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
-- [ ] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
+- [x] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token)
+- [x] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten; E-Mail-Benachrichtigungen nutzen den vorhandenen SMTP-Server
+- [x] Texte der Benachrichtigungen in der Sprache des Empfängers
+- [x] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers
+- [x] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
+- [x] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
 
 ### Phase 8: Trends und Prognosen (v0.9)
 
-- [ ] Verlaufsdiagramme aus Snapshots (Umsatz, Stunden, offene Posten)
-- [ ] Hochrechnung Jahresumsatz, Umsatzsteuer-Zahllast und Steuerrücklage
-- [ ] Vergleich Vorjahr, saisonale Muster, Liquiditätsvorschau (offene Posten + wiederkehrende Rechnungen − feste Ausgaben)
+- [x] Verlaufsdiagramme aus Snapshots (Umsatz, Stunden, offene Posten)
+- [x] Hochrechnung Jahresumsatz, Umsatzsteuer-Zahllast und Steuerrücklage
+- [ ] Vergleich Vorjahr, saisonale Muster, Liquiditätsvorschau (offene Posten + wiederkehrende Rechnungen − feste Ausgaben) *(Vorjahr und erwarteter Zahlungseingang 30 Tage ja; saisonale Muster und feste Ausgaben fehlen)*
 
 ### Phase 9: Ausbau (v1.0)
 

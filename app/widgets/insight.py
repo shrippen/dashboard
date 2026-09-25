@@ -36,6 +36,8 @@ class Metric(StrEnum):
     TAX_RESERVE = "tax_reserve"
     ASSET_VALUE = "asset_value"
     ASSETS_READY = "assets_ready"
+    REVENUE_FORECAST = "revenue_forecast"
+    CASH_30 = "cash_30"
 
 
 class TableKind(StrEnum):
@@ -74,6 +76,17 @@ class HintsConfig(BaseModel):
     sources: list[str] = Field(default_factory=list)
     min_severity: int = Field(default=int(Severity.INFO), ge=10, le=30)
     limit: int = Field(default=8, ge=1, le=50)
+
+
+class TrendMetric(StrEnum):
+    REVENUE_YTD = "revenue_ytd"
+    OPEN_AMOUNT = "open_amount"
+    MONTH_MIN = "month_min"
+
+
+class TrendConfig(BaseModel):
+    metric: TrendMetric = TrendMetric.OPEN_AMOUNT
+    days: int = Field(default=90, ge=7, le=730)
 
 
 class DeadlinesConfig(BaseModel):
@@ -133,6 +146,14 @@ def _kpi_ninja(metric: Metric, data: dict, ctx: ViewCtx) -> dict | None:
         vat = stats["vat"]
         return {"kind": "money", "value": vat["liability"], "currency": currency,
                 "sub": {"key": "kpi.vat_period", "start": {"$day": vat["start"]}, "end": {"$day": vat["end"]}}}
+    if metric == Metric.REVENUE_FORECAST:
+        forecast = nm.forecast_year(data, ctx.today)
+        goal = float((ctx.settings.get("goals") or {}).get("revenue_year") or 0)
+        sub = {"key": "kpi.of_goal", "goal": {"$money": goal, "currency": currency}} if goal else None
+        return {"kind": "money", "value": forecast, "currency": currency, "sub": sub}
+    if metric == Metric.CASH_30:
+        return {"kind": "money", "value": nm.cash_expected(data, ctx.today, 30), "currency": currency,
+                "sub": {"key": "kpi.cash_30"}}
     if metric == Metric.TAX_RESERVE:
         rate = float((ctx.settings.get("tax") or {}).get("income_tax_rate") or DEFAULT_INCOME_TAX)
         expenses = sum(e["amount"] - e.get("tax", 0) for e in data.get("expenses", [])
@@ -263,6 +284,27 @@ def _deadline_view(cfg: DeadlinesConfig, slots: dict, ctx: ViewCtx) -> dict:
             "configured": bool(ctx.settings.get("tax"))}
 
 
+TREND_W = 1000
+TREND_H = 160
+
+
+def _trend_view(cfg: TrendConfig, slots: dict, ctx: ViewCtx) -> dict:
+    """SVG path from daily snapshots; the service puts them into slots["points"]."""
+    points = slots.get("points") or []
+    if len(points) < 2:
+        return {"path": None, "count": len(points)}
+    values = [v for _d, v in points]
+    if cfg.metric == TrendMetric.MONTH_MIN:
+        values = [v / MINUTES_PER_HOUR for v in values]
+    low, high = min(values), max(values)
+    span = (high - low) or 1
+    step = TREND_W / (len(values) - 1)
+    coords = [f"{i * step:.1f},{TREND_H - (v - low) / span * (TREND_H - 10) - 5:.1f}" for i, v in enumerate(values)]
+    return {"path": "M" + " L".join(coords), "first": points[0][0], "last": points[-1][0], "low": low, "high": high,
+            "now": values[-1], "unit": "hours" if cfg.metric == TrendMetric.MONTH_MIN else "money",
+            "w": TREND_W, "h": TREND_H}
+
+
 def _data_query(_cfg) -> list[Query]:
     return [Query("data", "data", {}, ConnUse.WIDGET)]
 
@@ -277,5 +319,7 @@ register(WidgetType("progress", ProgressConfig, "widgets/progress.html", Categor
                     queries=_data_query, view=_progress_view))
 register(WidgetType("deadlines", DeadlinesConfig, "widgets/deadlines.html", Category.INSIGHT,
                     refresh_s=3600, view=_deadline_view))
+register(WidgetType("trend", TrendConfig, "widgets/trend.html", Category.INSIGHT, refresh_s=3600,
+                    view=_trend_view, extra=Extra.POINTS))
 register(WidgetType("hints", HintsConfig, "widgets/hints.html", Category.INSIGHT, refresh_s=300,
                     extra=Extra.HINTS))

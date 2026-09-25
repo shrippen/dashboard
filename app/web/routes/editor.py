@@ -259,7 +259,7 @@ def widget_copy(widget_id: int, space_id: int = Form(...), ctx: Ctx = Depends(de
     return deps.redirect(f"/widgets/{new_id}")
 
 
-@router.post("/widgets/preview")
+@router.post("/widget-preview")
 async def widget_preview(request: Request, ctx: Ctx = Depends(deps.require)):
     form = await request.form()
     kind = str(form.get("type"))

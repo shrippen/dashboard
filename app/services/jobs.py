@@ -1,6 +1,6 @@
 """Job registrations. Imported once by the scheduler."""
 
-from app.services import analysis, audit, auth, data, hints, icons
+from app.services import analysis, audit, auth, data, hints, icons, notify
 from app.services.scheduler import DAY, HOUR, MINUTE, every
 
 ANALYSIS_EVERY = 5 * MINUTE
@@ -22,3 +22,13 @@ def retry_icons() -> None:
 @every("analysis", ANALYSIS_EVERY)
 def analyse() -> None:
     analysis.run_all()
+
+
+@every("notify", MINUTE)
+def notify_users() -> None:
+    notify.dispatch()
+
+
+@every("digest", 5 * MINUTE)
+def digest_mails() -> None:
+    notify.digests()

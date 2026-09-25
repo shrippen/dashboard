@@ -48,7 +48,7 @@ def init_crypto(settings: Settings) -> None:
 
 def _load_master(settings: Settings) -> bytes:
     if settings.master_key:
-        return hashlib.sha256(settings.master_key.encode()).digest()
+        return master_from(settings.master_key)
 
     if not (settings.dashboard_dev or settings.dashboard_testing):
         raise MissingKeyError("master_key secret is required (see docker-compose.example.yml)")
@@ -59,20 +59,25 @@ def _load_master(settings: Settings) -> bytes:
     if not path.exists():
         path.write_text(base64.b64encode(os.urandom(KEY_LEN)).decode())
 
-    return hashlib.sha256(path.read_text().strip().encode()).digest()
+    return master_from(path.read_text().strip())
 
 
-def _key(purpose: Purpose) -> bytes:
-    if _master is None:
+def _key(purpose: Purpose, master: bytes | None = None) -> bytes:
+    master = master or _master
+    if master is None:
         raise MissingKeyError("crypto not initialised")
 
     kdf = HKDF(algorithm=hashes.SHA256(), length=KEY_LEN, salt=None, info=purpose.encode())
-    return kdf.derive(_master)
+    return kdf.derive(master)
 
 
-def encrypt(text: str, purpose: Purpose) -> bytes:
+def master_from(secret: str) -> bytes:
+    return hashlib.sha256(secret.encode()).digest()
+
+
+def encrypt(text: str, purpose: Purpose, master: bytes | None = None) -> bytes:
     nonce = os.urandom(NONCE_LEN)
-    return nonce + AESGCM(_key(purpose)).encrypt(nonce, text.encode(), purpose.encode())
+    return nonce + AESGCM(_key(purpose, master)).encrypt(nonce, text.encode(), purpose.encode())
 
 
 def decrypt(blob: bytes, purpose: Purpose) -> str:

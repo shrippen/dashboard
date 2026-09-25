@@ -139,3 +139,20 @@ def summary(data: dict, today: date, interval: str = "monthly", method: str = "i
         "vat": vat_liability(data, today, interval, method),
         "currency": data.get("currency", "EUR"),
     }
+
+
+def forecast_year(data: dict, today: date) -> float:
+    """Linear projection of net revenue to Dec 31 from the pace so far."""
+    ytd = revenue(data, date(today.year, 1, 1), today)
+    elapsed = (today - date(today.year, 1, 1)).days + 1
+    days = (date(today.year, 12, 31) - date(today.year, 1, 1)).days + 1
+    return round(ytd / elapsed * days, 2)
+
+
+def cash_expected(data: dict, today: date, days: int) -> float:
+    """Receivables plus recurring invoices due within `days` (gross)."""
+    horizon = today + timedelta(days=days)
+    open_amount = sum(i["balance"] for i in open_invoices(data, today))
+    recurring = sum(r["amount"] for r in data.get("recurring", [])
+                    if r.get("active") and (d := parse_day(r.get("next_send_date"))) and today <= d <= horizon)
+    return round(open_amount + recurring, 2)

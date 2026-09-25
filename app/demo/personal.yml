@@ -38,6 +38,9 @@ widgets:
   - {id: goal, type: progress, title: Jahresziel, connection: invoiceninja, config: {}}
   - {id: assets, type: table, title: Garantie und Lizenzen, connection: snipeit, config: {table: asset_dates}}
   - {id: trips, type: table, title: Fahrten, connection: dawarich, config: {table: trips}}
+  - {id: forecast, type: kpi, title: "", connection: invoiceninja, config: {metric: revenue_forecast}}
+  - {id: cash, type: kpi, title: "", connection: invoiceninja, config: {metric: cash_30}}
+  - {id: open-trend, type: trend, title: Offene Posten (Verlauf), connection: invoiceninja, config: {metric: open_amount, days: 90}}
   - {id: shares, type: table, title: Umsatz je Kunde, connection: invoiceninja, config: {table: client_shares}}
 boards:
   - name: Übersicht
@@ -51,7 +54,7 @@ boards:
   - name: Freelance
     slug: freelance
     sections:
-      - {title: Umsatz, widgets: [revenue-chart]}
+      - {title: Umsatz, widgets: [forecast, cash, revenue-chart, open-trend]}
       - {title: Offene Posten, widgets: [open-invoices, unbilled]}
       - {title: Kunden, widgets: [shares]}
   - name: IT

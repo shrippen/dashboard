@@ -93,6 +93,8 @@ board:
   untitled: Untitled
   new: New board
   delete: Delete board
+  full: Show all
+  compact: Compact
 edit:
   edit: Edit
   done: Done
@@ -172,6 +174,7 @@ field:
   goal: Goal
   table: Table
   chart: Chart
+  info: Info line from connection
 opt:
   newtab: New tab
   sametab: Same tab
@@ -197,6 +200,9 @@ opt:
   trips: Trips
   revenue: Revenue
   hours: Hours
+  revenue_forecast: Revenue forecast year
+  cash_30: Expected incoming
+  month_min: Hours month
 size:
   small: Small
   medium: Medium
@@ -253,6 +259,9 @@ wtype:
   deadlines:
     name: Deadlines
     desc: Upcoming deadlines and dates.
+  trend:
+    name: Trend
+    desc: Daily history of a metric (receivables, revenue, hours).
 widget:
   loading: loading …
   error: Error
@@ -714,6 +723,8 @@ kpi:
   reserve: VAT liability + {rate} % of surplus
   assets: '{count} assets'
   vs_last_year: vs. last year
+  of_goal: goal {goal}
+  cash_30: open + recurring, 30 days
 col:
   number: No.
   client: Client
@@ -832,3 +843,38 @@ settings:
   rules: Hints
   rule: Rule
   params: Values
+notify:
+  lead: Hints as push (Apprise) and as daily or weekly mail.
+  channels: Channels
+  none: No channels yet.
+  url_hint: Apprise format, e.g. ntfy://host/topic, gotify://host/token, mailto://…, tgram://…. Stored encrypted.
+  timing: Timing
+  quiet_from: Quiet from
+  quiet_to: Quiet until
+  digest_at: Digest at
+  digest_hint: Empty = no digest. Sent by e-mail.
+  weekly: Digest on
+  every_day: every day
+  calendar: Calendar
+  calendar_hint: Deadlines and due hints as iCal feed. Create a token under Security (scope read).
+  invalid_url: Invalid Apprise URL.
+  failed: Delivery failed.
+  bad_time: Invalid time (HH:MM).
+  test_title: 'dashboard: test'
+  test_body: This channel works.
+  title: 'dashboard: {count} new hints'
+  digest_subject: 'Dashboard: {count} items'
+  digest_body: 'Open hints and upcoming deadlines:'
+weekday:
+  mon: Monday
+  tue: Tuesday
+  wed: Wednesday
+  thu: Thursday
+  fri: Friday
+  sat: Saturday
+  sun: Sunday
+calendar:
+  name: Dashboard deadlines
+trend:
+  range: '{low} – {high}'
+  collecting: Collecting history (one value per day).

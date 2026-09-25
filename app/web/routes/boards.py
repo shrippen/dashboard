@@ -16,6 +16,7 @@ from app.web.render import page
 
 router = APIRouter()
 NO_CONTENT = 204
+COMPACT = "compact"
 
 
 @router.get("/")
@@ -30,7 +31,8 @@ def board_page(request: Request, board_id: int, ctx: Ctx = Depends(deps.require)
     profile = accounts.profile(ctx.who)
     edit = request.query_params.get("edit") is not None and board.can_edit
     layer_edit = request.query_params.get("layout") is not None
-    return page(request, ctx, "board.html", board=board, edit=edit,
+    compact = request.query_params.get("view") == COMPACT
+    return page(request, ctx, "board.html", board=board, edit=edit, compact=compact,
                 search_engine=profile.search_engine, layer_edit=layer_edit)
 
 

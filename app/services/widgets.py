@@ -278,6 +278,9 @@ def load(who: Principal, widget: Widget, fresh: Freshness = Freshness.CACHED) ->
     if service_conn is not None:
         result.hint_count, result.hint_level = hints.count_for(who, service_conn.id)
 
+    if kind.extra == Extra.POINTS and conn is not None:
+        result.slots["points"] = Slot(data.points(conn, who.user_id, config.metric.value, config.days))
+
     if kind.view is not None:
         ctx = ViewCtx(date.today(), settings, dict(service_conn.options or {}) if service_conn else {},
                       service_conn.service if service_conn else None)

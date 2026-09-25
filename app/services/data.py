@@ -192,3 +192,11 @@ def _failed(previous: Result | None, now: datetime, error: str) -> Result:
 def prune() -> None:
     with session_scope() as s:
         repo.prune_cache(s, utcnow() - CACHE_RETENTION)
+
+
+def points(conn: Connection, user_id: int | None, metric: str, days: int) -> list[tuple[str, float]]:
+    """Daily snapshots of a metric (written by the analysis job)."""
+    owner = credential_owner(conn, user_id)
+    since = (utcnow() - timedelta(days=days)).date().isoformat()
+    with session_scope() as s:
+        return [(p.day, p.value) for p in repo.points(s, f"{conn.id}:{owner or 0}", metric, since)]

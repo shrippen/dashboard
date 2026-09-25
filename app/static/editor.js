@@ -54,3 +54,32 @@
     });
   });
 })();
+
+/* Icon upload: store the file, put the returned spec into the icon field. */
+(function () {
+  "use strict";
+
+  document.addEventListener("change", function (e) {
+    var input = e.target;
+    if (!input.classList || !input.classList.contains("icon-upload") || !input.files.length) {
+      return;
+    }
+    var body = new FormData();
+    body.append("file", input.files[0]);
+    fetch("/icons/upload", {
+      method: "POST",
+      headers: { "X-CSRF-Token": document.body.getAttribute("data-csrf") || "" },
+      body: body,
+      credentials: "same-origin"
+    }).then(function (res) { return res.text().then(function (text) { return [res.ok, text]; }); })
+      .then(function (pair) {
+        if (!pair[0]) {
+          window.alert(pair[1]);
+          return;
+        }
+        var field = document.querySelector('[name="' + input.getAttribute("data-target") + '"]');
+        field.value = pair[1];
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+  });
+})();
