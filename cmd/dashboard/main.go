@@ -70,6 +70,9 @@ func main() {
 	deps.RegisterEditorRoutes(mux)
 	deps.RegisterNotifyRoutes(mux)
 	deps.RegisterStaticRoutes(mux)
+	deps.RegisterHintRoutes(mux)
+	deps.RegisterProfileRoutes(mux)
+	deps.RegisterSecurityRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}

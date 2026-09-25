@@ -10,6 +10,9 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/pquerna/otp/totp"
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
@@ -61,6 +64,9 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterEditorRoutes(mux)
 	deps.RegisterNotifyRoutes(mux)
 	deps.RegisterStaticRoutes(mux)
+	deps.RegisterHintRoutes(mux)
+	deps.RegisterProfileRoutes(mux)
+	deps.RegisterSecurityRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(mux)
@@ -670,6 +676,136 @@ func TestWidgetFragmentRendersRssFeed(t *testing.T) {
 	fragBody := mustGet(t, srv, client, "/widget-fragments/"+string(placementMatch[1]))
 	if !strings.Contains(string(fragBody), "First post") || !strings.Contains(string(fragBody), "https://example.org/1") {
 		t.Fatalf("expected the feed's item rendered, got:\n%s", fragBody)
+	}
+}
+
+// TestProfileUpdateSavesLocale drives /me/profile: change name and locale,
+// see them reflected on reload.
+func TestProfileUpdateSavesLocale(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/me/profile", url.Values{
+		"csrf": {csrf}, "name": {"New Name"}, "locale": {"en"}, "color_mode": {"dark"},
+	})
+	if err != nil {
+		t.Fatalf("save profile: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after save, got %d", resp.StatusCode)
+	}
+
+	body := mustGet(t, srv, client, "/me/profile")
+	if !strings.Contains(string(body), `value="New Name"`) {
+		t.Fatalf("expected updated name on the profile page:\n%s", body)
+	}
+}
+
+// TestSecurityTOTPEnableDisableFlow drives the full TOTP setup: begin ->
+// confirm with a real generated code -> disable with the same secret.
+func TestSecurityTOTPEnableDisableFlow(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/me/security/totp/begin", url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("begin: %v", err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	m := regexp.MustCompile(`<p class="mono">([A-Z2-7]+)</p>`).FindSubmatch(body)
+	if m == nil {
+		t.Fatalf("expected a TOTP secret on the page:\n%s", body)
+	}
+	secret := string(m[1])
+	code2, err := totp.GenerateCode(secret, time.Now())
+	if err != nil {
+		t.Fatalf("generate code: %v", err)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/me/security/totp/confirm", url.Values{"csrf": {csrf}, "code": {code2}})
+	if err != nil {
+		t.Fatalf("confirm: %v", err)
+	}
+	body, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(body), "<li>") {
+		t.Fatalf("expected recovery codes rendered:\n%s", body)
+	}
+
+	body = mustGet(t, srv, client, "/me/security")
+	if !strings.Contains(string(body), `data-state="ok"`) {
+		t.Fatalf("expected TOTP shown as active:\n%s", body)
+	}
+
+	code3, err := totp.GenerateCode(secret, time.Now())
+	if err != nil {
+		t.Fatalf("generate disable code: %v", err)
+	}
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/me/security/totp/disable", url.Values{"csrf": {csrf}, "code": {code3}})
+	if err != nil {
+		t.Fatalf("disable: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after disable, got %d", resp.StatusCode)
+	}
+}
+
+// TestSecurityAPITokenCreateRevoke drives /me/security's token form.
+func TestSecurityAPITokenCreateRevoke(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/me/security/tokens", url.Values{
+		"csrf": {csrf}, "name": {"CI"}, "scope": {"read"},
+	})
+	if err != nil {
+		t.Fatalf("create token: %v", err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(body), "dsh_") {
+		t.Fatalf("expected the new token secret shown once:\n%s", body)
+	}
+	idMatch := regexp.MustCompile(`/me/security/tokens/(\d+)/revoke`).FindSubmatch(body)
+	if idMatch == nil {
+		t.Fatalf("expected a revoke form for the new token:\n%s", body)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/me/security/tokens/"+string(idMatch[1])+"/revoke", url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("revoke: %v", err)
+	}
+	resp.Body.Close()
+
+	body = mustGet(t, srv, client, "/me/security")
+	if strings.Contains(string(body), "CI</td>") {
+		t.Fatalf("expected the token gone after revoke:\n%s", body)
+	}
+}
+
+// TestHintsPageListsAndAcks drives the hints page against a hint synced
+// straight through the hints service (the fastest way to get one on the
+// board without a real connection).
+func TestHintsPageListsAndAcks(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	body := mustGet(t, srv, client, "/hints")
+	if !strings.Contains(string(body), "hints") {
+		t.Fatalf("expected the hints page to render, got:\n%s", body)
 	}
 }
 

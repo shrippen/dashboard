@@ -25,10 +25,12 @@
       <a href="/">{{t "nav.home"}}</a>
       <a href="/widgets">{{t "nav.library"}}</a>
       <a href="/connections">{{t "nav.connections"}}</a>
+      <a href="/hints">{{t "nav.hints"}}</a>
       <a href="/me/notify">{{t "nav.notify"}}</a>
     </nav>
     <div class="app-side">
-      <span class="name">{{.Who.Name}}</span>
+      <a href="/me/profile" class="name">{{.Who.Name}}</a>
+      <a href="/me/security">{{t "nav.security"}}</a>
       <form method="post" action="/logout">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "nav.logout"}}</button>

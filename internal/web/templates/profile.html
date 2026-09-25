@@ -1,0 +1,50 @@
+{{define "profile"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.profile"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.profile"}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <div class="card">
+      <form method="post" action="/me/profile">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="name">{{t "field.name"}}</label>
+        <input id="name" name="name" value="{{.Profile.Name}}" required>
+
+        <label for="locale">{{t "field.locale"}}</label>
+        <select id="locale" name="locale">
+          <option value="de" {{if eq (print .Profile.Locale) "de"}}selected{{end}}>Deutsch</option>
+          <option value="en" {{if eq (print .Profile.Locale) "en"}}selected{{end}}>English</option>
+        </select>
+
+        <label for="color_mode">{{t "field.color_mode"}}</label>
+        <select id="color_mode" name="color_mode">
+          <option value="auto" {{if eq (print .Profile.ColorMode) "auto"}}selected{{end}}>Auto</option>
+          <option value="dark" {{if eq (print .Profile.ColorMode) "dark"}}selected{{end}}>Dark</option>
+          <option value="light" {{if eq (print .Profile.ColorMode) "light"}}selected{{end}}>Light</option>
+        </select>
+
+        <label for="start_board_id">{{t "field.start_board"}}</label>
+        <select id="start_board_id" name="start_board_id">
+          <option value="">–</option>
+          {{range .Boards}}<option value="{{.ID}}"{{if eqID $.Profile.StartBoardID .ID}} selected{{end}}>{{.Name}}</option>{{end}}
+        </select>
+
+        <label for="search_engine">{{t "field.search_engine"}}</label>
+        <input id="search_engine" name="search_engine" value="{{.Profile.SearchEngine}}" placeholder="https://www.google.com/search?q={query}">
+        <p class="small muted">{{t "field.search_engine_hint"}}</p>
+
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}

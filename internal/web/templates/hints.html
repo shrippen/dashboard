@@ -1,0 +1,43 @@
+{{define "hints"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "hints.title"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "hints.title"}}</h1>
+    <p class="muted">{{t "hints.lead"}}</p>
+    <ul class="hints">
+      {{range .Hints}}
+      <li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
+        <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
+        <div class="hint-main">
+          <b>{{.Title}}</b>
+          <details><summary>{{t "hints.why"}}</summary><p>{{.Why}}</p>
+            <p class="muted small">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}{{if .Sources}} · {{range $i, $s := .Sources}}{{if $i}}, {{end}}{{$s}}{{end}}{{end}}</p></details>
+          <div class="hint-actions">
+            {{if .ActionURL}}<a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a>{{end}}
+            <form method="post" action="/hints/{{.ID}}/snooze">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <input type="hidden" name="days" value="7">
+              <button type="submit" class="ghost">{{t "hints.snooze"}}</button>
+            </form>
+            <form method="post" action="/hints/{{.ID}}/ack">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <button type="submit" class="ghost">{{t "hints.ack"}}</button>
+            </form>
+          </div>
+        </div>
+        {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
+      </li>
+      {{else}}<li class="hint-empty">{{t "hints.none"}}</li>{{end}}
+    </ul>
+  </main>
+</body>
+</html>
+{{end}}

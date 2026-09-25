@@ -148,7 +148,10 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
   padding: .35rem .7rem;
 }
 .app-side button:hover { color: var(--fg0); border-color: var(--fg3); }
-.app-side .name { color: var(--fg2); font-size: .85rem; }
+.app-side a { color: var(--fg3); font-size: .78rem; font-family: var(--font-mono); text-decoration: none; text-transform: uppercase; letter-spacing: .06em; }
+.app-side a:hover { color: var(--fg0); }
+.app-side .name { color: var(--fg2); font-size: .85rem; font-family: var(--font-sans); text-transform: none; letter-spacing: 0; }
+.app-side .name:hover { color: var(--fg0); }
 
 /* ── pill / status ── */
 .pill {
@@ -304,9 +307,10 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .hint-main details summary::-webkit-details-marker { display: none; }
 .hint-main details p { margin: .4rem 0 0; color: var(--fg2); font-size: .84rem; }
 .hint-due { font-family: var(--font-mono); font-size: .76rem; color: var(--orange); white-space: nowrap; }
-.hint-actions { display: flex; gap: .6rem; margin-top: .1rem; }
-.hint-actions a { font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--blue); text-decoration: none; }
-.hint-actions a:hover { color: var(--orange); }
+.hint-actions { display: flex; gap: .6rem; margin-top: .1rem; align-items: center; }
+.hint-actions form { margin: 0; }
+.hint-actions a, .hint-actions button.ghost { font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--blue); text-decoration: none; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.hint-actions a:hover, .hint-actions button.ghost:hover { color: var(--orange); }
 .hint-empty { color: var(--fg2); font-size: .85rem; list-style: none; }
 
 /* ── progress ── */

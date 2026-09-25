@@ -1,0 +1,117 @@
+{{define "security"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.security"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.security"}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+
+    <div class="card">
+      <h2>{{t "security.password"}}</h2>
+      <form method="post" action="/me/security/password">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        {{if .Profile.HasPassword}}
+        <label for="current">{{t "security.current"}}</label>
+        <input id="current" name="current" type="password" required>
+        {{end}}
+        <label for="new">{{t "security.new"}}</label>
+        <input id="new" name="new" type="password" required minlength="12">
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>{{t "security.totp"}}</h2>
+      {{if .RecoveryCodes}}
+        <p class="muted">{{t "security.recovery"}}</p>
+        <ul class="mono">{{range .RecoveryCodes}}<li>{{.}}</li>{{end}}</ul>
+      {{else if .Profile.TOTPEnabled}}
+        <p class="pill" data-state="ok">{{t "security.totp_on"}}</p>
+        <form method="post" action="/me/security/totp/disable">
+          <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+          <label for="disable_code">{{t "security.code_or_recovery"}}</label>
+          <input id="disable_code" name="code" required autocomplete="one-time-code">
+          <button type="submit" class="ghost">{{t "security.disable"}}</button>
+        </form>
+      {{else if .TOTPSecret}}
+        <p class="muted">{{t "security.scan"}}</p>
+        <p class="mono">{{.TOTPSecret}}</p>
+        <p class="small muted"><code>{{.TOTPURI}}</code></p>
+        <form method="post" action="/me/security/totp/confirm">
+          <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+          <label for="confirm_code">{{t "totp.code"}}</label>
+          <input id="confirm_code" name="code" required autocomplete="one-time-code">
+          <button type="submit">{{t "security.confirm"}}</button>
+        </form>
+      {{else}}
+        <form method="post" action="/me/security/totp/begin">
+          <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+          <button type="submit">{{t "security.enable"}}</button>
+        </form>
+      {{end}}
+    </div>
+
+    <div class="card">
+      <h2>{{t "security.sessions"}}</h2>
+      <div class="table-wrap"><table class="table">
+        <tr><th>{{t "security.device"}}</th><th>{{t "security.last_seen"}}</th><th></th></tr>
+        {{range .Sessions}}
+        <tr>
+          <td class="small">{{.IP}} · {{.UserAgent}}</td>
+          <td>{{ago .LastSeen}}</td>
+          <td>
+            <form method="post" action="/me/security/sessions/{{.ID}}/end">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <button type="submit" class="link-btn">{{t "security.end"}}</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h2>{{t "security.tokens"}}</h2>
+      {{if .NewToken}}<p class="small muted">{{t "security.token_once"}}</p><p class="mono">{{.NewToken}}</p>{{end}}
+      {{if .Tokens}}
+      <div class="table-wrap"><table class="table">
+        <tr><th>{{t "field.name"}}</th><th>{{t "field.scope"}}</th><th></th></tr>
+        {{range .Tokens}}
+        <tr>
+          <td>{{.Name}}</td>
+          <td>{{.Scope}}</td>
+          <td>
+            <form method="post" action="/me/security/tokens/{{.ID}}/revoke">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <button type="submit" class="link-btn">{{t "action.delete"}}</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </table></div>
+      {{else}}<p class="muted">{{t "security.no_tokens"}}</p>{{end}}
+      <form method="post" action="/me/security/tokens">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="token_name">{{t "field.name"}}</label>
+        <input id="token_name" name="name">
+        <label for="token_scope">{{t "field.scope"}}</label>
+        <select id="token_scope" name="scope">
+          <option value="read">read</option>
+          <option value="embed">embed</option>
+        </select>
+        <label for="token_days">{{t "security.days"}}</label>
+        <input id="token_days" name="days" type="number" min="1">
+        <button type="submit">{{t "action.create"}}</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}
