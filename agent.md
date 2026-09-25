@@ -45,40 +45,46 @@ Selbst gehostetes Mehrbenutzer-Dashboard: Startseite (Dashy-Ersatz) plus
 Auswertung von Kimai, Invoice Ninja, Snipe-IT, Dawarich mit Hinweisen.
 Plan und Entscheidungen: `ROADMAP.md`.
 
+Implementierung: Go (`net/http`, `html/template`, htmx für Fragment-Lazy-Load).
+Vollständig auf Go umgestellt; die frühere Python-Fassung ist nur noch in
+der Git-Historie vorhanden.
+
 ## Schichten (nur zum direkten Nachbarn darunter)
 ```
-web/        Routen, Templates, Formulare        (FastAPI, Jinja, HTMX)
+web/        Routen, Templates, Formulare        (net/http, html/template, htmx)
   ↓
-services/   Anwendungslogik, Rechteprüfung      (einzige Stelle für can())
+services/   Anwendungslogik, Rechteprüfung      (einzige Stelle für Right-Prüfung)
   ↓
-repos/      Datenbankzugriff     sources/  Dienst-Adapter (lesen)   outbound/  Mail, Apprise (senden)
+repos/      Datenbankzugriff     sources/  Dienst-Adapter (lesen)   outbound/  Apprise (senden)
   ↓                                 ↓                                  ↓
-db/         SQLAlchemy, Session  drivers/  rohes HTTP/SMTP je Dienst
+db/         database/sql, Tx     drivers/  rohes HTTP je Dienst
 ```
 - Routen rufen nie Repos, Sources, Outbound oder Drivers direkt auf.
-- Widgets (`widgets/`) rendern nur Daten, die ein Service liefert.
-- Private Namen mit `_`-Präfix; Freigabe nach außen nur mit Rückfrage.
+- Widgets (`internal/widgets/`) rendern nur Daten, die ein Service liefert.
+- Unexportierte (kleingeschriebene) Namen; Export nach außen nur mit Rückfrage.
 
 ## Konventionen
-- Python 3.11+, Ruff, Pytest. `make check` vor jedem Commit.
-- Texte nur über `t(key)` (Kataloge `app/i18n/*.yml`); Hinweise speichern Schlüssel + Parameter.
+- Go (aktuelle Stable-Version), gofmt, go vet. `make check` vor jedem Commit.
+- Texte nur über `t(key)` (Kataloge `internal/i18n/catalogs/*.yml`); Hinweise speichern Schlüssel + Parameter.
 - CSS nur mit Theme-Tokens, keine Hex-Werte außerhalb `themes/`.
-- Zugangsdaten nur verschlüsselt (`services/crypto`), nie im Log, nie im Export.
+- Zugangsdaten nur verschlüsselt (`internal/crypto`), nie im Log, nie im Export.
 
 ## Bausteine
 ```
-sources/services.py   <service>.data: ein gecachter Datensatz je Verbindung (+ .test)
-metrics/*.py          reine Funktionen: Datensatz → Kennzahlen (kein I/O)
-rules/*.py            @rule(id, scope, **defaults): Datensatz → Finding (kein I/O)
-widgets/*.py          WidgetType: Schema, Queries, view() (rein), Template
-services/analysis.py  Job: Datensätze laden, Regeln anwenden, hints.sync()
-demo/data.py          demo:// Verbindungen: erzeugte Daten, jede Regel feuert einmal
+internal/sources/*.go           <service>.data: ein gecachter Datensatz je Verbindung (+ .test)
+internal/metrics/*.go           reine Funktionen: Datensatz → Kennzahlen (kein I/O)
+internal/rules/*.go             Register(id, scope, defaults, run): Datensatz → Finding (kein I/O)
+internal/widgets/*.go           WidgetType: Decode, Queries, View (rein), Template
+internal/services/analysis/     Job: Datensätze laden, Regeln anwenden, hints.Sync()
+internal/services/scheduler/    Background-Jobs (Ticker je Job, panic-/error-isoliert)
 ```
-- Neue Regel: Funktion in `rules/`, Texte `hint.<message>.title|why` in beiden Katalogen, Test in `tests/test_rules.py`.
-- Neues Widget: Typ in `widgets/`, Template `web/templates/widgets/<key>.html`, `wtype.<key>` in den Katalogen.
-- Hinweis-Parameter typisiert übergeben (`money()`, `day()`, `num()` aus `rules/base.py`).
+- Neue Regel: Funktion in `internal/rules/`, Texte `hint.<message>.title|why` in beiden Katalogen, Test in `internal/rules/*_test.go`.
+- Neues Widget: Typ in `internal/widgets/`, Template-Define `widgets/<key>` in `internal/web/templates/widgets_*.html`, `wtype.<key>` in den Katalogen.
+- Hinweis-Parameter typisiert übergeben (`money()`, `day()`, `num()` aus `internal/i18n`).
 
 ## Gelernte Fehler
-- Routen mit Pfadparameter (`/widgets/{id}`) fangen spätere feste Pfade gleichen Präfixes ab (`/widgets/preview` → 422). Feste Pfade vorher definieren oder anders benennen.
-- Jinja-Makros aus anderen Dateien nur mit `import … with context`, sonst fehlt `t`.
-- Board-Freigabe muss Widgets aus dem Bereich des Boards sichtbar machen (`boards._seen_right`).
+- Go 1.22+ Mux: Pfadmuster wie `/theme/{id}.css` (Wildcard + fester Suffix in einem Segment) werden nicht unterstützt ("bad wildcard segment"). Ganzes Segment als Wildcard registrieren, Suffix im Handler abschneiden.
+- `html/template` kann kein Template mit zur Laufzeit berechnetem Namen einbinden (`{{template}}` braucht einen String-Literal) — anders als Jinjas `include`. Für pro-Typ-Fragmente (Widgets) daher `ExecuteTemplate` mit dynamischem Namen aus einer eigenen Route aufrufen (siehe `/widget-fragments/{id}`), nicht versuchen, es inline im Template zu lösen.
+- `modernc.org/sqlite` liefert TEXT-Spalten als `string`, nicht als `time.Time` — auch wenn der Wert wie ein Zeitstempel aussieht. Erst in `string` scannen, dann `db.ParseTime`.
+- String-Enum mit explizitem Zero-Value versehen, wenn die Go-Zero-Value (`""`) semantisch "Standard"/"keiner" bedeuten soll (z. B. `ConnUse`s `ConnNone`); sonst weicht ein Feld, das nie explizit gesetzt wird, unbemerkt vom Default ab.
+- Board-Freigabe muss Widgets aus dem Bereich des Boards sichtbar machen (`boards.seenRight`).

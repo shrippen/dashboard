@@ -10,19 +10,21 @@ Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **
 
 ## Umsetzungsstand (2026-09-25)
 
-Phasen 0–8 sind umgesetzt, Phase 9 ist offen. Getestet mit Demo-Daten (`demo://`) und gemockten API-Antworten, **nicht gegen echte Instanzen**. Vor dem Produktivbetrieb die Verbindungstests je Dienst ausführen und die Hinweise auf Plausibilität prüfen.
+Das Projekt ist vollständig von Python auf **Go** umgestellt (Zielplattform: Raspberry Pi, `net/http` + `html/template` + htmx, `modernc.org/sqlite` — kein cgo, kein C-Toolchain nötig). Die frühere Python-Fassung ist nur noch in der Git-Historie vorhanden. Getestet mit gemockten API-Antworten (`httptest`), **nicht gegen echte Instanzen**. Vor dem Produktivbetrieb die Verbindungstests je Dienst ausführen und die Hinweise auf Plausibilität prüfen.
 
 | Bereich | Stand |
 |---|---|
-| Anmeldung, Teams, Rechte, Freigaben, Overlays | umgesetzt, Rechte-Matrix in `tests/test_access.py` |
-| Editor, Bibliothek, Revisionen, YAML, Dashy-Import | umgesetzt; Code-Ansicht als Textfeld (CodeMirror offen) |
+| Anmeldung, Teams, Rechte, Freigaben, Overlays | umgesetzt |
+| Editor, Bibliothek, Revisionen | umgesetzt; YAML-Import/-Export und Dashy-Import (`porting.py`) **nicht portiert** |
 | Themes | umgesetzt; Schrift-Upload fehlt |
-| Kimai, Invoice Ninja, Snipe-IT, Dawarich | Adapter, 32 Regeln, Widgets umgesetzt; Endpunkte gegen Doku, nicht gegen Live-Systeme geprüft |
-| Benachrichtigungen, Digest, iCal | umgesetzt (Apprise, SMTP) |
+| Kimai, Invoice Ninja, Snipe-IT, Dawarich | Adapter, 32 Regeln, Insight-Widgets umgesetzt; Endpunkte gegen Doku, nicht gegen Live-Systeme geprüft |
+| Start-Widgets (Link, RSS, Uhr, Wetter, iframe, Systeminfo, öffentliche IP, Notiz) | umgesetzt, live über htmx-Fragmente |
+| Benachrichtigungen | Apprise per HTTP an eine vorhandene Apprise-API-Instanz (kein eigener Container); Digest-Mail und iCal **nicht portiert** (kein SMTP-Outbound in Go) |
 | Trends, Prognosen | Tages-Snapshots, Verlauf, Jahresprognose, erwarteter Zahlungseingang |
-| Betrieb | CLI `dashboard backup`, `rotate-key`, `import` |
+| Betrieb | CLI `dashboard backup`, `rotate-key`; `import` **nicht portiert** |
+| Icons-Dienst, Demo-Daten (`demo://`), OIDC-Login-Abschluss | **nicht portiert** |
 
-**Abweichungen vom Plan:** Übersetzungen als YAML-Kataloge mit Schlüsseln (statt gettext). Das mitgelieferte Theme liegt in `app/themes/shrippen/`. Board-Vorlagen laufen über YAML-Export/-Import.
+**Abweichungen vom Plan:** Übersetzungen als YAML-Kataloge mit Schlüsseln (unverändert vom Python-Stand übernommen). Das mitgelieferte Theme liegt in `internal/web/templates/` (Builtin, eingebettet). Board-Vorlagen/Revisionen speichern den Board- bzw. Widget-eigenen Zustand, nicht die bereichsübergreifende YAML-Form aus `porting.py`.
 
 **Bekannte Unsicherheiten:** Deep-Links in Invoice Ninja (`/#/invoices/<id>/edit`), Snipe-IT meldet keine Version, Dawarich-Felder für Besuche (`area_id`, `place`) werden tolerant gelesen.
 

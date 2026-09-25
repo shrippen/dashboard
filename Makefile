@@ -1,19 +1,16 @@
-VENV ?= .venv
-PY := $(VENV)/bin/python
-
-.PHONY: check lint test run migrate
+.PHONY: check lint test run build
 
 check: lint test
 
 lint:
-	$(VENV)/bin/ruff check app tests
-	$(PY) -m app.tools.stylecheck
+	gofmt -l . | grep . && exit 1 || true
+	go vet ./...
 
 test:
-	$(VENV)/bin/pytest
+	go test ./...
 
 run:
-	DASHBOARD_DEV=1 DATA_DIR=./data $(VENV)/bin/uvicorn app.main:create_app --factory --reload --port 8080
+	DATA_DIR=./data MASTER_KEY=dev-only-not-secret go run ./cmd/dashboard
 
-migrate:
-	DATA_DIR=./data $(VENV)/bin/alembic revision --autogenerate -m "$(m)"
+build:
+	CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/dashboard ./cmd/dashboard

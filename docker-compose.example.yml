@@ -4,25 +4,18 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/data
-      # optional, first start only: - ./seed.yml:/app/seed.yml:ro
     environment:
       TZ: Europe/Berlin
       BASE_URL: https://dashboard.example.lan
-      # Reverse proxy address(es) whose X-Forwarded-For is trusted (client IP for throttling).
-      FORWARDED_ALLOW_IPS: 172.16.0.0/12
-      SMTP_URL: smtp://dashboard@mail.example.lan:587?starttls=true
-      SMTP_FROM: "dashboard <dashboard@example.lan>"
       # Existing Apprise API instance to send push notifications through
       # (no bundled Apprise container here — reuse what you already run):
       APPRISE_API_URL: https://apprise.example.lan
       # optional at first start; afterwards Admin → Instanz:
       # OIDC_ISSUER: https://auth.example.lan/application/o/dashboard/
       # OIDC_CLIENT_ID: dashboard
-      # SEED_FILE: /app/seed.yml
-    secrets: [master_key, smtp_password]
+    secrets: [master_key]
     ports: ["8080:8080"]
 
 secrets:
-  master_key:    { file: ./secrets/master_key }     # openssl rand -base64 32 > secrets/master_key
-  smtp_password: { file: ./secrets/smtp_password }
+  master_key: { file: ./secrets/master_key }     # openssl rand -base64 32 > secrets/master_key
   # oidc_client_secret: { file: ./secrets/oidc_client_secret }

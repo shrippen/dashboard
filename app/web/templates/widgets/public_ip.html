@@ -1,4 +1,0 @@
-{% from "partials/slot.html" import state with context %}
-{% set ip = frag.slots.get('ip') %}
-{{ state(ip) }}
-{% if ip and ip.data %}<p class="big-value"><code>{{ ip.data.ip }}</code></p>{% endif %}

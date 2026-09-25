@@ -1,9 +1,0 @@
-{% macro head(title, lead=None) %}
-<header class="page-head"><h1>{{ title }}</h1>{% if lead %}<p class="lead">{{ lead }}</p>{% endif %}</header>
-{% endmacro %}
-{% macro errors(error, t) %}{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}{% endmacro %}
-{% macro space_select(spaces, t, selected=None, name="space_id") %}
-<select class="select" name="{{ name }}">
-  {% for sp in spaces %}<option value="{{ sp.id }}"{% if selected == sp.id %} selected{% endif %}>{{ t('space.' ~ sp.kind.value) }} · {{ sp.name }}</option>{% endfor %}
-</select>
-{% endmacro %}

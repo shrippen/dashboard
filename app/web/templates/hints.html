@@ -1,7 +1,0 @@
-{% extends "base.html" %}
-{% from "partials/macros.html" import head %}
-{% block title %}{{ t('hints.title') }} · dashboard{% endblock %}
-{% block content %}
-{{ head(t('hints.title'), t('hints.lead')) }}
-{% include "partials/hint_list.html" %}
-{% endblock %}

@@ -1,26 +1,27 @@
 # syntax=docker/dockerfile:1
 
-# ── Build: wheel with all dependencies ──
-FROM python:3.12-slim AS build
+# ── Build: static binary, no cgo (modernc.org/sqlite is pure Go — no C
+#    toolchain needed, which is the whole point on a Raspberry Pi target) ──
+FROM golang:1.26-bookworm AS build
 WORKDIR /src
-COPY pyproject.toml ./
-COPY app ./app
-RUN pip wheel --no-cache-dir --wheel-dir /wheels .
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd ./cmd
+COPY internal ./internal
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/dashboard ./cmd/dashboard
 
 # ── Runtime ──
-FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DATA_DIR=/data \
-    FORWARDED_ALLOW_IPS=127.0.0.1
-RUN useradd --system --uid 10001 --home /app dashboard \
+FROM alpine:3.20
+RUN apk add --no-cache wget \
+ && adduser --system --uid 10001 --home /app dashboard \
  && mkdir -p /data && chown dashboard /data
-WORKDIR /app
-COPY --from=build /wheels /wheels
-RUN pip install --no-cache-dir /wheels/*.whl && rm -rf /wheels
+ENV DATA_DIR=/data
+COPY --from=build /out/dashboard /usr/local/bin/dashboard
 USER dashboard
 VOLUME ["/data"]
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=4).status == 200 else 1)"
-CMD ["sh", "-c", "exec uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8080 --proxy-headers --forwarded-allow-ips \"$FORWARDED_ALLOW_IPS\""]
+  CMD wget -q -O- http://127.0.0.1:8080/healthz || exit 1
+ENTRYPOINT ["dashboard"]

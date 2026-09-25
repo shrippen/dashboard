@@ -1,3 +1,0 @@
-<div class="callout callout-ok">{{ t('report.done', boards=report.boards, widgets=report.widgets, connections=report.connections) }}</div>
-{% if report.skipped %}<div class="callout callout-warn"><strong>{{ t('report.skipped') }}</strong><ul>{% for s in report.skipped %}<li><code>{{ s }}</code></li>{% endfor %}</ul></div>{% endif %}
-{% if report.notes %}<div class="callout"><strong>{{ t('report.notes') }}</strong><ul>{% for s in report.notes %}<li>{{ s }}</li>{% endfor %}</ul></div>{% endif %}

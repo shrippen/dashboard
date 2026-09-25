@@ -1,9 +1,0 @@
-{% set v = frag.view %}
-{% if v.path %}
-<p class="kpi"><span class="kpi-label">{{ t('opt.' ~ frag.config.metric.value) }}</span>
-  <b class="kpi-value">{{ money(v.now) if v.unit == 'money' else num(v.now, 1) ~ ' h' }}</b></p>
-<svg class="chart spark-lg" viewBox="0 0 {{ v.w }} {{ v.h }}" preserveAspectRatio="none" role="img" aria-label="{{ t('opt.' ~ frag.config.metric.value) }}">
-  <path class="trend-line" d="{{ v.path }}"/>
-</svg>
-<p class="legend trend-legend"><span>{{ day(v.first) }}</span><span>{{ t('trend.range', low=money(v.low) if v.unit == 'money' else num(v.low, 1), high=money(v.high) if v.unit == 'money' else num(v.high, 1)) }}</span><span>{{ day(v.last) }}</span></p>
-{% else %}<p class="slot-note">{{ t('trend.collecting') }}</p>{% endif %}
