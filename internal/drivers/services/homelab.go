@@ -146,7 +146,7 @@ const greaderBase = "api/greader.php/"
 // Open logs in via ClientLogin and returns the auth header.
 func (a FreshRSSApi) Open(ctx context.Context) (map[string]string, error) {
 	user, pass, _ := strings.Cut(a.Secret, ":")
-	text, err := httpclient.GetText(ctx, joinURL(a.URL, greaderBase+"accounts/ClientLogin"), httpclient.Options{
+	text, err := httpclient.PostFormText(ctx, joinURL(a.URL, greaderBase+"accounts/ClientLogin"), httpclient.Options{
 		Params: url.Values{"Email": {user}, "Passwd": {pass}}, SkipVerify: !a.Verify,
 	})
 	if err != nil {

@@ -104,7 +104,12 @@ func TestUmamiLoginAndBothStatShapes(t *testing.T) {
 func TestFreshRSSGoogleReader(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/greader.php/accounts/ClientLogin", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("Passwd") != "pw" {
+		// FreshRSS registers ClientLogin as POST only; a real server 404s a GET.
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if r.PostFormValue("Passwd") != "pw" {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

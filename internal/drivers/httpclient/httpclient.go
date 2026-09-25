@@ -163,7 +163,25 @@ func GetJSON(ctx context.Context, rawURL string, opts Options) (any, http.Header
 // GetText performs a guarded GET and returns the body as text (e.g.
 // Prometheus metrics).
 func GetText(ctx context.Context, rawURL string, opts Options) (string, error) {
-	resp, err := Request(ctx, http.MethodGet, rawURL, opts)
+	return doText(ctx, http.MethodGet, rawURL, opts)
+}
+
+// PostFormText performs a guarded POST with opts.Params as an
+// x-www-form-urlencoded body (e.g. a ClientLogin endpoint that 404s a GET)
+// and returns the body as text.
+func PostFormText(ctx context.Context, rawURL string, opts Options) (string, error) {
+	form := opts.Params.Encode()
+	opts.Body = []byte(form)
+	opts.Params = nil
+	if opts.Headers == nil {
+		opts.Headers = map[string]string{}
+	}
+	opts.Headers["Content-Type"] = "application/x-www-form-urlencoded"
+	return doText(ctx, http.MethodPost, rawURL, opts)
+}
+
+func doText(ctx context.Context, method, rawURL string, opts Options) (string, error) {
+	resp, err := Request(ctx, method, rawURL, opts)
 	if err != nil {
 		return "", err
 	}
