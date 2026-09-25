@@ -567,6 +567,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  links: Tiles
   jsonapi: Custom API (JSON)
   backups: Backups
   system: System
@@ -841,6 +842,10 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  links:
+    dead:
+      title: '{count} tiles unreachable for {days} days'
+      why: '{names}. Check the address or remove the tile.'
   backups:
     gap:
       title: '{count} services without a visible backup'
@@ -1385,6 +1390,7 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  links.dead: Dead links
   paperless.contract_notice: Cancellation deadline
   in.payment_worse: Client pays slower
   truenas.snapshot_failed: Snapshot failed
@@ -1711,3 +1717,5 @@ keys:
   tile: opens the tile (set in the editor)
   shift_click: Shift + right click
   context: Browser menu instead of the tile menu
+uptime:
+  summary: '{share} reachable in 30 days, avg {ms} ms'

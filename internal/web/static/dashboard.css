@@ -277,6 +277,12 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .launch-hints { display: inline-grid; place-items: center; min-width: 1.3rem; height: 1.3rem; padding: 0 .3rem; background: var(--blue); color: var(--bg-void); font-weight: 500; }
 .launch-hints[data-level="20"] { background: var(--yellow); }
 .launch-hints[data-level="30"] { background: var(--red); }
+/* 30-day uptime strip: one bar per day; state also in the title text. */
+.uptime { display: inline-flex; gap: 1px; align-items: flex-end; height: .7rem; flex-basis: 100%; }
+.uptime i { width: 3px; height: 100%; background: var(--bg2); }
+.uptime i[data-state="up"] { background: var(--green-n); }
+.uptime i[data-state="partial"] { background: var(--yellow); height: 70%; }
+.uptime i[data-state="down"] { background: var(--red); height: 40%; }
 /* Accent per tile or section: data-color names a theme token. */
 [data-color="yellow"] { --tint: var(--yellow); } [data-color="green"] { --tint: var(--green); }
 [data-color="red"] { --tint: var(--red); } [data-color="blue"] { --tint: var(--blue); }

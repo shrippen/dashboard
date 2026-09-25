@@ -26,6 +26,7 @@ import (
 	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/hints"
+	"dashboard/internal/services/linkstatus"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
 	"dashboard/internal/sources"
@@ -484,6 +485,15 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		}
 		frag.View = kind.View(cfg, results, viewCtx)
 	}
+	if link, ok := cfg.(widgets.LinkConfig); ok && link.Status == widgets.StatusHTTP {
+		if up, ok := linkstatus.Bars(d, widget.ID, time.Now().UTC()); ok {
+			if frag.View == nil {
+				frag.View = map[string]any{}
+			}
+			frag.View["Uptime"] = up
+		}
+	}
+
 	if kind.Extra == widgets.ExtraHints {
 		hcfg := cfg.(widgets.HintsConfig)
 		filter := hints.Filter{MinSeverity: enums.Severity(hcfg.MinSeverity), Sources: hcfg.Sources, Rules: rules.RulesOf(hcfg.Topic)}

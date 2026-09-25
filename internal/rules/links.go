@@ -20,6 +20,7 @@ const LinksDataset = "links"
 // Link is one link tile of a space.
 type Link struct {
 	Title, URL string
+	DownDays   int // days in a row without an answer (background checks)
 }
 
 // normURL makes URLs comparable: lower-case host, no scheme, no "www.",
@@ -146,4 +147,25 @@ func sortedKeysOf(m map[string][]string) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+func init() {
+	// Tiles that have not answered for days are probably dead links.
+	Register("links.dead", Cross, map[string]any{"days": 7.0}, func(_ any, cfg map[string]any, env Env) []Finding {
+		links, ok := boardLinks(env)
+		if !ok {
+			return nil
+		}
+		var names []string
+		for _, l := range links {
+			if l.DownDays >= cfgInt(cfg, "days") {
+				names = append(names, l.Title)
+			}
+		}
+		if len(names) == 0 {
+			return nil
+		}
+		return []Finding{{Fingerprint: "dead", Rule: "links.dead", Severity: enums.SeverityInfo, Message: "links.dead",
+			Params: map[string]any{"count": len(names), "names": shortList(names), "days": cfgInt(cfg, "days")}, Sources: []string{"links"}}}
+	})
 }

@@ -10,6 +10,7 @@
 {{with $info := index .Frag.View "Info"}}<span class="launch-info">{{range $i, $p := $info}}{{if $i}} · {{end}}{{tt (print "info." $p.Key) $p.Params}}{{end}}</span>
 {{else}}{{with $slot := index .Frag.Slots "info"}}{{if $slot.MissingCredential}}<span class="launch-info">{{t "widget.setup_access_short"}}</span>{{else if $slot.Error}}<span class="launch-info is-error">{{t "widget.error"}}</span>{{end}}{{end}}{{end}}
 {{if .Frag.HintCount}}<span class="launch-hints" data-level="{{.Frag.HintLevel}}">{{.Frag.HintCount}}</span>{{end}}
+{{with $u := index .Frag.View "Uptime"}}<span class="uptime" title="{{t "uptime.summary" "share" (pct $u.Share) "ms" $u.AvgMs}}">{{range $u.Bars}}<i data-state="{{.State}}" title="{{day .Day}} · {{pct .Share}}"></i>{{end}}</span>{{end}}
 {{end}}
 
 {{define "widgets/rss"}}

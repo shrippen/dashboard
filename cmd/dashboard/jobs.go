@@ -11,6 +11,7 @@ import (
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/hints"
 	"dashboard/internal/services/icons"
+	"dashboard/internal/services/linkstatus"
 	"dashboard/internal/services/notify"
 	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/svcdata"
@@ -37,6 +38,9 @@ func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 		{Name: "digest", Interval: 5 * minute, Run: func(context.Context) error {
 			_, err := notify.Digests(database, time.Now())
 			return err
+		}},
+		{Name: linkstatus.JobName, Interval: linkstatus.Interval, Run: func(ctx context.Context) error {
+			return linkstatus.Check(ctx, database)
 		}},
 		{Name: "icons", Interval: day, Run: func(context.Context) error {
 			return icons.ForgetMisses()

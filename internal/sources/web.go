@@ -39,6 +39,15 @@ type HTTPStatusResult struct {
 	Error string // "" if the request itself succeeded (Up may still be false)
 }
 
+// Outcome is (up, response ms) for background bookkeeping; ms only
+// counts when a response came back.
+func (r *HTTPStatusResult) Outcome() (bool, int) {
+	if r.Error != "" || !r.Up {
+		return false, 0
+	}
+	return true, r.Ms
+}
+
 type HTTPStatusSource struct{}
 
 func (HTTPStatusSource) Key() string                { return "http_status" }

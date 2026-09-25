@@ -567,6 +567,7 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  links: Kacheln
   jsonapi: Eigene API (JSON)
   backups: Backups
   system: System
@@ -841,6 +842,10 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  links:
+    dead:
+      title: '{count} Kacheln seit {days} Tagen nicht erreichbar'
+      why: '{names}. Adresse prüfen oder die Kachel entfernen.'
   backups:
     gap:
       title: '{count} Dienste ohne erkennbares Backup'
@@ -1386,6 +1391,7 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  links.dead: Tote Links
   paperless.contract_notice: Kündigungsfrist
   in.payment_worse: Kunde zahlt langsamer
   truenas.snapshot_failed: Snapshot fehlgeschlagen
@@ -1712,3 +1718,5 @@ keys:
   tile: öffnet die Kachel (im Editor festgelegt)
   shift_click: Umschalt + Rechtsklick
   context: Browser-Menü statt Kachel-Menü
+uptime:
+  summary: '{share} erreichbar in 30 Tagen, Ø {ms} ms'

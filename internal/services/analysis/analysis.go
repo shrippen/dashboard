@@ -25,6 +25,7 @@ import (
 	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/hints"
+	"dashboard/internal/services/linkstatus"
 	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/sources"
@@ -230,7 +231,7 @@ func spaceLinks(d *sql.DB, spaceID int64) ([]rules.Link, error) {
 	for _, w := range widgets {
 		target, _ := w.Config["url"].(string)
 		if w.Type == linkType && target != "" {
-			links = append(links, rules.Link{Title: w.Title, URL: target})
+			links = append(links, rules.Link{Title: w.Title, URL: target, DownDays: linkstatus.DownDays(d, w.ID, time.Now().UTC())})
 		}
 	}
 	return links, nil

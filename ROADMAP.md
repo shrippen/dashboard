@@ -784,12 +784,12 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Befehlspalette (Strg+K) *(Boards, Link-Kacheln aller sichtbaren Boards, Seiten; Aktionen wie Timer/Schalter bleiben auf den Kacheln)*
 - [x] Link per URL hinzufügen (Titel und Icon automatisch)
 - [x] Häufig genutzte Links *(ab 3 Klicks, je Benutzer)*
-- [ ] Tote Links melden
+- [x] Tote Links melden *(Hintergrundprüfung alle 10 Minuten, Regel `links.dead` ab 7 Tagen ohne Antwort)*
 - [x] Rückgängig im Editor *(stellt die vorige Board-Version wieder her)*
 - [ ] Mehrere Kacheln gleichzeitig bearbeiten
 - [ ] Board duplizieren und Vorlagen
 - [x] Tastenkürzel-Übersicht („?“)
-- [ ] Verfügbarkeit auf der Kachel (30 Tage, Antwortzeit)
+- [x] Verfügbarkeit auf der Kachel (30 Tage, Antwortzeit)
 
 **Anzeigen und Geräte**
 - [ ] Wandanzeige (Vollbild, Boards wechseln, nachts gedimmt)

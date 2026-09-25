@@ -34,3 +34,12 @@ func TestLinksAgainstLinkwardenAndKuma(t *testing.T) {
 		t.Fatalf("ignored hosts: %+v", got)
 	}
 }
+
+func TestDeadLinks(t *testing.T) {
+	env := todayEnv(nil)
+	env.Datasets = map[string]any{rules.LinksDataset: []rules.Link{{Title: "Alt", URL: "https://a", DownDays: 9}, {Title: "Neu", URL: "https://b", DownDays: 2}}}
+	got := run(t, "links.dead", nil, env)
+	if len(got) != 1 || got[0].Params["names"] != "Alt" {
+		t.Fatalf("dead: %+v", got)
+	}
+}
