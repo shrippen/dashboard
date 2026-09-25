@@ -588,6 +588,27 @@ Die Komponenten nutzen ausschließlich Theme-Tokens (`var(--…)`), keine eigene
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+**Offen: UI auf shrippen-Tokens umstellen**
+
+Fachlich ist Phase 0–8 fast vollständig umgesetzt; die Lücke liegt allein in
+der Oberfläche. `internal/web/templates/base.html` rendert bisher mit
+`system-ui` und Browser-Standardstilen statt mit den Tokens aus
+`internal/services/themes/builtin/shrippen/tokens.css`; die in diesem
+Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
+`.progress` …) existieren nirgends im Code. Entwürfe für vier Bildschirme
+(Start, Übersicht, Editor, Anmeldung): <https://claude.ai/artifact/K1SEJhy4Pm4wyn4zDJ9vLH>.
+
+- [ ] `dashboard.css` in `internal/web/static/` anlegen: nur Tokens (`var(--…)`), keine Hex-Werte außerhalb `themes/`
+- [ ] `base.html`: `system-ui`-Fallback-Styles durch echte Komponenten ersetzen (Nav, Fuß, Formulare)
+- [ ] `.launch` / `.launch-grid`: Link-Kachel mit Icon, Status-Punkt, Infozeile, Hinweis-Zähler (Start-Board, `widgets_start.html`)
+- [ ] `.kpi` / `.kpi-row`: Kennzahl-Kacheln für die Übersicht (`widgets_insight.html`)
+- [ ] `.hint`: Hinweis-Karte mit Stufe (Farbe **und** Text/Icon), Quelle, aufklappbarem „Warum?“, Aktionen (öffnen/pausieren/quittieren)
+- [ ] `.pill` mit `data-state`: Connector-Status (Start-Fuß, Übersicht-Fußleiste)
+- [ ] `.progress` mit `data-tier`: Budget- und Auslastungsbalken
+- [ ] `.editbar`, `.dropzone`: Bearbeitungsmodus im Board-Editor (`editor.html`) statt separater Formularseite
+- [ ] `.login`: eigene Anmeldeseite (`login.html`) statt ungestyltem Formular
+- [ ] Kontrastprüfung dunkel/hell (WCAG AA) für alle neuen Komponenten, bevor sie in den Theme-Editor übernommen werden
+
 ---
 
 ## 10. Phasen
