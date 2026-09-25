@@ -1,0 +1,147 @@
+// Package httpclient is the shared HTTP client with timeouts and an egress
+// guard. Every outbound request of the app passes the guard, so the admin
+// can restrict reachable networks and invited users cannot scan the
+// internal network through status checks or feeds.
+package httpclient
+
+import (
+	"context"
+	"crypto/tls"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"time"
+)
+
+const (
+	ConnectTimeout = 5 * time.Second
+	ReadTimeout    = 15 * time.Second
+	UserAgent      = "dashboard/0.1 (+https://github.com/shrippen/dashboard)"
+	MaxBody        = 5 * 1024 * 1024
+)
+
+// HttpError is a transport or status failure with a short, secret-free
+// message (never wraps a raw error that might contain a token or URL).
+type HttpError struct{ msg string }
+
+func (e HttpError) Error() string { return e.msg }
+
+// EgressDenied means the guard rejected the target host/addresses.
+type EgressDenied struct{ Host string }
+
+func (e EgressDenied) Error() string { return "egress denied: " + e.Host }
+
+// Guard decides whether a host (already resolved to addrs) may be reached.
+// A nil guard (the default) allows everything.
+type Guard func(host string, addrs []net.IP) bool
+
+var guard Guard
+
+// SetGuard installs the process-wide egress guard, or nil to allow all.
+func SetGuard(g Guard) { guard = g }
+
+func checkGuard(rawURL string) error {
+	if guard == nil {
+		return nil
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return HttpError{"bad url"}
+	}
+	addrs, err := net.LookupIP(u.Hostname())
+	if err != nil {
+		return HttpError{"dns: " + u.Hostname()}
+	}
+	if !guard(u.Hostname(), addrs) {
+		return EgressDenied{u.Hostname()}
+	}
+	return nil
+}
+
+// Options configure one Request call.
+type Options struct {
+	Headers map[string]string
+	Params  url.Values
+	// SkipVerify disables TLS certificate verification. Defaults to false
+	// (verified) so a zero-value Options is always safe; set true only for
+	// a connection the user explicitly marked as self-signed.
+	SkipVerify bool
+	Timeout    time.Duration
+}
+
+// Request performs one guarded HTTP call and returns the raw response. The
+// caller must close resp.Body.
+func Request(ctx context.Context, method, rawURL string, opts Options) (*http.Response, error) {
+	if err := checkGuard(rawURL); err != nil {
+		return nil, err
+	}
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, HttpError{"bad url"}
+	}
+	if opts.Params != nil {
+		u.RawQuery = opts.Params.Encode()
+	}
+
+	timeout := opts.Timeout
+	if timeout == 0 {
+		timeout = ReadTimeout
+	}
+	client := &http.Client{
+		Timeout: timeout,
+		Transport: &http.Transport{
+			TLSClientConfig:     &tls.Config{InsecureSkipVerify: opts.SkipVerify}, //nolint:gosec // opt-in per connection
+			TLSHandshakeTimeout: ConnectTimeout,
+		},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), nil)
+	if err != nil {
+		return nil, HttpError{"bad request"}
+	}
+	req.Header.Set("User-Agent", UserAgent)
+	for k, v := range opts.Headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil, HttpError{"timeout"}
+		}
+		return nil, HttpError{"request failed"}
+	}
+	return resp, nil
+}
+
+// GetJSON performs a guarded GET and decodes a JSON body, returning the
+// response headers too (callers need X-Total-Pages etc.).
+func GetJSON(ctx context.Context, rawURL string, opts Options) (any, http.Header, error) {
+	resp, err := Request(ctx, http.MethodGet, rawURL, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxBody+1))
+	if err != nil {
+		return nil, nil, HttpError{"read failed"}
+	}
+	if len(body) > MaxBody {
+		return nil, nil, HttpError{"response too large"}
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		return nil, resp.Header, HttpError{fmt.Sprintf("HTTP %d", resp.StatusCode)}
+	}
+
+	var parsed any
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, resp.Header, HttpError{"invalid JSON"}
+	}
+	return parsed, resp.Header, nil
+}
