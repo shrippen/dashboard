@@ -139,3 +139,29 @@ func TestRunAllProducesKimaiHints(t *testing.T) {
 		t.Fatalf("expected one month_min snapshot of 0, got %+v", points)
 	}
 }
+
+// TestLinkTilesReachCrossRules: link tiles of the space are compared with
+// the space's Uptime Kuma monitors.
+func TestLinkTilesReachCrossRules(t *testing.T) {
+	d := openTestDB(t)
+	sid := addSpace(t, d)
+	conn := &model.Connection{SpaceID: sid, Key: "kuma", Name: "Kuma", Service: "uptimekuma", URL: "demo://uptimekuma",
+		CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC()}
+	if err := content.AddConnection(d, conn); err != nil {
+		t.Fatal(err)
+	}
+	tile := &model.Widget{SpaceID: sid, Key: "wiki", Type: "link", Title: "Wiki", Config: map[string]any{"url": "https://wiki.lan"},
+		Version: 1, UpdatedAt: time.Now().UTC()}
+	if err := content.AddWidget(d, tile); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := analysis.RunAll(context.Background(), d, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	var count int
+	d.QueryRow("SELECT COUNT(*) FROM hints WHERE rule = 'kuma.unmonitored' AND resolved_at IS NULL").Scan(&count)
+	if count != 1 {
+		t.Fatalf("expected one kuma.unmonitored hint, got %d", count)
+	}
+}

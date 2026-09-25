@@ -199,3 +199,36 @@ func TestSureReadsAccountsTransactionsRecurring(t *testing.T) {
 		t.Fatalf("data: %+v", d)
 	}
 }
+
+func TestLinkwardenCollectionsWithCursor(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/v1/collections", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(map[string]any{"response": []any{map[string]any{"id": 1, "name": "Homelab"}, map[string]any{"id": 2, "name": "Privat"}}})
+	})
+	mux.HandleFunc("/api/v1/links", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer tok" || r.URL.Query().Get("collectionId") != "1" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var page []any
+		switch r.URL.Query().Get("cursor") {
+		case "":
+			page = []any{map[string]any{"id": 9, "name": "A", "url": "https://a"}, map[string]any{"id": 8, "name": "B", "url": "https://b"}}
+		case "8":
+			page = []any{map[string]any{"id": 7, "name": "C", "url": "https://c"}}
+		}
+		json.NewEncoder(w).Encode(map[string]any{"response": page})
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	out, err := sources.LinkwardenData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "tok", VerifyTLS: true,
+		Options: map[string]any{"collections": []any{"homelab"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := out.(*sources.LinkwardenDataset)
+	if len(d.Collections) != 1 || len(d.Links) != 3 || d.Links[2].Name != "C" {
+		t.Fatalf("data: %+v", d)
+	}
+}

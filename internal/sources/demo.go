@@ -381,3 +381,13 @@ func DemoSure(now time.Time) *SureDataset {
 		},
 	}
 }
+
+// DemoLinkwarden is the demo Linkwarden dataset: two bookmarks match
+// Homelab tiles, one is missing there.
+func DemoLinkwarden() *LinkwardenDataset {
+	return &LinkwardenDataset{URL: "https://links.demo", Collections: []string{"Homelab"}, Links: []Bookmark{
+		{Name: "Kimai", URL: "https://www.kimai.org/", Collection: "Homelab"},
+		{Name: "Invoice Ninja", URL: "https://invoiceninja.com", Collection: "Homelab"},
+		{Name: "Grafana", URL: "https://grafana.com", Collection: "Homelab"},
+	}}
+}

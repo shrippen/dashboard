@@ -28,7 +28,10 @@ import (
 	"dashboard/internal/sources"
 )
 
-const connectorRule = "system.connector_down"
+const (
+	connectorRule = "system.connector_down"
+	linkType      = "link"
+)
 
 // scope is one space's datasets for one credential owner.
 type scope struct {
@@ -86,6 +89,11 @@ func RunAll(ctx context.Context, d *sql.DB, today time.Time) (int, error) {
 		}
 		mine := connectionsOf(conns, sp.ID)
 
+		links, err := spaceLinks(d, sp.ID)
+		if err != nil {
+			slog.Error("analysis: links failed", "space", sp.ID, "err", err)
+		}
+
 		scopes := map[ownerKey]*scope{{nil}: newScope(sp.ID, nil, settings)}
 		for _, conn := range mine {
 			n, err := runConnection(ctx, d, conn, owners[conn.ID], scopes, settings, today)
@@ -96,6 +104,7 @@ func RunAll(ctx context.Context, d *sql.DB, today time.Time) (int, error) {
 			fresh += n
 		}
 		for _, sc := range scopes {
+			sc.datasets[rules.LinksDataset] = links
 			n, err := runScope(d, sc, today)
 			if err != nil {
 				slog.Error("analysis: cross/deadline rules failed", "space", sp.ID, "err", err)
@@ -105,6 +114,23 @@ func RunAll(ctx context.Context, d *sql.DB, today time.Time) (int, error) {
 		}
 	}
 	return fresh, nil
+}
+
+// spaceLinks returns the space's link tiles, for rules that compare them
+// with bookmarks (Linkwarden) or monitors (Uptime Kuma).
+func spaceLinks(d *sql.DB, spaceID int64) ([]rules.Link, error) {
+	widgets, err := content.Widgets(d, []int64{spaceID})
+	if err != nil {
+		return nil, err
+	}
+	var links []rules.Link
+	for _, w := range widgets {
+		target, _ := w.Config["url"].(string)
+		if w.Type == linkType && target != "" {
+			links = append(links, rules.Link{Title: w.Title, URL: target})
+		}
+	}
+	return links, nil
 }
 
 // ownerKey wraps *int64 so it can key a map (nil vs non-nil user ids are

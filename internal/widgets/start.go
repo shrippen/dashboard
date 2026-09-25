@@ -174,6 +174,8 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.HassInfo(data)
 	case *sources.SureDataset:
 		parts = metrics.SureInfo(data)
+	case *sources.LinkwardenDataset:
+		parts = metrics.LinkwardenInfo(data)
 	}
 	return map[string]any{"Info": parts}
 }

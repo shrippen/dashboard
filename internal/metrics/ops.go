@@ -126,3 +126,8 @@ func HassInfo(data *sources.HassDataset) []InfoPart {
 	}
 	return []InfoPart{part("hass.on", map[string]any{"count": on})}
 }
+
+// LinkwardenInfo: number of bookmarks compared.
+func LinkwardenInfo(data *sources.LinkwardenDataset) []InfoPart {
+	return []InfoPart{part("linkwarden.links", map[string]any{"count": len(data.Links)})}
+}

@@ -18,6 +18,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_linkwarden: Open in Linkwarden
   open_in_sure: Open in Sure
   open_in_homeassistant: Open in Home Assistant
   open_in_freshrss: Open in FreshRSS
@@ -356,6 +357,7 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_linkwarden: 'collections: [Homelab, Tools] – collections compared with this space''s link tiles (empty = all). Token = access token (settings → access tokens).'
   options_hint_sure: No options needed. Token = API key with read scope (settings → API keys).
   options_hint_homeassistant: No options needed. Token = long-lived access token (profile → security). Only users with the “use” right on this connection may switch.
   options_hint_freshrss: 'No options needed. Token = user:api-password (FreshRSS → profile → API password; API access must be enabled).'
@@ -395,6 +397,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  linkwarden: Linkwarden
   sure: Sure (finance)
   homeassistant: Home Assistant
   freshrss: FreshRSS
@@ -644,6 +647,13 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  linkwarden:
+    missing:
+      title: '{count} links from “{collection}” missing on the dashboard'
+      why: '{names}. Add a tile or drop them in Linkwarden.'
+    unsaved:
+      title: '{count} tiles not saved in Linkwarden'
+      why: '{names}.'
   sure:
     missed:
       title: 'Expected payment “{name}” missing'
@@ -750,6 +760,9 @@ hint:
       title: '{site}: no page views'
       why: 'Previous week {prev} visitors. Check the tracking script.'
   kuma:
+    unmonitored:
+      title: '{count} tiles without an Uptime Kuma monitor'
+      why: '{names}. Add a monitor or list the host under “exclude”.'
     down:
       title: '{monitor} is down'
       why: Uptime Kuma reports the monitor as down.
@@ -910,6 +923,8 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  linkwarden:
+    links: '{count} links'
   sure:
     cash: '{amount} in accounts'
   hass:
@@ -1005,6 +1020,9 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  linkwarden.not_on_board: Bookmarks without tile
+  linkwarden.not_saved: Tiles without bookmark
+  kuma.unmonitored: Tiles without monitor
   sure.recurring_missed: Missed payment
   sure.low_balance: Low balance
   sure.sync_failed: Bank sync

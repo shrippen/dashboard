@@ -215,3 +215,20 @@ type SureApi struct {
 func (a SureApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
 	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"X-Api-Key": a.Key, "Accept": "application/json"}, params, !a.Verify)
 }
+
+// ── Linkwarden ──
+
+type LinkwardenApi struct {
+	URL    string
+	Token  string
+	Verify bool
+}
+
+// Get performs one GET against /api/v1/<path> and returns its "response".
+func (a LinkwardenApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
+	body, err := fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, params, !a.Verify)
+	if err != nil {
+		return nil, err
+	}
+	return asMap(body)["response"], nil
+}
