@@ -15,11 +15,13 @@
   {{template "htmx" .}}
 </head>
 <body>
+  {{if not .Embed}}
   {{template "header" .}}
   <nav class="board-nav" style="padding:.6rem 1.2rem 0">
     {{range .NavBoards}}<a href="/boards/{{.ID}}">{{.Name}}</a>{{end}}
     {{if .Board.CanEdit}}<a href="/boards/{{.Board.ID}}/settings">{{t "edit.board_settings"}}</a>{{end}}
   </nav>
+  {{end}}
 
   {{$hasSide := false}}
   {{range .Board.Sections}}{{if eq .Area "side"}}{{$hasSide = true}}{{end}}{{end}}
@@ -78,7 +80,7 @@
           </form>
         {{end}}
         {{if .Title}}<div class="launch-top"><b>{{.Title}}</b></div>{{end}}
-        <div class="launch-body" hx-get="/widget-fragments/{{.PlacementID}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
+        <div class="launch-body" hx-get="/widget-fragments/{{.PlacementID}}{{if $b.EmbedToken}}?token={{$b.EmbedToken}}{{end}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
           <span class="loading">{{t "widget.loading"}}</span>
         </div>
       </div>

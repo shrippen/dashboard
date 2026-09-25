@@ -656,7 +656,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: `/shares/{kind}/{id}`, bisher nur von der Verbindungsliste verlinkt)*
 - [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
 - [x] Verbindungen mit persönlichen Zugangsdaten
-- [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`)*
+- [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`; `/api/summary`, `/api/hints`, `/embed/hints`, `/embed/b/{id}`)*
 - [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: `/admin/users` und `/admin/audit` — Rolle/Aktivieren/Löschen mit Schutz des letzten Admins; Einladung/Reset-Link fehlen noch, siehe Phase 2)*
 
 ### Phase 3: Themes (v0.4)
@@ -694,11 +694,11 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 7: Erinnerungen und Benachrichtigungen (v0.8)
 
-- [ ] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token) *(Fristen-Kennzahlen/Board ja, iCal-Feed nur Python)*
-- [x] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten *(Go ruft eine externe Apprise-API statt sie einzubinden; E-Mail-Kanal fehlt mangels SMTP)*
+- [x] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token) *(Go: `/calendar.ics?token=…`, `services/calendar`)*
+- [x] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten; E-Mail-Benachrichtigungen nutzen den vorhandenen SMTP-Server *(Go ruft eine externe Apprise-API statt sie einzubinden)*
 - [x] Texte der Benachrichtigungen in der Sprache des Empfängers
-- [ ] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers *(nur Python; Go hat kein SMTP-Outbound)*
-- [x] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint) *(als Push, nicht als E-Mail)*
+- [x] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers
+- [x] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
 - [x] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
 
 ### Phase 8: Trends und Prognosen (v0.9)

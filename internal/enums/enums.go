@@ -102,6 +102,18 @@ const (
 	SeverityCritical Severity = 30
 )
 
+// Key returns the catalog-key suffix ("info", "warn", "critical").
+func (s Severity) Key() string {
+	switch {
+	case s >= SeverityCritical:
+		return "critical"
+	case s >= SeverityWarn:
+		return "warn"
+	default:
+		return "info"
+	}
+}
+
 // HintState tracks a hint's acknowledgement.
 type HintState string
 

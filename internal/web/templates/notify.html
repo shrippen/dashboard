@@ -57,8 +57,22 @@
         <input id="quiet_from" name="quiet_from" placeholder="22:00" value="{{.Prefs.QuietFrom}}">
         <label for="quiet_to">{{t "notify.quiet_to"}}</label>
         <input id="quiet_to" name="quiet_to" placeholder="07:00" value="{{.Prefs.QuietTo}}">
+        <label for="daily">{{t "notify.digest_at"}}</label>
+        <input id="daily" name="daily" placeholder="07:30" value="{{.Prefs.Daily}}">
+        <p class="small muted">{{t "notify.digest_hint"}}</p>
+        <label for="weekly">{{t "notify.weekly"}}</label>
+        <select id="weekly" name="weekly">
+          <option value="">{{t "notify.every_day"}}</option>
+          {{range .Weekdays}}<option value="{{.}}"{{if eq . $.Prefs.Weekly}} selected{{end}}>{{t (print "weekday." .)}}</option>{{end}}
+        </select>
         <button type="submit">{{t "action.save"}}</button>
       </form>
+    </div>
+
+    <div class="card">
+      <h2>{{t "notify.calendar"}}</h2>
+      <p class="muted">{{t "notify.calendar_hint"}}</p>
+      <pre class="mono">{{.BaseURL}}/calendar.ics?token=…</pre>
     </div>
   </main>
 </body>

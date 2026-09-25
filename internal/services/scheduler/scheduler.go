@@ -2,11 +2,11 @@
 //
 //	every 5 min   rules → hints           (analysis)
 //	every 1 min   push notifications
+//	every 5 min   digest mails
 //	hourly        housekeeping (sessions, cache, hints, audit)
 //
 // Ports app/services/scheduler.py + app/services/jobs.py. Not ported: the
-// daily icon-retry job (icons service isn't ported) and the digest-mail
-// job (needs an SMTP outbound service that doesn't exist in Go yet).
+// daily icon-retry job (icons service isn't ported).
 package scheduler
 
 import (

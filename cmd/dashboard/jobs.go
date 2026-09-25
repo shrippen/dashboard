@@ -21,9 +21,8 @@ const (
 	hour   = time.Hour
 )
 
-// backgroundJobs is the fixed job list (ports app/services/jobs.py). Not
-// ported: the daily icon-retry job (icons service isn't ported) and the
-// digest-mail job (needs an SMTP outbound service Go doesn't have yet).
+// backgroundJobs is the fixed job list (ports app/services/jobs.py). The
+// daily icon-retry job is not ported (icons service isn't ported).
 func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 	return []scheduler.Job{
 		{Name: "analysis", Interval: 5 * minute, Run: func(ctx context.Context) error {
@@ -32,6 +31,10 @@ func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 		}},
 		{Name: "notify", Interval: minute, Run: func(ctx context.Context) error {
 			_, err := notify.Dispatch(ctx, database, cfg)
+			return err
+		}},
+		{Name: "digest", Interval: 5 * minute, Run: func(context.Context) error {
+			_, err := notify.Digests(database, time.Now())
 			return err
 		}},
 		{Name: "housekeeping", Interval: hour, Run: func(context.Context) error {

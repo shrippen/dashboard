@@ -31,7 +31,10 @@ func (d Deps) notifyPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	values := map[string]any{"Channels": chans, "Prefs": prefs, "Levels": severityLevels}
+	values := map[string]any{
+		"Channels": chans, "Prefs": prefs, "Levels": severityLevels,
+		"Weekdays": notify.Weekdays, "BaseURL": d.Settings.BaseURL,
+	}
 	for k, v := range extra {
 		values[k] = v
 	}
@@ -111,7 +114,10 @@ func (d Deps) handleNotifyPrefsSave(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	prefs := notify.Prefs{QuietFrom: r.FormValue("quiet_from"), QuietTo: r.FormValue("quiet_to")}
+	prefs := notify.Prefs{
+		QuietFrom: r.FormValue("quiet_from"), QuietTo: r.FormValue("quiet_to"),
+		Daily: r.FormValue("daily"), Weekly: r.FormValue("weekly"),
+	}
 	if err := notify.SavePrefs(d.DB, ctx.Who, prefs); err != nil {
 		d.notifyPage(w, r, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
 		return

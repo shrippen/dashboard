@@ -142,10 +142,7 @@ func (d Deps) Viewer(r *http.Request) (Ctx, error) {
 	if ctx.Who != nil {
 		return ctx, nil
 	}
-	who, err := d.tokenPrincipal(r, enums.TokenEmbed)
-	if err != nil {
-		return Ctx{}, err
-	}
+	who := d.apiPrincipal(r, enums.TokenEmbed, enums.TokenRead)
 	if who == nil {
 		return Ctx{}, ErrLoginRequired
 	}

@@ -76,6 +76,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterShareRoutes(mux)
 	deps.RegisterAdminRoutes(mux)
 	deps.RegisterAccountRoutes(mux)
+	deps.RegisterAPIRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(mux)

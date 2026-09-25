@@ -40,7 +40,12 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 		d.handleAuthError(w, r, err)
 		return
 	}
+	d.renderBoard(w, r, ctx, "")
+}
 
+// renderBoard shows board {id}. With an embed token the page drops the
+// app nav and edit controls, and fragment URLs carry the token along.
+func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embedToken string) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
@@ -51,6 +56,10 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		d.handleBoardError(w, r, err)
 		return
+	}
+	embed := embedToken != ""
+	if embed {
+		view.CanEdit = false
 	}
 	navBoards, err := boards.Visible(d.DB, ctx.Who)
 	if err != nil {
@@ -75,6 +84,7 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 
 	_ = d.Page(w, ctx, "board", http.StatusOK, map[string]any{
 		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL, "Library": library,
+		"Embed": embed, "EmbedToken": embedToken,
 	})
 }
 

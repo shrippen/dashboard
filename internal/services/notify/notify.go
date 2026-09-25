@@ -4,8 +4,7 @@
 //
 //	every minute   new hints ≥ channel level, not sent yet, outside quiet hours → push
 //
-// Digest e-mails (Python's notify.digests) are not ported: that needs an
-// SMTP outbound service that doesn't exist in Go yet.
+//	every 5 min    digest mail at the user's "HH:MM" (daily, or on one weekday)
 package notify
 
 import (
@@ -26,7 +25,9 @@ import (
 	"dashboard/internal/repos/users"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/audit"
+	"dashboard/internal/services/calendar"
 	"dashboard/internal/services/hints"
+	"dashboard/internal/services/mail"
 	"dashboard/internal/services/util"
 	"dashboard/internal/settings"
 )
@@ -165,9 +166,24 @@ func TestChannel(ctx context.Context, d *sql.DB, cfg settings.Settings, who *acc
 // Prefs is a user's notification preferences.
 type Prefs struct {
 	QuietFrom, QuietTo string // "HH:MM", "" = no quiet hours
+	Daily              string // digest time "HH:MM", "" = no digest
+	Weekly             string // weekday key ("mon".."sun"), "" = every day
 }
 
-const quietKey = "quiet"
+const (
+	quietKey      = "quiet"
+	digestKey     = "digest"
+	digestSentKey = "digest_sent"
+	deadlineDays  = 14
+)
+
+// Weekdays are the digest weekday keys, Monday first (catalog "weekday.<key>").
+var Weekdays = []string{"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
+
+// levelColor colours a digest row by severity (shrippen blue/yellow/red).
+var levelColor = map[enums.Severity]string{
+	enums.SeverityInfo: "#83a598", enums.SeverityWarn: "#fabd2f", enums.SeverityCritical: "#fb4934",
+}
 
 // GetPrefs reads a user's quiet-hours preference.
 func GetPrefs(d *sql.DB, who *access.Principal) (Prefs, error) {
@@ -180,6 +196,9 @@ func GetPrefs(d *sql.DB, who *access.Principal) (Prefs, error) {
 		quiet, _ := u.Prefs[quietKey].(map[string]any)
 		out.QuietFrom, _ = quiet["from"].(string)
 		out.QuietTo, _ = quiet["to"].(string)
+		digest, _ := u.Prefs[digestKey].(map[string]any)
+		out.Daily, _ = digest["daily"].(string)
+		out.Weekly, _ = digest["weekly"].(string)
 		return nil
 	})
 	return out, err
@@ -187,10 +206,13 @@ func GetPrefs(d *sql.DB, who *access.Principal) (Prefs, error) {
 
 // SavePrefs writes a user's quiet-hours preference.
 func SavePrefs(d *sql.DB, who *access.Principal, p Prefs) error {
-	for _, text := range []string{p.QuietFrom, p.QuietTo} {
+	for _, text := range []string{p.QuietFrom, p.QuietTo, p.Daily} {
 		if text != "" && parseClock(text) == nil {
 			return ErrBadTime
 		}
+	}
+	if p.Weekly != "" && weekdayIndex(p.Weekly) < 0 {
+		return ErrBadTime
 	}
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		u, err := users.Get(tx, who.UserID)
@@ -202,6 +224,7 @@ func SavePrefs(d *sql.DB, who *access.Principal, p Prefs) error {
 			prefs[k] = v
 		}
 		prefs[quietKey] = map[string]any{"from": p.QuietFrom, "to": p.QuietTo}
+		prefs[digestKey] = map[string]any{"daily": p.Daily, "weekly": p.Weekly}
 		u.Prefs = prefs
 		return users.Update(tx, u)
 	})
@@ -382,4 +405,114 @@ func sendBatch(ctx context.Context, d *sql.DB, cfg settings.Settings, who *acces
 		lines = append(lines, "• "+h.Title)
 	}
 	return outbound.Send(ctx, cfg.AppriseAPIURL, rawURL, title, strings.Join(lines, "\n"))
+}
+
+// ── Digest mail (job) ──
+
+func weekdayIndex(key string) int {
+	for i, k := range Weekdays {
+		if k == key {
+			return i
+		}
+	}
+	return -1
+}
+
+// digestDue reports whether a user's digest should go out now: past the
+// chosen time, not yet sent today, and (if weekly) on the chosen weekday.
+func digestDue(prefs map[string]any, local time.Time) bool {
+	digest, _ := prefs[digestKey].(map[string]any)
+	daily, _ := digest["daily"].(string)
+	at := parseClock(daily)
+	if at == nil {
+		return false
+	}
+	if clock(local.Hour()*60+local.Minute()) < *at {
+		return false
+	}
+	if sent, _ := prefs[digestSentKey].(string); sent == local.Format(time.DateOnly) {
+		return false
+	}
+	weekly, _ := digest["weekly"].(string)
+	mondayFirst := (int(local.Weekday()) + 6) % 7
+	return weekly == "" || weekdayIndex(weekly) == mondayFirst
+}
+
+// Digests sends every due digest mail. Returns the number sent.
+func Digests(d *sql.DB, now time.Time) (int, error) {
+	if !mail.Configured() {
+		return 0, nil
+	}
+	local := now.In(berlin)
+	all, err := users.All(d)
+	if err != nil {
+		return 0, err
+	}
+
+	sent := 0
+	for _, u := range all {
+		if !u.IsActive || !digestDue(u.Prefs, local) {
+			continue
+		}
+		if err := sendDigest(d, u.ID, local); err != nil {
+			return sent, err
+		}
+		sent++
+	}
+	return sent, nil
+}
+
+func sendDigest(d *sql.DB, userID int64, local time.Time) error {
+	var who *access.Principal
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		u, err := users.Get(tx, userID)
+		if err != nil || u == nil {
+			return orNotFound(err)
+		}
+		prefs := map[string]any{}
+		for k, v := range u.Prefs {
+			prefs[k] = v
+		}
+		prefs[digestSentKey] = local.Format(time.DateOnly)
+		u.Prefs = prefs
+		if err := users.Update(tx, u); err != nil {
+			return err
+		}
+		who, err = access.Load(tx, userID)
+		return err
+	})
+	if err != nil || who == nil {
+		return err
+	}
+
+	locale := who.Locale
+	open, err := hints.Active(d, who, enums.SeverityInfo, nil, maxDigestLines*2)
+	if err != nil {
+		return err
+	}
+	rows := make([]mail.Row, 0, len(open))
+	for _, h := range open {
+		label := i18n.T("severity."+h.Severity.Key(), locale, nil)
+		rows = append(rows, mail.Row{Label: label, Text: h.Title, Color: levelColor[h.Severity]})
+	}
+
+	due, err := calendar.TaxDeadlines(d, who, local, deadlineDays)
+	if err != nil {
+		return err
+	}
+	for _, item := range due {
+		rows = append(rows, mail.Row{Label: i18n.Day(item.Due, locale), Text: item.Text})
+	}
+
+	subject := i18n.T("notify.digest_subject", locale, map[string]any{"count": len(rows)})
+	body := i18n.T("hints.none", locale, nil)
+	if len(rows) > 0 {
+		body = i18n.T("notify.digest_body", locale, nil)
+	}
+	m, err := mail.Render(who.Email, locale, subject, []string{body}, nil, rows)
+	if err != nil {
+		return err
+	}
+	mail.Send(m)
+	return nil
 }
