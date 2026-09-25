@@ -441,6 +441,29 @@ sys:
   swap: Swap
   load: Load (5 min)
 hints:
+  note: Note
+  note_optional: Note (optional)
+  add_note: Save note
+  more: History and assignment
+  assign: Assign to
+  nobody: nobody
+  assigned_to: '{name}'
+  work: Progress
+  work_open: open
+  work_in_progress: in progress
+  work_done: done
+  flapping: flapping
+  flapping_hint: Came back several times in the last 7 days; not sent again.
+  no_history: No history yet.
+  event_opened: appeared
+  event_resolved: resolved
+  event_reopened: came back
+  event_acked: acknowledged
+  event_snoozed: snoozed
+  event_reset: reopened
+  event_assigned: assigned
+  event_work: progress changed
+  event_note: note
   title: Hints
   lead: Open hints from all spaces you can access.
   why: Why?
@@ -1469,6 +1492,12 @@ settings:
   rule: Rule
   params: Values
 notify:
+  sources: Only these sources
+  sources_hint: Nothing selected = all sources. Select several with Ctrl/Cmd.
+  quiet_muted: Hold back critical hints during quiet hours too
+  quiet_hint: Unchecked, critical hints arrive at night as well; everything else is sent after quiet hours.
+  repeat: Repeat critical after (hours)
+  repeat_hint: 0 = never. Only while the hint is open and unacknowledged; not for flapping hints.
   summary: AI summary in the weekly review
   summary_hint: Only counts of open hints per rule are sent to Claude (Anthropic) – no titles, names, amounts or location data.
   lead: Hints as push (Apprise) and as daily or weekly mail.

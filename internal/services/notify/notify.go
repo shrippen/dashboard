@@ -2,7 +2,9 @@
 // channels when new hints appear, respecting per-channel severity and
 // quiet hours.
 //
-//	every minute   new hints ≥ channel level, not sent yet, outside quiet hours → push
+//	every minute   new hints ≥ channel level of subscribed sources, not sent yet → push
+//	               quiet hours: only critical ones (unless muted); the rest waits
+//	               critical and still open after N hours → push again (not flapping)
 //
 //	every 5 min    digest mail at the user's "HH:MM" (daily, or on one weekday)
 package notify
@@ -60,6 +62,7 @@ type ChannelView struct {
 	Hint        string // masked URL, e.g. "ntfy://…/topic"
 	MinSeverity enums.Severity
 	Enabled     bool
+	Sources     []string
 }
 
 func mask(rawURL string) string {
@@ -90,15 +93,16 @@ func Channels(d *sql.DB, who *access.Principal) ([]ChannelView, error) {
 			if err != nil {
 				return err
 			}
-			out = append(out, ChannelView{ID: c.ID, Name: c.Name, Hint: mask(url), MinSeverity: c.MinSeverity, Enabled: c.Enabled})
+			out = append(out, ChannelView{ID: c.ID, Name: c.Name, Hint: mask(url), MinSeverity: c.MinSeverity, Enabled: c.Enabled, Sources: c.Sources})
 		}
 		return nil
 	})
 	return out, err
 }
 
-// AddChannel adds a new apprise:// (or ntfy://, gotify://, ...) channel.
-func AddChannel(d *sql.DB, who *access.Principal, name, rawURL string, level enums.Severity) error {
+// AddChannel adds a new apprise:// (or ntfy://, gotify://, ...) channel;
+// sources limits it to hints of these services (none = all).
+func AddChannel(d *sql.DB, who *access.Principal, name, rawURL string, level enums.Severity, sources []string) error {
 	rawURL = strings.TrimSpace(rawURL)
 	if !looksLikeApprise(rawURL) {
 		return ErrInvalidURL
@@ -112,7 +116,7 @@ func AddChannel(d *sql.DB, who *access.Principal, name, rawURL string, level enu
 		return err
 	}
 	return db.WithTx(d, func(tx *sql.Tx) error {
-		channel := &model.NotifyChannel{UserID: who.UserID, Name: label, URLEnc: enc, MinSeverity: level, Enabled: true}
+		channel := &model.NotifyChannel{UserID: who.UserID, Name: label, URLEnc: enc, MinSeverity: level, Enabled: true, Sources: sources}
 		if err := data.AddChannel(tx, channel); err != nil {
 			return err
 		}
@@ -168,6 +172,8 @@ func TestChannel(ctx context.Context, d *sql.DB, cfg settings.Settings, who *acc
 // Prefs is a user's notification preferences.
 type Prefs struct {
 	QuietFrom, QuietTo string // "HH:MM", "" = no quiet hours
+	QuietMuted         bool   // quiet hours hold back critical hints too
+	RepeatHours        int    // re-push open critical hints after this long, 0 = never
 	Daily              string // digest time "HH:MM", "" = no digest
 	Weekly             string // weekday key ("mon".."sun"), "" = every day
 	NoSummary          bool   // opt-out of the LLM summary in the weekly digest
@@ -179,6 +185,8 @@ const (
 	digestSentKey = "digest_sent"
 	deadlineDays  = 14
 	noSummaryKey  = "no_summary"
+	mutedKey      = "muted"
+	repeatKey     = "repeat_hours"
 	summaryWait   = 3 * time.Minute
 )
 
@@ -201,6 +209,8 @@ func GetPrefs(d *sql.DB, who *access.Principal) (Prefs, error) {
 		quiet, _ := u.Prefs[quietKey].(map[string]any)
 		out.QuietFrom, _ = quiet["from"].(string)
 		out.QuietTo, _ = quiet["to"].(string)
+		out.QuietMuted, _ = quiet[mutedKey].(bool)
+		out.RepeatHours = repeatHours(u.Prefs)
 		digest, _ := u.Prefs[digestKey].(map[string]any)
 		out.Daily, _ = digest["daily"].(string)
 		out.Weekly, _ = digest["weekly"].(string)
@@ -229,7 +239,7 @@ func SavePrefs(d *sql.DB, who *access.Principal, p Prefs) error {
 		for k, v := range u.Prefs {
 			prefs[k] = v
 		}
-		prefs[quietKey] = map[string]any{"from": p.QuietFrom, "to": p.QuietTo}
+		prefs[quietKey] = map[string]any{"from": p.QuietFrom, "to": p.QuietTo, mutedKey: p.QuietMuted, repeatKey: float64(max(p.RepeatHours, 0))}
 		prefs[digestKey] = map[string]any{"daily": p.Daily, "weekly": p.Weekly, noSummaryKey: p.NoSummary}
 		u.Prefs = prefs
 		return users.Update(tx, u)
@@ -305,10 +315,12 @@ func Dispatch(ctx context.Context, d *sql.DB, cfg settings.Settings) (int, error
 	sent := 0
 	now := time.Now().UTC()
 	for _, u := range people {
-		if quietNow(u.Prefs, now) {
+		quiet := quietNow(u.Prefs, now)
+		muted, _ := asMap(u.Prefs[quietKey])[mutedKey].(bool)
+		if quiet && muted {
 			continue
 		}
-		n, err := dispatchUser(ctx, d, cfg, u.ID)
+		n, err := dispatchUser(ctx, d, cfg, u.ID, quiet, repeatHours(u.Prefs))
 		if err != nil {
 			return sent, err
 		}
@@ -317,7 +329,48 @@ func Dispatch(ctx context.Context, d *sql.DB, cfg settings.Settings) (int, error
 	return sent, nil
 }
 
-func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID int64) (int, error) {
+func asMap(v any) map[string]any {
+	m, _ := v.(map[string]any)
+	return m
+}
+
+func repeatHours(prefs map[string]any) int {
+	n, _ := asMap(prefs[quietKey])[repeatKey].(float64)
+	return int(n)
+}
+
+// due decides whether a hint is pushed now.
+//
+//	never sent                      → yes (in quiet hours: critical only)
+//	sent, critical, not flapping,
+//	older than repeat hours         → yes, again
+func due(h hints.View, last time.Time, quiet bool, repeat int, now time.Time) bool {
+	if quiet && h.Severity < enums.SeverityCritical {
+		return false
+	}
+	if last.IsZero() {
+		return true
+	}
+	return repeat > 0 && h.Severity >= enums.SeverityCritical && !h.Flapping &&
+		now.Sub(last) >= time.Duration(repeat)*time.Hour
+}
+
+// subscribed: the channel takes every source, or one of the hint's.
+func subscribed(c *model.NotifyChannel, h hints.View) bool {
+	if len(c.Sources) == 0 {
+		return true
+	}
+	for _, want := range c.Sources {
+		for _, have := range h.Sources {
+			if want == have {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID int64, quiet bool, repeat int) (int, error) {
 	who, err := access.Load(d, userID)
 	if err != nil {
 		return 0, err
@@ -346,13 +399,14 @@ func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID 
 	}
 
 	var fresh []hints.View
+	now := time.Now().UTC()
 	err = db.WithTx(d, func(tx *sql.Tx) error {
 		for _, h := range open {
-			sent, err := data.WasSent(tx, userID, h.ID)
+			last, err := data.LastSent(tx, userID, h.ID)
 			if err != nil {
 				return err
 			}
-			if !sent {
+			if due(h, last, quiet, repeat, now) {
 				fresh = append(fresh, h)
 			}
 		}
@@ -366,7 +420,7 @@ func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID 
 	for _, c := range chans {
 		var batch []hints.View
 		for _, h := range fresh {
-			if h.Severity >= c.MinSeverity {
+			if h.Severity >= c.MinSeverity && subscribed(c, h) {
 				batch = append(batch, h)
 			}
 		}
@@ -380,7 +434,7 @@ func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID 
 
 	return sentCount, db.WithTx(d, func(tx *sql.Tx) error {
 		for _, h := range fresh {
-			if err := data.LogSent(tx, userID, h.ID); err != nil {
+			if err := data.TouchSent(tx, userID, h.ID); err != nil {
 				return err
 			}
 		}

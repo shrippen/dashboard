@@ -21,7 +21,7 @@
         {{range .Channels}}
         <li>
           <strong>{{.Name}}</strong> — <code>{{.Hint}}</code>
-          ({{if eq .MinSeverity 30}}{{t "severity.critical"}}{{else if eq .MinSeverity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}})
+          ({{if eq .MinSeverity 30}}{{t "severity.critical"}}{{else if eq .MinSeverity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}{{if .Sources}} · {{range $i, $s := .Sources}}{{if $i}}, {{end}}{{t (print "service." $s)}}{{end}}{{end}})
           <form method="post" action="/me/notify/channels/{{.ID}}/test">
             <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
             <button type="submit">{{t "conn.test"}}</button>
@@ -45,6 +45,11 @@
         <select id="level" name="level">
           {{range .Levels}}<option value="{{.}}">{{if eq . 30}}{{t "severity.critical"}}{{else if eq . 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</option>{{end}}
         </select>
+        <label for="sources">{{t "notify.sources"}}</label>
+        <select id="sources" name="sources" multiple size="6">
+          {{range .Services}}<option value="{{.}}">{{t (print "service." .)}}</option>{{end}}
+        </select>
+        <p class="small muted">{{t "notify.sources_hint"}}</p>
         <button type="submit">{{t "action.create"}}</button>
       </form>
     </div>
@@ -57,6 +62,11 @@
         <input id="quiet_from" name="quiet_from" placeholder="22:00" value="{{.Prefs.QuietFrom}}">
         <label for="quiet_to">{{t "notify.quiet_to"}}</label>
         <input id="quiet_to" name="quiet_to" placeholder="07:00" value="{{.Prefs.QuietTo}}">
+        <label class="check"><input type="checkbox" name="quiet_muted"{{if .Prefs.QuietMuted}} checked{{end}}> {{t "notify.quiet_muted"}}</label>
+        <p class="small muted">{{t "notify.quiet_hint"}}</p>
+        <label for="repeat_hours">{{t "notify.repeat"}}</label>
+        <input id="repeat_hours" name="repeat_hours" type="number" min="0" max="168" value="{{.Prefs.RepeatHours}}">
+        <p class="small muted">{{t "notify.repeat_hint"}}</p>
         <label for="daily">{{t "notify.digest_at"}}</label>
         <input id="daily" name="daily" placeholder="07:30" value="{{.Prefs.Daily}}">
         <p class="small muted">{{t "notify.digest_hint"}}</p>

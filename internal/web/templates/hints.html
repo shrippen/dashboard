@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "hints.title"}} · dashboard</title>
   {{template "style" .}}
+  {{template "htmx" .}}
 </head>
 <body>
   {{if not .Embed}}{{template "header" .}}{{end}}
@@ -20,22 +21,31 @@
         <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
         <div class="hint-main">
           <b>{{.Title}}</b>
+          {{if or .Assignee (ne (print .Work) "open") .Flapping}}<p class="hint-tags">
+            {{with .Assignee}}<span class="pill">{{t "hints.assigned_to" "name" .}}</span>{{end}}
+            {{if ne (print .Work) "open"}}<span class="pill" data-state="{{if eq (print .Work) "done"}}ok{{else}}reviewing{{end}}">{{t (print "hints.work_" .Work)}}</span>{{end}}
+            {{if .Flapping}}<span class="pill" data-state="warn" title="{{t "hints.flapping_hint"}}">{{t "hints.flapping"}}</span>{{end}}
+          </p>{{end}}
           <details><summary>{{t "hints.why"}}</summary><p>{{.Why}}</p>
             <p class="muted small">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}{{if .Sources}} · {{range $i, $s := .Sources}}{{if $i}}, {{end}}{{$s}}{{end}}{{end}}</p></details>
           <div class="hint-actions">
             {{if .ActionURL}}<a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a>{{end}}
             {{if not $.Embed}}
-            <form method="post" action="/hints/{{.ID}}/snooze">
+            <form method="post" action="/hints/{{.ID}}/ack" class="hint-ack">
               <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
               <input type="hidden" name="days" value="7">
-              <button type="submit" class="ghost">{{t "hints.snooze"}}</button>
-            </form>
-            <form method="post" action="/hints/{{.ID}}/ack">
-              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <input name="note" maxlength="500" placeholder="{{t "hints.note_optional"}}" aria-label="{{t "hints.note"}}">
               <button type="submit" class="ghost">{{t "hints.ack"}}</button>
+              <button type="submit" class="ghost" formaction="/hints/{{.ID}}/snooze">{{t "hints.snooze"}}</button>
             </form>
             {{end}}
           </div>
+          {{if not $.Embed}}
+          <details class="hint-more">
+            <summary>{{t "hints.more"}}</summary>
+            <div hx-get="/hints/{{.ID}}/detail" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"><span class="loading">{{t "widget.loading"}}</span></div>
+          </details>
+          {{end}}
         </div>
         {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
       </li>
@@ -44,4 +54,32 @@
   </main>
 </body>
 </html>
+{{end}}
+
+{{/* Loaded into a hint's "more" section: assignment, work state, note, history. */}}
+{{define "hint_detail"}}
+<div class="hint-flow">
+  <form method="post" action="/hints/{{.ID}}/assign" class="inline-form">
+    <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+    <label>{{t "hints.assign"}} <select name="assignee">
+      <option value="0">{{t "hints.nobody"}}</option>
+      {{range .People}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+    </select></label>
+    <button type="submit" class="ghost">{{t "action.save"}}</button>
+  </form>
+  <form method="post" action="/hints/{{.ID}}/work" class="inline-form">
+    <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+    <label>{{t "hints.work"}} <select name="state">{{range .States}}<option value="{{.}}">{{t (print "hints.work_" .)}}</option>{{end}}</select></label>
+    <button type="submit" class="ghost">{{t "action.save"}}</button>
+  </form>
+  <form method="post" action="/hints/{{.ID}}/note" class="inline-form">
+    <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+    <input name="note" maxlength="500" required placeholder="{{t "hints.note"}}" aria-label="{{t "hints.note"}}">
+    <button type="submit" class="ghost">{{t "hints.add_note"}}</button>
+  </form>
+  <ol class="hint-history">
+    {{range .History}}<li><time>{{ago .At}}</time> {{t (print "hints.event_" .Kind)}}{{with .Actor}} · {{.}}{{end}}{{with .Note}} – <q>{{.}}</q>{{end}}</li>
+    {{else}}<li class="muted">{{t "hints.no_history"}}</li>{{end}}
+  </ol>
+</div>
 {{end}}

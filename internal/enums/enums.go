@@ -170,6 +170,30 @@ const (
 	HintResolved     HintState = "resolved"
 )
 
+// HintEvent is one entry of a hint's history.
+type HintEvent string
+
+const (
+	EventOpened   HintEvent = "opened"   // first finding
+	EventResolved HintEvent = "resolved" // rule stopped firing
+	EventReopened HintEvent = "reopened" // fired again after resolving
+	EventAcked    HintEvent = "acked"
+	EventSnoozed  HintEvent = "snoozed"
+	EventReset    HintEvent = "reset" // ack or snooze undone
+	EventAssigned HintEvent = "assigned"
+	EventWork     HintEvent = "work"
+	EventNote     HintEvent = "note"
+)
+
+// WorkState is how far the assignee got with a hint.
+type WorkState string
+
+const (
+	WorkOpen     WorkState = "open"
+	WorkProgress WorkState = "in_progress"
+	WorkDone     WorkState = "done"
+)
+
 // HintAckMode: whether acknowledging a team hint applies to the team or one user.
 type HintAckMode string
 

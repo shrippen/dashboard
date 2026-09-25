@@ -441,7 +441,7 @@ func PruneResolved(q db.Queryer, olderThan time.Time) error {
 // Channels returns one user's notification channels.
 func Channels(q db.Queryer, userID int64) ([]*model.NotifyChannel, error) {
 	rows, err := q.Query(
-		"SELECT id, user_id, name, url_enc, min_severity, enabled FROM notify_channels WHERE user_id = ?",
+		"SELECT id, user_id, name, url_enc, min_severity, enabled, sources FROM notify_channels WHERE user_id = ?",
 		userID,
 	)
 	if err != nil {
@@ -451,33 +451,45 @@ func Channels(q db.Queryer, userID int64) ([]*model.NotifyChannel, error) {
 
 	var out []*model.NotifyChannel
 	for rows.Next() {
-		var c model.NotifyChannel
-		if err := rows.Scan(&c.ID, &c.UserID, &c.Name, &c.URLEnc, &c.MinSeverity, &c.Enabled); err != nil {
+		c, err := scanChannel(rows)
+		if err != nil {
 			return nil, err
 		}
-		out = append(out, &c)
+		out = append(out, c)
 	}
 	return out, rows.Err()
 }
 
 // Channel returns one notification channel by id, or nil.
 func Channel(q db.Queryer, channelID int64) (*model.NotifyChannel, error) {
-	var c model.NotifyChannel
-	err := q.QueryRow(
-		"SELECT id, user_id, name, url_enc, min_severity, enabled FROM notify_channels WHERE id = ?",
+	c, err := scanChannel(q.QueryRow(
+		"SELECT id, user_id, name, url_enc, min_severity, enabled, sources FROM notify_channels WHERE id = ?",
 		channelID,
-	).Scan(&c.ID, &c.UserID, &c.Name, &c.URLEnc, &c.MinSeverity, &c.Enabled)
+	))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
-	return &c, err
+	return c, err
+}
+
+func scanChannel(row interface{ Scan(...any) error }) (*model.NotifyChannel, error) {
+	var c model.NotifyChannel
+	var sources string
+	if err := row.Scan(&c.ID, &c.UserID, &c.Name, &c.URLEnc, &c.MinSeverity, &c.Enabled, &sources); err != nil {
+		return nil, err
+	}
+	return &c, db.FromJSON(sources, &c.Sources)
 }
 
 // AddChannel inserts a new notification channel.
 func AddChannel(q db.Queryer, c *model.NotifyChannel) error {
+	sources, err := db.ToJSON(orEmptySlice(c.Sources))
+	if err != nil {
+		return err
+	}
 	res, err := q.Exec(
-		"INSERT INTO notify_channels (user_id, name, url_enc, min_severity, enabled) VALUES (?,?,?,?,?)",
-		c.UserID, c.Name, c.URLEnc, c.MinSeverity, c.Enabled,
+		"INSERT INTO notify_channels (user_id, name, url_enc, min_severity, enabled, sources) VALUES (?,?,?,?,?,?)",
+		c.UserID, c.Name, c.URLEnc, c.MinSeverity, c.Enabled, sources,
 	)
 	if err != nil {
 		return err
@@ -492,9 +504,13 @@ func AddChannel(q db.Queryer, c *model.NotifyChannel) error {
 
 // UpdateChannel writes back a channel's mutable fields.
 func UpdateChannel(q db.Queryer, c *model.NotifyChannel) error {
-	_, err := q.Exec(
-		"UPDATE notify_channels SET name=?, min_severity=?, enabled=? WHERE id=?",
-		c.Name, c.MinSeverity, c.Enabled, c.ID,
+	sources, err := db.ToJSON(orEmptySlice(c.Sources))
+	if err != nil {
+		return err
+	}
+	_, err = q.Exec(
+		"UPDATE notify_channels SET name=?, min_severity=?, enabled=?, sources=? WHERE id=?",
+		c.Name, c.MinSeverity, c.Enabled, sources, c.ID,
 	)
 	return err
 }

@@ -765,10 +765,10 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [ ] Ausfälle bündeln: ein Hinweis mit Ursache statt vieler Folgehinweise
 - [ ] Dienste ohne Kachel finden (Komodo, Pangolin, Kuma)
 - [ ] Zertifikate automatisch aus Link-Kacheln und Pangolin-Ressourcen prüfen
-- [ ] Verlauf je Hinweis, flatternde Hinweise dämpfen
+- [x] Verlauf je Hinweis, flatternde Hinweise dämpfen *(3× wieder aufgetreten in 7 Tagen = flattert, keine Wiederholungs-Pushes)*
 - [ ] Eigene Regeln ohne Code (Schwellwert auf Kennzahl oder API-Feld)
-- [ ] Notiz beim Quittieren
-- [ ] Hinweis zuweisen (offen/in Arbeit/erledigt)
+- [x] Notiz beim Quittieren
+- [x] Hinweis zuweisen (offen/in Arbeit/erledigt)
 
 **Selbstständigkeit**
 - [ ] Rechnungsentwurf aus unabgerechneten Kimai-Stunden in Invoice Ninja (Vorschau, Bestätigung)
@@ -819,8 +819,8 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [ ] „Was tun?“ je Hinweis
 - [ ] Rechnungen in Mails per KI lesen
 - [ ] Automatische Sicherung des Dashboards mit Test-Wiederherstellung
-- [ ] Hinweise abonnieren (je Person nach Quelle und Stufe)
-- [ ] Ruhezeiten für Benachrichtigungen
+- [x] Hinweise abonnieren (je Person nach Quelle und Stufe) *(Quellen je Benachrichtigungskanal)*
+- [x] Ruhezeiten für Benachrichtigungen *(Ruhezeit gab es; neu: Kritisches kommt trotzdem, wahlweise stumm; Wiederholung offener kritischer Hinweise)*
 
 **Obsidian – Vorschlag.** Obsidian hat keinen Server; der Vault ist ein Ordner mit Markdown. Drei Wege, ihn zu lesen:
 

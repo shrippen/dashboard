@@ -318,6 +318,25 @@ type NotifyChannel struct {
 	URLEnc      []byte
 	MinSeverity enums.Severity
 	Enabled     bool
+	Sources     []string // subscribed sources, empty = all
+}
+
+// HintEvent is one entry of a hint's history.
+type HintEvent struct {
+	ID     int64
+	HintID int64
+	Kind   enums.HintEvent
+	UserID *int64
+	Note   string
+	At     time.Time
+}
+
+// HintWork is a hint's assignment.
+type HintWork struct {
+	HintID     int64
+	AssigneeID *int64
+	State      enums.WorkState
+	At         time.Time
 }
 
 type NotifyLog struct {

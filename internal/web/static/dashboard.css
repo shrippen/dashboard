@@ -379,6 +379,13 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .hint-level { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: var(--blue); }
 .hint[data-tier="red"] .hint-level { color: var(--danger-text); }
 .hint[data-tier="yellow"] .hint-level { color: var(--warn-text); }
+.hint-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0; }
+.hint-ack { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.hint-ack input { flex: 1 1 12rem; margin: 0; }
+.hint-more summary { font-family: var(--font-mono); font-size: .72rem; color: var(--fg3); cursor: pointer; }
+.hint-flow { display: flex; flex-direction: column; gap: .5rem; padding-top: .5rem; }
+.hint-history { list-style: none; margin: 0; padding: 0; font-size: .8rem; color: var(--fg2); display: flex; flex-direction: column; gap: .2rem; }
+.hint-history time { font-family: var(--font-mono); font-size: .7rem; color: var(--fg3); margin-right: .3rem; }
 .hint-main b { font-size: .92rem; color: var(--fg0); font-weight: 600; display: block; margin-top: .1rem; }
 .hint-main details summary { cursor: pointer; color: var(--fg3); font-family: var(--font-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; list-style: none; }
 .hint-main details summary::-webkit-details-marker { display: none; }

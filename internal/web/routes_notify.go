@@ -35,6 +35,7 @@ func (d Deps) notifyPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status
 	values := map[string]any{
 		"Channels": chans, "Prefs": prefs, "Levels": severityLevels,
 		"Weekdays": notify.Weekdays, "BaseURL": d.Settings.BaseURL, "SummaryAvailable": summary.Enabled(),
+		"Services": enums.Services,
 	}
 	for k, v := range extra {
 		values[k] = v
@@ -62,7 +63,8 @@ func (d Deps) handleNotifyChannelCreate(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	level, _ := strconv.Atoi(r.FormValue("level"))
-	if err := notify.AddChannel(d.DB, ctx.Who, r.FormValue("name"), r.FormValue("url"), enums.Severity(level)); err != nil {
+	sources := r.Form["sources"]
+	if err := notify.AddChannel(d.DB, ctx.Who, r.FormValue("name"), r.FormValue("url"), enums.Severity(level), sources); err != nil {
 		d.notifyPage(w, r, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
 		return
 	}
@@ -116,9 +118,11 @@ func (d Deps) handleNotifyPrefsSave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	prefs := notify.Prefs{
-		QuietFrom: r.FormValue("quiet_from"), QuietTo: r.FormValue("quiet_to"),
+		QuietFrom: r.FormValue("quiet_from"), QuietTo: r.FormValue("quiet_to"), QuietMuted: r.FormValue("quiet_muted") != "",
 		Daily: r.FormValue("daily"), Weekly: r.FormValue("weekly"),
 	}
+	prefs.RepeatHours, _ = strconv.Atoi(r.FormValue("repeat_hours"))
+
 	// The checkbox only exists while the instance has an API key.
 	if summary.Enabled() {
 		prefs.NoSummary = r.FormValue("summary") == ""

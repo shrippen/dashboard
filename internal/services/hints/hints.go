@@ -63,6 +63,9 @@ func Sync(q db.Queryer, spaceID int64, userID *int64, connID *int64, ruleIDs []s
 			if err := data.AddHint(q, hint); err != nil {
 				return 0, err
 			}
+			if err := logEvent(q, hint.ID, enums.EventOpened, nil, ""); err != nil {
+				return 0, err
+			}
 			fresh++
 			continue
 		}
@@ -71,6 +74,9 @@ func Sync(q db.Queryer, spaceID int64, userID *int64, connID *int64, ruleIDs []s
 			hint.ResolvedAt = nil
 			hint.FirstSeen = now
 			if err := data.DropMarks(q, hint.ID); err != nil {
+				return 0, err
+			}
+			if err := logEvent(q, hint.ID, enums.EventReopened, nil, ""); err != nil {
 				return 0, err
 			}
 			fresh++
@@ -89,6 +95,9 @@ func Sync(q db.Queryer, spaceID int64, userID *int64, connID *int64, ruleIDs []s
 		if !seen[h.Fingerprint] && h.ResolvedAt == nil {
 			h.ResolvedAt = &now
 			if err := data.UpdateHint(q, h); err != nil {
+				return 0, err
+			}
+			if err := logEvent(q, h.ID, enums.EventResolved, nil, ""); err != nil {
 				return 0, err
 			}
 		}
@@ -127,6 +136,10 @@ type View struct {
 	SpaceName    string
 	FirstSeen    time.Time
 	ConnectionID *int64
+	Assignee     string // "" = nobody
+	AssigneeID   *int64
+	Work         enums.WorkState
+	Flapping     bool // reopened often lately; pushed only once
 }
 
 func hidden(marks []*model.HintMark, now time.Time) bool {
@@ -219,7 +232,7 @@ func Active(d *sql.DB, who *access.Principal, minSeverity enums.Severity, source
 		for i, h := range rows {
 			views[i] = viewOf(h, who)
 		}
-		return nil
+		return enrich(tx, views)
 	})
 	return views, err
 }
@@ -313,20 +326,14 @@ func ackMode(q db.Queryer, spaceID int64) (enums.HintAckMode, error) {
 
 // Mark sets (or clears, for HintOpen) one hint's acknowledgement state for
 // who, honoring the space's ack mode (per-user vs. team-wide).
-func Mark(d *sql.DB, who *access.Principal, hintID int64, state enums.HintState, until *time.Time) error {
+func Mark(d *sql.DB, who *access.Principal, hintID int64, state enums.HintState, until *time.Time, note string) error {
 	return db.WithTx(d, func(tx *sql.Tx) error {
-		hint, err := data.HintByID(tx, hintID)
+		hint, err := reachable(tx, who, hintID)
 		if err != nil {
 			return err
 		}
-		if hint == nil {
-			return ErrNotFound
-		}
-		if _, ok := who.Spaces[hint.SpaceID]; !ok {
-			return ErrDenied
-		}
-		if hint.UserID != nil && *hint.UserID != who.UserID {
-			return ErrDenied
+		if err := logEvent(tx, hintID, markEvents[state], &who.UserID, note); err != nil {
+			return err
 		}
 
 		mode, err := ackMode(tx, hint.SpaceID)
@@ -381,19 +388,19 @@ const (
 
 const defaultSnoozeDays = 7
 
-// Act applies a named action to one hint.
-func Act(d *sql.DB, who *access.Principal, hintID int64, action Action, days int) error {
+// Act applies a named action to one hint; note explains it in the history.
+func Act(d *sql.DB, who *access.Principal, hintID int64, action Action, days int, note string) error {
 	switch action {
 	case ActionAck:
-		return Mark(d, who, hintID, enums.HintAcknowledged, nil)
+		return Mark(d, who, hintID, enums.HintAcknowledged, nil, note)
 	case ActionSnooze:
 		if days < 1 {
 			days = defaultSnoozeDays
 		}
 		until := time.Now().UTC().AddDate(0, 0, days)
-		return Mark(d, who, hintID, enums.HintSnoozed, &until)
+		return Mark(d, who, hintID, enums.HintSnoozed, &until, note)
 	default:
-		return Mark(d, who, hintID, enums.HintOpen, nil)
+		return Mark(d, who, hintID, enums.HintOpen, nil, note)
 	}
 }
 

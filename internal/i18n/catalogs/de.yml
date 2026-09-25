@@ -441,6 +441,29 @@ sys:
   swap: Swap
   load: Last (5 min)
 hints:
+  note: Notiz
+  note_optional: Notiz (optional)
+  add_note: Notiz speichern
+  more: Verlauf und Zuweisung
+  assign: Zuweisen an
+  nobody: niemand
+  assigned_to: '{name}'
+  work: Stand
+  work_open: offen
+  work_in_progress: in Arbeit
+  work_done: erledigt
+  flapping: flattert
+  flapping_hint: In den letzten 7 Tagen mehrmals wieder aufgetreten; wird nicht erneut gesendet.
+  no_history: Noch kein Verlauf.
+  event_opened: aufgetreten
+  event_resolved: behoben
+  event_reopened: wieder aufgetreten
+  event_acked: quittiert
+  event_snoozed: pausiert
+  event_reset: wieder geöffnet
+  event_assigned: zugewiesen
+  event_work: Stand geändert
+  event_note: Notiz
   title: Hinweise
   lead: Offene Hinweise aus allen Bereichen, auf die du Zugriff hast.
   why: Warum?
@@ -1470,6 +1493,12 @@ settings:
   rule: Regel
   params: Werte
 notify:
+  sources: Nur diese Quellen
+  sources_hint: Keine Auswahl = alle Quellen. Mehrfachauswahl mit Strg/Cmd.
+  quiet_muted: In der Ruhezeit auch Kritisches zurückhalten
+  quiet_hint: Ohne Haken kommen Kritische Hinweise auch nachts; alles andere wird nach der Ruhezeit gesendet.
+  repeat: Kritische wiederholen nach (Stunden)
+  repeat_hint: 0 = nie. Nur solange der Hinweis offen und nicht quittiert ist; flatternde Hinweise nicht.
   summary: KI-Zusammenfassung im Wochenrückblick
   summary_hint: Nur Anzahlen offener Hinweise je Regel gehen an Claude (Anthropic) – keine Titel, Namen, Beträge oder Standortdaten.
   lead: Hinweise per Push (Apprise) und als tägliche oder wöchentliche Mail.

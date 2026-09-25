@@ -77,7 +77,7 @@ func principalFor(t *testing.T, d *sql.DB, userID int64) *access.Principal {
 func TestAddChannelRejectsPlainText(t *testing.T) {
 	d := openTestDB(t)
 	who := principalFor(t, d, addUser(t, d))
-	if err := notify.AddChannel(d, who, "x", "not a url", enums.SeverityInfo); err != notify.ErrInvalidURL {
+	if err := notify.AddChannel(d, who, "x", "not a url", enums.SeverityInfo, nil); err != notify.ErrInvalidURL {
 		t.Fatalf("expected ErrInvalidURL, got %v", err)
 	}
 }
@@ -85,7 +85,7 @@ func TestAddChannelRejectsPlainText(t *testing.T) {
 func TestAddChannelListAndDelete(t *testing.T) {
 	d := openTestDB(t)
 	who := principalFor(t, d, addUser(t, d))
-	if err := notify.AddChannel(d, who, "My phone", "ntfy://ntfy.example/topic", enums.SeverityWarn); err != nil {
+	if err := notify.AddChannel(d, who, "My phone", "ntfy://ntfy.example/topic", enums.SeverityWarn, nil); err != nil {
 		t.Fatalf("add channel: %v", err)
 	}
 	chans, err := notify.Channels(d, who)
@@ -107,7 +107,7 @@ func TestAddChannelListAndDelete(t *testing.T) {
 func TestDeleteChannelDeniesOtherUsers(t *testing.T) {
 	d := openTestDB(t)
 	owner := principalFor(t, d, addUser(t, d))
-	if err := notify.AddChannel(d, owner, "x", "ntfy://a/b", enums.SeverityInfo); err != nil {
+	if err := notify.AddChannel(d, owner, "x", "ntfy://a/b", enums.SeverityInfo, nil); err != nil {
 		t.Fatalf("add: %v", err)
 	}
 	chans, _ := notify.Channels(d, owner)
@@ -145,7 +145,7 @@ func TestDispatchSendsFreshHintAndSkipsOnRerun(t *testing.T) {
 	d := openTestDB(t)
 	userID := addUser(t, d)
 	who := principalFor(t, d, userID)
-	if err := notify.AddChannel(d, who, "phone", "ntfy://ntfy.example/topic", enums.SeverityInfo); err != nil {
+	if err := notify.AddChannel(d, who, "phone", "ntfy://ntfy.example/topic", enums.SeverityInfo, nil); err != nil {
 		t.Fatalf("add channel: %v", err)
 	}
 
@@ -191,7 +191,7 @@ func TestDispatchSkipsQuietHours(t *testing.T) {
 	d := openTestDB(t)
 	userID := addUser(t, d)
 	who := principalFor(t, d, userID)
-	if err := notify.AddChannel(d, who, "phone", "ntfy://ntfy.example/topic", enums.SeverityInfo); err != nil {
+	if err := notify.AddChannel(d, who, "phone", "ntfy://ntfy.example/topic", enums.SeverityInfo, nil); err != nil {
 		t.Fatalf("add channel: %v", err)
 	}
 	// A 24h window covers "now" no matter when the test runs.
@@ -230,4 +230,45 @@ func onlySpace(t *testing.T, who *access.Principal) int64 {
 	}
 	t.Fatal("expected the user to have a personal space")
 	return 0
+}
+
+// Quiet hours let critical hints through unless muted; channels take only
+// their subscribed sources.
+func TestDispatchQuietCriticalAndSubscriptions(t *testing.T) {
+	d := openTestDB(t)
+	who := principalFor(t, d, addUser(t, d))
+	if err := notify.AddChannel(d, who, "kimai", "ntfy://ntfy.example/kimai", enums.SeverityInfo, []string{"kimai"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := notify.AddChannel(d, who, "gitea", "ntfy://ntfy.example/gitea", enums.SeverityInfo, []string{"gitea"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := notify.SavePrefs(d, who, notify.Prefs{QuietFrom: "00:00", QuietTo: "23:59"}); err != nil {
+		t.Fatal(err)
+	}
+
+	var calls int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++ }))
+	defer srv.Close()
+	cfg := settings.Settings{AppriseAPIURL: srv.URL}
+
+	sid := onlySpace(t, who)
+	if _, err := hints.Sync(d, sid, nil, nil, []string{"kimai.missing_day"}, []rules.Finding{
+		{Fingerprint: "a", Rule: "kimai.missing_day", Severity: enums.SeverityCritical, Message: "kimai.missing_day", Sources: []string{"kimai"}},
+		{Fingerprint: "b", Rule: "kimai.missing_day", Severity: enums.SeverityInfo, Message: "kimai.missing_day", Sources: []string{"kimai"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Only the kimai channel, and only the critical hint.
+	if n, err := notify.Dispatch(context.Background(), d, cfg); err != nil || n != 1 || calls != 1 {
+		t.Fatalf("critical in quiet hours: n=%d calls=%d err=%v", n, calls, err)
+	}
+
+	if err := notify.SavePrefs(d, who, notify.Prefs{QuietFrom: "00:00", QuietTo: "23:59", QuietMuted: true}); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := notify.Dispatch(context.Background(), d, cfg); n != 0 {
+		t.Fatalf("muted quiet hours sent %d", n)
+	}
 }
