@@ -71,6 +71,9 @@ func (s Settings) SecureCookies() bool {
 // IconsDir is where uploaded icons are stored.
 func (s Settings) IconsDir() string { return filepath.Join(s.DataDir, "icons") }
 
+// BackupsDir holds the daily copies of the database.
+func (s Settings) BackupsDir() string { return filepath.Join(s.DataDir, "backups") }
+
 // ThemesDir is where user-made themes are stored.
 func (s Settings) ThemesDir() string { return filepath.Join(s.DataDir, "themes") }
 

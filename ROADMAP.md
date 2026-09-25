@@ -816,9 +816,9 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Energie und Kosten (Home Assistant, Tibber) *(Preiskurve, günstigste Stunden, Kosten; Leistung aus HA)*
 
 **KI und Betrieb**
-- [ ] „Was tun?“ je Hinweis
-- [ ] Rechnungen in Mails per KI lesen
-- [ ] Automatische Sicherung des Dashboards mit Test-Wiederherstellung
+- [x] „Was tun?“ je Hinweis *(auf Klick; nur Titel und Begründung gehen raus, nie Standorthinweise; Antwort je Sprache gespeichert)*
+- [x] Rechnungen in Mails per KI lesen *(auf Klick: PDF/Bild-Anhänge → Absender, Nummer, Fälligkeit, Betrag; Titel für Paperless)*
+- [x] Automatische Sicherung des Dashboards mit Test-Wiederherstellung *(täglich VACUUM INTO, Probe-Öffnen: Integrität, Migrationen, Zeilen, Zugangsdaten entschlüsselbar; 7 Kopien)*
 - [x] Hinweise abonnieren (je Person nach Quelle und Stufe) *(Quellen je Benachrichtigungskanal)*
 - [x] Ruhezeiten für Benachrichtigungen *(Ruhezeit gab es; neu: Kritisches kommt trotzdem, wahlweise stumm; Wiederholung offener kritischer Hinweise)*
 

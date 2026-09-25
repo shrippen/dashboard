@@ -69,6 +69,20 @@ func reachable(q db.Queryer, who *access.Principal, hintID int64) (*model.Hint, 
 	return hint, nil
 }
 
+// One returns one hint as who sees it.
+func One(d *sql.DB, who *access.Principal, hintID int64) (View, error) {
+	var out View
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		hint, err := reachable(tx, who, hintID)
+		if err != nil {
+			return err
+		}
+		out = viewOf(hint, who)
+		return nil
+	})
+	return out, err
+}
+
 // ── Notes and history ──
 
 // AddNote adds a free note to a hint's history.

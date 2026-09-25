@@ -14,6 +14,7 @@ import (
 	"dashboard/internal/services/linkstatus"
 	"dashboard/internal/services/notify"
 	"dashboard/internal/services/scheduler"
+	"dashboard/internal/services/selfbackup"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/settings"
 )
@@ -44,6 +45,10 @@ func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 		}},
 		{Name: "icons", Interval: day, Run: func(context.Context) error {
 			return icons.ForgetMisses()
+		}},
+		{Name: selfbackup.JobName, Interval: selfbackup.Interval, Run: func(context.Context) error {
+			_, err := selfbackup.Run(database, cfg.BackupsDir(), time.Now())
+			return err
 		}},
 		{Name: "housekeeping", Interval: hour, Run: func(context.Context) error {
 			return housekeeping(database)

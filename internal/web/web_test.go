@@ -61,7 +61,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	}
 
 	cfg := settings.Settings{
-		SessionAbsoluteHours: 24, SessionIdleMinutes: 60, Testing: true, BaseURL: "http://dash.test",
+		SessionAbsoluteHours: 24, SessionIdleMinutes: 60, Testing: true, BaseURL: "http://dash.test", DataDir: t.TempDir(),
 	}
 	mail.Init(cfg)
 	themes.InitFonts(t.TempDir())

@@ -1,10 +1,12 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"dashboard/internal/enums"
+	"dashboard/internal/services/assist"
 	"dashboard/internal/services/hints"
 )
 
@@ -16,6 +18,7 @@ func (d Deps) RegisterHintRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /hints/{id}/snooze", d.handleHintAct(hints.ActionSnooze))
 	mux.HandleFunc("POST /hints/{id}/reopen", d.handleHintAct(hints.ActionReopen))
 	mux.HandleFunc("GET /hints/{id}/detail", d.handleHintDetail)
+	mux.HandleFunc("POST /hints/{id}/advice", d.handleHintAdvice)
 	mux.HandleFunc("POST /hints/{id}/note", d.handleHintWorkflow(hintNote))
 	mux.HandleFunc("POST /hints/{id}/assign", d.handleHintWorkflow(hintAssign))
 	mux.HandleFunc("POST /hints/{id}/work", d.handleHintWorkflow(hintWork))
@@ -104,7 +107,26 @@ func (d Deps) handleHintDetail(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
-	_ = d.Page(w, ctx, "hint_detail", http.StatusOK, map[string]any{"ID": id, "History": history, "People": people, "States": workStates})
+	_ = d.Page(w, ctx, "hint_detail", http.StatusOK, map[string]any{"ID": id, "History": history, "People": people, "States": workStates,
+		"Assist": assist.Enabled()})
+}
+
+// handleHintAdvice answers "Was tun?" for one hint (htmx fragment).
+func (d Deps) handleHintAdvice(w http.ResponseWriter, r *http.Request) {
+	ctx, id, ok := d.hintRequest(w, r)
+	if !ok {
+		return
+	}
+	text, err := assist.Advise(r.Context(), d.DB, ctx.Who, id)
+	if errors.Is(err, hints.ErrNotFound) || errors.Is(err, hints.ErrDenied) {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	values := map[string]any{"Text": text}
+	if err != nil {
+		values["Error"] = errKey(err)
+	}
+	_ = d.Page(w, ctx, "hint_advice", http.StatusOK, values)
 }
 
 func (d Deps) handleHintWorkflow(step hintStep) http.HandlerFunc {

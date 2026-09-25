@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/assist"
 	"dashboard/internal/services/billing"
 	"dashboard/internal/services/mailfwd"
 
@@ -50,6 +51,7 @@ func (d Deps) RegisterBillingRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /billing/draft", d.handleBillingDraft)
 	mux.HandleFunc("GET /billing/export", d.handleBillingExport)
 	mux.HandleFunc("POST /billing/mail", d.handleMailForward)
+	mux.HandleFunc("POST /billing/mail/read", d.handleMailRead)
 }
 
 func (d Deps) billingPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status int, extra map[string]any) {
@@ -64,7 +66,7 @@ func (d Deps) billingPage(w http.ResponseWriter, r *http.Request, ctx Ctx, statu
 		return
 	}
 	year := time.Now().Year()
-	values := map[string]any{"Drafts": drafts, "Mails": mails, "Spaces": access.EditableSpaces(ctx.Who), "Years": []int{year, year - 1}}
+	values := map[string]any{"Drafts": drafts, "Mails": mails, "Assist": assist.Enabled(), "Spaces": access.EditableSpaces(ctx.Who), "Years": []int{year, year - 1}}
 	for k, v := range extra {
 		values[k] = v
 	}
@@ -134,4 +136,20 @@ func (d Deps) handleMailForward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/billing?forwarded="+strconv.Itoa(n), http.StatusSeeOther)
+}
+
+// handleMailRead lets Claude read one invoice mail's attachments.
+func (d Deps) handleMailRead(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	conn, _ := strconv.ParseInt(r.FormValue("conn"), 10, 64)
+	uid, _ := strconv.ParseUint(r.FormValue("uid"), 10, 32)
+	if _, err := mailfwd.Read(r.Context(), d.DB, ctx.Who, conn, uint32(uid), ClientIP(r)); err != nil {
+		d.billingPage(w, r, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
+		return
+	}
+	http.Redirect(w, r, "/billing#mail-"+strconv.FormatUint(uid, 10), http.StatusSeeOther)
 }

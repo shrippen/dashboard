@@ -598,3 +598,6 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 
 /* Offline view: last stored state, marked as such. */
 .offline-note { margin: 0; padding: .4rem 1rem; background: var(--bg2); color: var(--fg1); border-bottom: 1px solid var(--yellow); text-align: center; }
+
+/* "Was tun?" answer: the model's line breaks carry the steps. */
+.advice { white-space: pre-line; }

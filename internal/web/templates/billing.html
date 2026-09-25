@@ -42,12 +42,14 @@
     <div class="table-wrap"><table class="table">
       <tr><th>{{t "col.day"}}</th><th>{{t "billing.sender"}}</th><th>{{t "billing.subject"}}</th><th class="num">{{t "col.amount"}}</th><th></th></tr>
       {{range .Mails}}
-      <tr id="mail-{{.UID}}"><td>{{day .Date}}</td><td>{{.Sender}}</td><td>{{.Subject}}{{with .Attachments}}<small class="muted"> · {{range $i, $a := .}}{{if $i}}, {{end}}{{$a}}{{end}}</small>{{end}}</td>
+      <tr id="mail-{{.UID}}"><td>{{day .Date}}</td><td>{{.Sender}}</td><td>{{.Subject}}{{with .Attachments}}<small class="muted"> · {{range $i, $a := .}}{{if $i}}, {{end}}{{$a}}{{end}}</small>{{end}}
+        {{with .Read}}<br><small>{{t "assist.read_line" "vendor" .Vendor "number" .Number "due" (day .Due) "gross" (money .Gross .Currency)}}</small>{{end}}</td>
         <td class="num">{{if .Amount}}{{money .Amount}}{{else}}–{{end}}</td>
         <td>{{if and .Paperless .Attachments}}<form method="post" action="/billing/mail" class="inline-form">
           <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
           <input type="hidden" name="conn" value="{{.MailConn}}"><input type="hidden" name="uid" value="{{.UID}}">
           <button type="submit" class="ghost">{{t "billing.to_paperless"}}</button>
+          {{if and $.Assist (not .Read)}}<button type="submit" class="ghost" formaction="/billing/mail/read" title="{{t "assist.read_privacy"}}">{{t "assist.read"}}</button>{{end}}
         </form>{{else if not .Paperless}}<small class="muted">{{t "billing.no_paperless"}}</small>{{end}}</td></tr>
       {{end}}
     </table></div>

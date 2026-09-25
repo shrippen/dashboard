@@ -4,20 +4,27 @@
 //	         with the Paperless connection of the same space
 //	Forward: USE on both connections → download the mail's PDF/image
 //	         attachments → Paperless consumes each one
+//	Read:    on request, Claude reads the attachments' invoice fields;
+//	         Forward then titles the documents "Vendor Number"
 package mailfwd
 
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"dashboard/internal/db"
+	"dashboard/internal/drivers/llm"
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	"dashboard/internal/outbound"
 	"dashboard/internal/repos/content"
+	repodata "dashboard/internal/repos/data"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/assist"
 	auditsvc "dashboard/internal/services/audit"
 	"dashboard/internal/services/connections"
 	"dashboard/internal/services/svcdata"
@@ -36,6 +43,7 @@ type Item struct {
 	MailConn  int64
 	Mailbox   string
 	Paperless bool
+	Read      *assist.Invoice // nil until read
 	sources.MailInvoice
 }
 
@@ -89,8 +97,16 @@ func List(ctx context.Context, d *sql.DB, who *access.Principal) ([]Item, error)
 		if !ok {
 			continue
 		}
+		reads, err := repodata.MailReads(d, mail.ID)
+		if err != nil {
+			return nil, err
+		}
 		for _, inv := range data.Invoices {
-			out = append(out, Item{MailConn: mail.ID, Mailbox: mail.Name, Paperless: paperless != nil, MailInvoice: inv})
+			item := Item{MailConn: mail.ID, Mailbox: mail.Name, Paperless: paperless != nil, MailInvoice: inv}
+			if fields, ok := reads[inv.UID]; ok {
+				item.Read = invoiceOf(fields)
+			}
+			out = append(out, item)
 		}
 	}
 	return out, nil
@@ -119,27 +135,91 @@ func Forward(ctx context.Context, d *sql.DB, who *access.Principal, mailConnID i
 		return 0, err
 	}
 
-	sctx, err := svcdata.SourceCtx(d, mail, who.UserID)
+	files, err := mailFiles(ctx, d, who, mail, uid)
 	if err != nil {
 		return 0, err
-	}
-	files, err := sources.MailFiles(ctx, sctx, uid)
-	if err != nil {
-		return 0, err
-	}
-	if len(files) == 0 {
-		return 0, ErrNoFiles
 	}
 	token, err := svcdata.Secret(d, paperless, who.UserID)
 	if err != nil {
 		return 0, err
 	}
+	title := ""
+	if reads, err := repodata.MailReads(d, mail.ID); err == nil && reads[uid] != nil {
+		title = invoiceOf(reads[uid]).Title()
+	}
 	for _, f := range files {
-		if _, err := outbound.PaperlessUpload(ctx, paperless.URL, token, paperless.VerifyTLS, f.Name, "", f.Content); err != nil {
+		if _, err := outbound.PaperlessUpload(ctx, paperless.URL, token, paperless.VerifyTLS, f.Name, title, f.Content); err != nil {
 			return 0, err
 		}
 	}
 	svcdata.Forget(paperless.ID)
 	return len(files), auditsvc.Log(d, &who.UserID, "mail.to_paperless", fmt.Sprintf("%s#%d", mail.Name, uid), ip,
 		map[string]any{"files": len(files)})
+}
+
+// mailFiles downloads one mail's attachments; USE on the mailbox is
+// checked by the caller.
+func mailFiles(ctx context.Context, d *sql.DB, who *access.Principal, mail *model.Connection, uid uint32) ([]sources.MailFile, error) {
+	sctx, err := svcdata.SourceCtx(d, mail, who.UserID)
+	if err != nil {
+		return nil, err
+	}
+	files, err := sources.MailFiles(ctx, sctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	if len(files) == 0 {
+		return nil, ErrNoFiles
+	}
+	return files, nil
+}
+
+// Read lets Claude read the invoice fields of one mail's attachments and
+// keeps them for the list and the Paperless title.
+func Read(ctx context.Context, d *sql.DB, who *access.Principal, mailConnID int64, uid uint32, ip string) (assist.Invoice, error) {
+	boxes, err := mailboxes(d, who)
+	if err != nil {
+		return assist.Invoice{}, err
+	}
+	var mail *model.Connection
+	for m := range boxes {
+		if m.ID == mailConnID {
+			mail = m
+		}
+	}
+	if mail == nil {
+		return assist.Invoice{}, access.ErrDenied
+	}
+	files, err := mailFiles(ctx, d, who, mail, uid)
+	if err != nil {
+		return assist.Invoice{}, err
+	}
+	var readable []llm.File
+	for _, f := range files {
+		if media := http.DetectContentType(f.Content); llm.Readable(media) {
+			readable = append(readable, llm.File{Media: media, Content: f.Content})
+		}
+	}
+	if len(readable) == 0 {
+		return assist.Invoice{}, ErrNoFiles
+	}
+	inv, err := assist.ReadInvoice(ctx, readable)
+	if err != nil {
+		return assist.Invoice{}, err
+	}
+
+	raw, _ := json.Marshal(inv)
+	fields := map[string]any{}
+	_ = json.Unmarshal(raw, &fields)
+	if err := db.WithTx(d, func(tx *sql.Tx) error { return repodata.SaveMailRead(tx, mail.ID, uid, fields) }); err != nil {
+		return assist.Invoice{}, err
+	}
+	return inv, auditsvc.Log(d, &who.UserID, "mail.read", fmt.Sprintf("%s#%d", mail.Name, uid), ip, nil)
+}
+
+func invoiceOf(fields map[string]any) *assist.Invoice {
+	raw, _ := json.Marshal(fields)
+	var inv assist.Invoice
+	_ = json.Unmarshal(raw, &inv)
+	return &inv
 }

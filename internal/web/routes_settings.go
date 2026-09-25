@@ -9,6 +9,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/admin"
 	"dashboard/internal/services/oidc"
+	"dashboard/internal/services/selfbackup"
 	"dashboard/internal/services/system"
 	"dashboard/internal/services/themes"
 )
@@ -24,6 +25,7 @@ func (d Deps) RegisterSettingsRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /admin/settings/oidc", d.handleSettingsOIDC)
 	mux.HandleFunc("POST /admin/settings/oidc/test", d.handleSettingsOIDCTest)
 	mux.HandleFunc("POST /admin/settings/analysis", d.handleAnalysisRun)
+	mux.HandleFunc("POST /admin/settings/backup", d.handleBackupRun)
 	mux.HandleFunc("GET /admin/users/{id}/reapply", d.handleReapplyPreview)
 	mux.HandleFunc("POST /admin/users/{id}/reapply", d.handleReapply)
 }
@@ -94,6 +96,11 @@ func (d Deps) settingsPage(w http.ResponseWriter, ctx Ctx, status int, extra map
 	if run, ok := analysis.LastRun(); ok {
 		values["AnalysisRun"] = run
 	}
+	if last, err := selfbackup.Last(d.DB); err == nil && last != nil {
+		values["Backup"] = last
+	}
+	values["BackupFiles"], _ = selfbackup.Files(d.Settings.BackupsDir())
+	values["BackupKeep"] = selfbackup.Keep
 	for k, v := range extra {
 		values[k] = v
 	}
@@ -162,6 +169,14 @@ func (d Deps) handleSettingsGeneral(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		return themes.SetDefault(d.DB, ctx.Who, id)
+	})
+}
+
+// handleBackupRun copies and test-restores the database now.
+func (d Deps) handleBackupRun(w http.ResponseWriter, r *http.Request) {
+	d.settingsAction(w, r, func(ctx Ctx) error {
+		_, err := selfbackup.RunNow(d.DB, ctx.Who, d.Settings.BackupsDir())
+		return err
 	})
 }
 

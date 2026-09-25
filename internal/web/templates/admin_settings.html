@@ -26,6 +26,22 @@
       </form>
     </div>
 
+    <h2>{{t "admin.backup"}}</h2>
+    <div class="card">
+      <p class="small muted">{{t "admin.backup_hint" "keep" .BackupKeep}}</p>
+      {{with .Backup}}
+      <p><span class="pill" data-state="{{if .OK}}ok{{else}}fail{{end}}">{{if .OK}}{{t "admin.backup_ok"}}{{else}}{{t "admin.backup_failed"}}{{end}}</span>
+        <small class="muted">{{ago .At}}{{with .File}} · {{.}}{{end}}</small></p>
+      {{if .OK}}<p class="small muted">{{t "admin.backup_rows" "users" (index .Rows "users") "boards" (index .Rows "boards") "widgets" (index .Rows "widgets") "secrets" .Secrets}}</p>
+      {{else}}<p class="error">{{t .Problem}}</p>{{end}}
+      {{else}}<p class="small muted">{{t "admin.backup_none"}}</p>{{end}}
+      {{with .BackupFiles}}<ul class="plain-list small">{{range .}}<li>{{.Name}} <span class="muted">{{num .MB 1}} MB</span></li>{{end}}</ul>{{end}}
+      <form method="post" action="/admin/settings/backup">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "admin.backup_run"}}</button>
+      </form>
+    </div>
+
     <h2>{{t "admin.general"}}</h2>
     <div class="card">
       <form method="post" action="/admin/settings/general">

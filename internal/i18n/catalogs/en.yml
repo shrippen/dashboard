@@ -829,6 +829,13 @@ cred:
 credential:
   missing: No personal access stored.
 admin:
+  backup: 'Dashboard backup'
+  backup_hint: 'A daily copy of the database in data/backups; each copy is test-opened (integrity, migrations, rows, credentials decryptable). The newest {keep} stay. Keep the master key separately.'
+  backup_ok: 'Restore verified'
+  backup_failed: 'Backup failed'
+  backup_rows: '{users} users, {boards} boards, {widgets} widgets, {secrets} credentials readable.'
+  backup_none: 'No backup yet.'
+  backup_run: 'Back up now'
   analysis: Integration check
   analysis_every: 'Every {minutes} minutes the check fetches all integrations and derives hints. Pages show this state; live are the tiles'' status ping and widgets in data mode “live” (default for Home Assistant, monitors, system stats).'
   analysis_last: 'Last run {when}, took {seconds} s.'
@@ -2011,3 +2018,24 @@ energy:
     EXPENSIVE: 'expensive'
     VERY_EXPENSIVE: 'very expensive'
     none: ''
+selfbackup:
+  integrity: 'The copy is damaged.'
+  migrations: 'The copy has a different schema version.'
+  empty: 'The copy contains no users.'
+  secrets: 'The copys credentials do not open with the master key.'
+assist:
+  ask: 'What to do?'
+  privacy: 'Sends this hints title and reason to Anthropic (Claude).'
+  caveat: 'Suggested by Claude – check before acting.'
+  services: 'Services'
+  rule: 'Rule'
+  level: 'Level'
+  hint: 'Hint'
+  why: 'Reason'
+  advice_system: 'You help someone who watches a homelab and their freelance business with a dashboard. You get one of its hints. Answer in English with three to five numbered, concrete steps, one line each: what to check, what to do, where (menu path or command if useful). No introduction, no Markdown, no disclaimers. Do not invent details the hint does not state.'
+  off: 'No AI configured (ANTHROPIC_API_KEY).'
+  private: 'Location data never leaves the dashboard.'
+  unreadable: 'No invoice data found.'
+  read: 'Read with AI'
+  read_privacy: 'Sends this mails attachments to Anthropic (Claude).'
+  read_line: '{vendor} · {number} · due {due} · {gross}'

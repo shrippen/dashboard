@@ -12,6 +12,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/services/assist"
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/icons"
 	"dashboard/internal/services/mail"
@@ -61,6 +62,7 @@ func main() {
 	}
 	mail.Init(cfg)
 	summary.Init(cfg)
+	assist.Init(cfg)
 	themes.InitFonts(cfg.ThemesDir())
 	icons.Init(cfg.IconsDir())
 

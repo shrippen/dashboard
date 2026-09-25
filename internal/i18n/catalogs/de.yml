@@ -829,6 +829,13 @@ cred:
 credential:
   missing: Kein persönlicher Zugang hinterlegt.
 admin:
+  backup: 'Sicherung des Dashboards'
+  backup_hint: 'Täglich eine Kopie der Datenbank nach data/backups; jede Kopie wird probeweise geöffnet (Integrität, Migrationen, Zeilen, Zugangsdaten entschlüsselbar). Die neuesten {keep} bleiben. Den Master-Schlüssel getrennt aufbewahren.'
+  backup_ok: 'Wiederherstellung geprüft'
+  backup_failed: 'Sicherung fehlerhaft'
+  backup_rows: '{users} Nutzer, {boards} Boards, {widgets} Widgets, {secrets} Zugangsdaten lesbar.'
+  backup_none: 'Noch keine Sicherung.'
+  backup_run: 'Jetzt sichern'
   analysis: Prüflauf
   analysis_every: 'Alle {minutes} Minuten holt der Prüflauf die Daten aller Integrationen und leitet Hinweise ab. Seiten zeigen diesen Stand; live sind der Status-Ping der Kacheln und Widgets im Datenmodus „live“ (Vorgabe bei Home Assistant, Monitoren, Systemwerten).'
   analysis_last: 'Zuletzt {when}, Dauer {seconds} s.'
@@ -2012,3 +2019,24 @@ energy:
     EXPENSIVE: 'teuer'
     VERY_EXPENSIVE: 'sehr teuer'
     none: ''
+selfbackup:
+  integrity: 'Die Kopie ist beschädigt.'
+  migrations: 'Die Kopie hat einen anderen Datenbankstand.'
+  empty: 'Die Kopie enthält keine Nutzer.'
+  secrets: 'Zugangsdaten der Kopie lassen sich mit dem Master-Schlüssel nicht öffnen.'
+assist:
+  ask: 'Was tun?'
+  privacy: 'Sendet Titel und Begründung dieses Hinweises an Anthropic (Claude).'
+  caveat: 'Vorschlag von Claude – vor dem Ausführen prüfen.'
+  services: 'Dienste'
+  rule: 'Regel'
+  level: 'Stufe'
+  hint: 'Hinweis'
+  why: 'Begründung'
+  advice_system: 'Du hilfst jemandem, der ein Homelab und seine Selbständigkeit mit einem Dashboard überwacht. Du erhältst einen Hinweis des Dashboards. Antworte auf Deutsch mit drei bis fünf nummerierten, konkreten Schritten, jeweils eine Zeile: was prüfen, was tun, wo (Menüpfad oder Befehl, falls sinnvoll). Keine Einleitung, kein Markdown, keine Warnhinweise. Erfinde keine Details, die nicht im Hinweis stehen.'
+  off: 'Keine KI eingerichtet (ANTHROPIC_API_KEY).'
+  private: 'Standortdaten verlassen das Dashboard nicht.'
+  unreadable: 'Keine Rechnungsdaten erkannt.'
+  read: 'Mit KI lesen'
+  read_privacy: 'Sendet die Anhänge dieser Mail an Anthropic (Claude).'
+  read_line: '{vendor} · {number} · fällig {due} · {gross}'

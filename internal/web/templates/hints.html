@@ -77,9 +77,21 @@
     <input name="note" maxlength="500" required placeholder="{{t "hints.note"}}" aria-label="{{t "hints.note"}}">
     <button type="submit" class="ghost">{{t "hints.add_note"}}</button>
   </form>
+  {{if .Assist}}<div class="hint-advice">
+    <form method="post" action="/hints/{{.ID}}/advice" hx-post="/hints/{{.ID}}/advice" hx-target="closest .hint-advice" hx-swap="innerHTML" class="inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <button type="submit" class="ghost">{{t "assist.ask"}}</button>
+      <small class="muted">{{t "assist.privacy"}}</small>
+    </form>
+  </div>{{end}}
   <ol class="hint-history">
     {{range .History}}<li><time>{{ago .At}}</time> {{t (print "hints.event_" .Kind)}}{{with .Actor}} · {{.}}{{end}}{{with .Note}} – <q>{{.}}</q>{{end}}</li>
     {{else}}<li class="muted">{{t "hints.no_history"}}</li>{{end}}
   </ol>
 </div>
+{{end}}
+
+{{/* "Was tun?" answer, swapped into the hint's advice box. */}}
+{{define "hint_advice"}}
+{{if .Error}}<p class="error">{{t .Error}}</p>{{else}}<p class="advice">{{.Text}}</p><p class="small muted">{{t "assist.caveat"}}</p>{{end}}
 {{end}}
