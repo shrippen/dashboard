@@ -63,6 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Theme.Name}} · dashboard</title>
   {{template "style" .}}
+  {{template "code-editor"}}
   <script src="/static/theme-editor.js" defer></script>
 </head>
 <body>
@@ -99,7 +100,7 @@
         {{end}}
         {{if and .Who.IsAdmin .Editable}}
         <h2>{{t "themes.custom_css"}}</h2>
-        <textarea class="code-area short" name="custom_css" rows="8" spellcheck="false" aria-label="{{t "themes.custom_css"}}">{{.Theme.CustomCSS}}</textarea>
+        <textarea class="code-area short" name="custom_css" rows="8" spellcheck="false" data-code="css" aria-label="{{t "themes.custom_css"}}">{{.Theme.CustomCSS}}</textarea>
         <p class="small muted">{{t "themes.custom_css_hint"}}</p>
         {{end}}
         {{if .Editable}}<button type="submit">{{t "action.save"}}</button>{{end}}

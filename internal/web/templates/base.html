@@ -11,6 +11,13 @@
 <script src="/static/dashboard.js" defer></script>
 {{end}}
 
+{{/* Loaded only by pages with <textarea data-code>. */}}
+{{define "code-editor"}}
+<link rel="stylesheet" href="/static/vendor/codemirror/codemirror.min.css">
+<script src="/static/vendor/codemirror/codemirror.min.js" defer></script>
+<script src="/static/code-editor.js" defer></script>
+{{end}}
+
 {{/* Loaded only by pages with hx-get tiles (the board page), not every
      page, to keep the login/setup flow free of it. */}}
 {{define "htmx"}}

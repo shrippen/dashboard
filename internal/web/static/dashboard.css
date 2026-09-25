@@ -429,6 +429,23 @@ table.table tr:last-child td { border-bottom: 0; }
 .sample { display: flex; flex-direction: column; gap: 1rem; background: var(--bg-void); color: var(--fg1); padding: 1rem; border: 1px solid var(--bg1); }
 .code-area { font-family: var(--font-mono); min-height: 24rem; line-height: 1.5; white-space: pre; tab-size: 2; width: 100%; }
 .code-area.short { min-height: 8rem; }
+
+/* CodeMirror (vendor) recoloured with theme tokens; "main" outranks the
+   vendor sheet, which loads later. */
+main .CodeMirror { font-family: var(--font-mono); background: var(--bg-hard); color: var(--fg1); border: 1px solid var(--bg2); height: auto; }
+main .CodeMirror.code-area { min-height: 24rem; }
+main .CodeMirror.code-area.short { min-height: 8rem; }
+main .CodeMirror-gutters { background: var(--bg1); border-right: 1px solid var(--bg2); }
+main .CodeMirror-linenumber { color: var(--fg3); }
+main .CodeMirror-cursor { border-left-color: var(--fg0); }
+main .CodeMirror-selected, main .CodeMirror-focused .CodeMirror-selected { background: var(--bg2); }
+main .cm-s-default .cm-atom, main .cm-s-default .cm-keyword { color: var(--orange); }
+main .cm-s-default .cm-string, main .cm-s-default .cm-string-2 { color: var(--aqua); }
+main .cm-s-default .cm-number { color: var(--yellow); }
+main .cm-s-default .cm-comment, main .cm-s-default .cm-meta { color: var(--fg3); }
+main .cm-s-default .cm-def, main .cm-s-default .cm-property, main .cm-s-default .cm-variable-2, main .cm-s-default .cm-tag { color: var(--blue); }
+main .cm-s-default .cm-qualifier, main .cm-s-default .cm-builtin { color: var(--yellow); }
+main .cm-s-default .cm-error { color: var(--red); }
 .inline-details { display: inline-block; }
 .inline-details summary { cursor: pointer; color: var(--blue); display: inline; }
 .row-actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
