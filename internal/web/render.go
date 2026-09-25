@@ -5,8 +5,8 @@ import (
 	"errors"
 	"html/template"
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	"dashboard/internal/enums"
