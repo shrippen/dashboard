@@ -342,3 +342,17 @@ func DemoBorg(now time.Time) *BorgDataset {
 			{Name: "laptop", Status: "offline", LastSeen: now.UTC().AddDate(0, 0, -6)},
 		}}
 }
+
+// DemoHass is the demo Home Assistant dataset.
+func DemoHass(now time.Time) *HassDataset {
+	ago := func(h int) time.Time { return now.UTC().Add(-time.Duration(h) * time.Hour) }
+	return &HassDataset{URL: "https://home.demo", Entities: []Entity{
+		{ID: "binary_sensor.keller_wasser", Name: "Keller Wasser", Domain: "binary_sensor", State: "off", DeviceClass: "moisture", Changed: ago(200)},
+		{ID: "light.buero", Name: "Büro Licht", Domain: "light", State: "on", Changed: ago(1)},
+		{ID: "sensor.fenster_bad_batterie", Name: "Fenster Bad Batterie", Domain: "sensor", State: "8", Unit: "%", DeviceClass: "battery", Changed: ago(5)},
+		{ID: "sensor.wohnzimmer_temperatur", Name: "Wohnzimmer", Domain: "sensor", State: "21.4", Unit: "°C", DeviceClass: "temperature", Changed: ago(0)},
+		{ID: "sensor.zigbee_steckdose_power", Name: "Steckdose Leistung", Domain: "sensor", State: HassUnavailable, Unit: "W", Changed: ago(30)},
+		{ID: "switch.kaffeemaschine", Name: "Kaffeemaschine", Domain: "switch", State: "off", Changed: ago(3)},
+		{ID: "update.home_assistant_core_update", Name: "Home Assistant Core", Domain: "update", State: HassOn, Changed: ago(20)},
+	}}
+}

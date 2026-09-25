@@ -18,6 +18,7 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_homeassistant: In Home Assistant öffnen
   open_in_freshrss: In FreshRSS öffnen
   open_in_gitea: In Gitea öffnen
   open_in_borgbackup: In Borg Backup Server öffnen
@@ -128,6 +129,7 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  entities: Entitäten (z. B. light.buero, sensor.temperatur)
   link: Link beim Klick
   base: Basiswährung
   symbols: Währungen
@@ -234,6 +236,9 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  hass:
+    name: Home Assistant
+    desc: Zustände ausgewählter Entitäten, Schalter und Lichter direkt schalten.
   image:
     name: Bild
     desc: Bild von einer URL, serverseitig geladen.
@@ -348,6 +353,7 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_homeassistant: Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.
   options_hint_freshrss: 'Keine Optionen nötig. Token = benutzer:api-passwort (FreshRSS → Profil → API-Passwort; API-Zugriff muss erlaubt sein).'
   options_hint_gitea: Keine Optionen nötig. Token = Zugriffstoken mit Leserechten (read:user, read:issue, read:repository, read:notification).
   options_hint_borgbackup: Keine Optionen nötig. Token = API-Token bbs_tok_… (Einstellungen → API).
@@ -385,6 +391,7 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  homeassistant: Home Assistant
   freshrss: FreshRSS
   gitea: Gitea
   borgbackup: Borg Backup Server
@@ -632,6 +639,19 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  hass:
+    alarm:
+      title: '{entity} meldet Alarm'
+      why: 'Sensorklasse {kind}. Sofort vor Ort prüfen.'
+    battery:
+      title: '{entity}: Batterie {percent} %'
+      why: Batterie tauschen, bevor das Gerät ausfällt.
+    unavailable:
+      title: '{count} Entitäten nicht erreichbar'
+      why: '{names}. Häufige Ursache: Gateway, Zigbee-Stick oder Integration ausgefallen.'
+    updates:
+      title: '{count} Updates in Home Assistant'
+      why: '{names}.'
   freshrss:
     backlog:
       title: '{count} ungelesene Artikel'
@@ -863,6 +883,8 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  hass:
+    'on': '{count} an'
   freshrss:
     unread: '{count} ungelesen'
   gitea:
@@ -954,6 +976,10 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  hass.alarm: Alarmsensoren
+  hass.battery_low: Batteriestand
+  hass.unavailable: Nicht erreichbare Entitäten
+  hass.updates: Updates (Home Assistant)
   freshrss.backlog: Leserückstand
   freshrss.stale_feed: Verstummter Feed
   gitea.review_waiting: Offene Reviews
@@ -1019,7 +1045,7 @@ param:
   drop: Rückgang ab (Anteil)
   min_visitors: Ab Besuchern (Vorwoche)
   min_count: Ab Anzahl
-  ignore: Ausnehmen (VMIDs)
+  ignore: Ausnehmen (IDs, Präfixe)
   hours: Stunden
   lookback_days: Rückblick (Tage)
   warn_days: Warnung ab Tagen
@@ -1118,3 +1144,7 @@ kuma:
 summary:
   deadlines: Steuerfristen in den nächsten 14 Tagen
   system: 'Du schreibst den Wochenrückblick eines Dashboards für eine selbständige Person. Du erhältst nur Zählwerte offener Hinweise je Regel mit ihrer höchsten Stufe. Fasse die Lage in drei bis fünf Sätzen auf Deutsch zusammen: das Dringendste zuerst, dann was warten kann. Erfinde keine Details, Namen oder Beträge. Kein Markdown, keine Aufzählung.'
+hass:
+  'on': An
+  'off': Aus
+  missing: fehlt

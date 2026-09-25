@@ -9,6 +9,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/accounts"
 	"dashboard/internal/services/boards"
+	"dashboard/internal/services/hass"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
 	"dashboard/internal/services/widgetlib"
@@ -23,6 +24,7 @@ func (d Deps) RegisterBoardRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /{$}", d.handleHome)
 	mux.HandleFunc("GET /boards/{id}", d.handleBoardView)
 	mux.HandleFunc("GET /widget-fragments/{id}", d.handleWidgetFragment)
+	mux.HandleFunc("POST /widget-fragments/{id}/toggle", d.handleHassToggle)
 	mux.HandleFunc("POST /boards/{id}/arrange", d.handleArrange)
 	mux.HandleFunc("POST /boards/{id}/fold/{sectionID}", d.handleFold)
 	mux.HandleFunc("POST /boards/{id}/show/{placementID}", d.handleShow)
@@ -131,7 +133,11 @@ func (d Deps) handleWidgetFragment(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Has("refresh") {
 		fresh = svcdata.Force
 	}
-	frag, err := boards.Fragment(r.Context(), d.DB, ctx.Who, id, fresh)
+	d.renderFragment(w, r, ctx, id, fresh)
+}
+
+func (d Deps) renderFragment(w http.ResponseWriter, r *http.Request, ctx Ctx, placementID int64, fresh svcdata.Freshness) {
+	frag, err := boards.Fragment(r.Context(), d.DB, ctx.Who, placementID, fresh)
 	if err != nil {
 		d.handleBoardError(w, r, err)
 		return
@@ -144,7 +150,31 @@ func (d Deps) handleWidgetFragment(w http.ResponseWriter, r *http.Request) {
 	}
 	// ThemeURL is irrelevant to a fragment (no <head> here) and would
 	// otherwise cost a DB round trip on every htmx refresh.
-	_ = d.Page(w, ctx, kind.Template, http.StatusOK, map[string]any{"Frag": frag, "ThemeURL": ""})
+	_ = d.Page(w, ctx, kind.Template, http.StatusOK, map[string]any{"Frag": frag, "ThemeURL": "", "PlacementID": placementID})
+}
+
+// handleHassToggle switches a Home Assistant entity and answers with the
+// refreshed tile body (htmx swaps it in place).
+func (d Deps) handleHassToggle(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := hass.Toggle(r.Context(), d.DB, ctx.Who, id, r.FormValue("entity"), ClientIP(r)); err != nil {
+		if errors.Is(err, hass.ErrNotSwitchable) {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+		d.handleBoardError(w, r, err)
+		return
+	}
+	d.renderFragment(w, r, ctx, id, svcdata.Force)
 }
 
 func (d Deps) handleBoardError(w http.ResponseWriter, r *http.Request, err error) {

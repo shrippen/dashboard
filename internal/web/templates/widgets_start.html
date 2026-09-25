@@ -98,6 +98,25 @@
 </ul>
 {{end}}
 
+{{define "widgets/hass"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+<ul class="hass-list">
+  {{range .Frag.View.Rows}}
+  <li>
+    <span>{{.Name}}</span>
+    {{if .Missing}}<span class="pill" data-state="warn">{{t "hass.missing"}}</span>
+    {{else if and .Toggle $.Ctx.CSRF}}
+    <form hx-post="/widget-fragments/{{$.PlacementID}}/toggle" hx-target="closest .card-body" hx-swap="innerHTML">
+      <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+      <input type="hidden" name="entity" value="{{.ID}}">
+      <button type="submit" class="seg-toggle" aria-pressed="{{.On}}" aria-label="{{.Name}}">{{if .On}}{{t "hass.on"}}{{else}}{{t "hass.off"}}{{end}}</button>
+    </form>
+    {{else}}<b class="hass-value">{{.Value}}</b>{{end}}
+  </li>
+  {{end}}
+</ul>
+{{end}}
+
 {{define "widgets/note"}}
 <p class="note-tile">{{.Frag.Config.Text}}</p>
 {{end}}

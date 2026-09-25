@@ -65,6 +65,7 @@ var fieldsByType = map[string][]Field{
 	"image":     {{Key: "url", Input: InputText, Required: true}, {Key: "height", Input: InputNumber, Default: 240}, {Key: "link", Input: InputText}},
 	"rates":     {{Key: "base", Input: InputText, Default: "EUR"}, {Key: "symbols", Input: InputList, Default: []any{"USD", "CHF", "GBP"}}},
 	"monitors":  {},
+	"hass":      {{Key: "entities", Input: InputList, Required: true}},
 	"sysinfo":   {},
 	"public_ip": {},
 	"kpi": {sel("metric", "hours_today", "hours_today", "hours_week", "hours_month", "utilization", "unbilled",

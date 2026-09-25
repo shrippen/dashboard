@@ -18,6 +18,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_homeassistant: Open in Home Assistant
   open_in_freshrss: Open in FreshRSS
   open_in_gitea: Open in Gitea
   open_in_borgbackup: Open in Borg Backup Server
@@ -128,6 +129,7 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  entities: Entities (e.g. light.office, sensor.temperature)
   link: Link on click
   base: Base currency
   symbols: Currencies
@@ -234,6 +236,9 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  hass:
+    name: Home Assistant
+    desc: States of chosen entities; switch lights and switches directly.
   image:
     name: Image
     desc: Image from a URL, loaded by the server.
@@ -348,6 +353,7 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_homeassistant: No options needed. Token = long-lived access token (profile → security). Only users with the “use” right on this connection may switch.
   options_hint_freshrss: 'No options needed. Token = user:api-password (FreshRSS → profile → API password; API access must be enabled).'
   options_hint_gitea: No options needed. Token = access token with read scopes (read:user, read:issue, read:repository, read:notification).
   options_hint_borgbackup: No options needed. Token = API token bbs_tok_… (settings → API).
@@ -385,6 +391,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  homeassistant: Home Assistant
   freshrss: FreshRSS
   gitea: Gitea
   borgbackup: Borg Backup Server
@@ -632,6 +639,19 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  hass:
+    alarm:
+      title: '{entity} reports an alarm'
+      why: 'Sensor class {kind}. Check on site now.'
+    battery:
+      title: '{entity}: battery {percent} %'
+      why: Replace the battery before the device drops out.
+    unavailable:
+      title: '{count} entities unavailable'
+      why: '{names}. Usual cause: a gateway, Zigbee stick or integration is down.'
+    updates:
+      title: '{count} updates in Home Assistant'
+      why: '{names}.'
   freshrss:
     backlog:
       title: '{count} unread articles'
@@ -862,6 +882,8 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  hass:
+    'on': '{count} on'
   freshrss:
     unread: '{count} unread'
   gitea:
@@ -953,6 +975,10 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  hass.alarm: Alarm sensors
+  hass.battery_low: Battery level
+  hass.unavailable: Unavailable entities
+  hass.updates: Updates (Home Assistant)
   freshrss.backlog: Reading backlog
   freshrss.stale_feed: Silent feed
   gitea.review_waiting: Pending reviews
@@ -1018,7 +1044,7 @@ param:
   drop: Drop from (share)
   min_visitors: From visitors (previous week)
   min_count: From count
-  ignore: Exclude (VMIDs)
+  ignore: Exclude (IDs, prefixes)
   hours: Hours
   lookback_days: Look back (days)
   warn_days: Warn after days
@@ -1117,3 +1143,7 @@ kuma:
 summary:
   deadlines: Tax deadlines in the next 14 days
   system: 'You write the weekly review of a dashboard for a self-employed person. You only get counts of open hints per rule with their highest severity. Summarise the situation in three to five sentences in English: most urgent first, then what can wait. Do not invent details, names or amounts. No Markdown, no lists.'
+hass:
+  'on': 'On'
+  'off': 'Off'
+  missing: missing

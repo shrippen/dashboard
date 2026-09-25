@@ -103,3 +103,28 @@ func TestBorgRules(t *testing.T) {
 		t.Fatalf("78 %% storage reported: %+v", got)
 	}
 }
+
+func TestHassRules(t *testing.T) {
+	data := sources.DemoHass(time.Now())
+	env := todayEnv(nil)
+	if got := run(t, "hass.battery_low", data, env); len(got) != 1 || got[0].Severity != enums.SeverityCritical {
+		t.Fatalf("battery: %+v", got)
+	}
+	if got := run(t, "hass.unavailable", data, env); len(got) != 1 || got[0].Params["names"] != "Steckdose Leistung" {
+		t.Fatalf("unavailable: %+v", got)
+	}
+	if got := run(t, "hass.updates", data, env); len(got) != 1 {
+		t.Fatalf("updates: %+v", got)
+	}
+	if got := run(t, "hass.alarm", data, env); len(got) != 0 {
+		t.Fatalf("dry cellar alarmed: %+v", got)
+	}
+	data.Entities[0].State = sources.HassOn
+	if got := run(t, "hass.alarm", data, env); len(got) != 1 || got[0].Params["kind"] != "moisture" {
+		t.Fatalf("alarm: %+v", got)
+	}
+	ignored := todayEnv(map[string]any{"rules": map[string]any{"hass.unavailable": map[string]any{"ignore": []any{"sensor.zigbee_"}}}})
+	if got := run(t, "hass.unavailable", data, ignored); len(got) != 0 {
+		t.Fatalf("ignored prefix reported: %+v", got)
+	}
+}

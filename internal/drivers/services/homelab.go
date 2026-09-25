@@ -177,3 +177,28 @@ type BorgApi struct {
 func (a BorgApi) Get(ctx context.Context, path string) (any, error) {
 	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, nil, !a.Verify)
 }
+
+// ── Home Assistant ──
+
+// HassApi uses a long-lived access token.
+type HassApi struct {
+	URL    string
+	Token  string
+	Verify bool
+}
+
+func (a HassApi) headers() map[string]string {
+	return map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}
+}
+
+// States returns every entity state (/api/states).
+func (a HassApi) States(ctx context.Context) (any, error) {
+	return fetchJSON(ctx, joinURL(a.URL, "api/states"), a.headers(), nil, !a.Verify)
+}
+
+// Call runs a service on one entity, e.g. ("switch", "toggle", "switch.fan").
+func (a HassApi) Call(ctx context.Context, domain, service, entityID string) error {
+	path := "api/services/" + url.PathEscape(domain) + "/" + url.PathEscape(service)
+	_, err := postJSON(ctx, joinURL(a.URL, path), a.headers(), map[string]string{"entity_id": entityID}, !a.Verify)
+	return err
+}

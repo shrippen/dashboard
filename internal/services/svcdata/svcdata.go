@@ -259,3 +259,15 @@ func Prune(d *sql.DB) error {
 		return data.PruneCache(tx, time.Now().UTC().Add(-CacheRetention))
 	})
 }
+
+// Secret returns the credential a user would fetch conn with, for the few
+// calls that act instead of read (e.g. switching a light).
+func Secret(d *sql.DB, conn *model.Connection, userID int64) (string, error) {
+	var sctx sources.Ctx
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		var err error
+		sctx, err = buildCtx(tx, conn, &userID, nil)
+		return err
+	})
+	return sctx.Secret, err
+}

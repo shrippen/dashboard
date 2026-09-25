@@ -86,21 +86,22 @@ const (
 type ServiceType string
 
 const (
-	ServiceKimai        ServiceType = "kimai"
-	ServiceInvoiceNinja ServiceType = "invoiceninja"
-	ServiceSnipeIT      ServiceType = "snipeit"
-	ServiceDawarich     ServiceType = "dawarich"
-	ServiceGlances      ServiceType = "glances"
-	ServiceUptimeKuma   ServiceType = "uptimekuma"
-	ServiceProxmox      ServiceType = "proxmox"
-	ServicePaperless    ServiceType = "paperless"
-	ServiceCerts        ServiceType = "certs"
-	ServiceScrutiny     ServiceType = "scrutiny"
-	ServiceImmich       ServiceType = "immich"
-	ServiceUmami        ServiceType = "umami"
-	ServiceFreshRSS     ServiceType = "freshrss"
-	ServiceGitea        ServiceType = "gitea"
-	ServiceBorgBackup   ServiceType = "borgbackup"
+	ServiceKimai         ServiceType = "kimai"
+	ServiceInvoiceNinja  ServiceType = "invoiceninja"
+	ServiceSnipeIT       ServiceType = "snipeit"
+	ServiceDawarich      ServiceType = "dawarich"
+	ServiceGlances       ServiceType = "glances"
+	ServiceUptimeKuma    ServiceType = "uptimekuma"
+	ServiceProxmox       ServiceType = "proxmox"
+	ServicePaperless     ServiceType = "paperless"
+	ServiceCerts         ServiceType = "certs"
+	ServiceScrutiny      ServiceType = "scrutiny"
+	ServiceImmich        ServiceType = "immich"
+	ServiceUmami         ServiceType = "umami"
+	ServiceFreshRSS      ServiceType = "freshrss"
+	ServiceGitea         ServiceType = "gitea"
+	ServiceBorgBackup    ServiceType = "borgbackup"
+	ServiceHomeAssistant ServiceType = "homeassistant"
 )
 
 // Services lists every connectable service, in form order.
@@ -108,6 +109,7 @@ var Services = []ServiceType{
 	ServiceKimai, ServiceInvoiceNinja, ServiceSnipeIT, ServiceDawarich, ServiceGlances,
 	ServiceUptimeKuma, ServiceProxmox, ServicePaperless, ServiceCerts,
 	ServiceScrutiny, ServiceImmich, ServiceUmami, ServiceFreshRSS, ServiceGitea, ServiceBorgBackup,
+	ServiceHomeAssistant,
 }
 
 // Known reports whether s is a connectable service.

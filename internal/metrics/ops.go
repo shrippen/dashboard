@@ -115,3 +115,14 @@ func BorgInfo(data *sources.BorgDataset, now time.Time) []InfoPart {
 	}
 	return found
 }
+
+// HassInfo: how many lights and switches are on.
+func HassInfo(data *sources.HassDataset) []InfoPart {
+	on := 0
+	for _, e := range data.Entities {
+		if (e.Domain == "light" || e.Domain == "switch") && e.State == sources.HassOn {
+			on++
+		}
+	}
+	return []InfoPart{part("hass.on", map[string]any{"count": on})}
+}
