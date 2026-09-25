@@ -174,3 +174,20 @@ func TestSureNinjaCross(t *testing.T) {
 		}
 	}
 }
+
+func TestPGBackWebRules(t *testing.T) {
+	data := sources.DemoPGBack(time.Now())
+	env := todayEnv(nil)
+	if got := run(t, "pgbackweb.failed", data, env); len(got) != 1 || got[0].Params["backup"] != "invoiceninja" {
+		t.Fatalf("failed: %+v", got)
+	}
+	if got := run(t, "pgbackweb.stale", data, env); len(got) != 1 || got[0].Params["backup"] != "immich" {
+		t.Fatalf("stale: %+v", got)
+	}
+	if got := run(t, "pgbackweb.silent", data, env); len(got) != 0 {
+		t.Fatalf("silent despite events: %+v", got)
+	}
+	if got := run(t, "pgbackweb.silent", &sources.PGBackDataset{}, env); len(got) != 1 {
+		t.Fatalf("silent: %+v", got)
+	}
+}

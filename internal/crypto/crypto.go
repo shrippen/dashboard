@@ -43,6 +43,7 @@ const (
 	PurposeTOTP       Purpose = "totp"
 	PurposeNotify     Purpose = "notify"
 	PurposeSetting    Purpose = "setting"
+	PurposeHook       Purpose = "hook"
 )
 
 // ErrMissingKey means crypto was used before Init or without a master key.
@@ -179,4 +180,16 @@ func TokenHash(token string) string {
 // Same does a constant-time string comparison (CSRF tokens, etc.).
 func Same(a, b string) bool {
 	return hmac.Equal([]byte(a), []byte(b))
+}
+
+// Sign returns a URL-safe HMAC of message under purpose, e.g. the secret
+// part of an inbound webhook URL.
+func Sign(message string, purpose Purpose) (string, error) {
+	k, err := key(purpose, nil)
+	if err != nil {
+		return "", err
+	}
+	mac := hmac.New(sha256.New, k)
+	mac.Write([]byte(message))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil)), nil
 }

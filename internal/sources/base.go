@@ -32,6 +32,20 @@ type Ctx struct {
 	VerifyTLS bool
 	Options   map[string]any
 	Params    map[string]any
+	Events    []Pushed // push sources only, oldest first
+}
+
+// Pushed is one event a service sent to the dashboard's webhook.
+type Pushed struct {
+	Event, Subject string
+	At             time.Time
+}
+
+// PushSource is a source whose data arrives by webhook: the caller loads
+// the events of the last PushWindow into Ctx.Events.
+type PushSource interface {
+	Source
+	PushWindow() time.Duration
 }
 
 // Source is one named, cacheable query against a service.

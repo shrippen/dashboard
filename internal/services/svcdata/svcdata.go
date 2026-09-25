@@ -213,6 +213,11 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 	}
 
 	now := time.Now().UTC()
+	if push, ok := source.(sources.PushSource); ok && conn != nil {
+		if sctx.Events, err = pushedEvents(d, conn.ID, now.Add(-push.PushWindow())); err != nil {
+			return Result{}, err
+		}
+	}
 	out, fetchErr := source.Fetch(ctx, sctx)
 	result := Result{FetchedAt: now}
 	if fetchErr != nil {
@@ -229,6 +234,18 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 	_ = persistCache(d, key, sourceKey, result) // best-effort; a cache write failure must not fail the fetch
 
 	return result, nil
+}
+
+func pushedEvents(d *sql.DB, connID int64, since time.Time) ([]sources.Pushed, error) {
+	events, err := data.HookEvents(d, connID, since)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]sources.Pushed, 0, len(events))
+	for _, e := range events {
+		out = append(out, sources.Pushed{Event: e.Event, Subject: e.Subject, At: e.At})
+	}
+	return out, nil
 }
 
 func persistCache(d *sql.DB, key, sourceKey string, result Result) error {

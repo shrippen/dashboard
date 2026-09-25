@@ -233,6 +233,15 @@ type ResetToken struct {
 	UsedAt    *time.Time
 }
 
+// HookEvent is one event a service pushed to the dashboard.
+type HookEvent struct {
+	ID           int64
+	ConnectionID int64
+	Event        string // e.g. "execution_failed"
+	Subject      string // e.g. the backup's name
+	At           time.Time
+}
+
 // Passkey is a WebAuthn credential; Data is the library's credential JSON.
 type Passkey struct {
 	ID         int64

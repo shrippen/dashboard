@@ -391,3 +391,13 @@ func DemoLinkwarden() *LinkwardenDataset {
 		{Name: "Grafana", URL: "https://grafana.com", Collection: "Homelab"},
 	}}
 }
+
+// DemoPGBack is the demo PG Back Web dataset.
+func DemoPGBack(now time.Time) *PGBackDataset {
+	ago := func(h int) time.Time { return now.UTC().Add(-time.Duration(h) * time.Hour) }
+	return &PGBackDataset{URL: "https://pgback.demo", LastEvent: ago(2), Backups: []PGBackup{
+		{Name: "kimai", LastSuccess: ago(2)},
+		{Name: "invoiceninja", LastSuccess: ago(50), LastFailure: ago(26)},
+		{Name: "immich", LastSuccess: ago(80)},
+	}}
+}

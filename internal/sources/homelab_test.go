@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"dashboard/internal/sources"
 )
@@ -229,6 +230,21 @@ func TestLinkwardenCollectionsWithCursor(t *testing.T) {
 	}
 	d := out.(*sources.LinkwardenDataset)
 	if len(d.Collections) != 1 || len(d.Links) != 3 || d.Links[2].Name != "C" {
+		t.Fatalf("data: %+v", d)
+	}
+}
+
+func TestPGBackFoldsEvents(t *testing.T) {
+	at := func(h int) time.Time { return time.Date(2026, 9, 25, h, 0, 0, 0, time.UTC) }
+	out, _ := sources.PGBackData{}.Fetch(context.Background(), sources.Ctx{URL: "https://pg", Events: []sources.Pushed{
+		{Event: "execution_success", Subject: "kimai", At: at(1)},
+		{Event: "execution_failed", Subject: "kimai", At: at(2)},
+		{Event: "database_unhealthy", Subject: "db1", At: at(3)},
+		{Event: "destination_unhealthy", Subject: "s3", At: at(3)},
+		{Event: "destination_healthy", Subject: "s3", At: at(4)},
+	}})
+	d := out.(*sources.PGBackDataset)
+	if len(d.Backups) != 1 || !d.Backups[0].Failing() || len(d.Unhealthy) != 1 || d.Unhealthy[0].Name != "db1" || !d.LastEvent.Equal(at(4)) {
 		t.Fatalf("data: %+v", d)
 	}
 }

@@ -12,6 +12,7 @@ connections:
   - {id: gitea, type: gitea, name: Gitea, url: "demo://gitea", credentials: shared}
   - {id: borg, type: borgbackup, name: Borg Backup, url: "demo://borg", credentials: shared}
   - {id: linkwarden, type: linkwarden, name: Linkwarden, url: "demo://linkwarden", credentials: shared}
+  - {id: pgback, type: pgbackweb, name: PG Back Web, url: "demo://pgbackweb", credentials: shared}
   - {id: hass, type: homeassistant, name: Home Assistant, url: "demo://homeassistant", credentials: shared}
 widgets:
   - {id: kuma-link, type: link, title: Uptime Kuma, config: {url: "https://uptime.kuma.pet", icon: "hl-uptime-kuma", description: Monitoring, status: "off", info: {connection: kuma}}}

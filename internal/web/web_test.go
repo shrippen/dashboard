@@ -91,6 +91,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterSpaceRoutes(mux)
 	deps.RegisterMoreRoutes(mux)
 	deps.RegisterPasskeyRoutes(mux)
+	deps.RegisterHookRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(deps.Secure(mux))

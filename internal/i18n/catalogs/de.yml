@@ -18,6 +18,7 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_pgbackweb: In PG Back Web öffnen
   open_in_linkwarden: In Linkwarden öffnen
   open_in_sure: In Sure öffnen
   open_in_homeassistant: In Home Assistant öffnen
@@ -357,6 +358,9 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_pgbackweb: Keine Optionen, kein Token. PG Back Web meldet sich per Webhook, siehe unten.
+  hook: Webhook
+  hook_hint: 'In PG Back Web je Ereignis (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) und Backup einen Webhook anlegen: Methode POST, diese URL, Body wie unten mit Ereignis und Backup-Name. Die URL ist geheim.'
   options_hint_linkwarden: 'collections: [Homelab, Werkzeuge] – Sammlungen, die mit den Link-Kacheln dieses Bereichs abgeglichen werden (leer = alle). Token = Zugriffstoken (Einstellungen → Zugriffstoken).'
   options_hint_sure: Keine Optionen nötig. Token = API-Schlüssel mit Leserecht (Einstellungen → API-Schlüssel).
   options_hint_homeassistant: Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.
@@ -397,6 +401,7 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  pgbackweb: PG Back Web
   linkwarden: Linkwarden
   sure: Sure (Finanzen)
   homeassistant: Home Assistant
@@ -647,6 +652,19 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  pgbackweb:
+    failed:
+      title: 'Backup „{backup}“ fehlgeschlagen'
+      why: 'Letzter Lauf am {day} mit Fehler. Log in PG Back Web prüfen.'
+    stale:
+      title: 'Backup „{backup}“ seit {hours} Stunden ohne Erfolg'
+      why: Zeitplan pausiert oder Webhook für Erfolg fehlt?
+    unhealthy:
+      title: '{name} ({kind}) nicht erreichbar'
+      why: 'Seit {day}. Ohne Verbindung laufen keine Backups.'
+    silent:
+      title: Keine Meldungen von PG Back Web
+      why: 'Seit {days} Tagen kein Webhook. Webhooks eingerichtet, Dashboard erreichbar?'
   linkwarden:
     missing:
       title: '{count} Links aus „{collection}“ fehlen im Dashboard'
@@ -1021,6 +1039,10 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  pgbackweb.failed: Backup fehlgeschlagen (Postgres)
+  pgbackweb.stale: Backup ohne Erfolg (Postgres)
+  pgbackweb.unhealthy: Datenbank/Ziel nicht erreichbar
+  pgbackweb.silent: Keine Webhooks
   linkwarden.not_on_board: Lesezeichen ohne Kachel
   linkwarden.not_saved: Kacheln ohne Lesezeichen
   kuma.unmonitored: Kacheln ohne Monitor

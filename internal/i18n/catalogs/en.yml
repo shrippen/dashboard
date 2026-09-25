@@ -18,6 +18,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_pgbackweb: Open in PG Back Web
   open_in_linkwarden: Open in Linkwarden
   open_in_sure: Open in Sure
   open_in_homeassistant: Open in Home Assistant
@@ -357,6 +358,9 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_pgbackweb: No options, no token. PG Back Web reports by webhook, see below.
+  hook: Webhook
+  hook_hint: 'In PG Back Web add one webhook per event (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) and backup: method POST, this URL, body as below with event and backup name. Keep the URL secret.'
   options_hint_linkwarden: 'collections: [Homelab, Tools] – collections compared with this space''s link tiles (empty = all). Token = access token (settings → access tokens).'
   options_hint_sure: No options needed. Token = API key with read scope (settings → API keys).
   options_hint_homeassistant: No options needed. Token = long-lived access token (profile → security). Only users with the “use” right on this connection may switch.
@@ -397,6 +401,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  pgbackweb: PG Back Web
   linkwarden: Linkwarden
   sure: Sure (finance)
   homeassistant: Home Assistant
@@ -647,6 +652,19 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  pgbackweb:
+    failed:
+      title: 'Backup “{backup}” failed'
+      why: 'Latest run on {day} failed. Check the log in PG Back Web.'
+    stale:
+      title: 'Backup “{backup}” without success for {hours} hours'
+      why: Schedule paused or success webhook missing?
+    unhealthy:
+      title: '{name} ({kind}) unreachable'
+      why: 'Since {day}. No backups run without a connection.'
+    silent:
+      title: No reports from PG Back Web
+      why: 'No webhook for {days} days. Webhooks set up, dashboard reachable?'
   linkwarden:
     missing:
       title: '{count} links from “{collection}” missing on the dashboard'
@@ -1020,6 +1038,10 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  pgbackweb.failed: Backup failed (Postgres)
+  pgbackweb.stale: Backup without success (Postgres)
+  pgbackweb.unhealthy: Database/destination unreachable
+  pgbackweb.silent: No webhooks
   linkwarden.not_on_board: Bookmarks without tile
   linkwarden.not_saved: Tiles without bookmark
   kuma.unmonitored: Tiles without monitor

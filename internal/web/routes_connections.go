@@ -7,6 +7,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/connections"
+	"dashboard/internal/services/hooks"
 	"dashboard/internal/services/porting"
 )
 
@@ -98,10 +99,14 @@ func (d Deps) handleConnectionEditForm(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
-	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
+	values := map[string]any{
 		"Conn": conn, "Services": serviceOptions, "IsNew": false,
 		"OptionsYAML": porting.DumpMap(conn.Options), "Error": r.URL.Query().Get("error"),
-	})
+	}
+	if hooks.Accepts(conn.Service) {
+		values["HookURL"], _ = hooks.URL(d.Settings.BaseURL, conn.ID)
+	}
+	_ = d.Page(w, ctx, "connection_form", http.StatusOK, values)
 }
 
 func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {

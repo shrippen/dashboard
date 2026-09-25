@@ -90,6 +90,14 @@
       <button type="submit">{{t "action.save"}}</button>
     </form>
 
+    {{if .HookURL}}
+      <h2>{{t "conn.hook"}}</h2>
+      <div class="card">
+        <p class="small muted">{{t "conn.hook_hint"}}</p>
+        <pre class="mono">{{.HookURL}}</pre>
+        <pre class="mono">{"event": "execution_failed", "name": "kimai"}</pre>
+      </div>
+    {{end}}
     {{if not .IsNew}}
       <h2>{{t "conn.options"}}</h2>
       <form method="post" action="/connections/{{.Conn.ID}}/options" class="card">
