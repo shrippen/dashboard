@@ -33,7 +33,8 @@ var dashyIconPrefixes = []string{"si-", "hl-", "sh-", "mdi-", "favicon", "http:/
 var dashyWidgets = map[string]string{
 	"rss-feed": "rss", "clock": "clock", "weather": "weather", "weather-forecast": "weather",
 	"iframe": "iframe", "public-ip": "public_ip", "image": "image", "exchange-rates": "rates",
-	"hackernews-trending": "rss",
+	"hackernews-trending": "rss", "joke": "joke", "xkcd-comic": "xkcd", "apod": "apod", "nasa-apod": "apod",
+	"crypto-watch-list": "crypto", "public-holidays": "holidays", "flight-data": "flights", "stock-price-chart": "stocks",
 }
 
 // hackerNewsFeed replaces Dashy's Hacker News widget with its RSS feed.
@@ -315,8 +316,40 @@ func dashyWidget(entry map[string]any, report *Report) map[string]any {
 			symbols = append(symbols, fmt.Sprint(s))
 		}
 		item["config"] = map[string]any{"base": str(options, "inputCurrency"), "symbols": symbols}
+	default:
+		item["config"] = dashyServiceless(target, options, report)
 	}
 	return item
+}
+
+// Dashy's stock widget takes plain US tickers (Alpha Vantage).
+const usMarket = ".us"
+
+// dashyServiceless maps the options of widgets without a service. API
+// keys land in the config and are sealed by the import.
+func dashyServiceless(target string, options map[string]any, report *Report) map[string]any {
+	switch target {
+	case "joke":
+		return map[string]any{"lang": str(options, "language"), "category": str(options, "category")}
+	case "apod":
+		return map[string]any{"api_key": str(options, "apiKey")}
+	case "crypto":
+		return map[string]any{"coins": stringsOf(options["assets"]), "currency": str(options, "currency")}
+	case "holidays":
+		country := strings.ToUpper(str(options, "country"))
+		config := map[string]any{"country": country}
+		if region := str(options, "region"); region != "" {
+			config["state"] = country + "-" + strings.ToUpper(region)
+		}
+		return config
+	case "flights":
+		return map[string]any{"airport": str(options, "airport"), "api_key": str(options, "apiKey"),
+			"direction": map[string]string{"arrival": "Arrival"}[str(options, "direction")]}
+	case "stocks":
+		report.Notes = append(report.Notes, "stock-price-chart: now quotes from stooq, no chart")
+		return map[string]any{"tickers": []any{strings.ToLower(str(options, "stock")) + usMarket}}
+	}
+	return map[string]any{}
 }
 
 func number(v any) (float64, bool) {

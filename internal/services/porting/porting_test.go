@@ -39,7 +39,7 @@ sections:
       - {type: rss-feed, options: {rssUrl: "https://news.lan/feed", limit: 5}}
       - {type: clock, options: {timeZone: Europe/Berlin}}
       - {type: gl-current-cpu, options: {hostname: "http://glances.lan"}}
-      - {type: crypto-watch-list}
+      - {type: crypto-watch-list, options: {assets: [bitcoin], currency: EUR}}
 `
 
 func setup(t *testing.T) *sql.DB {
@@ -90,10 +90,10 @@ func TestDashyImport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Boards != 1 || report.Widgets != 4 {
-		t.Fatalf("expected 1 board and 4 widgets (2 links + rss + clock), got %+v", report)
+	if report.Boards != 1 || report.Widgets != 5 {
+		t.Fatalf("expected 1 board and 5 widgets (2 links + rss + clock + crypto), got %+v", report)
 	}
-	for _, want := range []string{"not-a-url", "crypto"} {
+	for _, want := range []string{"not-a-url"} {
 		if !contains(report.Skipped, want) {
 			t.Fatalf("expected %q skipped: %v", want, report.Skipped)
 		}
@@ -150,12 +150,12 @@ func TestExportImportRoundtrip(t *testing.T) {
 	}
 
 	report, err := porting.ImportSpace(d, b, spaceB, text, porting.Replace)
-	if err != nil || report.Boards != 1 || report.Widgets != 4 {
+	if err != nil || report.Boards != 1 || report.Widgets != 5 {
 		t.Fatalf("reimport: %+v %v", report, err)
 	}
 	lib, _ := widgetlib.Library(d, b)
-	if len(lib) != 4 {
-		t.Fatalf("expected 4 widgets in b's library, got %d", len(lib))
+	if len(lib) != 5 {
+		t.Fatalf("expected 5 widgets in b's library, got %d", len(lib))
 	}
 
 	if _, err := porting.ImportSpace(d, b, spaceA, text, porting.Merge); err == nil {
@@ -261,5 +261,28 @@ func TestDashyLinksAndPage(t *testing.T) {
 	}
 	if !strings.Contains(text, "rows: 2") {
 		t.Fatalf("export lost rows:\n%s", text)
+	}
+}
+
+// Dashy flight-data carries an API key: it is sealed and not exported.
+func TestDashyWidgetKeysSealed(t *testing.T) {
+	d := setup(t)
+	who, space := user(t, d, "a@x.de")
+	yaml := "sections:\n  - name: Travel\n    widgets:\n      - {type: flight-data, options: {airport: MUC, apiKey: rapid-123, direction: arrival}}\n" +
+		"      - {type: public-holidays, options: {country: de, region: by}}\n"
+	if _, err := porting.ImportDashy(d, who, space, yaml); err != nil {
+		t.Fatal(err)
+	}
+	visible, _ := boards.Visible(d, who)
+	view, _ := boards.View(d, who, visible[0].ID)
+	tiles := view.Sections[0].Tiles
+	flights := tiles[0].Config.(widgets.FlightsConfig)
+	holidays := tiles[1].Config.(widgets.HolidaysConfig)
+	if flights.Airport != "MUC" || flights.Direction != "Arrival" || flights.APIKey != "" || holidays.State != "DE-BY" {
+		t.Fatalf("configs: %+v %+v", flights, holidays)
+	}
+	text, _ := porting.ExportSpace(d, who, space)
+	if strings.Contains(text, "rapid-123") || strings.Contains(text, "api_key") {
+		t.Fatalf("export leaks key:\n%s", text)
 	}
 }

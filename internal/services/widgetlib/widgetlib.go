@@ -179,7 +179,7 @@ func Create(d *sql.DB, who *access.Principal, spaceID int64, typeKey, title stri
 			taken[w.Key] = true
 		}
 		label := strings.TrimSpace(title)
-		config, err := util.SealHeaders(config, nil)
+		config, err := util.SealSecrets(config, nil)
 		if err != nil {
 			return err
 		}
@@ -255,7 +255,7 @@ func Update(d *sql.DB, who *access.Principal, widgetID int64, version int, title
 			return err
 		}
 
-		sealed, err := util.SealHeaders(config, widget.Config)
+		sealed, err := util.SealSecrets(config, widget.Config)
 		if err != nil {
 			return err
 		}
@@ -392,7 +392,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	if !ok {
 		return nil, ErrUnknownType
 	}
-	cfg, _ := widgets.Decode(widget.Type, util.OpenHeaders(widget.Config))
+	cfg, _ := widgets.Decode(widget.Type, util.OpenSecrets(widget.Config))
 	frag := &Fragment{WidgetID: widget.ID, Type: widget.Type, Title: widget.Title, Config: cfg, Slots: map[string]Slot{}}
 
 	var conn, infoConn *model.Connection

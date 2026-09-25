@@ -440,7 +440,7 @@ func importWidgets(q db.Queryer, spaceID int64, items []map[string]any, connIDs 
 		if config == nil {
 			config = map[string]any{}
 		}
-		config, err := util.SealHeaders(config, nil)
+		config, err := util.SealSecrets(config, nil)
 		if err != nil {
 			return nil, err
 		}

@@ -1,26 +1,29 @@
 package util
 
-// Widget config secrets. Status-check headers often carry tokens, so they
-// never rest in plain JSON:
+// Widget config secrets. Status-check headers, API keys and private
+// calendar links never rest in plain JSON:
 //
-//	form {headers: {X-Api: t}} ──Seal──► config {headers_enc: base64(AES-GCM)}
-//	config ──Open──► {headers: {X-Api: t}} (in memory, for the check only)
-//	config ──Strip──► export without headers_enc
+//	form {api_key: k} ──Seal──► config {api_key_enc: base64(AES-GCM)}
+//	config ──Open──► {api_key: k} (in memory, for the fetch only)
+//	config ──Strip──► export without *_enc
 
 import (
 	"encoding/base64"
 	"encoding/json"
+	"reflect"
 
 	"dashboard/internal/crypto"
 )
 
 const (
-	headersKey    = "headers"
-	headersEncKey = "headers_enc"
+	encSuffix = "_enc"
 
-	// HeadersClear as the headers value removes stored headers.
-	HeadersClear = "-"
+	// SecretClear as a secret's value removes the stored one.
+	SecretClear = "-"
 )
+
+// secretKeys are the config keys holding secrets.
+var secretKeys = []string{"headers", "api_key", "ical_url"}
 
 func copyConfig(config map[string]any) map[string]any {
 	out := make(map[string]any, len(config))
@@ -30,68 +33,98 @@ func copyConfig(config map[string]any) map[string]any {
 	return out
 }
 
-// SealHeaders encrypts config["headers"]. An empty value keeps the headers
-// of prev, HeadersClear drops them.
-func SealHeaders(config, prev map[string]any) (map[string]any, error) {
+// empty: "", nil or an empty map/list, i.e. "nothing typed".
+func empty(v any) bool {
+	if v == nil {
+		return true
+	}
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.String, reflect.Map, reflect.Slice:
+		return rv.Len() == 0
+	}
+	return false
+}
+
+// SealSecrets encrypts every secret in config. An empty value keeps the
+// secret of prev, SecretClear drops it.
+func SealSecrets(config, prev map[string]any) (map[string]any, error) {
 	out := copyConfig(config)
-	raw, present := out[headersKey]
-	delete(out, headersKey)
-	delete(out, headersEncKey)
+	for _, key := range secretKeys {
+		raw := out[key]
+		delete(out, key)
+		delete(out, key+encSuffix)
 
-	if s, _ := raw.(string); s == HeadersClear {
-		return out, nil
-	}
-	headers, _ := raw.(map[string]any)
-	if len(headers) == 0 || !present {
-		if old, ok := prev[headersEncKey]; ok {
-			out[headersEncKey] = old
+		if s, _ := raw.(string); s == SecretClear {
+			continue
 		}
-		return out, nil
-	}
+		if empty(raw) {
+			if old, ok := prev[key+encSuffix]; ok {
+				out[key+encSuffix] = old
+			}
+			continue
+		}
 
-	plain, err := json.Marshal(headers)
-	if err != nil {
-		return nil, err
+		plain, err := json.Marshal(raw)
+		if err != nil {
+			return nil, err
+		}
+		blob, err := crypto.Encrypt(string(plain), crypto.PurposeCredential, nil)
+		if err != nil {
+			return nil, err
+		}
+		out[key+encSuffix] = base64.StdEncoding.EncodeToString(blob)
 	}
-	blob, err := crypto.Encrypt(string(plain), crypto.PurposeCredential, nil)
-	if err != nil {
-		return nil, err
-	}
-	out[headersEncKey] = base64.StdEncoding.EncodeToString(blob)
 	return out, nil
 }
 
-// OpenHeaders returns config with the stored headers decrypted; on any
-// error the check simply runs without them.
-func OpenHeaders(config map[string]any) map[string]any {
-	enc, _ := config[headersEncKey].(string)
-	if enc == "" {
-		return config
+// OpenSecrets returns config with its secrets decrypted; a secret that
+// fails to open is left out, so the fetch runs without it.
+func OpenSecrets(config map[string]any) map[string]any {
+	out := config
+	for _, key := range secretKeys {
+		enc, _ := config[key+encSuffix].(string)
+		if enc == "" {
+			continue
+		}
+		blob, err := base64.StdEncoding.DecodeString(enc)
+		if err != nil {
+			continue
+		}
+		plain, err := crypto.Decrypt(blob, crypto.PurposeCredential)
+		if err != nil {
+			continue
+		}
+		var value any
+		if json.Unmarshal([]byte(plain), &value) != nil {
+			continue
+		}
+		out = withValue(out, config, key, value)
 	}
-	blob, err := base64.StdEncoding.DecodeString(enc)
-	if err != nil {
-		return config
+	return out
+}
+
+// withValue sets key on a copy, copying only once.
+func withValue(out, orig map[string]any, key string, value any) map[string]any {
+	if reflect.ValueOf(out).Pointer() == reflect.ValueOf(orig).Pointer() {
+		out = copyConfig(orig)
 	}
-	plain, err := crypto.Decrypt(blob, crypto.PurposeCredential)
-	if err != nil {
-		return config
-	}
-	var headers map[string]any
-	if json.Unmarshal([]byte(plain), &headers) != nil {
-		return config
-	}
-	out := copyConfig(config)
-	out[headersKey] = headers
+	out[key] = value
 	return out
 }
 
 // StripSecrets drops encrypted values: they are bound to this instance's
 // key and must not leave it.
 func StripSecrets(config map[string]any) map[string]any {
-	if _, ok := config[headersEncKey]; !ok {
-		return config
+	out := config
+	for _, key := range secretKeys {
+		if _, ok := config[key+encSuffix]; !ok {
+			continue
+		}
+		if reflect.ValueOf(out).Pointer() == reflect.ValueOf(config).Pointer() {
+			out = copyConfig(config)
+		}
+		delete(out, key+encSuffix)
 	}
-	out := copyConfig(config)
-	delete(out, headersEncKey)
 	return out
 }

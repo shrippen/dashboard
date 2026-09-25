@@ -1,0 +1,86 @@
+{{/* Start widgets without an own service (see internal/widgets/more.go). */}}
+
+{{define "widgets/calendar"}}
+{{with $slot := index .Frag.Slots "events"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Rows}}
+<ul class="agenda">
+  {{range .}}<li><time datetime="{{.Day}}">{{day .Day}}</time> <span class="muted">{{if .Time}}{{.Time}}{{else}}{{t "calendar.all_day"}}{{end}}</span> {{.Title}}{{with .Location}} <small class="muted">· {{.}}</small>{{end}}</li>{{end}}
+</ul>
+{{end}}
+{{end}}
+
+{{define "widgets/custom_api"}}
+{{with $slot := index .Frag.Slots "body"}}{{template "widget-slot-state" $slot}}{{end}}
+<dl class="kv">
+  {{range .Frag.View.Rows}}<dt>{{.Label}}</dt><dd>{{if .Missing}}<span class="muted">–</span>{{else}}{{.Value}}{{end}}</dd>{{end}}
+</dl>
+{{end}}
+
+{{define "widgets/list"}}
+<ul class="plain-list">
+  {{range .Frag.Config.Entries}}<li>{{if .URL}}<a href="{{.URL}}" target="_blank" rel="noopener noreferrer">{{.Text}}</a>{{else}}{{.Text}}{{end}}</li>
+  {{else}}<li class="muted">{{t "widget.empty"}}</li>{{end}}
+</ul>
+{{end}}
+
+{{define "widgets/holidays"}}
+{{with $slot := index .Frag.Slots "days"}}{{template "widget-slot-state" $slot}}{{end}}
+<ul class="agenda">
+  {{range .Frag.View.Rows}}<li><time datetime="{{.Day}}">{{day .Day}}</time> {{.Name}} <small class="muted">{{if eq .In 0}}{{t "holidays.today"}}{{else}}{{t "holidays.in" "days" .In}}{{end}}</small></li>{{end}}
+</ul>
+{{end}}
+
+{{/* xkcd and NASA APOD share one layout. */}}
+{{define "widgets/picture"}}
+{{with $slot := index .Frag.Slots "picture"}}{{template "widget-slot-state" $slot}}
+{{with $p := $slot.Data}}
+<figure class="picture">
+  {{if $p.DataURI}}<img class="image-tile" src="{{$p.DataURI | dataURI}}" alt="{{$p.Title}}" title="{{$p.Text}}">{{end}}
+  <figcaption><b>{{$p.Title}}</b>{{if $p.Link}} · <a href="{{$p.Link}}" target="_blank" rel="noopener noreferrer">{{t "picture.open"}}</a>{{end}}</figcaption>
+  {{if and $p.Text (eq $.Frag.Type "apod")}}<details><summary class="small">{{t "picture.more"}}</summary><p class="small muted">{{$p.Text}}</p></details>{{end}}
+</figure>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/joke"}}
+{{with $slot := index .Frag.Slots "joke"}}{{template "widget-slot-state" $slot}}
+{{with $j := $slot.Data}}
+<p>{{$j.Setup}}</p>
+{{if $j.Delivery}}<details><summary class="small">{{t "joke.reveal"}}</summary><p>{{$j.Delivery}}</p></details>{{end}}
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/crypto"}}
+{{with $slot := index .Frag.Slots "prices"}}{{template "widget-slot-state" $slot}}
+{{with $r := $slot.Data}}
+<table class="table rates">
+  {{range $r.Coins}}<tr><td>{{.ID}}</td><td class="num">{{num .Price 2}} {{$r.Currency}}</td>
+    <td class="num"><span class="pill" data-state="{{if lt .Change 0.0}}fail{{else}}ok{{end}}">{{if gt .Change 0.0}}+{{end}}{{num .Change 1}} %</span></td></tr>{{end}}
+</table>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/stocks"}}
+{{with $slot := index .Frag.Slots "quotes"}}{{template "widget-slot-state" $slot}}
+{{with $r := $slot.Data}}
+<table class="table rates">
+  {{range $r.Quotes}}<tr><td>{{.Symbol}}</td><td class="num">{{num .Close 2}}</td>
+    <td class="num"><span class="pill" data-state="{{if lt .Change 0.0}}fail{{else}}ok{{end}}">{{if gt .Change 0.0}}+{{end}}{{num .Change 1}} %</span></td></tr>{{end}}
+</table>
+<small class="muted">{{t "stocks.source"}}</small>
+{{end}}{{end}}
+{{end}}
+
+{{/* Flights and public transport share one departure board. */}}
+{{define "widgets/board"}}
+{{with $slot := index .Frag.Slots "board"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{if $v.Stop}}<p class="small muted">{{$v.Stop}}</p>{{end}}
+<table class="table departures">
+  {{range $v.Rows}}<tr{{if .Canceled}} class="is-canceled"{{end}}>
+    <td class="num">{{.Time}}{{if gt .Delay 0}} <span class="late">+{{.Delay}}</span>{{end}}</td>
+    <td><b>{{.Line}}</b></td><td>{{.Place}}</td>
+    <td>{{if .Canceled}}<span class="pill" data-state="fail">{{t "board.canceled"}}</span>{{else if .Platform}}{{t "board.platform" "platform" .Platform}}{{else}}{{.Status}}{{end}}</td>
+  </tr>{{else}}<tr><td class="muted">{{t "widget.empty"}}</td></tr>{{end}}
+</table>
+{{end}}
+{{end}}

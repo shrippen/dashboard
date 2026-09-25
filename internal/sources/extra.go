@@ -41,7 +41,12 @@ func (ImageSource) TTL() time.Duration         { return imageTTL }
 func (ImageSource) Service() enums.ServiceType { return "" }
 
 func (ImageSource) Fetch(ctx context.Context, sctx Ctx) (any, error) {
-	resp, err := httpclient.Request(ctx, http.MethodGet, asStr(sctx.Params["url"]), httpclient.Options{})
+	return fetchImage(ctx, asStr(sctx.Params["url"]), imageMax)
+}
+
+// fetchImage downloads an image of at most limit bytes as a data: URI.
+func fetchImage(ctx context.Context, target string, limit int) (*ImageResult, error) {
+	resp, err := httpclient.Request(ctx, http.MethodGet, target, httpclient.Options{})
 	if err != nil {
 		return nil, newSourceError("%s", err.Error())
 	}
@@ -54,8 +59,8 @@ func (ImageSource) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if !strings.HasPrefix(kind, imagePrefix) {
 		return nil, newSourceError("not an image")
 	}
-	body, err := io.ReadAll(io.LimitReader(resp.Body, imageMax+1))
-	if err != nil || len(body) > imageMax {
+	body, err := io.ReadAll(io.LimitReader(resp.Body, int64(limit)+1))
+	if err != nil || len(body) > limit {
 		return nil, newSourceError("image too large")
 	}
 	return &ImageResult{DataURI: "data:" + kind + ";base64," + base64.StdEncoding.EncodeToString(body)}, nil

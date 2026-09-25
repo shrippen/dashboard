@@ -27,12 +27,13 @@ const (
 	InputConn    Input = "connection"
 	InputLinks   Input = "links"   // one "title | url | icon" per line
 	InputHeaders Input = "headers" // one "Name: value" per line
+	InputSecret  Input = "secret"  // write-only: stored encrypted, never shown
 )
 
 const (
-	linkSep      = "|"
-	headerSep    = ":"
-	headersClear = "-" // matches util.HeadersClear: drop stored headers
+	linkSep     = "|"
+	headerSep   = ":"
+	secretClear = "-" // matches util.SecretClear: drop a stored secret
 )
 
 // FormPrefix marks config fields in a form ("cfg.url").
@@ -91,6 +92,20 @@ var fieldsByType = map[string][]Field{
 	"deadlines": {{Key: "days", Input: InputNumber, Default: 45}},
 	"trend":     {sel("metric", "revenue_ytd", "revenue_ytd", "open_amount", "month_min"), {Key: "days", Input: InputNumber, Default: 90}},
 	"hints":     {{Key: "sources", Input: InputList}, {Key: "min_severity", Input: InputNumber, Default: 10}, {Key: "limit", Input: InputNumber, Default: 8}},
+	"calendar": {{Key: "ical_url", Input: InputSecret}, {Key: "days", Input: InputNumber, Default: defaultCalDays},
+		{Key: "limit", Input: InputNumber, Default: defaultListLimit}},
+	"custom_api": {{Key: "url", Input: InputText, Required: true}, {Key: "fields", Input: InputArea}, {Key: "headers", Input: InputHeaders}},
+	"list":       {{Key: "entries", Input: InputArea}},
+	"holidays": {{Key: "country", Input: InputText, Default: defaultCountry}, {Key: "state", Input: InputText},
+		{Key: "limit", Input: InputNumber, Default: 5}},
+	"xkcd":   {},
+	"apod":   {{Key: "api_key", Input: InputSecret}},
+	"joke":   {sel("category", "Any", "Any", "Programming", "Misc", "Pun", "Spooky", "Christmas"), sel("lang", "de", "de", "en")},
+	"crypto": {{Key: "coins", Input: InputList, Default: []any{"bitcoin", "ethereum"}}, {Key: "currency", Input: InputText, Default: defaultCurrency}},
+	"stocks": {{Key: "tickers", Input: InputList, Default: []any{"aapl.us", "sap.de"}}},
+	"flights": {{Key: "airport", Input: InputText, Required: true}, sel("direction", "Departure", "Departure", "Arrival"),
+		{Key: "limit", Input: InputNumber, Default: defaultListLimit}, {Key: "api_key", Input: InputSecret}},
+	"transit": {{Key: "stop", Input: InputText, Required: true}, {Key: "limit", Input: InputNumber, Default: defaultListLimit}},
 }
 
 // dataModeField lets connection-bound widgets choose live or background data.
@@ -174,6 +189,8 @@ func FormValues(key string, config map[string]any) []FormValue {
 			text = linksText(v)
 		case InputHeaders:
 			text = headersText(v)
+		case InputSecret:
+			text = ""
 		}
 		out = append(out, FormValue{Field: f, Name: FormPrefix + f.Key, Label: label, Text: text, On: on})
 	}
@@ -233,8 +250,10 @@ func ParseForm(key string, get func(name string) string) map[string]any {
 			set(config, f.Key, list)
 		case InputLinks:
 			set(config, f.Key, parseLinks(raw))
+		case InputSecret:
+			set(config, f.Key, raw)
 		case InputHeaders:
-			if raw == headersClear {
+			if raw == secretClear {
 				set(config, f.Key, raw)
 				continue
 			}

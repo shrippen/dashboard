@@ -105,6 +105,8 @@ oidc:
   sub_taken: This authentik account is already linked to another user.
   unreachable: Identity provider unreachable.
 board:
+  canceled: canceled
+  platform: 'Platform {platform}'
   page_links: Page links
   ctx_newtab: Open in new tab
   ctx_sametab: Open in same tab
@@ -140,6 +142,21 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  ical_url: iCal address
+  fields: Fields
+  entries: Entries
+  country: Country
+  state: Region
+  api_key: API key
+  category: Category
+  lang: Language
+  coins: Coins
+  currency: Currency
+  tickers: Tickers
+  airport: Airport (IATA)
+  direction: Direction
+  stop: Stop
+  secret_hint: Stored encrypted and never shown; leave empty to keep the stored value, "-" removes it.
   tags: Tags
   items: More links
   color: Color
@@ -211,6 +228,16 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  Any: Any
+  Programming: Programming
+  Misc: Misc
+  Pun: Puns
+  Spooky: Spooky
+  Christmas: Christmas
+  de: German
+  en: English
+  Departure: Departures
+  Arrival: Arrivals
   none: None
   yellow: Yellow
   green: Green
@@ -270,6 +297,39 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  calendar:
+    name: Calendar
+    desc: 'Upcoming events from an iCal address (Nextcloud, Google, Outlook), recurrences expanded.'
+  custom_api:
+    name: Custom API
+    desc: 'Values from any JSON response, one "Label = path.to.value" per line.'
+  list:
+    name: List
+    desc: 'Own entries, one "text | URL" per line (URL optional).'
+  holidays:
+    name: Holidays
+    desc: 'Next public holidays; with a region (e.g. DE-BY) regional ones too.'
+  xkcd:
+    name: xkcd
+    desc: The latest xkcd comic.
+  apod:
+    name: NASA picture of the day
+    desc: "Astronomy Picture of the Day; without an own key NASA's limited DEMO_KEY."
+  joke:
+    name: Joke
+    desc: A safe-for-work joke from JokeAPI.
+  crypto:
+    name: Crypto
+    desc: 'Prices and 24 h change from CoinGecko; coins as ids (bitcoin, ethereum).'
+  stocks:
+    name: Stocks
+    desc: 'Quotes from stooq by ticker (aapl.us, sap.de), delayed.'
+  flights:
+    name: Flights
+    desc: 'Departures or arrivals of the next 12 h (AeroDataBox, RapidAPI key required).'
+  transit:
+    name: Public transport
+    desc: 'Departures at a stop (Deutsche Bahn data), name or IBNR number.'
   hass:
     name: Home Assistant
     desc: States of chosen entities; switch lights and switches directly.
@@ -1340,6 +1400,7 @@ weekday:
   sat: Saturday
   sun: Sunday
 calendar:
+  all_day: all day
   name: Dashboard deadlines
 trend:
   range: '{low} – {high}'
@@ -1369,3 +1430,13 @@ span:
   '1': One quarter
   '2': Half
   '3': Three quarters
+holidays:
+  today: today
+  in: 'in {days} days'
+picture:
+  open: Original
+  more: Description
+joke:
+  reveal: Punchline
+stocks:
+  source: Data from stooq, delayed.

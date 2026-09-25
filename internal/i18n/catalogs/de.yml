@@ -105,6 +105,8 @@ oidc:
   sub_taken: Dieses authentik-Konto ist bereits mit einem anderen Benutzer verknüpft.
   unreachable: Identity Provider nicht erreichbar.
 board:
+  canceled: fällt aus
+  platform: 'Gleis {platform}'
   page_links: Seitenlinks
   ctx_newtab: In neuem Tab öffnen
   ctx_sametab: Im selben Tab öffnen
@@ -140,6 +142,21 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  ical_url: iCal-Adresse
+  fields: Felder
+  entries: Einträge
+  country: Land
+  state: Region
+  api_key: API-Schlüssel
+  category: Kategorie
+  lang: Sprache
+  coins: Coins
+  currency: Währung
+  tickers: Kürzel
+  airport: Flughafen (IATA)
+  direction: Richtung
+  stop: Haltestelle
+  secret_hint: Wird verschlüsselt gespeichert und nicht angezeigt; leer lassen behält den gespeicherten Wert, „-“ löscht ihn.
   tags: Tags
   items: Weitere Links
   color: Farbe
@@ -211,6 +228,16 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  Any: Alle
+  Programming: Programmieren
+  Misc: Verschiedenes
+  Pun: Wortspiele
+  Spooky: Gruselig
+  Christmas: Weihnachten
+  de: Deutsch
+  en: Englisch
+  Departure: Abflüge
+  Arrival: Ankünfte
   none: Keine
   yellow: Gelb
   green: Grün
@@ -270,6 +297,39 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  calendar:
+    name: Kalender
+    desc: 'Nächste Termine aus einer iCal-Adresse (Nextcloud, Google, Outlook), Wiederholungen aufgelöst.'
+  custom_api:
+    name: Eigene API
+    desc: 'Werte aus einer beliebigen JSON-Antwort, je Zeile „Bezeichnung = pfad.zum.wert“.'
+  list:
+    name: Liste
+    desc: 'Eigene Einträge, je Zeile „Text | URL“ (URL optional).'
+  holidays:
+    name: Feiertage
+    desc: 'Nächste gesetzliche Feiertage, mit Region (z. B. DE-BY) auch regionale.'
+  xkcd:
+    name: xkcd
+    desc: Der neueste xkcd-Comic.
+  apod:
+    name: NASA-Bild des Tages
+    desc: 'Astronomy Picture of the Day; ohne eigenen Schlüssel mit dem begrenzten DEMO_KEY.'
+  joke:
+    name: Witz
+    desc: Ein Witz von JokeAPI, nur jugendfreie.
+  crypto:
+    name: Krypto
+    desc: 'Kurse und 24-h-Änderung von CoinGecko, Coins als IDs (bitcoin, ethereum).'
+  stocks:
+    name: Aktien
+    desc: 'Kurse von stooq mit Börsenkürzel (aapl.us, sap.de), verzögert.'
+  flights:
+    name: Flüge
+    desc: 'Abflüge oder Ankünfte der nächsten 12 h (AeroDataBox, RapidAPI-Schlüssel nötig).'
+  transit:
+    name: Nahverkehr
+    desc: 'Abfahrten einer Haltestelle (Deutsche Bahn), Name oder IBNR-Nummer.'
   hass:
     name: Home Assistant
     desc: Zustände ausgewählter Entitäten, Schalter und Lichter direkt schalten.
@@ -1341,6 +1401,7 @@ weekday:
   sat: Samstag
   sun: Sonntag
 calendar:
+  all_day: ganztags
   name: Dashboard-Fristen
 trend:
   range: '{low} – {high}'
@@ -1370,3 +1431,13 @@ span:
   '1': Ein Viertel
   '2': Halb
   '3': Drei Viertel
+holidays:
+  today: heute
+  in: 'in {days} Tagen'
+picture:
+  open: Original
+  more: Beschreibung
+joke:
+  reveal: Auflösung
+stocks:
+  source: Daten von stooq, verzögert.

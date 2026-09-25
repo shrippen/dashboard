@@ -751,7 +751,7 @@ Auswahl vom 25.09.2026 (Checkliste „Dashy-Abgleich“). Abgelehnt: Overlay, Ar
 - [x] Status-Checks mit eigenen HTTP-Headern *(verschlüsselt in der Widget-Konfiguration, nie im Formular oder Export)*
 - [x] Icons: Material Design Icons, selfh.st, Emoji, Font Awesome *(Emoji als Text, ohne Download; Shortcodes wie `:rocket:` nicht)*
 - [x] Themes: Auswahl der Dashy-Themes nachbauen; Dashy-Farben beim Import als Theme übernehmen *(11 Vorlagen in `themes/presets.go`: Callisto, Nord, Dracula, One Dark, Material hell/dunkel, High Contrast hell/dunkel, Oblivion, Cyberpunk, Vaporware; Dashy-eigene Paletten angenähert; beide Modi mit derselben Palette)*
-- [ ] Widgets ohne eigenen Dienst: Kalender (iCal), Custom API, eigene Liste, Feiertage, xkcd, NASA-Bild des Tages, Witze, Krypto, Aktien, Flüge, Nahverkehr
+- [x] Widgets ohne eigenen Dienst: Kalender (iCal), Custom API, eigene Liste, Feiertage, xkcd, NASA-Bild des Tages, Witze, Krypto, Aktien, Flüge, Nahverkehr *(Quellen in `sources/fun.go`, `media.go`, `ical.go`, `travel.go`; API-Schlüssel, Header und private Kalender-Adressen verschlüsselt in der Widget-Konfiguration, nie im Formular oder Export; Dashy-Widgets werden beim Import zugeordnet)*
 - [ ] Widgets/Quellen fürs Homelab: Pi-hole/AdGuard, Nextcloud, Sabnzbd, Gluetun/Mullvad, Glances im Detail, Domain-Ablauf, Blacklist-Check
 - [x] Integrationen: TrueNAS, Komodo, Pangolin, authentik (Nutzungsstatistik) *(Go: `sources/infra.go`, `rules/infra.go`; TrueNAS über JSON-RPC per WebSocket mit REST-Fallback; Tabelle `app_usage` für Anmeldungen je Anwendung)*
 

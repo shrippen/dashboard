@@ -165,6 +165,8 @@
             <textarea id="{{.Name}}" name="{{.Name}}" rows="3">{{.Text}}</textarea>
           {{else if eq (print .Input) "number"}}
             <input id="{{.Name}}" name="{{.Name}}" type="number" step="any" value="{{.Text}}"{{if .Required}} required{{end}}>
+          {{else if eq (print .Input) "secret"}}
+            <input id="{{.Name}}" name="{{.Name}}" type="password" autocomplete="off" value="">
           {{else if eq (print .Input) "connection"}}
             <select id="{{.Name}}" name="{{.Name}}">{{$v := .Text}}<option value="">–</option>{{range $.AllConns}}<option value="{{.Key}}"{{if eq .Key $v}} selected{{end}}>{{.Name}}</option>{{end}}</select>
           {{else}}
@@ -173,6 +175,7 @@
           {{if or (eq (print .Input) "list") (eq (print .Input) "numbers")}}<p class="small muted">{{t "field.list_hint"}}</p>{{end}}
           {{if eq (print .Input) "links"}}<p class="small muted">{{t "field.links_hint"}}</p>{{end}}
           {{if eq (print .Input) "headers"}}<p class="small muted">{{t "field.headers_hint"}}</p>{{end}}
+          {{if eq (print .Input) "secret"}}<p class="small muted">{{t "field.secret_hint"}}</p>{{end}}
           {{if eq .Label "icon"}}<p class="small muted">{{t "field.icon_hint"}}</p>
             <input class="icon-upload" type="file" accept="image/svg+xml,image/png,image/webp,image/jpeg,image/x-icon" data-target="{{.Name}}" aria-label="{{t "field.icon"}}">{{end}}
           {{end}}
