@@ -1,0 +1,152 @@
+// Package maintenance is the operator toolkit behind the CLI: backup and
+// master-key rotation. Ports the same-named halves of
+// app/services/maintenance.py; the import half (YAML/Dashy conf.yml into a
+// personal space) is not ported — it needs app/services/porting.py, which
+// isn't ported either (see the boards/widgetlib snapshot() comments for
+// the same gap). Python's key rotation also re-encrypts a stored OIDC
+// client secret; Go keeps that in settings.OIDCClientSecret (an env var),
+// so there is nothing to rotate there.
+package maintenance
+
+import (
+	"archive/tar"
+	"compress/gzip"
+	"database/sql"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
+
+	"dashboard/internal/crypto"
+	"dashboard/internal/db"
+	"dashboard/internal/repos/content"
+	data "dashboard/internal/repos/data"
+	"dashboard/internal/repos/misc"
+	"dashboard/internal/repos/users"
+)
+
+// Backup writes a consistent copy of the SQLite database (SQLite's own
+// VACUUM INTO, so it's safe against concurrent writers) as a tar.gz under
+// targetDir. Returns the archive's path.
+//
+// Python's backup also packs an icons/ directory; Go has no icons service
+// yet (not ported), so this only ever contains dashboard.db.
+func Backup(d *sql.DB, dbPath, targetDir string) (string, error) {
+	if err := os.MkdirAll(targetDir, 0o750); err != nil {
+		return "", err
+	}
+	stamp := time.Now().Format("20060102-150405")
+	copyPath := filepath.Join(targetDir, fmt.Sprintf("dashboard-%s.db", stamp))
+	archivePath := filepath.Join(targetDir, fmt.Sprintf("dashboard-%s.tar.gz", stamp))
+
+	if _, err := d.Exec("VACUUM INTO ?", copyPath); err != nil {
+		return "", err
+	}
+	defer os.Remove(copyPath)
+
+	if err := archiveOne(copyPath, "dashboard.db", archivePath); err != nil {
+		return "", err
+	}
+	return archivePath, nil
+}
+
+func archiveOne(sourcePath, arcname, archivePath string) error {
+	info, err := os.Stat(sourcePath)
+	if err != nil {
+		return err
+	}
+	source, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	out, err := os.Create(archivePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	gz := gzip.NewWriter(out)
+	defer gz.Close()
+	tw := tar.NewWriter(gz)
+	defer tw.Close()
+
+	if err := tw.WriteHeader(&tar.Header{Name: arcname, Size: info.Size(), Mode: 0o640}); err != nil {
+		return err
+	}
+	_, err = io.Copy(tw, source)
+	return err
+}
+
+// RotateKey re-encrypts every secret under a new master key. Returns the
+// number of values re-encrypted. The caller must then replace the
+// master_key secret and restart — this process keeps using the old key
+// until it does.
+func RotateKey(d *sql.DB, newSecret string) (int, error) {
+	newKey := crypto.MasterFrom(newSecret)
+	count := 0
+
+	swap := func(blob []byte, purpose crypto.Purpose) ([]byte, error) {
+		if len(blob) == 0 {
+			return blob, nil
+		}
+		text, err := crypto.Decrypt(blob, purpose)
+		if err != nil {
+			return nil, err
+		}
+		enc, err := crypto.Encrypt(text, purpose, newKey)
+		if err != nil {
+			return nil, err
+		}
+		count++
+		return enc, nil
+	}
+
+	return count, db.WithTx(d, func(tx *sql.Tx) error {
+		conns, creds, people, channels, err := misc.EncryptedRows(tx)
+		if err != nil {
+			return err
+		}
+
+		for _, c := range conns {
+			enc, err := swap(c.SecretEnc, crypto.PurposeCredential)
+			if err != nil {
+				return err
+			}
+			c.SecretEnc = enc
+			if err := content.UpdateConnection(tx, c); err != nil {
+				return err
+			}
+		}
+		for _, c := range creds {
+			enc, err := swap(c.SecretEnc, crypto.PurposeCredential)
+			if err != nil {
+				return err
+			}
+			if err := content.SetCredential(tx, c.ConnectionID, c.UserID, enc); err != nil {
+				return err
+			}
+		}
+		for _, u := range people {
+			enc, err := swap(u.TOTPSecretEnc, crypto.PurposeTOTP)
+			if err != nil {
+				return err
+			}
+			if err := users.UpdateTOTPSecret(tx, u.ID, enc); err != nil {
+				return err
+			}
+		}
+		for _, ch := range channels {
+			enc, err := swap(ch.URLEnc, crypto.PurposeNotify)
+			if err != nil {
+				return err
+			}
+			if err := data.UpdateChannelSecret(tx, ch.ID, enc); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}

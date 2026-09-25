@@ -42,6 +42,10 @@ func main() {
 	}
 	defer database.Close()
 
+	if handled, code := runCLI(os.Args, database, cfg.DBPath()); handled {
+		os.Exit(code)
+	}
+
 	if _, err := auth.EnsureSetupCode(database); err != nil {
 		slog.Error("ensure setup code", "err", err)
 		os.Exit(1)

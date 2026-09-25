@@ -499,6 +499,13 @@ func UpdateChannel(q db.Queryer, c *model.NotifyChannel) error {
 	return err
 }
 
+// UpdateChannelSecret rewrites a channel's encrypted URL (key rotation
+// only; AddChannel/UpdateChannel cover the normal CRUD paths).
+func UpdateChannelSecret(q db.Queryer, channelID int64, urlEnc []byte) error {
+	_, err := q.Exec("UPDATE notify_channels SET url_enc=? WHERE id=?", urlEnc, channelID)
+	return err
+}
+
 // RemoveChannel deletes a notification channel.
 func RemoveChannel(q db.Queryer, channelID int64) error {
 	_, err := q.Exec("DELETE FROM notify_channels WHERE id = ?", channelID)

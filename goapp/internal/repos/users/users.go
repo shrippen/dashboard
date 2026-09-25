@@ -186,6 +186,14 @@ func Update(q db.Queryer, u *model.User) error {
 	return err
 }
 
+// UpdateTOTPSecret rewrites a user's encrypted TOTP secret (key rotation
+// only; Update covers the normal CRUD path, but needs a fully-populated
+// User to avoid blanking every other column).
+func UpdateTOTPSecret(q db.Queryer, userID int64, enc []byte) error {
+	_, err := q.Exec("UPDATE users SET totp_secret_enc=? WHERE id=?", enc, userID)
+	return err
+}
+
 // Delete removes a user (cascades to memberships, sessions, etc.).
 func Delete(q db.Queryer, userID int64) error {
 	_, err := q.Exec("DELETE FROM users WHERE id = ?", userID)
