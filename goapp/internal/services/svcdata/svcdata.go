@@ -1,0 +1,187 @@
+// Package svcdata is cached access to sources.
+//
+//	key = sha256(source, connection, credential owner, params)
+//
+// A shared connection is fetched once for everybody; a connection with
+// personal credentials once per user.
+//
+// Simplification vs. the Python service: results are always fetched live
+// (the persisted cache row is written for durability/future widget-preview
+// reads, but not yet read back to skip a fetch), since decoding a cached
+// row back into its typed Go dataset struct needs a per-source decoder
+// that isn't written yet. TODO: add that decoder and honor TTL/Freshness
+// properly; until then every call reaches the live service.
+package svcdata
+
+import (
+	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"sort"
+	"time"
+
+	"dashboard/internal/crypto"
+	"dashboard/internal/db"
+	"dashboard/internal/enums"
+	"dashboard/internal/model"
+	"dashboard/internal/repos/content"
+	data "dashboard/internal/repos/data"
+	"dashboard/internal/sources"
+)
+
+// Freshness selects whether a stale cache entry is acceptable.
+// See the package doc: currently both values always fetch live.
+type Freshness int
+
+const (
+	Cached Freshness = iota
+	Force
+)
+
+// ErrMissingCredential means personal credentials are required but the
+// user has none yet.
+var ErrMissingCredential = errors.New("svcdata: missing personal credential")
+
+// Result is one source fetch's outcome. Data is the source's own typed
+// dataset (e.g. *sources.KimaiDataset), or nil on failure.
+type Result struct {
+	Data      any
+	FetchedAt time.Time
+	OkAt      time.Time
+	Error     string
+}
+
+// Ok reports whether the fetch succeeded.
+func (r Result) Ok() bool { return r.Error == "" && r.Data != nil }
+
+// CredentialOwner is the cache partition: nil for shared data, the user for
+// personal credentials.
+func CredentialOwner(conn *model.Connection, userID *int64) *int64 {
+	if conn == nil || conn.CredentialMode != enums.CredentialPersonal {
+		return nil
+	}
+	return userID
+}
+
+func cacheKey(sourceKey string, connID *int64, owner *int64, params map[string]any) string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	sorted := make(map[string]any, len(params))
+	for _, k := range keys {
+		sorted[k] = params[k]
+	}
+	raw, _ := json.Marshal([]any{sourceKey, connID, owner, sorted})
+	sum := sha256.Sum256(raw)
+	return fmt.Sprintf("%x", sum)
+}
+
+func buildCtx(q db.Queryer, conn *model.Connection, userID *int64, params map[string]any) (sources.Ctx, error) {
+	if conn == nil {
+		return sources.Ctx{Params: params}, nil
+	}
+
+	var secret string
+	if conn.CredentialMode == enums.CredentialPersonal {
+		owner := int64(0)
+		if userID != nil {
+			owner = *userID
+		}
+		cred, err := content.Credential(q, conn.ID, owner)
+		if err != nil {
+			return sources.Ctx{}, err
+		}
+		if cred == nil {
+			return sources.Ctx{}, ErrMissingCredential
+		}
+		s, err := crypto.Decrypt(cred.SecretEnc, crypto.PurposeCredential)
+		if err != nil {
+			return sources.Ctx{}, err
+		}
+		secret = s
+	} else if len(conn.SecretEnc) > 0 {
+		s, err := crypto.Decrypt(conn.SecretEnc, crypto.PurposeCredential)
+		if err != nil {
+			return sources.Ctx{}, err
+		}
+		secret = s
+	}
+
+	return sources.Ctx{
+		URL: conn.URL, Secret: secret, VerifyTLS: conn.VerifyTLS, Options: conn.Options, Params: params,
+	}, nil
+}
+
+// Get fetches source sourceKey (never raises for a service error — it
+// comes back as Result.Error) and persists the outcome to the cache table.
+func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any, conn *model.Connection, userID *int64, _ Freshness) (Result, error) {
+	source, err := sources.Get(sourceKey)
+	if err != nil {
+		return Result{}, err
+	}
+
+	var sctx sources.Ctx
+	err = db.WithTx(d, func(tx *sql.Tx) error {
+		sctx, err = buildCtx(tx, conn, userID, params)
+		return err
+	})
+	if err != nil {
+		if errors.Is(err, ErrMissingCredential) {
+			return Result{}, err
+		}
+		return Result{}, err
+	}
+
+	now := time.Now().UTC()
+	out, fetchErr := source.Fetch(ctx, sctx)
+	result := Result{FetchedAt: now}
+	if fetchErr != nil {
+		result.Error = fetchErr.Error()
+	} else {
+		result.Data, result.OkAt = out, now
+	}
+
+	owner := CredentialOwner(conn, userID)
+	var connID *int64
+	if conn != nil {
+		connID = &conn.ID
+	}
+	key := cacheKey(sourceKey, connID, owner, params)
+	_ = persistCache(d, key, sourceKey, result) // best-effort; a cache write failure must not fail the fetch
+
+	return result, nil
+}
+
+func persistCache(d *sql.DB, key, sourceKey string, result Result) error {
+	entry := &model.CacheEntry{Key: key, Source: sourceKey, FetchedAt: result.FetchedAt, Error: result.Error}
+	if result.Ok() {
+		okAt := result.OkAt
+		entry.OkAt = &okAt
+		// Best-effort JSON snapshot for future typed-decode/inspection use;
+		// not read back yet (see package doc).
+		raw, err := json.Marshal(result.Data)
+		if err == nil {
+			var asMap map[string]any
+			if json.Unmarshal(raw, &asMap) == nil {
+				entry.Data = asMap
+			}
+		}
+	}
+	return db.WithTx(d, func(tx *sql.Tx) error {
+		return data.PutCache(tx, entry)
+	})
+}
+
+// Prune deletes cache entries older than the retention window.
+const CacheRetention = 7 * 24 * time.Hour
+
+func Prune(d *sql.DB) error {
+	return db.WithTx(d, func(tx *sql.Tx) error {
+		return data.PruneCache(tx, time.Now().UTC().Add(-CacheRetention))
+	})
+}

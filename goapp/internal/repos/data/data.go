@@ -418,6 +418,12 @@ func SetMark(q db.Queryer, m *model.HintMark) error {
 	return err
 }
 
+// RemoveMark deletes one mark by id.
+func RemoveMark(q db.Queryer, markID int64) error {
+	_, err := q.Exec("DELETE FROM hint_marks WHERE id = ?", markID)
+	return err
+}
+
 // DropMarks deletes every mark of one hint (it is about to be re-evaluated).
 func DropMarks(q db.Queryer, hintID int64) error {
 	_, err := q.Exec("DELETE FROM hint_marks WHERE hint_id = ?", hintID)
