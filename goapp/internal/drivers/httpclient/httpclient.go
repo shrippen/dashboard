@@ -5,6 +5,7 @@
 package httpclient
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -66,6 +67,9 @@ func checkGuard(rawURL string) error {
 type Options struct {
 	Headers map[string]string
 	Params  url.Values
+	// Body is the raw request body (e.g. a POST's JSON payload). nil for
+	// none.
+	Body []byte
 	// SkipVerify disables TLS certificate verification. Defaults to false
 	// (verified) so a zero-value Options is always safe; set true only for
 	// a connection the user explicitly marked as self-signed.
@@ -100,7 +104,11 @@ func Request(ctx context.Context, method, rawURL string, opts Options) (*http.Re
 		},
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, u.String(), nil)
+	var body io.Reader
+	if opts.Body != nil {
+		body = bytes.NewReader(opts.Body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
 		return nil, HttpError{"bad request"}
 	}

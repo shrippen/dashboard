@@ -13,6 +13,7 @@ import (
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
 	"dashboard/internal/web"
@@ -50,6 +51,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	schedulerCtx, stopScheduler := context.WithCancel(context.Background())
+	defer stopScheduler()
+	if cfg.SchedulerEnabled {
+		scheduler.Start(schedulerCtx, backgroundJobs(database, cfg))
+	}
+
 	deps := web.Deps{DB: database, Settings: cfg}
 	mux := http.NewServeMux()
 	deps.RegisterAuthRoutes(mux)
@@ -57,6 +64,7 @@ func main() {
 	deps.RegisterThemeRoutes(mux)
 	deps.RegisterConnectionRoutes(mux)
 	deps.RegisterEditorRoutes(mux)
+	deps.RegisterNotifyRoutes(mux)
 	deps.RegisterStaticRoutes(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}

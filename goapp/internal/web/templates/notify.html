@@ -1,0 +1,66 @@
+{{define "notify"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.notify"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.notify"}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+
+    <div class="card">
+      <h2>{{t "notify.channels"}}</h2>
+      <p class="small muted">{{t "notify.url_hint"}}</p>
+      {{if .Channels}}
+      <ul>
+        {{range .Channels}}
+        <li>
+          <strong>{{.Name}}</strong> — <code>{{.Hint}}</code>
+          ({{if eq .MinSeverity 30}}{{t "severity.critical"}}{{else if eq .MinSeverity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}})
+          <form method="post" action="/me/notify/channels/{{.ID}}/test">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <button type="submit">{{t "conn.test"}}</button>
+          </form>
+          <form method="post" action="/me/notify/channels/{{.ID}}/delete">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <button type="submit">{{t "action.delete"}}</button>
+          </form>
+        </li>
+        {{end}}
+      </ul>
+      {{else}}<p class="muted">{{t "notify.none"}}</p>{{end}}
+
+      <form method="post" action="/me/notify/channels">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="name">{{t "field.name"}}</label>
+        <input id="name" name="name">
+        <label for="url">{{t "field.url"}}</label>
+        <input id="url" name="url" placeholder="ntfy://host/topic" required>
+        <label for="level">{{t "notify.timing"}}</label>
+        <select id="level" name="level">
+          {{range .Levels}}<option value="{{.}}">{{if eq . 30}}{{t "severity.critical"}}{{else if eq . 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</option>{{end}}
+        </select>
+        <button type="submit">{{t "action.create"}}</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>{{t "notify.timing"}}</h2>
+      <form method="post" action="/me/notify/prefs">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="quiet_from">{{t "notify.quiet_from"}}</label>
+        <input id="quiet_from" name="quiet_from" placeholder="22:00" value="{{.Prefs.QuietFrom}}">
+        <label for="quiet_to">{{t "notify.quiet_to"}}</label>
+        <input id="quiet_to" name="quiet_to" placeholder="07:00" value="{{.Prefs.QuietTo}}">
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}

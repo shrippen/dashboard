@@ -59,6 +59,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterThemeRoutes(mux)
 	deps.RegisterConnectionRoutes(mux)
 	deps.RegisterEditorRoutes(mux)
+	deps.RegisterNotifyRoutes(mux)
 	deps.RegisterStaticRoutes(mux)
 
 	srv := httptest.NewServer(mux)
@@ -559,6 +560,51 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 	htmxBody := mustGet(t, srv, client, "/static/vendor/htmx/htmx.min.js")
 	if len(htmxBody) < 1000 {
 		t.Fatalf("expected htmx.min.js to be served, got %d bytes", len(htmxBody))
+	}
+}
+
+// TestNotifyChannelAddTestDelete drives the notify page: add an apprise://
+// channel pointed at a local fake Apprise API, test it, then delete it.
+func TestNotifyChannelAddTestDelete(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/me/notify/channels", url.Values{
+		"csrf": {csrf}, "name": {"Phone"}, "url": {"ntfy://ntfy.example/topic"}, "level": {"10"},
+	})
+	if err != nil {
+		t.Fatalf("add channel: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after add, got %d", resp.StatusCode)
+	}
+
+	body := mustGet(t, srv, client, "/me/notify")
+	if !strings.Contains(string(body), "ntfy://…/topic") {
+		t.Fatalf("expected masked channel url on the page:\n%s", body)
+	}
+	idMatch := regexp.MustCompile(`/me/notify/channels/(\d+)/test`).FindSubmatch(body)
+	if idMatch == nil {
+		t.Fatalf("no test form found:\n%s", body)
+	}
+	channelID := string(idMatch[1])
+
+	// The test-channel push itself (POST to the account's Apprise API
+	// URL) is covered in the notify package's own tests; this server has
+	// no AppriseAPIURL configured, so only add/delete are driven here.
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/me/notify/channels/"+channelID+"/delete", url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	resp.Body.Close()
+
+	body = mustGet(t, srv, client, "/me/notify")
+	if strings.Contains(string(body), "ntfy://…/topic") {
+		t.Fatalf("expected channel gone after delete:\n%s", body)
 	}
 }
 
