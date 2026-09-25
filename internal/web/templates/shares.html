@@ -1,0 +1,69 @@
+{{define "shares"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "share.title"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "share.title"}} — {{.Info.Title}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+
+    <div class="card">
+      <h2>{{t "field.space"}}</h2>
+      <p class="muted">{{t "share.via_space" "space" .Info.Audience.SpaceName}}</p>
+      {{if .Info.Audience.Members}}
+      <ul>{{range .Info.Audience.Members}}<li>{{.Name}} — {{.Role}}</li>{{end}}</ul>
+      {{end}}
+    </div>
+
+    <div class="card">
+      <h2>{{t "share.title"}}</h2>
+      {{if .Info.Shares}}
+      <div class="table-wrap"><table class="table">
+        <tr><th>{{t "share.grantee"}}</th><th>{{t "share.right"}}</th><th></th></tr>
+        {{range .Info.Shares}}
+        <tr>
+          <td>{{t (print "grantee." .GranteeKind)}}: {{.GranteeName}}</td>
+          <td>{{t (print "right." .Right.Key)}}</td>
+          <td>
+            <form method="post" action="/shares/{{$.Kind}}/{{$.ResourceID}}/{{.ID}}/revoke">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <button type="submit" class="link-btn">{{t "share.revoke"}}</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </table></div>
+      {{else}}<p class="muted">{{t "share.none"}}</p>{{end}}
+
+      <form method="post" action="/shares/{{.Kind}}/{{.ResourceID}}">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="grantee_kind">{{t "share.grantee"}}</label>
+        <select id="grantee_kind" name="grantee_kind">
+          <option value="user">{{t "grantee.user"}}</option>
+          <option value="team">{{t "grantee.team"}}</option>
+        </select>
+        <label for="grantee_id">{{t "field.name"}}</label>
+        <select id="grantee_id" name="grantee_id">
+          {{range .Info.Users}}<option value="{{.ID}}">{{t "grantee.user"}}: {{.Name}}</option>{{end}}
+          {{range .Info.Teams}}<option value="{{.ID}}">{{t "grantee.team"}}: {{.Name}}</option>{{end}}
+        </select>
+        <label for="right">{{t "share.right"}}</label>
+        <select id="right" name="right">
+          <option value="view">{{t "right.view"}}</option>
+          <option value="use">{{t "right.use"}}</option>
+          <option value="edit">{{t "right.edit"}}</option>
+          <option value="manage">{{t "right.manage"}}</option>
+        </select>
+        <button type="submit">{{t "share.grant"}}</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}

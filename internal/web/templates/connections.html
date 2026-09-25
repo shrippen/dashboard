@@ -13,13 +13,14 @@
     <h1>{{t "nav.connections"}}</h1>
     <p><a class="link-btn" href="/connections/new">+ {{t "action.create"}}</a></p>
     <div class="table-wrap"><table class="table">
-      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th></th></tr>
+      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th></th><th></th></tr>
       {{range .Connections}}
       <tr>
         <td>{{.Name}}</td>
         <td>{{.Service}}</td>
         <td>{{.URL}}</td>
         <td><a class="link-btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a></td>
+        <td><a class="link-btn" href="/shares/connection/{{.ID}}">{{t "share.title"}}</a></td>
       </tr>
       {{end}}
     </table></div>

@@ -68,6 +68,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterProfileRoutes(mux)
 	deps.RegisterSecurityRoutes(mux)
 	deps.RegisterTeamRoutes(mux)
+	deps.RegisterShareRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(mux)
@@ -807,6 +808,70 @@ func TestHintsPageListsAndAcks(t *testing.T) {
 	body := mustGet(t, srv, client, "/hints")
 	if !strings.Contains(string(body), "hints") {
 		t.Fatalf("expected the hints page to render, got:\n%s", body)
+	}
+}
+
+// TestSharesGrantAndRevoke drives the "who has access?" dialog for a
+// connection: grant the admin's own account a share, see it listed, revoke it.
+func TestSharesGrantAndRevoke(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	body := mustGet(t, srv, client, "/connections/new")
+	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(body)
+	if spaceMatch == nil {
+		t.Fatalf("no space option found in new-connection form:\n%s", body)
+	}
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/connections", url.Values{
+		"csrf": {csrf}, "space_id": {string(spaceMatch[1])}, "service": {"kimai"}, "name": {"Shared Kimai"},
+		"url": {"https://kimai.example"}, "mode": {"shared"}, "secret": {"tok"}, "tls": {"verify"},
+	})
+	if err != nil {
+		t.Fatalf("create connection: %v", err)
+	}
+	resp.Body.Close()
+	editLocation := resp.Header.Get("Location")
+	connID := regexp.MustCompile(`/connections/(\d+)/edit`).FindStringSubmatch(editLocation)[1]
+
+	body = mustGet(t, srv, client, "/shares/connection/"+connID)
+	if !strings.Contains(string(body), "Wer hat Zugriff") {
+		t.Fatalf("expected shares dialog to render:\n%s", body)
+	}
+	userMatch := regexp.MustCompile(`<option value="(\d+)">Benutzer: `).FindSubmatch(body)
+	if userMatch == nil {
+		t.Fatalf("expected a grantee option:\n%s", body)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/shares/connection/"+connID, url.Values{
+		"csrf": {csrf}, "grantee_kind": {"user"}, "grantee_id": {string(userMatch[1])}, "right": {"view"},
+	})
+	if err != nil {
+		t.Fatalf("grant share: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after grant, got %d", resp.StatusCode)
+	}
+
+	body = mustGet(t, srv, client, "/shares/connection/"+connID)
+	shareMatch := regexp.MustCompile(`/shares/connection/` + connID + `/(\d+)/revoke`).FindSubmatch(body)
+	if shareMatch == nil {
+		t.Fatalf("expected the granted share listed:\n%s", body)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/shares/connection/"+connID+"/"+string(shareMatch[1])+"/revoke", url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("revoke share: %v", err)
+	}
+	resp.Body.Close()
+
+	body = mustGet(t, srv, client, "/shares/connection/"+connID)
+	if strings.Contains(string(body), "/revoke\"") {
+		t.Fatalf("expected no shares left after revoke:\n%s", body)
 	}
 }
 

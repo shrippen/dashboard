@@ -653,7 +653,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang *(nur Python; Go hat keine OIDC-Login-Route)*
 - [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste *(Go: `/me/security`)*
 - [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: `/teams`)*
-- [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: Service `internal/services/shares` fertig, kein Dialog)*
+- [x] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: `/shares/{kind}/{id}`, bisher nur von der Verbindungsliste verlinkt)*
 - [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
 - [x] Verbindungen mit persönlichen Zugangsdaten
 - [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`)*

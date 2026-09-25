@@ -38,6 +38,23 @@ const (
 	RightManage Right = 40
 )
 
+// Key returns the catalog-key suffix for this right ("none", "view", ...),
+// used by the shares dialog for both form values and i18n lookups.
+func (r Right) Key() string {
+	switch r {
+	case RightView:
+		return "view"
+	case RightUse:
+		return "use"
+	case RightEdit:
+		return "edit"
+	case RightManage:
+		return "manage"
+	default:
+		return "none"
+	}
+}
+
 // ResourceKind names what a Share grants a right on.
 type ResourceKind string
 
