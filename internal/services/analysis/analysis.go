@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"dashboard/internal/db"
@@ -88,6 +89,7 @@ func RunAll(ctx context.Context, d *sql.DB, today time.Time) (int, error) {
 		return 0, err
 	}
 
+	warm(ctx, d, conns, owners)
 	fresh := 0
 	for _, sp := range spaces {
 		n, err := runSpace(ctx, d, sp, connectionsOf(conns, sp.ID), owners, today)
@@ -97,6 +99,46 @@ func RunAll(ctx context.Context, d *sql.DB, today time.Time) (int, error) {
 		fresh += n
 	}
 	return fresh, nil
+}
+
+// warmWorkers bounds the parallel fetches of warm.
+const warmWorkers = 4
+
+// target is one connection fetched for one credential owner.
+type target struct {
+	conn  *model.Connection
+	owner *int64
+}
+
+// warm fetches every connection in parallel before the spaces run one
+// by one, so they read from memory. The first run at start thus fills
+// the results widgets show (Stored) in the time of the slowest service,
+// not of all services together. Certificate checks wait for their hosts
+// in runSpace.
+func warm(ctx context.Context, d *sql.DB, conns []*model.Connection, owners map[int64][]int64) {
+	jobs := make(chan target)
+	var wg sync.WaitGroup
+	for range warmWorkers {
+		wg.Go(func() {
+			for t := range jobs {
+				_, _ = svcdata.Get(ctx, d, sources.DataKey(enums.ServiceType(t.conn.Service)), nil, t.conn, t.owner, svcdata.Cached) // errors surface in runSpace
+			}
+		})
+	}
+
+	for _, conn := range conns {
+		if conn.Service == string(enums.ServiceCerts) {
+			continue
+		}
+		for _, owner := range owningUsers(conn, owners[conn.ID]) {
+			select {
+			case jobs <- target{conn: conn, owner: owner}:
+			case <-ctx.Done():
+			}
+		}
+	}
+	close(jobs)
+	wg.Wait()
 }
 
 // run is one fetched connection for one credential owner.

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -226,5 +227,47 @@ func TestRunAllRecordsHistory(t *testing.T) {
 	events, err := data.EventsSince(d, []int64{sid}, 0, time.Now().Add(-time.Hour), 10)
 	if err != nil || len(events) != 1 || events[0].Subject != "Immich" || events[0].Kind != "update" {
 		t.Fatalf("events: %+v %v", events, err)
+	}
+}
+
+// TestRunAllFetchesInParallel: connections are fetched side by side, so
+// the first run at start fills the cache in the time of one service.
+func TestRunAllFetchesInParallel(t *testing.T) {
+	const hold = 100 * time.Millisecond
+	var mu sync.Mutex
+	inflight, peak := 0, 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		inflight++
+		peak = max(peak, inflight)
+		mu.Unlock()
+
+		time.Sleep(hold)
+
+		mu.Lock()
+		inflight--
+		mu.Unlock()
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	d := openTestDB(t)
+	sid := addSpace(t, d)
+	for _, key := range []string{"kimai-a", "kimai-b"} {
+		conn := &model.Connection{
+			SpaceID: sid, Key: key, Name: key, Service: "kimai", URL: srv.URL,
+			CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC(),
+			SecretEnc: encryptedSecret(t, "tok"),
+		}
+		if err := content.AddConnection(d, conn); err != nil {
+			t.Fatalf("add connection: %v", err)
+		}
+	}
+
+	if _, err := analysis.RunAll(context.Background(), d, time.Now().UTC()); err != nil {
+		t.Fatalf("run all: %v", err)
+	}
+	if peak < 2 {
+		t.Fatalf("peak concurrent fetches = %d, want 2", peak)
 	}
 }
