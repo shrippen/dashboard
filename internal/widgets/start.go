@@ -254,6 +254,26 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.DomainsInfo(data, today)
 	case *sources.BlacklistDataset:
 		parts = metrics.BlacklistInfo(data)
+	case *sources.TailscaleDataset:
+		parts = metrics.TailscaleInfo(data)
+	case *sources.GatewayDataset:
+		parts = metrics.GatewayInfo(data)
+	case *sources.MediaServerDataset:
+		parts = metrics.MediaServerInfo(data)
+	case *sources.ArrDataset:
+		parts = metrics.ArrInfo(data)
+	case *sources.VaultwardenDataset:
+		parts = metrics.VaultwardenInfo(data)
+	case *sources.SpeedtestDataset:
+		parts = metrics.SpeedtestInfo(data)
+	case *sources.GrocyDataset:
+		parts = metrics.GrocyInfo(data)
+	case *sources.DWDDataset:
+		parts = metrics.DWDInfo(data)
+	case *sources.GitHubDataset:
+		parts = metrics.GitHubInfo(data)
+	case *sources.TibberDataset:
+		parts = metrics.TibberInfo(data)
 	}
 	return map[string]any{"Info": parts}
 }

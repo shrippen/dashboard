@@ -1,0 +1,90 @@
+{{/* Widgets of the network, media and everyday integrations. */}}
+
+{{define "widgets/tailscale"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Data}}
+<ul class="plain-list">
+  {{range .Devices}}<li><span class="pill" data-state="{{if .Online}}ok{{else}}fail{{end}}">{{if .Online}}{{t "status.up"}}{{else}}{{t "status.down"}}{{end}}</span> {{.Name}}
+    {{if not .Online}}<small class="muted">{{ago .LastSeen}}</small>{{end}}
+    {{if not .KeyExpiry.IsZero}}<small class="muted">· {{t "tailscale.key"}} {{day .KeyExpiry}}</small>{{end}}
+    {{if .Update}}<small class="muted">· {{t "tailscale.update"}}</small>{{end}}</li>{{end}}
+</ul>
+{{end}}
+{{end}}
+
+{{define "widgets/mediaserver"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Data}}
+<p class="kpi"><span class="kpi-label">{{t "mediaserver.now"}}</span> <b class="kpi-value">{{len .Streams}}</b></p>
+{{with .Streams}}<ul class="plain-list">{{range .}}<li>{{.Title}} <small class="muted">{{.User}}</small></li>{{end}}</ul>{{end}}
+<p class="small muted">{{t "mediaserver.library" "movies" .Movies "series" .Series}}</p>
+{{end}}
+{{end}}
+
+{{define "widgets/arr_upcoming"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{with $v.Data}}
+<ul class="plain-list">
+  {{range $v.Items}}<li><time>{{day .At}}</time> {{.Title}}</li>{{else}}<li class="muted">{{t "arr.nothing"}}</li>{{end}}
+</ul>
+<p class="small muted">{{t "info.arr.queue" "count" .Queue}} · {{t "info.arr.missing" "count" .Missing}}</p>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/grocy"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Data}}
+<ul class="plain-list">
+  {{range .Expired}}<li><span class="late">{{.Name}}</span> <small class="muted">{{day .Due}}</small></li>{{end}}
+  {{range .Overdue}}<li><span class="late">{{.Name}}</span> <small class="muted">{{day .Due}}</small></li>{{end}}
+  {{range .Soon}}<li>{{.Name}} <small class="muted">{{day .Due}}</small></li>{{end}}
+</ul>
+{{with .Missing}}<p class="small">{{t "grocy.buy"}}: {{range $i, $p := .}}{{if $i}}, {{end}}{{$p.Name}}{{end}}</p>{{end}}
+{{with .Chores}}<h4>{{t "grocy.chores"}}</h4><ul class="plain-list">{{range .}}<li><time>{{day .Due}}</time> {{.Name}}</li>{{end}}</ul>{{end}}
+{{end}}
+{{end}}
+
+{{define "widgets/dwd"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Data}}
+{{with .Warnings}}<ul class="plain-list">
+  {{range .}}<li><span class="pill" data-state="{{if or (eq .Severity "severe") (eq .Severity "extreme")}}fail{{else}}warn{{end}}">{{t (print "dwd." .Severity)}}</span> {{.Headline}}
+    <small class="muted">{{t "dwd.until" "day" (day .Expire)}}</small></li>{{end}}
+</ul>{{else}}<p class="muted">{{t "info.dwd.none"}}{{with .Place}} · {{.}}{{end}}</p>{{end}}
+{{end}}
+{{end}}
+
+{{define "widgets/github"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Data}}
+<div class="table-wrap"><table class="table">
+  <tr><th>{{t "github.repo"}}</th><th class="num">PRs</th><th class="num">{{t "github.issues"}}</th><th>CI</th><th>{{t "github.release"}}</th></tr>
+  {{range .Repos}}<tr><td>{{.Name}}</td><td class="num">{{.PRs}}</td><td class="num">{{.Issues}}</td>
+    <td>{{if .CI}}<span class="pill" data-state="{{if eq .CI "success"}}ok{{else if eq .CI "failure"}}fail{{else}}warn{{end}}">{{.CI}}</span>{{else}}–{{end}}</td>
+    <td>{{.Release}}</td></tr>{{end}}
+</table></div>
+{{if .Notifications}}<p class="small muted">{{t "github.notifications" "count" .Notifications}}</p>{{end}}
+{{end}}
+{{end}}
+
+{{define "widgets/speedtest"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with .Frag.View.Data}}
+<p class="kpi"><span class="kpi-label">↓ Mbit/s</span> <b class="kpi-value">{{num .Down 0}}</b></p>
+<p class="kpi"><span class="kpi-label">↑ Mbit/s</span> <b class="kpi-value">{{num .Up 0}}</b></p>
+<p class="small muted">{{num .Ping 0}} ms · {{ago .At}}</p>
+{{end}}
+{{end}}
+
+{{define "widgets/energy"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{with $v.Data}}
+<p class="kpi"><span class="kpi-label">{{t "energy.now"}}</span> <b class="kpi-value">{{money .Current .Currency}}</b> {{with .Level}}<small class="muted">{{t (print "energy.level." .)}}</small>{{end}}</p>
+{{with $v.Power}}<p class="kpi"><span class="kpi-label">{{t "energy.power"}}</span> <b class="kpi-value">{{.}} {{$v.PowerUnit}}</b></p>{{end}}
+{{if $v.Path}}<svg class="chart spark-lg" viewBox="0 0 {{$v.W}} {{$v.H}}" preserveAspectRatio="none" role="img" aria-label="{{t "energy.prices"}}">
+  <path class="trend-line" d="{{$v.Path}}"/>
+</svg>{{end}}
+{{with $v.CheapStart}}<p class="small">{{t "energy.cheap" "hours" $v.CheapHours "time" (print (day .) " " (.Local.Format "15:04")) "price" (money $v.CheapAvg $v.Data.Currency)}}</p>{{end}}
+{{if $v.Days}}<p class="small muted">{{t "energy.cost" "days" $v.Days "cost" (money $v.Cost .Currency)}} · {{num $v.KWh 0}} kWh</p>{{end}}
+{{end}}{{end}}
+{{end}}

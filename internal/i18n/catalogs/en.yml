@@ -20,6 +20,16 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_tailscale: 'Open in Tailscale / Headscale'
+  open_in_gateway: 'Open in Router (OPNsense, pfSense, UniFi)'
+  open_in_mediaserver: 'Open in Jellyfin / Plex'
+  open_in_arr: 'Open in Sonarr / Radarr'
+  open_in_vaultwarden: 'Open in Vaultwarden'
+  open_in_speedtest: 'Open in Speedtest Tracker'
+  open_in_grocy: 'Open in Grocy'
+  open_in_dwd: 'Open in DWD weather warnings'
+  open_in_github: 'Open in GitHub'
+  open_in_tibber: 'Open in Tibber (electricity)'
   close: Close
   open_in_jsonapi: Open API
   open_in_pihole: Open in Pi-hole
@@ -332,6 +342,30 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  tailscale:
+    name: 'Tailnet'
+    desc: 'Devices with online state and key expiry.'
+  mediaserver:
+    name: 'Media server'
+    desc: 'Running streams and library size.'
+  arr_upcoming:
+    name: 'Coming up'
+    desc: 'Upcoming episodes or movies from Sonarr/Radarr.'
+  grocy:
+    name: 'Stock'
+    desc: 'Expired and due products, shopping list and chores.'
+  dwd:
+    name: 'Weather warnings'
+    desc: 'Current DWD warnings for the connections place.'
+  github:
+    name: 'GitHub repos'
+    desc: 'PRs, issues, CI state and latest release per repo.'
+  speedtest:
+    name: 'Internet speed'
+    desc: 'Latest result from Speedtest Tracker.'
+  energy:
+    name: 'Energy'
+    desc: 'Electricity price today and tomorrow, cheapest hours, cost; optionally current power from Home Assistant (power_entity).'
   jsonapi:
     name: 'Own integration'
     desc: 'Key figures and a list from your own JSON API, defined in the connection options (YAML).'
@@ -529,6 +563,26 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_tailscale: 'URL https://api.tailscale.com (token = API access token) or the Headscale URL (token = API key, headscale apikeys create). Options: tailnet: example.com (Tailscale, else the default tailnet).'
+  about_tailscale: 'Devices, key expiry, updates'
+  options_hint_gateway: 'Options: kind: opnsense | pfsense | unifi. OPNsense: token = key:secret of an API key. pfSense: REST API package, token = API key. UniFi: integration API key (Settings → Control Plane → Integrations), console URL.'
+  about_gateway: 'WAN, devices, firmware updates'
+  options_hint_mediaserver: 'Options: kind: jellyfin | plex (default jellyfin). Token = Jellyfin API key (Dashboard → API keys) or the X-Plex-Token.'
+  about_mediaserver: 'Running streams, library'
+  options_hint_arr: 'No options. Token = API key (Settings → General). Sonarr or Radarr is detected.'
+  about_arr: 'Health, queue, upcoming'
+  options_hint_vaultwarden: 'No options. Token = ADMIN_TOKEN in plain text, as typed on /admin. Reads the user list only.'
+  about_vaultwarden: 'Users and two-factor login'
+  options_hint_speedtest: 'Options: expect_down: 250, expect_up: 40 (Mbit/s as contracted). Token = API token (v1 API); without one the old open endpoint.'
+  about_speedtest: 'Latest result against expectation'
+  options_hint_grocy: 'No options. Token = API key (Settings → Manage API keys).'
+  about_grocy: 'Stock, shopping list, chores'
+  options_hint_dwd: 'URL https://api.brightsky.dev, no token. Options: lat: 52.52, lon: 13.40 (place of the warnings).'
+  about_dwd: 'Weather warnings for a place'
+  options_hint_github: 'URL https://api.github.com. Options: repos: [owner/repo]. Token optional (fine-grained, read: actions, contents, issues, pull requests; notifications need a classic token).'
+  about_github: 'Repos: PRs, issues, CI, releases'
+  options_hint_tibber: 'URL https://api.tibber.com/v1-beta/gql. Token = personal access token (developer.tibber.com). With Home Assistant the energy widget also shows the current power.'
+  about_tibber: 'Electricity prices and cost'
   health: 'Health'
   token_age: 'Token age'
   expires: 'Expires'
@@ -631,6 +685,16 @@ mode:
   dark: Dark
   light: Light
 service:
+  tailscale: 'Tailscale / Headscale'
+  gateway: 'Router (OPNsense, pfSense, UniFi)'
+  mediaserver: 'Jellyfin / Plex'
+  arr: 'Sonarr / Radarr'
+  vaultwarden: 'Vaultwarden'
+  speedtest: 'Speedtest Tracker'
+  grocy: 'Grocy'
+  dwd: 'DWD weather warnings'
+  github: 'GitHub'
+  tibber: 'Tibber (electricity)'
   links: Tiles
   jsonapi: Custom API (JSON)
   backups: Backups
@@ -906,6 +970,64 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  tailscale:
+    key_expiry:
+      title: '{name}: key expires'
+      why: 'Valid until {day}. Re-authenticate the device or disable expiry.'
+    offline:
+      title: '{count} devices offline for long'
+      why: 'Not seen for over {days} days: {names}.'
+  gateway:
+    wan_down:
+      title: 'WAN {name} down'
+      why: 'Packet loss {loss} %.'
+    devices_offline:
+      title: '{count} network devices offline'
+      why: '{names}'
+    updates:
+      title: 'Router: {count} updates'
+      why: 'Installed: {version}.'
+  mediaserver:
+    update:
+      title: 'Media server update available'
+      why: 'Installed: {version}.'
+  arr:
+    health:
+      title: '{app}: {message}'
+      why: 'Reported by the health check.'
+    stuck:
+      title: '{app}: {count} downloads stuck'
+      why: '{names}'
+  vaultwarden:
+    no_2fa:
+      title: '{count} vaults without two-factor'
+      why: '{names}. A password alone protects the vault poorly.'
+  speedtest:
+    slow:
+      title: 'Internet slower than booked'
+      why: 'Measured ↓ {down} ↑ {up} Mbit/s, booked ↓ {expect_down} ↑ {expect_up}.'
+  grocy:
+    expired:
+      title: '{count} products expired'
+      why: '{names}'
+    missing:
+      title: '{count} things to buy'
+      why: '{names}'
+    chores_overdue:
+      title: '{count} chores overdue'
+      why: '{names}'
+  dwd:
+    warning:
+      title: '{event}'
+      why: '{place}, until {until}.'
+  github:
+    ci_failed:
+      title: '{repo}: CI failed'
+      why: 'Latest run on the default branch.'
+  energy:
+    cost_rising:
+      title: 'Electricity cost up'
+      why: 'Last 7 days {recent}, before {before}.'
   jsonapi:
     threshold:
       title: '{label}: {value}'
@@ -1329,6 +1451,36 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  tailscale:
+    online: '{online}/{count} online'
+  gateway:
+    wan_ok: 'WAN ok'
+    wan_down: 'WAN down'
+    devices: '{count} devices'
+    updates: '{count} updates'
+  mediaserver:
+    streams: '{count} streams'
+    movies: '{count} movies'
+  arr:
+    queue: '{count} queued'
+    missing: '{count} missing'
+  vaultwarden:
+    users: '{count} users'
+    no_2fa: '{count} without 2FA'
+  speedtest:
+    result: '↓ {down} ↑ {up} Mbit/s · {ping} ms'
+  grocy:
+    expired: '{count} expired'
+    soon: '{count} due soon'
+    missing: '{count} missing'
+  dwd:
+    none: 'No warnings'
+    count: '{count} warnings'
+  github:
+    prs: '{count} PRs'
+    ci_failed: '{count} CI failed'
+  tibber:
+    price: '{price}/kWh'
   dnsfilter:
     blocked: '{percent} % blocked'
     'off': blocking off
@@ -1464,6 +1616,22 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  tailscale.key_expiry: 'Tailscale key expires'
+  tailscale.offline: 'Tailscale devices offline'
+  gateway.wan_down: 'WAN down'
+  gateway.devices_offline: 'Network devices offline'
+  gateway.updates: 'Router updates'
+  mediaserver.update: 'Media server update'
+  arr.health: 'Sonarr/Radarr health'
+  arr.stuck: 'Stuck downloads'
+  vaultwarden.no_2fa: 'Vault without two-factor'
+  speedtest.slow: 'Internet too slow'
+  grocy.expired: 'Expired stock'
+  grocy.missing: 'Shopping list'
+  grocy.chores_overdue: 'Overdue chores'
+  dwd.warning: 'Weather warning'
+  github.ci_failed: 'CI failed'
+  energy.cost_rising: 'Electricity cost rising'
   jsonapi.threshold: 'Own integration: threshold exceeded'
   system.token_age: 'Token old or expiring'
   links.dead: Dead links
@@ -1577,6 +1745,7 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  share: 'Minimum share of expected'
   max_age_days: 'Maximum age (days)'
   warn_gb: Warn below (GB free)
   critical_gb: Critical below (GB free)
@@ -1807,3 +1976,38 @@ mobile:
   hide: Hide
 budget:
   spent: 'Fetch budget for today used up.'
+tailscale:
+  key: 'key until'
+  update: 'update'
+mediaserver:
+  now: 'Playing now'
+  library: '{movies} movies · {series} series'
+arr:
+  nothing: 'Nothing in the next 7 days.'
+grocy:
+  buy: 'Buy'
+  chores: 'Chores'
+dwd:
+  minor: 'Weather warning'
+  moderate: 'Moderate'
+  severe: 'Severe'
+  extreme: 'Extreme'
+  until: 'until {day}'
+github:
+  repo: 'Repo'
+  issues: 'Issues'
+  release: 'Release'
+  notifications: '{count} notifications'
+energy:
+  now: 'Price now'
+  power: 'Power'
+  prices: 'Price today/tomorrow'
+  cheap: 'Cheapest {hours} hours from {time}: {price}/kWh'
+  cost: '{days} days: {cost}'
+  level:
+    VERY_CHEAP: 'very cheap'
+    CHEAP: 'cheap'
+    NORMAL: 'normal'
+    EXPENSIVE: 'expensive'
+    VERY_EXPENSIVE: 'very expensive'
+    none: ''

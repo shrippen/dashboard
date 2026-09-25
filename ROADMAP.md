@@ -804,16 +804,16 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Abruf-Budget für begrenzte APIs *(Abrufe je Tag, danach letzter Stand)*
 
 **Integrationen**
-- [ ] Tailscale / Headscale
-- [ ] OPNsense / pfSense / UniFi
-- [ ] Jellyfin / Plex
-- [ ] Sonarr / Radarr
-- [ ] Vaultwarden
-- [ ] Speedtest Tracker
-- [ ] Grocy
-- [ ] DWD-Unwetterwarnungen
-- [ ] GitHub
-- [ ] Energie und Kosten (Home Assistant, Tibber)
+- [x] Tailscale / Headscale *(Geräte, Schlüsselablauf, lange offline)*
+- [x] OPNsense / pfSense / UniFi *(Dienst „gateway“, kind wählt das System; WAN, Geräte, Updates)*
+- [x] Jellyfin / Plex *(Streams, Bibliothek, Update)*
+- [x] Sonarr / Radarr *(Zustand, hängende Downloads, Demnächst-Widget)*
+- [x] Vaultwarden *(Nutzer ohne Zwei-Faktor)*
+- [x] Speedtest Tracker *(gegen gebuchte Geschwindigkeit)*
+- [x] Grocy *(Abgelaufenes, Einkaufsliste, Hausarbeit)*
+- [x] DWD-Unwetterwarnungen *(über Bright Sky)*
+- [x] GitHub *(PRs, Issues, CI, Releases)*
+- [x] Energie und Kosten (Home Assistant, Tibber) *(Preiskurve, günstigste Stunden, Kosten; Leistung aus HA)*
 
 **KI und Betrieb**
 - [ ] „Was tun?“ je Hinweis

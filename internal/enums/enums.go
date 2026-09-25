@@ -118,6 +118,16 @@ const (
 	ServiceDomains       ServiceType = "domains"
 	ServiceBlacklist     ServiceType = "blacklist"
 	ServiceJSONAPI       ServiceType = "jsonapi"
+	ServiceTailscale     ServiceType = "tailscale"
+	ServiceGateway       ServiceType = "gateway"
+	ServiceMediaServer   ServiceType = "mediaserver"
+	ServiceArr           ServiceType = "arr"
+	ServiceVaultwarden   ServiceType = "vaultwarden"
+	ServiceSpeedtest     ServiceType = "speedtest"
+	ServiceGrocy         ServiceType = "grocy"
+	ServiceDWD           ServiceType = "dwd"
+	ServiceGitHub        ServiceType = "github"
+	ServiceTibber        ServiceType = "tibber"
 )
 
 // Services lists every connectable service, in form order.
@@ -128,6 +138,8 @@ var Services = []ServiceType{
 	ServiceHomeAssistant, ServiceSure, ServiceLinkwarden, ServicePGBackWeb, ServiceMail,
 	ServiceTrueNAS, ServiceKomodo, ServicePangolin, ServiceAuthentik,
 	ServicePihole, ServiceAdGuard, ServiceNextcloud, ServiceSabnzbd, ServiceGluetun, ServiceDomains, ServiceBlacklist,
+	ServiceTailscale, ServiceGateway, ServiceMediaServer, ServiceArr, ServiceVaultwarden,
+	ServiceSpeedtest, ServiceGrocy, ServiceDWD, ServiceGitHub, ServiceTibber,
 	ServiceJSONAPI,
 }
 

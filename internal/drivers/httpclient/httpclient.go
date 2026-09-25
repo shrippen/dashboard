@@ -76,6 +76,8 @@ type Options struct {
 	// a connection the user explicitly marked as self-signed.
 	SkipVerify bool
 	Timeout    time.Duration
+	// NoRedirect returns a redirect as is, e.g. to read a login cookie.
+	NoRedirect bool
 }
 
 // Request performs one guarded HTTP call and returns the raw response. The
@@ -103,6 +105,9 @@ func Request(ctx context.Context, method, rawURL string, opts Options) (*http.Re
 			TLSClientConfig:     &tls.Config{InsecureSkipVerify: opts.SkipVerify}, //nolint:gosec // opt-in per connection
 			TLSHandshakeTimeout: ConnectTimeout,
 		},
+	}
+	if opts.NoRedirect {
+		client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 	}
 
 	var body io.Reader
