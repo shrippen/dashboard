@@ -72,6 +72,32 @@
 {{with $ip := $slot.Data}}<p class="kpi-value">{{$ip.IP}}</p>{{end}}{{end}}
 {{end}}
 
+{{define "widgets/image"}}
+{{with $slot := index .Frag.Slots "image"}}{{template "widget-slot-state" $slot}}
+{{with $img := $slot.Data}}
+{{if $.Frag.Config.Link}}<a href="{{$.Frag.Config.Link}}" target="_blank" rel="noopener noreferrer">{{end}}
+<img class="image-tile" src="{{$img.DataURI | dataURI}}" height="{{$.Frag.Config.Height}}" alt="{{$.Frag.Title}}">
+{{if $.Frag.Config.Link}}</a>{{end}}
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/rates"}}
+{{with $slot := index .Frag.Slots "rates"}}{{template "widget-slot-state" $slot}}
+{{with $r := $slot.Data}}
+<table class="table rates">
+  {{range $r.Rates}}<tr><td>1 {{$r.Base}}</td><td class="num">{{num .Value 4}} {{.Code}}</td></tr>{{end}}
+</table>
+<small class="muted">{{t "rates.source" "day" (day $r.Day)}}</small>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/monitors"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+<ul class="monitors">
+  {{range .Frag.View.Monitors}}<li><span class="pill" data-state="{{.State}}">{{t .Key}}</span> {{.Name}}</li>{{end}}
+</ul>
+{{end}}
+
 {{define "widgets/note"}}
 <p class="note-tile">{{.Frag.Config.Text}}</p>
 {{end}}

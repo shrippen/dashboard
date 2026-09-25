@@ -5,8 +5,8 @@ import (
 	"errors"
 	"html/template"
 	"net/http"
-	"strconv"
 	"strings"
+	"strconv"
 	"time"
 
 	"dashboard/internal/enums"
@@ -47,8 +47,18 @@ func mustParse() *template.Template {
 		"dict":        dict,
 		"monogram":    monogram,
 		"deref":       func(p *enums.TeamRole) enums.TeamRole { return *p },
+		"dataURI":     dataURI,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
+}
+
+// dataURI marks an inlined image (from the image source) as a safe URL;
+// anything else becomes empty.
+func dataURI(s string) template.URL {
+	if !strings.HasPrefix(s, "data:image/") {
+		return ""
+	}
+	return template.URL(s) //nolint:gosec // built server-side from an image/* response
 }
 
 // barPct turns a ratio (e.g. 0.45, or 1.2 over budget) into a 0-100 percent

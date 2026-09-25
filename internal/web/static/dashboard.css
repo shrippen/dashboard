@@ -295,6 +295,8 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .link-tile { display: flex; flex-direction: column; gap: .2rem; text-decoration: none; color: inherit; }
 .frame { width: 100%; border: 1px solid var(--bg2); }
 .note-tile { margin: 0; white-space: pre-wrap; color: var(--fg1); font-size: .88rem; }
+.image-tile { display: block; max-width: 100%; object-fit: contain; margin: 0 auto; }
+.monitors { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; font-size: .88rem; }
 
 /* ── footer bar ── */
 .footbar {

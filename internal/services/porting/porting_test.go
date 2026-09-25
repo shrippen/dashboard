@@ -160,3 +160,39 @@ func TestYAMLErrors(t *testing.T) {
 		t.Fatalf("expected ErrNotMapping, got %v", err)
 	}
 }
+
+const dashyExtras = `
+sections:
+  - name: Extras
+    widgets:
+      - {type: image, options: {imagePath: "https://img.example/cam.jpg", imageHeight: 180}}
+      - {type: exchange-rates, options: {inputCurrency: GBP, outputCurrencies: [USD, EUR]}}
+      - {type: hackernews-trending}
+      - {type: uptime-kuma, options: {url: "https://kuma.lan", apiKey: x}}
+`
+
+func TestDashyImportExtraWidgets(t *testing.T) {
+	d := setup(t)
+	who, space := user(t, d, "a@x.de")
+
+	report, err := porting.ImportDashy(d, who, space, dashyExtras)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Widgets != 3 || !contains(report.Notes, "uptime-kuma") {
+		t.Fatalf("report: %+v", report)
+	}
+
+	visible, _ := boards.Visible(d, who)
+	view, err := boards.View(d, who, visible[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tiles := view.Sections[0].Tiles
+	image := tiles[0].Config.(widgets.ImageConfig)
+	rates := tiles[1].Config.(widgets.RatesConfig)
+	feed := tiles[2].Config.(widgets.RssConfig)
+	if image.Height != 180 || rates.Base != "GBP" || len(rates.Symbols) != 2 || feed.URL != "https://hnrss.org/frontpage" {
+		t.Fatalf("configs: %+v %+v %+v", image, rates, feed)
+	}
+}

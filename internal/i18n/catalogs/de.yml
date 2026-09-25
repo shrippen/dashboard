@@ -122,6 +122,9 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  link: Link beim Klick
+  base: Basiswährung
+  symbols: Währungen
   title: Titel
   name: Name
   email: E-Mail
@@ -225,6 +228,15 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  image:
+    name: Bild
+    desc: Bild von einer URL, serverseitig geladen.
+  rates:
+    name: Wechselkurse
+    desc: EZB-Referenzkurse (Frankfurter).
+  monitors:
+    name: Monitore
+    desc: Status aller Monitore aus Uptime Kuma.
   link:
     name: Link
     desc: Kachel mit Icon, Status und optionaler Infozeile.
@@ -969,3 +981,10 @@ passkey:
   failed: Passkey-Vorgang fehlgeschlagen oder abgebrochen.
   expired: Vorgang abgelaufen. Bitte erneut versuchen.
   invalid: Passkey ungültig.
+rates:
+  source: EZB, Stand {day}
+kuma:
+  up: online
+  down: down
+  pending: ausstehend
+  maintenance: Wartung

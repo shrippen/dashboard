@@ -9,6 +9,7 @@ widgets:
   - {id: kuma-link, type: link, title: Uptime Kuma, config: {url: "https://uptime.kuma.pet", icon: "hl-uptime-kuma", description: Monitoring, status: "off", info: {connection: kuma}}}
   - {id: pve-link, type: link, title: Proxmox, config: {url: "https://www.proxmox.com", icon: "hl-proxmox", description: Virtualisierung, status: "off", info: {connection: pve}}}
   - {id: paperless-link, type: link, title: Paperless, config: {url: "https://docs.paperless-ngx.com", icon: "hl-paperless-ngx", description: Dokumente, status: "off", info: {connection: paperless}}}
+  - {id: monitors, type: monitors, title: Monitore, connection: kuma, config: {}}
   - {id: certs-link, type: link, title: Zertifikate, config: {url: "https://letsencrypt.org", icon: "hl-letsencrypt", description: TLS, status: "off", info: {connection: certs}}}
   - {id: clock, type: clock, title: Zeit, config: {timezones: [Europe/Berlin]}}
   - {id: kimai, type: link, title: Kimai, config: {url: "https://www.kimai.org", icon: "hl-kimai", description: Zeiterfassung}}
@@ -25,3 +26,4 @@ boards:
       - {title: Betrieb, cols: 4, widgets: [kuma-link, pve-link, paperless-link, certs-link]}
       - {title: News, area: side, widgets: [news]}
       - {title: Info, area: side, widgets: [clock, note]}
+      - {title: Status, area: side, widgets: [monitors]}

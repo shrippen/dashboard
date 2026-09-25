@@ -122,6 +122,9 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  link: Link on click
+  base: Base currency
+  symbols: Currencies
   title: Title
   name: Name
   email: E-mail
@@ -225,6 +228,15 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  image:
+    name: Image
+    desc: Image from a URL, loaded by the server.
+  rates:
+    name: Exchange rates
+    desc: ECB reference rates (Frankfurter).
+  monitors:
+    name: Monitors
+    desc: Status of every Uptime Kuma monitor.
   link:
     name: Link
     desc: Tile with icon, status and optional info line.
@@ -968,3 +980,10 @@ passkey:
   failed: Passkey operation failed or was cancelled.
   expired: Ceremony expired. Please try again.
   invalid: Invalid passkey.
+rates:
+  source: ECB, as of {day}
+kuma:
+  up: up
+  down: down
+  pending: pending
+  maintenance: maintenance

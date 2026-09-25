@@ -15,18 +15,29 @@ import (
 // Dashy widgets their counterparts; everything else lands in the report.
 
 const (
-	dashyGlances      = "gl-"
-	defaultRSSLimit   = 8
-	defaultIframeSize = 320
-	startSlug         = "start"
-	startTitle        = "Start"
+	dashyGlances       = "gl-"
+	defaultRSSLimit    = 8
+	defaultIframeSize  = 320
+	defaultImageHeight = 240
+	startSlug          = "start"
+	startTitle         = "Start"
 )
 
 var dashyIconPrefixes = []string{"si-", "hl-", "favicon", "http://", "https://"}
 
 var dashyWidgets = map[string]string{
 	"rss-feed": "rss", "clock": "clock", "weather": "weather", "weather-forecast": "weather",
-	"iframe": "iframe", "public-ip": "public_ip",
+	"iframe": "iframe", "public-ip": "public_ip", "image": "image", "exchange-rates": "rates",
+	"hackernews-trending": "rss",
+}
+
+// hackerNewsFeed replaces Dashy's Hacker News widget with its RSS feed.
+const hackerNewsFeed = "https://hnrss.org/frontpage"
+
+// dashyConnectionWidgets need a connection before a widget can show them.
+var dashyConnectionWidgets = map[string]string{
+	"uptime-kuma":   "add an Uptime Kuma connection, then a monitors widget",
+	"proxmox-lists": "add a Proxmox connection; its hints and link-tile info replace the list",
 }
 
 var dashyVisibility = []string{"hideForUsers", "showForUsers", "hideForGuests", "hideForKeycloakUsers"}
@@ -223,6 +234,10 @@ func dashyWidget(entry map[string]any, report *Report) map[string]any {
 		report.Notes = append(report.Notes, "widget "+kind+": add a Glances connection, then a sysinfo widget")
 		return nil
 	}
+	if note, ok := dashyConnectionWidgets[kind]; ok {
+		report.Notes = append(report.Notes, "widget "+kind+": "+note)
+		return nil
+	}
 	target, ok := dashyWidgets[kind]
 	if !ok {
 		report.Skipped = append(report.Skipped, "widget "+kind)
@@ -240,7 +255,11 @@ func dashyWidget(entry map[string]any, report *Report) map[string]any {
 		if !ok {
 			limit = defaultRSSLimit
 		}
-		item["config"] = map[string]any{"url": str(options, "rssUrl"), "limit": limit}
+		feed := str(options, "rssUrl")
+		if kind == "hackernews-trending" {
+			feed = hackerNewsFeed
+		}
+		item["config"] = map[string]any{"url": feed, "limit": limit}
 	case "clock":
 		if zone := str(options, "timeZone"); zone != "" {
 			item["config"] = map[string]any{"timezones": []any{zone}}
@@ -259,6 +278,19 @@ func dashyWidget(entry map[string]any, report *Report) map[string]any {
 			height = defaultIframeSize
 		}
 		item["config"] = map[string]any{"url": str(options, "url"), "height": height}
+	case "image":
+		height, ok := intOf(options["imageHeight"])
+		if !ok {
+			height = defaultImageHeight
+		}
+		item["config"] = map[string]any{"url": str(options, "imagePath"), "height": height}
+	case "rates":
+		var symbols []any
+		list, _ := options["outputCurrencies"].([]any)
+		for _, s := range list {
+			symbols = append(symbols, fmt.Sprint(s))
+		}
+		item["config"] = map[string]any{"base": str(options, "inputCurrency"), "symbols": symbols}
 	}
 	return item
 }
