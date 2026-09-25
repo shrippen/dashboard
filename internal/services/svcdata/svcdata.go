@@ -358,18 +358,11 @@ func pushedEvents(d *sql.DB, connID int64, since time.Time) ([]sources.Pushed, e
 
 func persistCache(d *sql.DB, key, sourceKey string, result Result) error {
 	entry := &model.CacheEntry{Key: key, Source: sourceKey, FetchedAt: result.FetchedAt, Error: result.Error}
+	// Outcome only: the dataset stays in memory (bank transactions, visits
+	// and logins never reach the disk as a copy).
 	if result.Ok() {
 		okAt := result.OkAt
 		entry.OkAt = &okAt
-		// Best-effort JSON snapshot for future typed-decode/inspection use;
-		// not read back yet (see package doc).
-		raw, err := json.Marshal(result.Data)
-		if err == nil {
-			var asMap map[string]any
-			if json.Unmarshal(raw, &asMap) == nil {
-				entry.Data = asMap
-			}
-		}
 	}
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		return data.PutCache(tx, entry)
