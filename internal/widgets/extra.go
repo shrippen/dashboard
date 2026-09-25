@@ -84,5 +84,5 @@ func init() {
 		}})
 
 	Register(WidgetType{Key: "monitors", Decode: decodeEmpty, Template: "widgets/monitors",
-		Category: CategoryStart, Service: enums.ServiceUptimeKuma, RefreshS: 60, Queries: dataQuery, View: monitorsView})
+		Category: CategoryStart, Service: enums.ServiceUptimeKuma, RefreshS: 60, Live: true, Queries: dataQuery, View: monitorsView})
 }

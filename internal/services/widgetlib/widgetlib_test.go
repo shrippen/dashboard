@@ -190,3 +190,39 @@ func TestEffectiveRateUsesPeerKimai(t *testing.T) {
 		t.Fatalf("kpi = %+v, slots %+v", kpi, frag.Slots)
 	}
 }
+
+// TestLiveModeMixesWithBackground: a live KPI fetches its own connection
+// on view, while the Kimai peer still comes from the background run.
+func TestLiveModeMixesWithBackground(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "mix@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	var ninjaID int64
+	for _, svc := range []enums.ServiceType{enums.ServiceKimai, enums.ServiceInvoiceNinja} {
+		// A distinct URL per test keeps the process-wide cache apart.
+		c := &model.Connection{SpaceID: space.ID, Key: string(svc), Name: string(svc), Service: string(svc),
+			URL: "demo://" + string(svc) + "/mix", CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC()}
+		if err := content.AddConnection(d, c); err != nil {
+			t.Fatal(err)
+		}
+		ninjaID = c.ID
+	}
+	id, err := widgetlib.Create(d, who, space.ID, "kpi", "Rate", map[string]any{"metric": "effective_rate", "data_mode": "data_live"}, &ninjaID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, _, _ := widgetlib.Detail(d, who, id)
+
+	frag, err := widgetlib.Load(context.Background(), d, who, w, svcdata.Cached)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if frag.Slots["data"].Pending || frag.Slots["data"].Data == nil {
+		t.Fatalf("live slot not fetched on view: %+v", frag.Slots["data"])
+	}
+	if !frag.Slots["kimai"].Pending {
+		t.Fatalf("peer slot fetched on view: %+v", frag.Slots["kimai"])
+	}
+}

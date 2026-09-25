@@ -299,7 +299,7 @@ func init() {
 		Category: CategoryStart, Inline: true})
 
 	Register(WidgetType{Key: "sysinfo", Decode: decodeEmpty, Template: "widgets/sysinfo",
-		Category: CategoryStart, Service: enums.ServiceGlances, RefreshS: 60,
+		Category: CategoryStart, Service: enums.ServiceGlances, RefreshS: 60, Live: true,
 		Queries: func(any) []Query { return []Query{{Name: "stats", Source: "glances", Conn: ConnWidget}} }})
 
 	Register(WidgetType{Key: "public_ip", Decode: decodeEmpty, Template: "widgets/public_ip",

@@ -132,6 +132,7 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  data_mode: Daten
   entities: Entitäten (z. B. light.buero, sensor.temperatur)
   link: Link beim Klick
   base: Basiswährung
@@ -194,6 +195,9 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  data_auto: Automatisch (Vorgabe des Typs)
+  data_live: Live beim Anzeigen
+  data_stored: Aus dem Prüflauf
   net_worth: Vermögen
   cash: Kontostand
   liquidity_30: Liquidität 30 Tage
@@ -523,7 +527,7 @@ credential:
   missing: Kein persönlicher Zugang hinterlegt.
 admin:
   analysis: Prüflauf
-  analysis_every: 'Alle {minutes} Minuten holt der Prüflauf die Daten aller Integrationen und leitet Hinweise ab. Seiten zeigen nur diesen Stand; live ist nur der Status-Ping der Kacheln.'
+  analysis_every: 'Alle {minutes} Minuten holt der Prüflauf die Daten aller Integrationen und leitet Hinweise ab. Seiten zeigen diesen Stand; live sind der Status-Ping der Kacheln und Widgets im Datenmodus „live“ (Vorgabe bei Home Assistant, Monitoren, Systemwerten).'
   analysis_last: 'Zuletzt {when}, Dauer {seconds} s.'
   analysis_none: Noch kein Lauf seit dem Start.
   analysis_run: Jetzt prüfen

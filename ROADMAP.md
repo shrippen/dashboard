@@ -721,6 +721,8 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 Jede Quelle liefert einen gecachten Datensatz (`<dienst>.data`), Regeln, eine Infozeile auf der Link-Kachel und Demodaten. Der Quell-Cache hält Ergebnisse jetzt für die TTL der Quelle im Speicher (vorher jeder Aufruf live).
 
 - [x] Prüflauf als Hintergrund-Job: holt alle Integrationen (beim Start und alle `ANALYSIS_MINUTES`, Standard 5) und leitet Hinweise ab; Seiten lesen nur diesen Stand, live ist nur der Status-Ping der Link-Kacheln. Fehlt ein Stand (neue Verbindung), wird er einmal im Hintergrund geholt. Admin → Instanz zeigt den letzten Lauf und startet ihn auf Wunsch sofort
+- [x] Datenmodus je Widget: automatisch (Vorgabe des Typs) / live beim Anzeigen / aus dem Prüflauf. Live als Vorgabe bei Home Assistant, Uptime-Kuma-Monitoren und Systemwerten; Daten anderer Verbindungen im selben Widget (z. B. Kimai beim Stundensatz) bleiben beim Prüflauf
+- [ ] Leichte Live-Quelle für Kimai (laufender Timer, Stunden heute), damit „live“ dort nicht den ganzen Datensatz lädt
 
 - [x] FreshRSS (Google-Reader-API): Leserückstand mit den größten Quellen, verstummte Feeds
 - [x] Gitea: wartende Reviews, fällige Issues, ruhende PRs, fehlgeschlagene Actions, veraltete Spiegel

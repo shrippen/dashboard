@@ -421,6 +421,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		settings = map[string]any{}
 	}
 
+	live := widgets.LiveData(kind, widget.Config)
 	for _, q := range kind.Queries(cfg) {
 		var target *model.Connection
 		switch q.Conn {
@@ -437,7 +438,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 			frag.Slots[q.Name] = Slot{Error: "connection.missing"}
 			continue
 		}
-		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, integrationFreshness(target, fresh))
+		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, integrationFreshness(q, target, live, fresh))
 	}
 
 	serviceConn := conn
@@ -486,15 +487,20 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	return frag, nil
 }
 
-// integrationFreshness: data of a connection comes from the background
-// run (Stored), never live from a page view; only an explicit Force
-// fetches. Sources without a connection (status ping, feeds, weather)
-// keep their own cache.
-func integrationFreshness(target *model.Connection, fresh svcdata.Freshness) svcdata.Freshness {
-	if target != nil && fresh == svcdata.Cached {
-		return svcdata.Stored
+// integrationFreshness: connection data comes from the background run
+// (Stored) unless the widget is live, then the page view fetches it
+// (Cached, reused for the source TTL). Peer data (another connection,
+// e.g. Kimai hours next to Ninja revenue) always stays background, so
+// one widget can mix both. Sources without a connection (status ping,
+// feeds, weather) keep their own cache; Force always fetches.
+func integrationFreshness(q widgets.Query, target *model.Connection, live bool, fresh svcdata.Freshness) svcdata.Freshness {
+	if target == nil || fresh != svcdata.Cached {
+		return fresh
 	}
-	return fresh
+	if live && q.Conn != widgets.ConnPeer {
+		return svcdata.Cached
+	}
+	return svcdata.Stored
 }
 
 func runQuery(ctx context.Context, d *sql.DB, source string, params map[string]any, conn *model.Connection, userID int64, fresh svcdata.Freshness) Slot {

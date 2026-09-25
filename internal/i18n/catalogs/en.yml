@@ -132,6 +132,7 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  data_mode: Data
   entities: Entities (e.g. light.office, sensor.temperature)
   link: Link on click
   base: Base currency
@@ -194,6 +195,9 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  data_auto: Automatic (type default)
+  data_live: Live on view
+  data_stored: From the background check
   net_worth: Net worth
   cash: Cash balance
   liquidity_30: Liquidity 30 days
@@ -523,7 +527,7 @@ credential:
   missing: No personal access stored.
 admin:
   analysis: Integration check
-  analysis_every: 'Every {minutes} minutes the check fetches all integrations and derives hints. Pages show this state only; only the tiles'' status ping is live.'
+  analysis_every: 'Every {minutes} minutes the check fetches all integrations and derives hints. Pages show this state; live are the tiles'' status ping and widgets in data mode “live” (default for Home Assistant, monitors, system stats).'
   analysis_last: 'Last run {when}, took {seconds} s.'
   analysis_none: No run since start.
   analysis_run: Check now

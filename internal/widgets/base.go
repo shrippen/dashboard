@@ -84,6 +84,9 @@ type WidgetType struct {
 	Category Category
 	Service  enums.ServiceType // "" if not tied to one service
 	RefreshS int               // 0 = no periodic refresh
+	// Live: by default the widget's own connection data is fetched on
+	// view (short source TTL) instead of read from the background run.
+	Live bool
 	// Inline widgets render with the page (search needs link tiles in the HTML).
 	Inline  bool
 	Queries QueriesFunc
@@ -92,6 +95,29 @@ type WidgetType struct {
 }
 
 var registry = map[string]WidgetType{}
+
+// DataMode chooses where a widget's connection data comes from.
+type DataMode string
+
+const (
+	DataAuto   DataMode = "data_auto"   // the type's default
+	DataLive   DataMode = "data_live"   // fetched on view, cached for the source TTL
+	DataStored DataMode = "data_stored" // last background run only
+)
+
+// DataModeKey is the config key of the data mode.
+const DataModeKey = "data_mode"
+
+// LiveData resolves a widget's data mode to live or not.
+func LiveData(kind WidgetType, config map[string]any) bool {
+	switch DataMode(asString(config[DataModeKey])) {
+	case DataLive:
+		return true
+	case DataStored:
+		return false
+	}
+	return kind.Live
+}
 
 // Register adds a widget type to the process-wide registry.
 func Register(kind WidgetType) WidgetType {

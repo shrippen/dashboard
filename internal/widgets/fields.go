@@ -80,8 +80,20 @@ var fieldsByType = map[string][]Field{
 	"hints":     {{Key: "sources", Input: InputList}, {Key: "min_severity", Input: InputNumber, Default: 10}, {Key: "limit", Input: InputNumber, Default: 8}},
 }
 
+// dataModeField lets connection-bound widgets choose live or background data.
+var dataModeField = sel(DataModeKey, string(DataAuto), string(DataAuto), string(DataLive), string(DataStored))
+
+// liveCapable are types whose data comes from a connection.
+var liveCapable = map[string]bool{"link": true, "kpi": true, "table": true, "chart": true, "progress": true,
+	"sysinfo": true, "monitors": true, "hass": true}
+
 // FieldsOf returns the config fields of a widget type.
-func FieldsOf(key string) []Field { return fieldsByType[key] }
+func FieldsOf(key string) []Field {
+	if liveCapable[key] {
+		return append(append([]Field(nil), fieldsByType[key]...), dataModeField)
+	}
+	return fieldsByType[key]
+}
 
 // FormValue is one field with its current value, ready for a form.
 type FormValue struct {
