@@ -23,7 +23,10 @@
 <header>
   <a href="/">dashboard</a>
   {{if .Who}}
-    <nav><a href="/">{{t "nav.home"}}</a></nav>
+    <nav>
+      <a href="/">{{t "nav.home"}}</a>
+      <a href="/connections">{{t "nav.connections"}}</a>
+    </nav>
     <span style="margin-left:auto">{{.Who.Name}}</span>
     <form method="post" action="/logout">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">

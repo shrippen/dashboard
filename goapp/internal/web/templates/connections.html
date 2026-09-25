@@ -1,0 +1,109 @@
+{{define "connections"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.connections"}} · dashboard</title>
+  {{template "style" .}}
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    td, th { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #8884; }
+    .btn { display: inline-block; padding: .3rem .7rem; border: 1px solid #8884; border-radius: .3rem;
+           text-decoration: none; color: inherit; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.connections"}}</h1>
+    <p><a class="btn" href="/connections/new">+ {{t "action.create"}}</a></p>
+    <table>
+      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th></th></tr>
+      {{range .Connections}}
+      <tr>
+        <td>{{.Name}}</td>
+        <td>{{.Service}}</td>
+        <td>{{.URL}}</td>
+        <td><a class="btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a></td>
+      </tr>
+      {{end}}
+    </table>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "connection_form"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.connections"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{if .IsNew}}{{t "action.create"}}{{else}}{{t "action.edit"}}{{end}} — {{t "nav.connections"}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .TestResult}}
+      <p class="{{if not .TestResult.Ok}}error{{end}}">
+        {{if .TestResult.Ok}}✓ OK{{if .TestResult.Version}} ({{.TestResult.Version}}){{end}}{{else}}✗ {{.TestResult.Message}}{{end}}
+      </p>
+    {{end}}
+
+    <form method="post" action="{{if .IsNew}}/connections{{else}}/connections/{{.Conn.ID}}/edit{{end}}">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+
+      {{if .IsNew}}
+        <label for="space_id">Space</label>
+        <select id="space_id" name="space_id" required>
+          {{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+        </select>
+        <label for="service">{{t "field.service"}}</label>
+        <select id="service" name="service" required>
+          {{range .Services}}<option value="{{.}}">{{.}}</option>{{end}}
+        </select>
+      {{end}}
+
+      <label for="name">{{t "field.name"}}</label>
+      <input id="name" name="name" value="{{if .Conn}}{{.Conn.Name}}{{end}}" required>
+
+      <label for="url">{{t "field.url"}}</label>
+      <input id="url" name="url" type="url" value="{{if .Conn}}{{.Conn.URL}}{{end}}" required>
+
+      <label for="mode">{{t "field.scope"}}</label>
+      <select id="mode" name="mode">
+        <option value="shared" {{if .Conn}}{{if eq (print .Conn.Mode) "shared"}}selected{{end}}{{end}}>shared</option>
+        <option value="personal" {{if .Conn}}{{if eq (print .Conn.Mode) "personal"}}selected{{end}}{{end}}>personal</option>
+      </select>
+
+      <label for="secret">{{t "field.token"}}</label>
+      <input id="secret" name="secret" type="password" placeholder="{{if .Conn}}{{if .Conn.HasSecret}}••••••••{{end}}{{end}}">
+
+      <label for="tls">TLS</label>
+      <select id="tls" name="tls">
+        <option value="verify" {{if .Conn}}{{if .Conn.VerifyTLS}}selected{{end}}{{end}}>verify</option>
+        <option value="skip" {{if .Conn}}{{if not .Conn.VerifyTLS}}selected{{end}}{{end}}>skip</option>
+      </select>
+
+      <button type="submit">{{t "action.save"}}</button>
+    </form>
+
+    {{if not .IsNew}}
+      <form method="post" action="/connections/{{.Conn.ID}}/test" style="display:inline">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "conn.test"}}</button>
+      </form>
+      <form method="post" action="/connections/{{.Conn.ID}}/delete" style="display:inline"
+            onsubmit="return confirm('{{t "action.delete"}}?')">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "conn.delete"}}</button>
+      </form>
+    {{end}}
+  </main>
+</body>
+</html>
+{{end}}

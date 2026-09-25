@@ -39,6 +39,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterAuthRoutes(mux)
 	deps.RegisterBoardRoutes(mux)
 	deps.RegisterThemeRoutes(mux)
+	deps.RegisterConnectionRoutes(mux)
 
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
@@ -253,5 +254,91 @@ func TestThemeCSSRoute(t *testing.T) {
 	css, _ := io.ReadAll(cssResp.Body)
 	if cssResp.StatusCode != http.StatusOK || !strings.Contains(string(css), "--bg-void") {
 		t.Fatalf("expected shrippen tokens in theme css, got %d:\n%s", cssResp.StatusCode, css)
+	}
+}
+
+// TestConnectionsCreateEditDelete drives the full connections editor flow
+// through real HTTP requests: create, see it listed, edit, delete.
+func TestConnectionsCreateEditDelete(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	// The "new connection" form's space picker gives us a real space id.
+	resp, err := client.Get(srv.URL + "/connections/new")
+	if err != nil {
+		t.Fatalf("get new form: %v", err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(body)
+	if spaceMatch == nil {
+		t.Fatalf("no space option found in new-connection form:\n%s", body)
+	}
+	spaceID := string(spaceMatch[1])
+	csrf := csrfToken(t, srv, client)
+
+	resp, err = client.PostForm(srv.URL+"/connections", url.Values{
+		"csrf": {csrf}, "space_id": {spaceID}, "service": {"kimai"}, "name": {"My Kimai"},
+		"url": {"https://kimai.example"}, "mode": {"shared"}, "secret": {"tok"}, "tls": {"verify"},
+	})
+	if err != nil {
+		t.Fatalf("create connection: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after create, got %d", resp.StatusCode)
+	}
+	editLocation := resp.Header.Get("Location")
+
+	resp, err = client.Get(srv.URL + "/connections")
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	body, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(body), "My Kimai") {
+		t.Fatalf("expected created connection in list:\n%s", body)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+editLocation, url.Values{
+		"csrf": {csrf}, "name": {"Renamed Kimai"}, "url": {"https://kimai2.example"},
+		"mode": {"shared"}, "tls": {"verify"},
+	})
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after update, got %d", resp.StatusCode)
+	}
+
+	resp, err = client.Get(srv.URL + "/connections")
+	if err != nil {
+		t.Fatalf("list after rename: %v", err)
+	}
+	body, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(body), "Renamed Kimai") {
+		t.Fatalf("expected renamed connection in list:\n%s", body)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	deleteURL := strings.TrimSuffix(editLocation, "/edit") + "/delete"
+	resp, err = client.PostForm(srv.URL+deleteURL, url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	resp.Body.Close()
+
+	resp, err = client.Get(srv.URL + "/connections")
+	if err != nil {
+		t.Fatalf("list after delete: %v", err)
+	}
+	body, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if strings.Contains(string(body), "Renamed Kimai") {
+		t.Fatalf("expected connection gone after delete:\n%s", body)
 	}
 }
