@@ -35,6 +35,7 @@ error:
   not_found: Not found.
   conflict: Somebody else saved meanwhile. Please reload and change again.
 login:
+  passkey: Sign in with a passkey
   title: Log in
   submit: Log in
   with: Log in with {provider}
@@ -415,6 +416,11 @@ scope:
   read: Read (API)
   embed: Embed
 security:
+  passkeys: Passkeys
+  no_passkeys: No passkeys.
+  passkey_add: Add passkey
+  passkey_placeholder: e.g. laptop
+  passkey_hint: Sign in with fingerprint, face or security key; replaces password and second factor.
   password: Password
   current: Current password
   new: New password
@@ -579,6 +585,7 @@ mail:
     password_changed: Your password was changed.
     totp_enabled: The second factor was enabled.
     totp_disabled: The second factor was disabled.
+    passkey_added: A new passkey was added.
     token_created: A new API token was created.
     new_login: Login from a new device
     new_login_body: New login from {ip} ({agent}).
@@ -893,3 +900,7 @@ calendar:
 trend:
   range: '{low} – {high}'
   collecting: Collecting history (one value per day).
+passkey:
+  failed: Passkey operation failed or was cancelled.
+  expired: Ceremony expired. Please try again.
+  invalid: Invalid passkey.

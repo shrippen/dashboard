@@ -35,6 +35,7 @@ error:
   not_found: Nicht gefunden.
   conflict: Inzwischen hat jemand anderes gespeichert. Bitte neu laden und erneut ändern.
 login:
+  passkey: Mit Passkey anmelden
   title: Anmelden
   submit: Anmelden
   with: Mit {provider} anmelden
@@ -415,6 +416,11 @@ scope:
   read: Lesen (API)
   embed: Einbetten
 security:
+  passkeys: Passkeys
+  no_passkeys: Keine Passkeys.
+  passkey_add: Passkey hinzufügen
+  passkey_placeholder: z. B. Laptop
+  passkey_hint: Anmeldung per Fingerabdruck, Gesichtserkennung oder Sicherheitsschlüssel; ersetzt Passwort und zweiten Faktor.
   password: Passwort
   current: Aktuelles Passwort
   new: Neues Passwort
@@ -579,6 +585,7 @@ mail:
     password_changed: Dein Passwort wurde geändert.
     totp_enabled: Der zweite Faktor wurde aktiviert.
     totp_disabled: Der zweite Faktor wurde deaktiviert.
+    passkey_added: Ein neuer Passkey wurde hinzugefügt.
     token_created: Ein neues API-Token wurde erstellt.
     new_login: Anmeldung von einem neuen Gerät
     new_login_body: Neue Anmeldung von {ip} ({agent}).
@@ -894,3 +901,7 @@ calendar:
 trend:
   range: '{low} – {high}'
   collecting: Verlauf wird gesammelt (ein Wert pro Tag).
+passkey:
+  failed: Passkey-Vorgang fehlgeschlagen oder abgebrochen.
+  expired: Vorgang abgelaufen. Bitte erneut versuchen.
+  invalid: Passkey ungültig.

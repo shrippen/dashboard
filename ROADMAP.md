@@ -709,7 +709,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 9: Ausbau (v1.0)
 
-- [ ] Passkeys (WebAuthn) für lokale Konten
+- [x] Passkeys (WebAuthn) für lokale Konten (Sicherheit → Passkeys, Anmeldung ohne Passwort; ersetzt TOTP)
 - [x] CodeMirror in der Code-Ansicht (CodeMirror 5 vendored, YAML/CSS, Theme-Tokens)
 - [ ] Weitere Dashy-Widgets nach Bedarf (Liste aus dem Import-Bericht)
 - [ ] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf

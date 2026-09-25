@@ -138,6 +138,7 @@ type AuthMethod string
 const (
 	AuthPassword AuthMethod = "password"
 	AuthOIDC     AuthMethod = "oidc"
+	AuthPasskey  AuthMethod = "passkey"
 	AuthToken    AuthMethod = "token"
 )
 

@@ -106,6 +106,7 @@ func main() {
 	deps.RegisterPortingRoutes(mux)
 	deps.RegisterSpaceRoutes(mux)
 	deps.RegisterMoreRoutes(mux)
+	deps.RegisterPasskeyRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: deps.Secure(mux)}

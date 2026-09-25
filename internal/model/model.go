@@ -233,6 +233,17 @@ type ResetToken struct {
 	UsedAt    *time.Time
 }
 
+// Passkey is a WebAuthn credential; Data is the library's credential JSON.
+type Passkey struct {
+	ID         int64
+	UserID     int64
+	CredID     string // base64url
+	Name       string
+	Data       string
+	CreatedAt  time.Time
+	LastUsedAt *time.Time
+}
+
 type AuditEntry struct {
 	ID     int64
 	At     time.Time

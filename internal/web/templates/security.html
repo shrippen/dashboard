@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "nav.security"}} · dashboard</title>
   {{template "style" .}}
+  <script src="/static/passkeys.js" defer></script>
 </head>
 <body>
   {{template "header" .}}
@@ -56,6 +57,32 @@
           <button type="submit">{{t "security.enable"}}</button>
         </form>
       {{end}}
+    </div>
+
+    <div class="card">
+      <h2>{{t "security.passkeys"}}</h2>
+      {{if .Passkeys}}
+      <div class="table-wrap"><table class="table">
+        <tr><th>{{t "field.name"}}</th><th>{{t "security.last_seen"}}</th><th></th></tr>
+        {{range .Passkeys}}
+        <tr>
+          <td>{{.Name}}</td>
+          <td>{{with .LastUsedAt}}{{ago .}}{{else}}—{{end}}</td>
+          <td>
+            <form method="post" action="/me/passkeys/{{.ID}}/delete" data-confirm="{{t "edit.confirm_delete"}}">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <button type="submit" class="link-btn">{{t "action.delete"}}</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </table></div>
+      {{else}}<p class="muted">{{t "security.no_passkeys"}}</p>{{end}}
+      <p class="small muted">{{t "security.passkey_hint"}}</p>
+      <p class="error" hidden data-passkey-error>{{t "passkey.failed"}}</p>
+      <label for="passkey_name">{{t "field.name"}}</label>
+      <input id="passkey_name" placeholder="{{t "security.passkey_placeholder"}}">
+      <button type="button" hidden data-passkey="register" data-name-field="passkey_name">{{t "security.passkey_add"}}</button>
     </div>
 
     {{if .OIDCLabel}}

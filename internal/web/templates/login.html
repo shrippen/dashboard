@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "login.title"}} · dashboard</title>
   {{template "style" .}}
+  <script src="/static/passkeys.js" defer></script>
 </head>
 <body>
   {{template "header" .}}
@@ -20,6 +21,8 @@
         <input id="password" name="password" type="password" required>
         <button class="login-btn" type="submit">{{t "login.submit"}}</button>
       </form>
+      <p class="error" hidden data-passkey-error>{{t "passkey.failed"}}</p>
+      <button class="login-btn ghost" type="button" hidden data-passkey="login">{{t "login.passkey"}}</button>
       {{if .OIDCLabel}}
       <p class="small muted">{{t "login.or"}}</p>
       <a class="login-btn" href="/auth/oidc/login">{{t "login.with" "provider" .OIDCLabel}}</a>

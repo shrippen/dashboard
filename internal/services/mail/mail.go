@@ -28,6 +28,7 @@ const (
 	TOTPEnabled     SecurityKind = "totp_enabled"
 	TOTPDisabled    SecurityKind = "totp_disabled"
 	TokenCreated    SecurityKind = "token_created"
+	PasskeyAdded    SecurityKind = "passkey_added"
 )
 
 const (

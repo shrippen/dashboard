@@ -322,6 +322,38 @@ func OpenOIDCSession(d *sql.DB, cfg settings.Settings, userID int64, ip, agent, 
 	return token, err
 }
 
+// OpenPasskeySession opens a session after a verified passkey assertion.
+// A passkey with user verification counts as both factors, so no TOTP step.
+func OpenPasskeySession(d *sql.DB, cfg settings.Settings, userID int64, ip, agent string) (string, error) {
+	var token string
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		user, err := users.Get(tx, userID)
+		if err != nil {
+			return err
+		}
+		if user == nil || !user.IsActive {
+			return ErrLoginFailed
+		}
+		oidcOnly, err := isOIDCOnly(tx)
+		if err != nil {
+			return err
+		}
+		if oidcOnly && !user.IsBreakglass {
+			return ErrOIDCOnly
+		}
+		token, err = openSession(tx, cfg, user, enums.AuthPasskey, ip, agent, StepDone, "")
+		if err != nil {
+			return err
+		}
+		return auditsvc.Log(tx, &user.ID, "login.passkey", "", ip, nil)
+	})
+	if err != nil {
+		return "", err
+	}
+	noteLogin(d, userID, ip, agent)
+	return token, nil
+}
+
 // ── Session lookup ──
 
 // SessionInfo is what Resolve returns for a valid session cookie.

@@ -8,6 +8,7 @@ import (
 	"dashboard/internal/services/accounts"
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/oidc"
+	"dashboard/internal/services/passkeys"
 )
 
 // RegisterSecurityRoutes wires /me/security: password, TOTP, sessions, API tokens.
@@ -38,8 +39,14 @@ func (d Deps) securityPage(w http.ResponseWriter, ctx Ctx, status int, extra map
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	keys, err := passkeys.Mine(d.DB, ctx.Who)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	values := map[string]any{
 		"Profile": profile, "Sessions": sessions, "Tokens": tokens, "OIDCLabel": oidc.Button(d.DB, d.Settings),
+		"Passkeys": keys,
 	}
 	for k, v := range extra {
 		values[k] = v

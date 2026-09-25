@@ -34,8 +34,9 @@ func TestOpenCreatesSchemaAndIsIdempotent(t *testing.T) {
 	if err := d2.QueryRow("SELECT COUNT(*) FROM schema_migrations").Scan(&applied); err != nil {
 		t.Fatalf("query migrations: %v", err)
 	}
-	if applied != 1 {
-		t.Fatalf("expected 1 applied migration, got %d", applied)
+	files, _ := migrationFiles.ReadDir("migrations")
+	if applied != len(files) {
+		t.Fatalf("expected %d applied migrations, got %d", len(files), applied)
 	}
 }
 
