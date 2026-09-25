@@ -2,6 +2,7 @@ package sources
 
 import (
 	"context"
+	"hash/fnv"
 	"net/url"
 	"strconv"
 	"time"
@@ -30,7 +31,7 @@ func ninjaInvoice(raw any) NinjaInvoice {
 	m := asMap(raw)
 	amount, taxes := asFloat(m["amount"]), asFloat(m["total_taxes"])
 	return NinjaInvoice{
-		ID: asInt64(m["id"]), Number: asStr(m["number"]), ClientID: asInt64(m["client_id"]),
+		ID: asInt64(m["id"]), Number: asStr(m["number"]), ClientID: refNum(m["client_id"]),
 		Status: statusFor(ninjaStatus, m["status_id"]), Date: day(m["date"]), DueDate: day(m["due_date"]),
 		Amount: amount, Balance: asFloat(m["balance"]), Taxes: taxes, Net: amount - taxes,
 	}
@@ -139,7 +140,7 @@ func loadNinja(ctx context.Context, api services.NinjaApi, sctx Ctx) (*NinjaData
 		if day(pm["date"]) >= since {
 			payments = append(payments, NinjaPayment{
 				ID: asInt64(pm["id"]), Date: day(pm["date"]), Amount: asFloat(pm["amount"]),
-				ClientID: asInt64(pm["client_id"]),
+				ClientID: refNum(pm["client_id"]),
 			})
 		}
 	}
@@ -156,7 +157,7 @@ func loadNinja(ctx context.Context, api services.NinjaApi, sctx Ctx) (*NinjaData
 			name = asStr(cm["name"])
 		}
 		clients = append(clients, NinjaClient{
-			ID: asInt64(cm["id"]), Name: name, VATNumber: asStr(cm["vat_number"]),
+			ID: refNum(cm["id"]), Key: idKey(cm["id"]), Name: name, VATNumber: asStr(cm["vat_number"]),
 			CountryID: itoa(asInt64(cm["country_id"])),
 		})
 	}
@@ -194,7 +195,7 @@ func loadNinja(ctx context.Context, api services.NinjaApi, sctx Ctx) (*NinjaData
 	for _, q := range quotesRaw {
 		qm := asMap(q)
 		quotes = append(quotes, NinjaQuote{
-			ID: asInt64(qm["id"]), Number: asStr(qm["number"]), ClientID: asInt64(qm["client_id"]),
+			ID: asInt64(qm["id"]), Number: asStr(qm["number"]), ClientID: refNum(qm["client_id"]),
 			Status: statusFor(quoteStatus, qm["status_id"]), Date: day(qm["date"]), Amount: asFloat(qm["amount"]),
 		})
 	}
@@ -207,7 +208,7 @@ func loadNinja(ctx context.Context, api services.NinjaApi, sctx Ctx) (*NinjaData
 	for _, r := range recurringRaw {
 		rm := asMap(r)
 		recurring = append(recurring, NinjaRecurring{
-			ID: asInt64(rm["id"]), Number: asStr(rm["number"]), ClientID: asInt64(rm["client_id"]),
+			ID: asInt64(rm["id"]), Number: asStr(rm["number"]), ClientID: refNum(rm["client_id"]),
 			Active: asStr(rm["status_id"]) == "2", NextSendDate: day(rm["next_send_date"]),
 			RemainingCycles: int(asFloat(rm["remaining_cycles"])), Amount: asFloat(rm["amount"]),
 		})
@@ -256,6 +257,21 @@ func (NinjaTest) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return nil, err
 	}
 	return map[string]any{"version": v}, nil
+}
+
+// refNum turns an id into a number for joins: numeric ids as they are,
+// v5 hashed ids ("Opnel5aKBz") as a stable positive hash.
+func refNum(v any) int64 {
+	key := idKey(v)
+	if n, err := strconv.ParseInt(key, 10, 64); err == nil {
+		return n
+	}
+	if key == "" {
+		return 0
+	}
+	h := fnv.New64a()
+	h.Write([]byte(key))
+	return int64(h.Sum64() >> 1)
 }
 
 // idKey reads an id that Invoice Ninja v5 sends as hashed string and

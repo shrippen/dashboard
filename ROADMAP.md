@@ -27,7 +27,7 @@ Das Projekt ist vollständig von Python auf **Go** umgestellt (Zielplattform: Ra
 
 **Abweichungen vom Plan:** Übersetzungen als YAML-Kataloge mit Schlüsseln (unverändert vom Python-Stand übernommen). Das mitgelieferte Theme liegt in `internal/web/templates/` (Builtin, eingebettet). Board-Vorlagen/Revisionen speichern den Board- bzw. Widget-eigenen Zustand, nicht die bereichsübergreifende YAML-Form aus `porting.py`.
 
-**Bekannte Unsicherheiten:** Invoice Ninja v5 liefert IDs als Hash-Strings; Kunden-IDs werden bisher als Zahl gelesen (Kundenzuordnung, z. B. Stundensatz je Kunde, gegen v5 prüfen). Deep-Links in Invoice Ninja (`/#/invoices/<id>/edit`), Snipe-IT meldet keine Version, Dawarich-Felder für Besuche (`area_id`, `place`) werden tolerant gelesen.
+**Bekannte Unsicherheiten:** Invoice Ninja v5 liefert IDs als Hash-Strings; Kunden-IDs werden daraus stabil in Zahlen umgerechnet, der Originalschlüssel bleibt für Schreibzugriffe erhalten. Deep-Links in Invoice Ninja (`/#/invoices/<id>/edit`), Snipe-IT meldet keine Version, Dawarich-Felder für Besuche (`area_id`, `place`) werden tolerant gelesen.
 
 ---
 

@@ -81,3 +81,39 @@ func TestNinjaTestReadsVersionHeader(t *testing.T) {
 		t.Fatalf("expected version, got %+v", m)
 	}
 }
+
+// Invoice Ninja v5 sends ids as hashed strings: two clients must stay two
+// clients, and invoices must point to the right one.
+func TestNinjaHashedClientIDs(t *testing.T) {
+	page := func(body string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(`{"data": [` + body + `], "meta": {"pagination": {"total_pages": 1}}}`))
+		}
+	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/v1/invoices", page(`{"id": "Wpmbk5ezJn", "number": "1", "client_id": "Opnel5aKBz", "status_id": "2", "date": "2026-09-01", "amount": 10, "balance": 10},
+		{"id": "Q9ahb6ebJa", "number": "2", "client_id": "VolejRejNm", "status_id": "2", "date": "2026-09-02", "amount": 20, "balance": 20}`))
+	mux.HandleFunc("/api/v1/payments", page(`{"id": "p1", "date": "2026-09-03", "amount": 5, "client_id": "VolejRejNm"}`))
+	mux.HandleFunc("/api/v1/clients", page(`{"id": "Opnel5aKBz", "display_name": "Acme"}, {"id": "VolejRejNm", "display_name": "Beta"}`))
+	for _, empty := range []string{"/api/v1/expenses", "/api/v1/quotes", "/api/v1/recurring_invoices"} {
+		mux.HandleFunc(empty, page(""))
+	}
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	out, err := sources.NinjaData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "tok", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := out.(*sources.NinjaDataset)
+	names := map[int64]string{}
+	for _, c := range data.Clients {
+		names[c.ID] = c.Name
+	}
+	if len(names) != 2 || names[data.Invoices[0].ClientID] != "Acme" || names[data.Invoices[1].ClientID] != "Beta" {
+		t.Fatalf("clients %+v invoices %+v", data.Clients, data.Invoices)
+	}
+	if names[data.Payments[0].ClientID] != "Beta" || data.Clients[1].Key != "VolejRejNm" {
+		t.Fatalf("payment %+v clients %+v", data.Payments, data.Clients)
+	}
+}

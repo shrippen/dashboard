@@ -87,6 +87,7 @@ type NinjaPayment struct {
 
 type NinjaClient struct {
 	ID        int64
+	Key       string // id as sent (hashed string in v5), for write calls
 	Name      string
 	VATNumber string
 	CountryID string
