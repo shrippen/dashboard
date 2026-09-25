@@ -942,6 +942,8 @@ settings:
   rule: Rule
   params: Values
 notify:
+  summary: AI summary in the weekly review
+  summary_hint: Only counts of open hints per rule are sent to Claude (Anthropic) – no titles, names, amounts or location data.
   lead: Hints as push (Apprise) and as daily or weekly mail.
   channels: Channels
   none: No channels yet.
@@ -987,3 +989,6 @@ kuma:
   down: down
   pending: pending
   maintenance: maintenance
+summary:
+  deadlines: Tax deadlines in the next 14 days
+  system: 'You write the weekly review of a dashboard for a self-employed person. You only get counts of open hints per rule with their highest severity. Summarise the situation in three to five sentences in English: most urgent first, then what can wait. Do not invent details, names or amounts. No Markdown, no lists.'

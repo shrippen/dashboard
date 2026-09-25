@@ -204,3 +204,19 @@ func PeerCert(ctx context.Context, hostPort string) (*x509.Certificate, error) {
 	}
 	return certs[0], nil
 }
+
+// guardedTransport applies the egress guard to clients this package does
+// not build itself (e.g. an SDK's).
+type guardedTransport struct{ next http.RoundTripper }
+
+func (g guardedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if err := checkGuard(req.URL.String()); err != nil {
+		return nil, err
+	}
+	return g.next.RoundTrip(req)
+}
+
+// Client returns an http.Client whose requests pass the egress guard.
+func Client(timeout time.Duration) *http.Client {
+	return &http.Client{Timeout: timeout, Transport: guardedTransport{http.DefaultTransport}}
+}

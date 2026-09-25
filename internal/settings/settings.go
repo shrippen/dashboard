@@ -30,6 +30,8 @@ type Settings struct {
 	SMTPURL      string
 	SMTPFrom     string
 	SMTPPassword string
+	// AnthropicAPIKey enables the optional weekly summary; "" = off.
+	AnthropicAPIKey string
 
 	// AppriseAPIURL points at an existing Apprise API instance (e.g.
 	// https://apprise.example.lan). Go has no in-process Apprise library
@@ -123,6 +125,7 @@ func Load() Settings {
 		SMTPURL:              envStr("SMTP_URL", ""),
 		SMTPFrom:             envStr("SMTP_FROM", "dashboard <dashboard@localhost>"),
 		SMTPPassword:         envStr("SMTP_PASSWORD", ""),
+		AnthropicAPIKey:      envStr("ANTHROPIC_API_KEY", ""),
 		OIDCIssuer:           envStr("OIDC_ISSUER", ""),
 		OIDCClientID:         envStr("OIDC_CLIENT_ID", ""),
 		OIDCClientSecret:     envStr("OIDC_CLIENT_SECRET", ""),
@@ -139,6 +142,7 @@ func Load() Settings {
 		"master_key":         &s.MasterKey,
 		"smtp_password":      &s.SMTPPassword,
 		"oidc_client_secret": &s.OIDCClientSecret,
+		"anthropic_api_key":  &s.AnthropicAPIKey,
 	} {
 		if v := readSecret(name); v != "" {
 			*dst = v

@@ -6,6 +6,7 @@ import (
 
 	"dashboard/internal/enums"
 	"dashboard/internal/services/notify"
+	"dashboard/internal/services/summary"
 )
 
 // RegisterNotifyRoutes wires the "notifications" page under /me: channels
@@ -33,7 +34,7 @@ func (d Deps) notifyPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status
 	}
 	values := map[string]any{
 		"Channels": chans, "Prefs": prefs, "Levels": severityLevels,
-		"Weekdays": notify.Weekdays, "BaseURL": d.Settings.BaseURL,
+		"Weekdays": notify.Weekdays, "BaseURL": d.Settings.BaseURL, "SummaryAvailable": summary.Enabled(),
 	}
 	for k, v := range extra {
 		values[k] = v
@@ -117,6 +118,10 @@ func (d Deps) handleNotifyPrefsSave(w http.ResponseWriter, r *http.Request) {
 	prefs := notify.Prefs{
 		QuietFrom: r.FormValue("quiet_from"), QuietTo: r.FormValue("quiet_to"),
 		Daily: r.FormValue("daily"), Weekly: r.FormValue("weekly"),
+	}
+	// The checkbox only exists while the instance has an API key.
+	if summary.Enabled() {
+		prefs.NoSummary = r.FormValue("summary") == ""
 	}
 	if err := notify.SavePrefs(d.DB, ctx.Who, prefs); err != nil {
 		d.notifyPage(w, r, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})

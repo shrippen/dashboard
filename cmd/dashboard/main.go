@@ -17,6 +17,7 @@ import (
 	"dashboard/internal/services/mail"
 	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/seed"
+	"dashboard/internal/services/summary"
 	"dashboard/internal/services/system"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
@@ -59,6 +60,7 @@ func main() {
 		os.Exit(1)
 	}
 	mail.Init(cfg)
+	summary.Init(cfg)
 	themes.InitFonts(cfg.ThemesDir())
 	icons.Init(cfg.IconsDir())
 

@@ -19,3 +19,5 @@ services:
 secrets:
   master_key: { file: ./secrets/master_key }     # openssl rand -base64 32 > secrets/master_key
   # oidc_client_secret: { file: ./secrets/oidc_client_secret }
+  # Optional weekly AI summary (sends only hint counts to Anthropic):
+  # anthropic_api_key: { file: ./secrets/anthropic_api_key }

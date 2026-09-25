@@ -943,6 +943,8 @@ settings:
   rule: Regel
   params: Werte
 notify:
+  summary: KI-Zusammenfassung im Wochenrückblick
+  summary_hint: Nur Anzahlen offener Hinweise je Regel gehen an Claude (Anthropic) – keine Titel, Namen, Beträge oder Standortdaten.
   lead: Hinweise per Push (Apprise) und als tägliche oder wöchentliche Mail.
   channels: Kanäle
   none: Noch keine Kanäle.
@@ -988,3 +990,6 @@ kuma:
   down: down
   pending: ausstehend
   maintenance: Wartung
+summary:
+  deadlines: Steuerfristen in den nächsten 14 Tagen
+  system: 'Du schreibst den Wochenrückblick eines Dashboards für eine selbständige Person. Du erhältst nur Zählwerte offener Hinweise je Regel mit ihrer höchsten Stufe. Fasse die Lage in drei bis fünf Sätzen auf Deutsch zusammen: das Dringendste zuerst, dann was warten kann. Erfinde keine Details, Namen oder Beträge. Kein Markdown, keine Aufzählung.'

@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +29,7 @@ import (
 	"dashboard/internal/services/calendar"
 	"dashboard/internal/services/hints"
 	"dashboard/internal/services/mail"
+	"dashboard/internal/services/summary"
 	"dashboard/internal/services/util"
 	"dashboard/internal/settings"
 )
@@ -168,6 +170,7 @@ type Prefs struct {
 	QuietFrom, QuietTo string // "HH:MM", "" = no quiet hours
 	Daily              string // digest time "HH:MM", "" = no digest
 	Weekly             string // weekday key ("mon".."sun"), "" = every day
+	NoSummary          bool   // opt-out of the LLM summary in the weekly digest
 }
 
 const (
@@ -175,6 +178,8 @@ const (
 	digestKey     = "digest"
 	digestSentKey = "digest_sent"
 	deadlineDays  = 14
+	noSummaryKey  = "no_summary"
+	summaryWait   = 3 * time.Minute
 )
 
 // Weekdays are the digest weekday keys, Monday first (catalog "weekday.<key>").
@@ -199,6 +204,7 @@ func GetPrefs(d *sql.DB, who *access.Principal) (Prefs, error) {
 		digest, _ := u.Prefs[digestKey].(map[string]any)
 		out.Daily, _ = digest["daily"].(string)
 		out.Weekly, _ = digest["weekly"].(string)
+		out.NoSummary, _ = digest[noSummaryKey].(bool)
 		return nil
 	})
 	return out, err
@@ -224,7 +230,7 @@ func SavePrefs(d *sql.DB, who *access.Principal, p Prefs) error {
 			prefs[k] = v
 		}
 		prefs[quietKey] = map[string]any{"from": p.QuietFrom, "to": p.QuietTo}
-		prefs[digestKey] = map[string]any{"daily": p.Daily, "weekly": p.Weekly}
+		prefs[digestKey] = map[string]any{"daily": p.Daily, "weekly": p.Weekly, noSummaryKey: p.NoSummary}
 		u.Prefs = prefs
 		return users.Update(tx, u)
 	})
@@ -462,14 +468,34 @@ func Digests(d *sql.DB, now time.Time) (int, error) {
 	return sent, nil
 }
 
+// weeklySummary is the LLM prose for weekly digests, "" when off, opted
+// out or failed (the digest goes out regardless).
+func weeklySummary(prefs map[string]any, open []hints.View, deadlines int, locale enums.Locale) string {
+	digest, _ := prefs[digestKey].(map[string]any)
+	weekly, _ := digest["weekly"].(string)
+	optOut, _ := digest[noSummaryKey].(bool)
+	if weekly == "" || optOut || !summary.Enabled() {
+		return ""
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), summaryWait)
+	defer cancel()
+	text, err := summary.Weekly(ctx, open, deadlines, locale)
+	if err != nil {
+		slog.Warn("weekly summary", "err", err)
+		return ""
+	}
+	return text
+}
+
 func sendDigest(d *sql.DB, userID int64, local time.Time) error {
 	var who *access.Principal
+	var prefs map[string]any
 	err := db.WithTx(d, func(tx *sql.Tx) error {
 		u, err := users.Get(tx, userID)
 		if err != nil || u == nil {
 			return orNotFound(err)
 		}
-		prefs := map[string]any{}
+		prefs = map[string]any{}
 		for k, v := range u.Prefs {
 			prefs[k] = v
 		}
@@ -509,7 +535,11 @@ func sendDigest(d *sql.DB, userID int64, local time.Time) error {
 	if len(rows) > 0 {
 		body = i18n.T("notify.digest_body", locale, nil)
 	}
-	m, err := mail.Render(who.Email, locale, subject, []string{body}, nil, rows)
+	paragraphs := []string{body}
+	if text := weeklySummary(prefs, open, len(due), locale); text != "" {
+		paragraphs = []string{text, body}
+	}
+	m, err := mail.Render(who.Email, locale, subject, paragraphs, nil, rows)
 	if err != nil {
 		return err
 	}

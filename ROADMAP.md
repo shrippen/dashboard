@@ -713,7 +713,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] CodeMirror in der Code-Ansicht (CodeMirror 5 vendored, YAML/CSS, Theme-Tokens)
 - [x] Weitere Dashy-Widgets nach Bedarf (Liste aus dem Import-Bericht) *(Bild, Wechselkurse, Hacker News als RSS, Uptime-Kuma-Monitore; uptime-kuma/proxmox-lists mit Hinweis auf Verbindung)*
 - [x] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf *(Uptime Kuma, Proxmox VE mit Updates/Speicher/vzdump-Backups, Paperless-ngx, TLS-Zertifikate; Docker nicht umgesetzt)*
-- [ ] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar je Benutzer, nur Aggregate, keine Standortdaten)
+- [x] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar je Benutzer, nur Aggregate, keine Standortdaten) *(Claude über `ANTHROPIC_API_KEY`/Secret `anthropic_api_key`; nur Hinweis-Anzahlen je Regel, `geo.*` ausgenommen)*
 
 ---
 
