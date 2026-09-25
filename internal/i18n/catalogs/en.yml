@@ -633,6 +633,9 @@ ack:
   per_user: per user
   team: for the whole team
 themes:
+  preset: From Dashy preset
+  preset_create: Create
+  preset_hint: Dashy themes rebuilt on our color roles; both modes get the same palette. Adjust afterwards in the editor.
   lead: Only shrippen ships. Own themes are created by duplicating.
   builtin: shipped
   view: View

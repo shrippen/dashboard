@@ -13,6 +13,8 @@ import (
 	"dashboard/internal/services/accounts"
 	"dashboard/internal/services/boards"
 	"dashboard/internal/services/porting"
+	"dashboard/internal/services/spaces"
+	"dashboard/internal/services/themes"
 	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
 )
@@ -117,6 +119,17 @@ func TestDashyImport(t *testing.T) {
 	link := media.Tiles[0].Config.(widgets.LinkConfig)
 	if link.Status != widgets.StatusHTTP || link.Icon != "hl-jellyfin" || link.Hotkey != "1" {
 		t.Fatalf("unexpected link config: %+v", link)
+	}
+
+	// appConfig.theme: nord becomes the space's theme.
+	settings, _ := spaces.Settings(d, who, space)
+	id, ok := settings["theme_id"].(float64)
+	if !ok || !contains(report.Notes, "Dashy nord") {
+		t.Fatalf("theme not applied: %v %v", settings, report.Notes)
+	}
+	theme, _, err := themes.Get(d, who, int64(id))
+	if err != nil || theme.Dark["--bg-void"] != "#242933" {
+		t.Fatalf("theme: %+v %v", theme, err)
 	}
 }
 

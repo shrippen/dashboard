@@ -9,6 +9,8 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/icons"
+	"dashboard/internal/services/spaces"
+	"dashboard/internal/services/themes"
 	"dashboard/internal/services/util"
 )
 
@@ -16,6 +18,8 @@ import (
 // Dashy widgets their counterparts; everything else lands in the report.
 
 const (
+	dashyThemePrefix   = "Dashy "
+	themeSetting       = "theme_id"
 	dashyGlances       = "gl-"
 	defaultRSSLimit    = 8
 	defaultIframeSize  = 320
@@ -43,7 +47,7 @@ var dashyConnectionWidgets = map[string]string{
 
 var dashyVisibility = []string{"hideForUsers", "showForUsers", "hideForGuests", "hideForKeycloakUsers"}
 
-var ignoredAppConfig = []string{"theme", "customCss", "layout", "iconSize", "cssThemes", "colors"}
+var ignoredAppConfig = []string{"customCss", "layout", "iconSize", "cssThemes"}
 
 func mapOf(v any) map[string]any {
 	m, _ := v.(map[string]any)
@@ -344,7 +348,50 @@ func ImportDashy(d *sql.DB, who *access.Principal, spaceID int64, text string) (
 	}
 	report.Skipped = append(pre.Skipped, report.Skipped...)
 	report.Notes = append(pre.Notes, report.Notes...)
+
+	note, err := dashyTheme(d, who, spaceID, text)
+	if err != nil {
+		return nil, err
+	}
+	if note != "" {
+		report.Notes = append(report.Notes, note)
+	}
 	return report, nil
+}
+
+// dashyTheme rebuilds appConfig.theme plus its customColors as a theme
+// of the space and makes it the space's theme. Returns a report note.
+func dashyTheme(d *sql.DB, who *access.Principal, spaceID int64, text string) (string, error) {
+	raw, err := Load(text)
+	if err != nil {
+		return "", err
+	}
+	appConfig := mapOf(raw["appConfig"])
+	name := str(appConfig, "theme")
+	colors := map[string]string{}
+	for key, value := range mapOf(mapOf(appConfig["customColors"])[name]) {
+		colors[key] = fmt.Sprint(value)
+	}
+
+	palette, ok := themes.DashyPalette(name, colors)
+	if !ok {
+		if name != "" {
+			return "appConfig.theme " + name + ": unknown, theme stays shrippen", nil
+		}
+		return "", nil
+	}
+	id, issues, err := themes.FromPalette(d, who, spaceID, dashyThemePrefix+name, palette)
+	if err != nil {
+		return "", err
+	}
+	if err := spaces.Update(d, who, spaceID, map[string]any{themeSetting: float64(id)}, ""); err != nil {
+		return "", err
+	}
+	note := "appConfig.theme " + name + " → theme " + dashyThemePrefix + name
+	if len(issues) > 0 {
+		note += fmt.Sprintf(" (%d contrast warnings, see theme editor)", len(issues))
+	}
+	return note, nil
 }
 
 func stringsOf(v any) []any {

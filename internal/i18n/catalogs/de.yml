@@ -633,6 +633,9 @@ ack:
   per_user: je Benutzer
   team: für das ganze Team
 themes:
+  preset: Aus Dashy-Vorlage
+  preset_create: Anlegen
+  preset_hint: Nachbauten der Dashy-Themes auf den eigenen Farbrollen; beide Modi erhalten dieselbe Palette. Danach im Editor anpassbar.
   lead: Mitgeliefert ist nur shrippen. Eigene Themes entstehen durch Duplizieren.
   builtin: mitgeliefert
   view: Ansehen

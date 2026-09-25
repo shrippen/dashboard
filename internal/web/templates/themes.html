@@ -42,6 +42,15 @@
       {{end}}
     </table></div>
 
+    <h2>{{t "themes.preset"}}</h2>
+    <form method="post" action="/themes/preset" class="card inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <select name="preset" aria-label="{{t "themes.preset"}}">{{range .Presets}}<option value="{{.}}">{{.}}</option>{{end}}</select>
+      {{template "space_select" .Spaces}}
+      <button type="submit" class="ghost">{{t "themes.preset_create"}}</button>
+    </form>
+    <p class="small muted">{{t "themes.preset_hint"}}</p>
+
     <h2>{{t "themes.import"}}</h2>
     <form method="post" action="/themes/import" enctype="multipart/form-data" class="card inline-form">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">

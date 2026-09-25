@@ -45,6 +45,7 @@ func (d Deps) RegisterThemeRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /themes", d.handleThemeList)
 	mux.HandleFunc("POST /themes/duplicate", d.handleThemeDuplicate)
 	mux.HandleFunc("POST /themes/import", d.handleThemeImport)
+	mux.HandleFunc("POST /themes/preset", d.handleThemePreset)
 	mux.HandleFunc("GET /themes/{id}", d.handleThemeEdit)
 	mux.HandleFunc("POST /themes/{id}", d.handleThemeSave)
 	mux.HandleFunc("POST /themes/{id}/delete", d.handleThemeDelete)
@@ -96,7 +97,7 @@ func (d Deps) themeListPage(w http.ResponseWriter, ctx Ctx, status int, extra ma
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	values := map[string]any{"Items": items, "Spaces": access.EditableSpaces(ctx.Who)}
+	values := map[string]any{"Items": items, "Spaces": access.EditableSpaces(ctx.Who), "Presets": themes.Presets()}
 	for k, v := range extra {
 		values[k] = v
 	}
@@ -129,6 +130,26 @@ func (d Deps) handleThemeDuplicate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newID, err := themes.Duplicate(d.DB, ctx.Who, source, space, r.FormValue("name"))
+	if err != nil {
+		d.themeListPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
+		return
+	}
+	http.Redirect(w, r, themeURL(newID), http.StatusSeeOther)
+}
+
+// handleThemePreset creates a theme from a Dashy preset.
+func (d Deps) handleThemePreset(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	space, err := strconv.ParseInt(r.FormValue("space_id"), 10, 64)
+	if err != nil {
+		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+	newID, _, err := themes.FromPreset(d.DB, ctx.Who, space, r.FormValue("preset"))
 	if err != nil {
 		d.themeListPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return

@@ -388,7 +388,8 @@ Im Editor (oder per `dashboard import-dashy conf.yml --space <bereich>`) wird ei
 | `pageInfo` | Kopf-/Fußeinstellungen des Bereichs |
 | `appConfig.statusCheck`, `statusCheckInterval` | Standardwerte für `link.status` |
 | `appConfig.webSearch` | Suchmaschine des Bereichs |
-| `appConfig.theme`, `customCss`, `layout` | ignoriert (im Bericht vermerkt); Theme bleibt shrippen |
+| `appConfig.theme`, `customColors` | bekannte Themes und eigene Farben werden als Theme des Bereichs angelegt und aktiviert; unbekannte bleiben shrippen |
+| `customCss`, `layout` | ignoriert (im Bericht vermerkt) |
 | `appConfig.auth` (Benutzer, `hideForUsers`, `hideForGuests`) | nicht automatisch; der Bericht listet die Einschränkungen, damit sie als Rechte nachgezogen werden können |
 | `sections[].items[]` | Widgets `link` in der Bibliothek + Platzierungen (inkl. Icon, Status, Hotkey, Target) |
 | `sections[].widgets[]` (`rss-feed`, `clock`, `weather`, `iframe`, `gl-*`, `public-ip`) | entsprechende Widget-Typen |
@@ -749,7 +750,7 @@ Auswahl vom 25.09.2026 (Checkliste „Dashy-Abgleich“). Abgelehnt: Overlay, Ar
 - [x] Layout: Abschnitte über mehrere Zeilen, eigene Farbe je Abschnitt und Link (aus Theme-Farben) *(Abschnitte zusätzlich in Vierteln der Breite; Farbe nur als Linie, Text bleibt kontrastgeprüft)*
 - [x] Status-Checks mit eigenen HTTP-Headern *(verschlüsselt in der Widget-Konfiguration, nie im Formular oder Export)*
 - [x] Icons: Material Design Icons, selfh.st, Emoji, Font Awesome *(Emoji als Text, ohne Download; Shortcodes wie `:rocket:` nicht)*
-- [ ] Themes: Auswahl der Dashy-Themes nachbauen; Dashy-Farben beim Import als Theme übernehmen
+- [x] Themes: Auswahl der Dashy-Themes nachbauen; Dashy-Farben beim Import als Theme übernehmen *(11 Vorlagen in `themes/presets.go`: Callisto, Nord, Dracula, One Dark, Material hell/dunkel, High Contrast hell/dunkel, Oblivion, Cyberpunk, Vaporware; Dashy-eigene Paletten angenähert; beide Modi mit derselben Palette)*
 - [ ] Widgets ohne eigenen Dienst: Kalender (iCal), Custom API, eigene Liste, Feiertage, xkcd, NASA-Bild des Tages, Witze, Krypto, Aktien, Flüge, Nahverkehr
 - [ ] Widgets/Quellen fürs Homelab: Pi-hole/AdGuard, Nextcloud, Sabnzbd, Gluetun/Mullvad, Glances im Detail, Domain-Ablauf, Blacklist-Check
 - [x] Integrationen: TrueNAS, Komodo, Pangolin, authentik (Nutzungsstatistik) *(Go: `sources/infra.go`, `rules/infra.go`; TrueNAS über JSON-RPC per WebSocket mit REST-Fallback; Tabelle `app_usage` für Anmeldungen je Anwendung)*

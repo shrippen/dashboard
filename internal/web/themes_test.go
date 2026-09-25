@@ -88,3 +88,29 @@ func TestThemeDuplicateEditFontExportImport(t *testing.T) {
 		t.Fatal("styleguide missing sample")
 	}
 }
+
+func TestThemeFromPreset(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	list := mustGet(t, srv, client, "/themes")
+	space := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(list)
+	if space == nil || !strings.Contains(string(list), `<option value="dracula">`) {
+		t.Fatalf("preset form missing:\n%s", list)
+	}
+	resp := postForm(t, client, srv.URL+"/themes/preset", url.Values{"csrf": {csrf}, "preset": {"dracula"}, "space_id": {string(space[1])}})
+	edit := resp.Header.Get("Location")
+	if resp.StatusCode != http.StatusSeeOther || !strings.HasPrefix(edit, "/themes/") {
+		t.Fatalf("preset: %d", resp.StatusCode)
+	}
+	if page := string(mustGet(t, srv, client, edit)); !strings.Contains(page, "Dracula") || !strings.Contains(page, "#282a36") {
+		t.Fatal("preset theme lacks its name or colors")
+	}
+
+	resp = postForm(t, client, srv.URL+"/themes/preset", url.Values{"csrf": {csrf}, "preset": {"nope"}, "space_id": {string(space[1])}})
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("unknown preset: %d", resp.StatusCode)
+	}
+}
