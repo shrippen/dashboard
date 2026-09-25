@@ -91,6 +91,10 @@ const (
 	ServiceSnipeIT      ServiceType = "snipeit"
 	ServiceDawarich     ServiceType = "dawarich"
 	ServiceGlances      ServiceType = "glances"
+	ServiceUptimeKuma   ServiceType = "uptimekuma"
+	ServiceProxmox      ServiceType = "proxmox"
+	ServicePaperless    ServiceType = "paperless"
+	ServiceCerts        ServiceType = "certs"
 )
 
 // Severity of a hint.

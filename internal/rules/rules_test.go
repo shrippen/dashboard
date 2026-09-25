@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"dashboard/internal/enums"
+	"dashboard/internal/i18n"
 	"dashboard/internal/rules"
 	"dashboard/internal/sources"
 )
@@ -241,5 +242,20 @@ func TestConfigOnlyOverridesKnownKeys(t *testing.T) {
 	}
 	if _, ok := cfg["unknown"]; ok {
 		t.Fatalf("expected unknown key to be dropped, got %+v", cfg)
+	}
+}
+
+func TestEveryRuleHasLabels(t *testing.T) {
+	for _, spec := range rules.AllRules() {
+		for _, locale := range []enums.Locale{enums.LocaleDE, enums.LocaleEN} {
+			if key := "rule_name." + spec.ID; i18n.T(key, locale, nil) == key {
+				t.Errorf("%s: missing %s", locale, key)
+			}
+			for param := range spec.Defaults {
+				if key := "param." + param; param != rules.Enabled && i18n.T(key, locale, nil) == key {
+					t.Errorf("%s: missing %s", locale, key)
+				}
+			}
+		}
 	}
 }

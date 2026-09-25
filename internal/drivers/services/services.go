@@ -5,15 +5,20 @@
 //	NinjaApi        X-API-TOKEN, pages via meta.pagination
 //	SnipeApi        Bearer token, pages via limit/offset
 //	DawarichApi     api_key query parameter
+//	KumaApi         basic auth (API key), Prometheus text
+//	ProxmoxApi      PVEAPIToken header
+//	PaperlessApi    Token header
 package services
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"dashboard/internal/drivers/httpclient"
 )
@@ -272,4 +277,80 @@ func cloneValues(v url.Values) url.Values {
 		out[k] = append([]string(nil), vs...)
 	}
 	return out
+}
+
+// ── Uptime Kuma ──
+
+// KumaApi reads Uptime Kuma's Prometheus metrics; the API key is the
+// basic-auth password with an empty user.
+type KumaApi struct {
+	URL    string
+	Key    string
+	Verify bool
+}
+
+// Metrics returns the raw /metrics text.
+func (a KumaApi) Metrics(ctx context.Context) (string, error) {
+	auth := base64.StdEncoding.EncodeToString([]byte(":" + a.Key))
+	text, err := httpclient.GetText(ctx, strings.TrimRight(a.URL, "/")+"/metrics", httpclient.Options{
+		Headers: map[string]string{"Authorization": "Basic " + auth}, SkipVerify: !a.Verify,
+	})
+	if err != nil {
+		return "", ApiError{err.Error()}
+	}
+	return text, nil
+}
+
+// ── Proxmox VE ──
+
+// ProxmoxApi talks to /api2/json with an API token
+// ("user@pam!name=uuid").
+type ProxmoxApi struct {
+	URL    string
+	Token  string
+	Verify bool
+}
+
+// Get returns the "data" member of /api2/json/<path>.
+func (a ProxmoxApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
+	body, err := fetchJSON(ctx, strings.TrimRight(a.URL, "/")+"/api2/json/"+path,
+		map[string]string{"Authorization": "PVEAPIToken=" + a.Token}, params, !a.Verify)
+	if err != nil {
+		return nil, err
+	}
+	return asMap(body)["data"], nil
+}
+
+// ── Paperless-ngx ──
+
+const paperlessAPIVersion = "5"
+
+type PaperlessApi struct {
+	URL    string
+	Token  string
+	Verify bool
+}
+
+// Get performs one GET against /api/<path>.
+func (a PaperlessApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
+	return fetchJSON(ctx, strings.TrimRight(a.URL, "/")+"/api/"+path, map[string]string{
+		"Authorization": "Token " + a.Token, "Accept": "application/json; version=" + paperlessAPIVersion,
+	}, params, !a.Verify)
+}
+
+// ── TLS certificates ──
+
+// CertInfo is what a TLS endpoint's leaf certificate says about itself.
+type CertInfo struct {
+	NotAfter time.Time
+	Issuer   string
+}
+
+// PeerCert reads host:port's leaf certificate.
+func PeerCert(ctx context.Context, hostPort string) (CertInfo, error) {
+	cert, err := httpclient.PeerCert(ctx, hostPort)
+	if err != nil {
+		return CertInfo{}, ApiError{err.Error()}
+	}
+	return CertInfo{NotAfter: cert.NotAfter.UTC(), Issuer: cert.Issuer.CommonName}, nil
 }

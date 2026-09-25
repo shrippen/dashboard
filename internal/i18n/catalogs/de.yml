@@ -18,6 +18,9 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_uptimekuma: In Uptime Kuma öffnen
+  open_in_proxmox: In Proxmox öffnen
+  open_in_paperless: In Paperless öffnen
   save: Speichern
   cancel: Abbrechen
   create: Anlegen
@@ -327,6 +330,10 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_uptimekuma: Keine Optionen nötig. Token = API-Schlüssel aus Uptime Kuma (Einstellungen → API-Schlüssel).
+  options_hint_proxmox: 'Keine Optionen nötig. Token = user@pam!name=uuid, Rechte: PVEAuditor, für Updates Sys.Audit.'
+  options_hint_paperless: Keine Optionen nötig. Token aus Paperless (Profil → API-Auth-Token).
+  options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – geprüft werden URL-Host und diese Hosts. Kein Token nötig.'
   lead: Verbindungen zu Diensten. Tokens werden verschlüsselt gespeichert und nie wieder angezeigt.
   new: Neue Verbindung
   credentials: Zugangsdaten
@@ -354,6 +361,10 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  uptimekuma: Uptime Kuma
+  proxmox: Proxmox VE
+  paperless: Paperless-ngx
+  certs: TLS-Zertifikate
   kimai: Kimai
   invoiceninja: Invoice Ninja
   snipeit: Snipe-IT
@@ -591,6 +602,40 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  kuma:
+    down:
+      title: '{monitor} ist nicht erreichbar'
+      why: Uptime Kuma meldet den Monitor als down.
+    cert:
+      title: 'Zertifikat von {monitor} läuft in {days} Tagen ab'
+      why: Automatische Verlängerung prüfen.
+  proxmox:
+    offline:
+      title: 'Proxmox-Knoten {node} offline'
+      why: Der Knoten antwortet dem Cluster nicht.
+    updates:
+      title: '{node}: {count} Updates verfügbar'
+      why: Paketaktualisierungen einspielen.
+    storage:
+      title: '{node}/{storage} zu {percent} % belegt'
+      why: Platz schaffen oder Speicher erweitern.
+    backup_missing:
+      title: '{guest} ({vmid}) ohne Backup'
+      why: Kein erfolgreiches vzdump in den letzten Aufgaben gefunden.
+    backup_old:
+      title: 'Letztes Backup von {guest} ({vmid}) am {day}'
+      why: Backup-Job prüfen.
+  paperless:
+    inbox:
+      title: '{count} Dokumente im Posteingang'
+      why: 'Ältestes seit {days} Tagen: {title}.'
+  certs:
+    expiring:
+      title: 'Zertifikat {host} läuft am {day} ab'
+      why: Noch {days} Tage. Automatische Verlängerung prüfen.
+    unreachable:
+      title: '{host}: Zertifikat nicht lesbar'
+      why: '{error}'
   kimai:
     timer_long:
       title: Timer läuft seit {hours} h
@@ -719,6 +764,15 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  kuma:
+    status: '{up}/{count} online'
+  proxmox:
+    guests: '{count} Gäste'
+    updates: '{count} Updates'
+  paperless:
+    inbox: '{count} im Posteingang'
+  certs:
+    next: 'Ablauf in {days} Tagen'
   kimai:
     today: '{hours} h heute'
     running: Timer läuft
@@ -786,6 +840,14 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  kuma.monitor_down: Monitor down
+  kuma.cert_expiring: Zertifikat (Uptime Kuma)
+  proxmox.node_offline: Knoten offline
+  proxmox.updates: Updates verfügbar
+  proxmox.storage_full: Speicher voll
+  proxmox.backup_old: Backup veraltet
+  paperless.inbox: Posteingang
+  certs.expiring: Zertifikatsablauf
   kimai.timer_running_long: Timer läuft zu lange
   kimai.missing_day: Tage ohne Buchung
   kimai.unbilled_hours: Nicht abgerechnete Stunden
@@ -819,6 +881,8 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  min_count: Ab Anzahl
+  ignore: Ausnehmen (VMIDs)
   hours: Stunden
   lookback_days: Rückblick (Tage)
   warn_days: Warnung ab Tagen

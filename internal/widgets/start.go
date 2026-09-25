@@ -150,6 +150,14 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.DawarichInfo(data.LastPoint)
 	case *sources.GlancesResult:
 		parts = metrics.GlancesInfo(data.CPU)
+	case *sources.KumaDataset:
+		parts = metrics.KumaInfo(data)
+	case *sources.ProxmoxDataset:
+		parts = metrics.ProxmoxInfo(data)
+	case *sources.PaperlessDataset:
+		parts = metrics.PaperlessInfo(data)
+	case *sources.CertDataset:
+		parts = metrics.CertsInfo(data, today)
 	}
 	return map[string]any{"Info": parts}
 }

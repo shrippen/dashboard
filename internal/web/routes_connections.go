@@ -39,6 +39,7 @@ func (d Deps) handleConnectionsList(w http.ResponseWriter, r *http.Request) {
 
 var serviceOptions = []enums.ServiceType{
 	enums.ServiceKimai, enums.ServiceInvoiceNinja, enums.ServiceSnipeIT, enums.ServiceDawarich, enums.ServiceGlances,
+	enums.ServiceUptimeKuma, enums.ServiceProxmox, enums.ServicePaperless, enums.ServiceCerts,
 }
 
 func (d Deps) handleConnectionNewForm(w http.ResponseWriter, r *http.Request) {

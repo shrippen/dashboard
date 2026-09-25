@@ -360,6 +360,8 @@ func mergeSettings(q db.Queryer, spaceID int64, extra map[string]any) error {
 var services = map[string]bool{
 	string(enums.ServiceKimai): true, string(enums.ServiceInvoiceNinja): true, string(enums.ServiceSnipeIT): true,
 	string(enums.ServiceDawarich): true, string(enums.ServiceGlances): true,
+	string(enums.ServiceUptimeKuma): true, string(enums.ServiceProxmox): true,
+	string(enums.ServicePaperless): true, string(enums.ServiceCerts): true,
 }
 
 func importConnections(q db.Queryer, spaceID int64, items []map[string]any, report *Report) (map[string]int64, error) {

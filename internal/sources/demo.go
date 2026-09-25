@@ -241,3 +241,43 @@ func DemoDawarich(now time.Time) *DawarichDataset {
 		LastPoint: now.UTC().Add(-2 * time.Hour).Format(time.RFC3339),
 	}
 }
+
+// DemoKuma is the demo Uptime Kuma dataset.
+func DemoKuma() *KumaDataset {
+	return &KumaDataset{URL: "https://status.demo", Monitors: []KumaMonitor{
+		{Name: "Kimai", Type: "http", Target: "https://zeit.demo", Status: KumaUp, CertDays: 54},
+		{Name: "NAS", Type: "ping", Status: KumaDown, CertDays: -1},
+		{Name: "Shop", Type: "http", Target: "https://shop.demo", Status: KumaUp, CertDays: 9},
+	}}
+}
+
+// DemoProxmox is the demo Proxmox VE dataset.
+func DemoProxmox(now time.Time) *ProxmoxDataset {
+	today := demoDay(now)
+	return &ProxmoxDataset{
+		URL: "https://pve.demo:8006",
+		Nodes: []ProxmoxNode{{Name: "pve", Online: true, Updates: 12, Storages: []ProxmoxStorage{
+			{Name: "local-lvm", Used: 430e9, Total: 480e9}, {Name: "backup", Used: 1.1e12, Total: 4e12},
+		}}},
+		Guests: []ProxmoxGuest{
+			{VMID: 100, Name: "docker", Node: "pve"}, {VMID: 101, Name: "homeassistant", Node: "pve"},
+			{VMID: 9000, Name: "debian-template", Node: "pve", Template: true},
+		},
+		Backups: map[int64]time.Time{100: today.AddDate(0, 0, -1), 101: today.AddDate(0, 0, -9)},
+	}
+}
+
+// DemoPaperless is the demo Paperless-ngx dataset.
+func DemoPaperless(now time.Time) *PaperlessDataset {
+	return &PaperlessDataset{URL: "https://docs.demo", Inbox: 7, OldestTitle: "Rechnung Telekom",
+		OldestAdded: iso(demoDay(now).AddDate(0, 0, -23))}
+}
+
+// DemoCerts is the demo certificate dataset.
+func DemoCerts(now time.Time) *CertDataset {
+	today := demoDay(now)
+	return &CertDataset{Certs: []Cert{
+		{Host: "shop.demo:443", NotAfter: today.AddDate(0, 0, 9), Issuer: "R11"},
+		{Host: "zeit.demo:443", NotAfter: today.AddDate(0, 0, 54), Issuer: "R10"},
+	}}
+}

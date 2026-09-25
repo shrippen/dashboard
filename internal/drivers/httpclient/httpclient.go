@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -152,4 +153,54 @@ func GetJSON(ctx context.Context, rawURL string, opts Options) (any, http.Header
 		return nil, resp.Header, HttpError{"invalid JSON"}
 	}
 	return parsed, resp.Header, nil
+}
+
+// GetText performs a guarded GET and returns the body as text (e.g.
+// Prometheus metrics).
+func GetText(ctx context.Context, rawURL string, opts Options) (string, error) {
+	resp, err := Request(ctx, http.MethodGet, rawURL, opts)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxBody+1))
+	if err != nil {
+		return "", HttpError{"read failed"}
+	}
+	if len(body) > MaxBody {
+		return "", HttpError{"response too large"}
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		return "", HttpError{fmt.Sprintf("HTTP %d", resp.StatusCode)}
+	}
+	return string(body), nil
+}
+
+// PeerCert connects to host:port over TLS and returns the leaf
+// certificate without verifying it, so expired ones can be reported too.
+func PeerCert(ctx context.Context, hostPort string) (*x509.Certificate, error) {
+	host, _, err := net.SplitHostPort(hostPort)
+	if err != nil {
+		return nil, HttpError{"bad host"}
+	}
+	if err := checkGuard("https://" + hostPort); err != nil {
+		return nil, err
+	}
+
+	dialer := &tls.Dialer{
+		NetDialer: &net.Dialer{Timeout: ConnectTimeout},
+		Config:    &tls.Config{ServerName: host, InsecureSkipVerify: true}, //nolint:gosec // only reads the certificate
+	}
+	conn, err := dialer.DialContext(ctx, "tcp", hostPort)
+	if err != nil {
+		return nil, HttpError{"connect failed"}
+	}
+	defer conn.Close()
+
+	certs := conn.(*tls.Conn).ConnectionState().PeerCertificates
+	if len(certs) == 0 {
+		return nil, HttpError{"no certificate"}
+	}
+	return certs[0], nil
 }

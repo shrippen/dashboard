@@ -712,7 +712,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Passkeys (WebAuthn) für lokale Konten (Sicherheit → Passkeys, Anmeldung ohne Passwort; ersetzt TOTP)
 - [x] CodeMirror in der Code-Ansicht (CodeMirror 5 vendored, YAML/CSS, Theme-Tokens)
 - [ ] Weitere Dashy-Widgets nach Bedarf (Liste aus dem Import-Bericht)
-- [ ] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf
+- [x] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf *(Uptime Kuma, Proxmox VE mit Updates/Speicher/vzdump-Backups, Paperless-ngx, TLS-Zertifikate; Docker nicht umgesetzt)*
 - [ ] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar je Benutzer, nur Aggregate, keine Standortdaten)
 
 ---

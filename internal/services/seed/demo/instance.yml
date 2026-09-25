@@ -1,6 +1,15 @@
 settings:
   title: Homelab
+connections:
+  - {id: kuma, type: uptimekuma, name: Uptime Kuma, url: "demo://uptimekuma", credentials: shared}
+  - {id: pve, type: proxmox, name: Proxmox, url: "demo://proxmox", credentials: shared}
+  - {id: paperless, type: paperless, name: Paperless, url: "demo://paperless", credentials: shared}
+  - {id: certs, type: certs, name: Zertifikate, url: "demo://certs", credentials: shared}
 widgets:
+  - {id: kuma-link, type: link, title: Uptime Kuma, config: {url: "https://uptime.kuma.pet", icon: "hl-uptime-kuma", description: Monitoring, status: "off", info: {connection: kuma}}}
+  - {id: pve-link, type: link, title: Proxmox, config: {url: "https://www.proxmox.com", icon: "hl-proxmox", description: Virtualisierung, status: "off", info: {connection: pve}}}
+  - {id: paperless-link, type: link, title: Paperless, config: {url: "https://docs.paperless-ngx.com", icon: "hl-paperless-ngx", description: Dokumente, status: "off", info: {connection: paperless}}}
+  - {id: certs-link, type: link, title: Zertifikate, config: {url: "https://letsencrypt.org", icon: "hl-letsencrypt", description: TLS, status: "off", info: {connection: certs}}}
   - {id: clock, type: clock, title: Zeit, config: {timezones: [Europe/Berlin]}}
   - {id: kimai, type: link, title: Kimai, config: {url: "https://www.kimai.org", icon: "hl-kimai", description: Zeiterfassung}}
   - {id: invoiceninja, type: link, title: Invoice Ninja, config: {url: "https://invoiceninja.com", icon: "hl-invoice-ninja", description: Rechnungen}}
@@ -13,5 +22,6 @@ boards:
     slug: homelab
     sections:
       - {title: Dienste, cols: 4, widgets: [kimai, invoiceninja, snipeit, dawarich]}
+      - {title: Betrieb, cols: 4, widgets: [kuma-link, pve-link, paperless-link, certs-link]}
       - {title: News, area: side, widgets: [news]}
       - {title: Info, area: side, widgets: [clock, note]}
