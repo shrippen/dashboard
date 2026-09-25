@@ -176,6 +176,8 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  liquidity_30: Liquidität 30 Tage
+  seasonal: Saisonverlauf Umsatz
   effective_rate: Effektiver Stundensatz
   effective_rates: Stundensatz je Kunde
   newtab: Neuer Tab
@@ -724,6 +726,7 @@ info:
   glances:
     cpu: CPU {percent} %
 kpi:
+  liquidity: Eingang {in} − Fixkosten {out}
   per_hour: je Stunde, {count} Kunden, 12 Monate
   of_target: Soll {hours} h
   hours: '{hours} h'
@@ -761,6 +764,8 @@ upcoming:
 table:
   more: '{count} weitere'
 chart:
+  season_avg: Ø Vorjahre
+  seasonal: Saisonverlauf Umsatz
   revenue: Umsatz netto je Monat
   hours: Stunden je Monat
   prev: Vorjahr
@@ -833,6 +838,7 @@ param:
   date_window: Datumsfenster (Tage)
   notice_days: Vorlauf (Tage)
 settings:
+  fixed_monthly: Feste Ausgaben je Monat
   title: Auswertung
   lead: Ziele, Steuerwerte und Schwellwerte der Hinweise für diesen Bereich.
   goals: Ziele

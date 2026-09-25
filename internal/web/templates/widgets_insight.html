@@ -31,6 +31,7 @@
   {{else if eq $k.SubKey "kpi.of_goal"}}<span class="kpi-sub">{{t "kpi.of_goal" "goal" (money $k.SubGoal $k.Currency)}}</span>
   {{else if eq $k.SubKey "kpi.cash_30"}}<span class="kpi-sub">{{t "kpi.cash_30"}}</span>
   {{else if eq $k.SubKey "kpi.reserve"}}<span class="kpi-sub">{{t "kpi.reserve" "rate" $k.SubRate}}</span>
+  {{else if eq $k.SubKey "kpi.liquidity"}}<span class="kpi-sub">{{t "kpi.liquidity" "in" (money $k.SubIn) "out" (money $k.SubOut)}}</span>
   {{else if eq $k.SubKey "kpi.per_hour"}}<span class="kpi-sub">{{t "kpi.per_hour" "count" $k.SubCount}}</span>
   {{else if eq $k.SubKey "kpi.assets"}}<span class="kpi-sub">{{t "kpi.assets" "count" $k.SubCount}}</span>
   {{end}}
@@ -68,17 +69,18 @@
 {{define "widgets/chart"}}
 {{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
 {{$bars := .Frag.View.Bars}}
+{{$prevKey := or .Frag.View.PrevKey "chart.prev"}}
 {{if .Frag.View.Unsupported}}<p class="slot-note">{{t "widget.unsupported"}}</p>
 {{else if $bars}}
 <svg class="chart" viewBox="0 0 1000 220" role="img" aria-label="{{t (printf "chart.%s" $.Frag.Config.Chart)}}">
   <line class="axis" x1="10" y1="200" x2="1000" y2="200"/>
   {{range $bars}}
-  <rect class="bar prev" x="{{.PrevX}}" y="{{.PrevY}}" width="{{.PrevW}}" height="{{.PrevH}}"><title>{{.Label}} ({{t "chart.prev"}}): {{if eq $.Frag.View.Unit "money"}}{{money .Prev}}{{else}}{{num .Prev 1}}{{end}}</title></rect>
+  <rect class="bar prev" x="{{.PrevX}}" y="{{.PrevY}}" width="{{.PrevW}}" height="{{.PrevH}}"><title>{{.Label}} ({{t $prevKey}}): {{if eq $.Frag.View.Unit "money"}}{{money .Prev}}{{else}}{{num .Prev 1}}{{end}}</title></rect>
   <rect class="bar" x="{{.ValueX}}" y="{{.ValueY}}" width="{{.ValueW}}" height="{{.ValueH}}"><title>{{.Label}}: {{if eq $.Frag.View.Unit "money"}}{{money .Value}}{{else}}{{num .Value 1}}{{end}}</title></rect>
   {{if .AxisLabel}}<text x="{{.LabelX}}" y="214" text-anchor="middle">{{.AxisLabel}}</text>{{end}}
   {{end}}
 </svg>
-<p class="legend"><span><i></i>{{t "chart.this"}}</span><span><i class="prev"></i>{{t "chart.prev"}}</span></p>
+<p class="legend"><span><i></i>{{t "chart.this"}}</span><span><i class="prev"></i>{{t $prevKey}}</span></p>
 {{end}}
 {{end}}
 

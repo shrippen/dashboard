@@ -176,6 +176,8 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  liquidity_30: Liquidity 30 days
+  seasonal: Seasonal revenue
   effective_rate: Effective hourly rate
   effective_rates: Rate per customer
   newtab: New tab
@@ -723,6 +725,7 @@ info:
   glances:
     cpu: CPU {percent} %
 kpi:
+  liquidity: income {in} − fixed costs {out}
   per_hour: per hour, {count} customers, 12 months
   of_target: target {hours} h
   hours: '{hours} h'
@@ -760,6 +763,8 @@ upcoming:
 table:
   more: '{count} more'
 chart:
+  season_avg: Ø prior years
+  seasonal: Seasonal revenue
   revenue: Net revenue per month
   hours: Hours per month
   prev: Last year
@@ -832,6 +837,7 @@ param:
   date_window: Date window (days)
   notice_days: Notice (days)
 settings:
+  fixed_monthly: Fixed costs per month
   title: Analysis
   lead: Goals, tax values and hint thresholds of this space.
   goals: Goals

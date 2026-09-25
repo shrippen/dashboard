@@ -39,6 +39,7 @@ const (
 	MetricRevenueForecast Metric = "revenue_forecast"
 	MetricCash30          Metric = "cash_30"
 	MetricEffectiveRate   Metric = "effective_rate"
+	MetricLiquidity30     Metric = "liquidity_30"
 )
 
 // TableKind selects a "table" widget's row source.
@@ -60,6 +61,7 @@ type ChartKind string
 const (
 	ChartRevenue ChartKind = "revenue"
 	ChartHours   ChartKind = "hours"
+	ChartSeason  ChartKind = "seasonal"
 )
 
 // TrendMetric selects a "trend" widget's daily snapshot series.
@@ -198,6 +200,8 @@ type KpiResult struct {
 	SubKey   string // "" if none
 	SubHours float64
 	SubCount int
+	SubIn    float64 // liquidity: expected income
+	SubOut   float64 // liquidity: fixed costs
 	SubStart string
 	SubEnd   string
 	SubGoal  float64
@@ -272,6 +276,12 @@ func kpiNinja(metric Metric, data *sources.NinjaDataset, peer any, ctx ViewCtx) 
 	case MetricCash30:
 		return &KpiResult{Kind: "money", Value: metrics.NinjaCashExpected(data, today, 30), Currency: stats.Currency,
 			SubKey: "kpi.cash_30"}
+	case MetricLiquidity30:
+		// 30 days ≈ one month of fixed costs.
+		income := metrics.NinjaCashExpected(data, today, 30)
+		fixed := settingsFloat(settingsMap(ctx.Settings, "costs"), "fixed_monthly", 0)
+		return &KpiResult{Kind: "money", Value: income - fixed, Currency: stats.Currency,
+			SubKey: "kpi.liquidity", SubIn: income, SubOut: fixed}
 	case MetricEffectiveRate:
 		kimai, ok := peer.(*sources.KimaiDataset)
 		if !ok {
@@ -551,6 +561,13 @@ func chartView(cfgAny any, results map[string]any, ctx ViewCtx) map[string]any {
 			raw = append(raw, barSeries{m.Month, m.Net, m.Prev})
 		}
 		return map[string]any{"Bars": barsFrom(raw), "Unit": "money"}
+
+	case cfg.Chart == ChartSeason && service == enums.ServiceInvoiceNinja:
+		var raw []barSeries
+		for _, m := range metrics.NinjaSeasonal(data.(*sources.NinjaDataset), today, cfg.Months) {
+			raw = append(raw, barSeries{m.Month, m.Net, m.Prev})
+		}
+		return map[string]any{"Bars": barsFrom(raw), "Unit": "money", "PrevKey": "chart.season_avg"}
 
 	case cfg.Chart == ChartHours && service == enums.ServiceKimai:
 		kdata := data.(*sources.KimaiDataset)

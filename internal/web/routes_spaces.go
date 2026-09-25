@@ -62,6 +62,7 @@ func (d Deps) handleSpaceSettings(w http.ResponseWriter, r *http.Request) {
 	tax := asMap(settings["tax"])
 	_ = d.Page(w, ctx, "space_settings", http.StatusOK, map[string]any{
 		"SpaceID": id, "Goals": goals, "Tax": tax, "VAT": asMap(tax["vat"]), "Prepay": asMap(tax["prepayments"]),
+		"Costs": asMap(settings["costs"]),
 		"Rules": spaces.RuleViews(settings), "Methods": vatMethods, "Intervals": vatIntervals,
 		"Saved": r.URL.Query().Has("saved"),
 	})
@@ -122,6 +123,7 @@ func (d Deps) handleSpaceSettingsSave(w http.ResponseWriter, r *http.Request) {
 			"annual_due":      annual,
 			"income_tax_rate": number(r.FormValue("income_tax_rate"), defaultIncomeTaxRate),
 		},
+		"costs": map[string]any{"fixed_monthly": number(r.FormValue("fixed_monthly"), 0)},
 		"rules": spaces.ParseRules(r.FormValue),
 	}
 	if err := spaces.Update(d.DB, ctx.Who, id, changes, ClientIP(r)); err != nil {

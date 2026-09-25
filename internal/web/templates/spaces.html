@@ -21,6 +21,8 @@
         <input id="revenue_year" name="revenue_year" type="number" step="100" value="{{index .Goals "revenue_year"}}">
         <label for="hours_per_day">{{t "settings.hours_per_day"}}</label>
         <input id="hours_per_day" name="hours_per_day" type="number" step="0.5" value="{{with index .Goals "hours_per_day"}}{{.}}{{else}}8{{end}}">
+        <label for="fixed_monthly">{{t "settings.fixed_monthly"}}</label>
+        <input id="fixed_monthly" name="fixed_monthly" type="number" step="10" min="0" value="{{index .Costs "fixed_monthly"}}">
       </div>
 
       <h2>{{t "settings.tax"}}</h2>

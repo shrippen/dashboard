@@ -705,7 +705,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 - [x] Verlaufsdiagramme aus Snapshots (Umsatz, Stunden, offene Posten)
 - [x] Hochrechnung Jahresumsatz, Umsatzsteuer-Zahllast und Steuerrücklage
-- [ ] Vergleich Vorjahr, saisonale Muster, Liquiditätsvorschau (offene Posten + wiederkehrende Rechnungen − feste Ausgaben) *(Vorjahr und erwarteter Zahlungseingang 30 Tage ja; saisonale Muster und feste Ausgaben fehlen)*
+- [x] Vergleich Vorjahr, saisonale Muster, Liquiditätsvorschau (offene Posten + wiederkehrende Rechnungen − feste Ausgaben) (Diagramm `seasonal`, KPI `liquidity_30`, Fixkosten in den Bereichseinstellungen)
 
 ### Phase 9: Ausbau (v1.0)
 

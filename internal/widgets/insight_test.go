@@ -136,3 +136,18 @@ func TestProgressViewRevenueGoal(t *testing.T) {
 		t.Fatalf("expected 25%% progress towards goal, got %+v", view)
 	}
 }
+
+func TestKpiLiquiditySubtractsFixedCosts(t *testing.T) {
+	kind, _ := widgets.Get("kpi")
+	cfg, _ := widgets.Decode("kpi", map[string]any{"metric": "liquidity_30"})
+	data := &sources.NinjaDataset{Invoices: []sources.NinjaInvoice{
+		{Status: "sent", Date: "2026-09-01", DueDate: "2026-10-01", Balance: 1000, Net: 840},
+	}}
+	settings := map[string]any{"costs": map[string]any{"fixed_monthly": 300.0}}
+
+	view := kind.View(cfg, map[string]any{"data": data}, ctxFor(enums.ServiceInvoiceNinja, settings))
+	kpi := view["KPI"].(*widgets.KpiResult)
+	if kpi.Value != 700 || kpi.SubOut != 300 {
+		t.Fatalf("unexpected: %+v", kpi)
+	}
+}
