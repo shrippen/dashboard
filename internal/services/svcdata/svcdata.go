@@ -5,12 +5,9 @@
 // A shared connection is fetched once for everybody; a connection with
 // personal credentials once per user.
 //
-// Simplification vs. the Python service: results are always fetched live
-// (the persisted cache row is written for durability/future widget-preview
-// reads, but not yet read back to skip a fetch), since decoding a cached
-// row back into its typed Go dataset struct needs a per-source decoder
-// that isn't written yet. TODO: add that decoder and honor TTL/Freshness
-// properly; until then every call reaches the live service.
+// Results live in memory for the source's TTL (typed datasets, no decoding
+// needed); Force skips that. The persisted cache row only records the last
+// outcome for inspection.
 package svcdata
 
 import (
@@ -21,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"dashboard/internal/crypto"
@@ -32,8 +30,7 @@ import (
 	"dashboard/internal/sources"
 )
 
-// Freshness selects whether a stale cache entry is acceptable.
-// See the package doc: currently both values always fetch live.
+// Freshness selects whether a cached result within its TTL is acceptable.
 type Freshness int
 
 const (
@@ -117,12 +114,90 @@ func buildCtx(q db.Queryer, conn *model.Connection, userID *int64, params map[st
 	}, nil
 }
 
+// connVersion changes whenever what a fetch depends on changes (URL,
+// secret, options), so edited connections never see older results.
+func connVersion(conn *model.Connection) string {
+	if conn == nil {
+		return ""
+	}
+	raw, _ := json.Marshal([]any{conn.URL, conn.SecretEnc, conn.Options, conn.VerifyTLS})
+	sum := sha256.Sum256(raw)
+	return fmt.Sprintf(":%x", sum[:8])
+}
+
+// errorTTL caps how long a failed fetch is served before retrying.
+const errorTTL = time.Minute
+
+type memEntry struct {
+	result  Result
+	connID  int64 // 0 without a connection
+	expires time.Time
+}
+
+var (
+	memMu sync.Mutex
+	mem   = map[string]memEntry{}
+)
+
+func remembered(key string, now time.Time) (Result, bool) {
+	memMu.Lock()
+	defer memMu.Unlock()
+
+	e, ok := mem[key]
+	if !ok || now.After(e.expires) {
+		delete(mem, key)
+		return Result{}, false
+	}
+	return e.result, true
+}
+
+func remember(key string, connID int64, result Result, ttl time.Duration) {
+	if !result.Ok() {
+		ttl = min(ttl, errorTTL)
+	}
+	memMu.Lock()
+	defer memMu.Unlock()
+
+	now := time.Now()
+	for k, e := range mem {
+		if now.After(e.expires) {
+			delete(mem, k)
+		}
+	}
+	mem[key] = memEntry{result: result, connID: connID, expires: now.Add(ttl)}
+}
+
+// Forget drops every cached result of a connection, e.g. after its URL
+// or credentials changed.
+func Forget(connID int64) {
+	memMu.Lock()
+	defer memMu.Unlock()
+
+	for k, e := range mem {
+		if e.connID == connID {
+			delete(mem, k)
+		}
+	}
+}
+
 // Get fetches source sourceKey (never raises for a service error — it
 // comes back as Result.Error) and persists the outcome to the cache table.
-func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any, conn *model.Connection, userID *int64, _ Freshness) (Result, error) {
+func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any, conn *model.Connection, userID *int64, fresh Freshness) (Result, error) {
 	source, err := sources.Get(sourceKey)
 	if err != nil {
 		return Result{}, err
+	}
+
+	owner := CredentialOwner(conn, userID)
+	var connID *int64
+	if conn != nil {
+		connID = &conn.ID
+	}
+	key := cacheKey(sourceKey, connID, owner, params) + connVersion(conn)
+	if fresh == Cached {
+		if result, ok := remembered(key, time.Now()); ok {
+			return result, nil
+		}
 	}
 
 	var sctx sources.Ctx
@@ -146,12 +221,11 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 		result.Data, result.OkAt = out, now
 	}
 
-	owner := CredentialOwner(conn, userID)
-	var connID *int64
+	memConn := int64(0)
 	if conn != nil {
-		connID = &conn.ID
+		memConn = conn.ID
 	}
-	key := cacheKey(sourceKey, connID, owner, params)
+	remember(key, memConn, result, source.TTL())
 	_ = persistCache(d, key, sourceKey, result) // best-effort; a cache write failure must not fail the fetch
 
 	return result, nil

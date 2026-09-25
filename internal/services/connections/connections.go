@@ -227,6 +227,8 @@ func Create(d *sql.DB, who *access.Principal, spaceID int64, service enums.Servi
 // Update changes a connection's mutable fields. Requires MANAGE.
 func Update(d *sql.DB, who *access.Principal, connID int64, name, url string, mode enums.CredentialMode,
 	secret *string, tls TLS, options map[string]any) error {
+	defer svcdata.Forget(connID) // cached data may be stale now
+
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		conn, err := content.Connection(tx, connID)
 		if err != nil {
@@ -279,6 +281,8 @@ func Update(d *sql.DB, who *access.Principal, connID int64, name, url string, mo
 // SetOptions replaces a connection's service-specific options (e.g. the
 // Dawarich area -> Kimai customer mapping). Requires MANAGE.
 func SetOptions(d *sql.DB, who *access.Principal, connID int64, options map[string]any) error {
+	defer svcdata.Forget(connID) // cached data may be stale now
+
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		conn, err := content.Connection(tx, connID)
 		if err != nil {
@@ -304,6 +308,8 @@ func SetOptions(d *sql.DB, who *access.Principal, connID int64, options map[stri
 
 // Delete removes a connection and its shares. Requires MANAGE.
 func Delete(d *sql.DB, who *access.Principal, connID int64) error {
+	defer svcdata.Forget(connID) // cached data may be stale now
+
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		conn, err := content.Connection(tx, connID)
 		if err != nil || conn == nil {
@@ -328,6 +334,8 @@ func Delete(d *sql.DB, who *access.Principal, connID int64) error {
 
 // SetMine stores the caller's own personal token for a connection they may use.
 func SetMine(d *sql.DB, who *access.Principal, connID int64, secret string) error {
+	defer svcdata.Forget(connID) // cached data may be stale now
+
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		conn, err := content.Connection(tx, connID)
 		if err != nil {
@@ -356,6 +364,8 @@ func SetMine(d *sql.DB, who *access.Principal, connID int64, secret string) erro
 
 // DropMine removes the caller's own personal token for a connection.
 func DropMine(d *sql.DB, who *access.Principal, connID int64) error {
+	defer svcdata.Forget(connID) // cached data may be stale now
+
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		return content.RemoveCredential(tx, connID, who.UserID)
 	})
