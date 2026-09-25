@@ -111,7 +111,9 @@ func TestDashyImport(t *testing.T) {
 		t.Fatal(err)
 	}
 	media := view.Sections[0]
-	if !media.Collapsed || media.Cols == nil || *media.Cols != 3 || media.Size != enums.TileSmall {
+	// Dashy's cols is the section's width in its own grid, not tiles per
+	// row: link groups flow in newspaper columns instead.
+	if !media.Collapsed || media.Cols != nil || media.Span != boards.SpanFlow || media.Size != enums.TileSmall {
 		t.Fatalf("section display not carried over: %+v", media)
 	}
 	if len(media.Tiles) != 2 || media.Tiles[0].Title != "Jellyfin" || media.Tiles[1].Title != "FA" {
@@ -226,7 +228,7 @@ sections:
           - {title: Bad, url: "ftp://x"}
 `
 
-// Tags, sub-items, rows and page texts survive the Dashy import; status
+// Tags, sub-items and page texts survive the Dashy import; status
 // headers are stored sealed and never exported.
 func TestDashyLinksAndPage(t *testing.T) {
 	d := setup(t)
@@ -246,7 +248,7 @@ func TestDashyLinksAndPage(t *testing.T) {
 	}
 	sec := view.Sections[0]
 	link := sec.Tiles[0].Config.(widgets.LinkConfig)
-	if sec.Rows != 2 || len(link.Tags) != 2 || len(sec.Tiles[0].Items) != 1 || sec.Tiles[0].Items[0].Title != "Admin" {
+	if sec.Span != boards.SpanFlow || len(link.Tags) != 2 || len(sec.Tiles[0].Items) != 1 || sec.Tiles[0].Items[0].Title != "Admin" {
 		t.Fatalf("section %+v link %+v", sec, link)
 	}
 	if view.Page.Title != "Heim" || view.Page.Footer != "Privat" {
@@ -260,8 +262,8 @@ func TestDashyLinksAndPage(t *testing.T) {
 	if strings.Contains(text, "abc") || strings.Contains(text, "headers") {
 		t.Fatalf("export leaks headers:\n%s", text)
 	}
-	if !strings.Contains(text, "rows: 2") {
-		t.Fatalf("export lost rows:\n%s", text)
+	if !strings.Contains(text, "span: 7") {
+		t.Fatalf("export lost the section span:\n%s", text)
 	}
 }
 

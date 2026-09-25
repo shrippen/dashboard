@@ -8,6 +8,7 @@ import (
 
 	"dashboard/internal/enums"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/boards"
 	"dashboard/internal/services/icons"
 	"dashboard/internal/services/spaces"
 	"dashboard/internal/services/themes"
@@ -139,12 +140,10 @@ func dashySection(sec map[string]any, refs []any) map[string]any {
 	if truthy(display["collapsed"]) {
 		out["collapsed"] = true
 	}
-	if n, err := strconv.Atoi(str(display, "cols")); err == nil && n > 0 {
-		out["cols"] = n
-	}
-	if n, err := strconv.Atoi(fmt.Sprint(display["rows"])); err == nil && n > 1 {
-		out["rows"] = n
-	}
+	// Dashy's cols/rows size the section in its own grid, not the tiles
+	// in it; link groups flow in newspaper columns here instead.
+	out["span"] = boards.SpanFlow
+	out["size"] = string(enums.TileSmall)
 	switch size := enums.TileSize(str(display, "itemSize")); size {
 	case enums.TileSmall, enums.TileMedium, enums.TileLarge:
 		out["size"] = string(size)
