@@ -192,6 +192,8 @@ func Render(theme *model.Theme) string {
 	baseDark, baseLight := Contract()
 	dark := merge(baseDark, stringMap(theme.Dark))
 	light := merge(baseLight, stringMap(theme.Light))
+	dark = merge(dark, TextRoles(dark))
+	light = merge(light, TextRoles(merge(dark, light)))
 
 	var b strings.Builder
 	b.WriteString(fontFaces(theme))
@@ -291,6 +293,69 @@ func ContrastIssues(dark, light map[string]string) []ContrastIssue {
 		}
 	}
 	return issues
+}
+
+// textRoles are status colours for text: the semantic colour, mixed
+// toward --fg1 just enough to reach AA on every text surface. Borders and
+// fills keep the pure colour.
+var textRoles = map[string]string{"--ok-text": "--aqua", "--warn-text": "--yellow", "--danger-text": "--red"}
+
+var textSurfaces = []string{"--bg-void", "--bg-panel", "--bg-hard", "--bg0"}
+
+const mixStep = 0.05
+
+// TextRoles derives the text-role tokens for one mode's resolved tokens,
+// e.g. light --aqua #427b58 → --ok-text #3b6d4e.
+func TextRoles(tokens map[string]string) map[string]string {
+	out := map[string]string{}
+	fg := tokens["--fg1"]
+	for role, src := range textRoles {
+		out[role] = "var(" + src + ")"
+		base := tokens[src]
+		if !hexColor.MatchString(base) || !hexColor.MatchString(fg) {
+			continue
+		}
+		for share := 0.0; share <= 1; share += mixStep {
+			mixed := mixHex(base, fg, share)
+			if passesOn(mixed, tokens) {
+				out[role] = mixed
+				break
+			}
+		}
+	}
+	return out
+}
+
+func passesOn(color string, tokens map[string]string) bool {
+	for _, s := range textSurfaces {
+		bg := tokens[s]
+		if hexColor.MatchString(bg) && Ratio(color, bg) < aaText {
+			return false
+		}
+	}
+	return true
+}
+
+// mixHex blends share of b into a, per sRGB channel.
+func mixHex(a, b string, share float64) string {
+	ca, cb := rgb(a), rgb(b)
+	var out [3]int
+	for i := range out {
+		out[i] = int(math.Round(float64(ca[i])*(1-share) + float64(cb[i])*share))
+	}
+	return fmt.Sprintf("#%02x%02x%02x", out[0], out[1], out[2])
+}
+
+func rgb(hex string) [3]int64 {
+	v := strings.TrimPrefix(hex, "#")
+	if len(v) == 3 {
+		v = string([]byte{v[0], v[0], v[1], v[1], v[2], v[2]})
+	}
+	var out [3]int64
+	for i := range out {
+		out[i], _ = strconv.ParseInt(v[i*2:i*2+2], 16, 32)
+	}
+	return out
 }
 
 // ── Builtin ──

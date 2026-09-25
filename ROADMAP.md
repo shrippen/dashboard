@@ -607,7 +607,7 @@ Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
 - [x] `.progress` mit `data-tier`: Budget- und Auslastungsbalken
 - [x] `.editbar`: Bearbeitungsmodus direkt auf dem Board (`?edit`), Kacheln per Drag & Drop (SortableJS); eigenes Layout über `?layout`
 - [x] `.login`: eigene Anmeldeseite (`login.html`, `totp`, `setup`)
-- [ ] Kontrastprüfung dunkel/hell (WCAG AA) für die neuen Komponenten — nicht durchgeführt
+- [x] Kontrastprüfung dunkel/hell (WCAG AA) für die neuen Komponenten *(Test `TestComponentContrastAA`; Statustexte über abgeleitete Tokens `--ok-text`/`--warn-text`/`--danger-text`, auch für eigene Themes)*
 
 ---
 
