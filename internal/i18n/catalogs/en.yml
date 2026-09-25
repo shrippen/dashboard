@@ -1,5 +1,6 @@
 saved: Saved.
 nav:
+  billing: Billing
   home: Go to start page
   hints: Hints
   new_board: New board
@@ -1657,3 +1658,20 @@ cashflow:
   fixed: Fixed costs
   prepayment: Tax prepayment
   relative_hint: Without a Sure connection it starts at 0 – the curve shows the change, not the balance.
+billing:
+  lead: Turn unbilled Kimai time into Invoice Ninja drafts, and download the tax year package.
+  drafts: Invoice drafts
+  since: 'Work since {day}'
+  notes: Description
+  total: Net total
+  mark_exported: Mark the time as exported in Kimai
+  create: 'Create draft for {client}'
+  created: 'Draft {number} created in Invoice Ninja.'
+  no_client: No Invoice Ninja client with this name. Align the names in Kimai and Invoice Ninja.
+  nothing: This customer has no unbilled time left.
+  no_data: This space has neither Kimai nor Invoice Ninja data.
+  none: No unbilled time (as of the last check).
+  export: Tax year package
+  year: Year
+  download: Download ZIP
+  export_hint: 'Invoices, payments, expenses, VAT per month and hours as CSV (semicolon, decimal comma). Covers the current and the previous year.'

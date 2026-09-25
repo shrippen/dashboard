@@ -1,5 +1,6 @@
 saved: Gespeichert.
 nav:
+  billing: Abrechnung
   home: Zur Startseite
   hints: Hinweise
   new_board: Neues Board
@@ -1658,3 +1659,20 @@ cashflow:
   fixed: Feste Kosten
   prepayment: Steuervorauszahlung
   relative_hint: Ohne Sure-Verbindung ab 0 gerechnet – die Kurve zeigt die Veränderung, nicht den Kontostand.
+billing:
+  lead: Unabgerechnete Kimai-Zeiten als Rechnungsentwurf in Invoice Ninja anlegen, und das Jahrespaket für die Steuer.
+  drafts: Rechnungsentwürfe
+  since: 'Arbeit seit {day}'
+  notes: Beschreibung
+  total: Summe netto
+  mark_exported: Zeiten in Kimai als exportiert markieren
+  create: 'Entwurf für {client} anlegen'
+  created: 'Entwurf {number} in Invoice Ninja angelegt.'
+  no_client: Kein Invoice-Ninja-Kunde mit diesem Namen. Namen in Kimai und Invoice Ninja angleichen.
+  nothing: Für diesen Kunden gibt es keine unabgerechneten Zeiten mehr.
+  no_data: In diesem Bereich gibt es weder Kimai- noch Invoice-Ninja-Daten.
+  none: Keine unabgerechneten Zeiten (Stand des letzten Prüflaufs).
+  export: Jahrespaket für die Steuer
+  year: Jahr
+  download: ZIP herunterladen
+  export_hint: 'Rechnungen, Zahlungen, Ausgaben, Umsatzsteuer je Monat und Stunden als CSV (Semikolon, Dezimalkomma). Enthält das laufende und das Vorjahr.'

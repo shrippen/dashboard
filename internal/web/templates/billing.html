@@ -1,0 +1,49 @@
+{{define "billing"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.billing"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.billing"}}</h1>
+    <p class="muted">{{t "billing.lead"}}</p>
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+    {{with .Created}}<p class="pill" data-state="ok">{{t "billing.created" "number" .}}</p>{{end}}
+
+    <h2>{{t "billing.drafts"}}</h2>
+    {{range .Drafts}}
+    <section class="card billing-draft">
+      <h3>{{.Customer}} <small class="muted">{{.SpaceName}} · {{t "billing.since" "day" (day .Oldest)}}</small></h3>
+      <div class="table-wrap"><table class="table">
+        <tr><th>{{t "col.project"}}</th><th>{{t "billing.notes"}}</th><th class="num">{{t "col.hours"}}</th><th class="num">{{t "col.rate"}}</th><th class="num">{{t "col.amount"}}</th></tr>
+        {{range .Lines}}<tr><td>{{.Product}}</td><td>{{.Notes}}</td><td class="num">{{num .Hours 2}}</td><td class="num">{{money .Rate}}</td><td class="num">{{money .Amount}}</td></tr>{{end}}
+        <tr><td colspan="4"><b>{{t "billing.total"}}</b></td><td class="num"><b>{{money .Total}}</b></td></tr>
+      </table></div>
+      {{if .ClientKey}}
+      <form method="post" action="/billing/draft" class="inline-form">
+        <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+        <input type="hidden" name="space_id" value="{{.SpaceID}}">
+        <input type="hidden" name="customer_id" value="{{.CustomerID}}">
+        <label class="check"><input type="checkbox" name="mark_exported" checked> {{t "billing.mark_exported"}}</label>
+        <button type="submit">{{t "billing.create" "client" .Client}}</button>
+      </form>
+      {{else}}<p class="small late">{{t "billing.no_client"}}</p>{{end}}
+    </section>
+    {{else}}<p class="muted">{{t "billing.none"}}</p>{{end}}
+
+    <h2>{{t "billing.export"}}</h2>
+    <form method="get" action="/billing/export" class="card inline-form">
+      {{template "space_select" .Spaces}}
+      <select name="year" aria-label="{{t "billing.year"}}">{{range .Years}}<option>{{.}}</option>{{end}}</select>
+      <button type="submit" class="ghost">{{t "billing.download"}}</button>
+    </form>
+    <p class="small muted">{{t "billing.export_hint"}}</p>
+  </main>
+</body>
+</html>
+{{end}}
