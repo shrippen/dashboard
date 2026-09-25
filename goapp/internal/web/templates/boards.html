@@ -1,25 +1,44 @@
-{{/* Board list only, for now: widget rendering needs the boards/widgets
-     service (Task "Go: Widgets, Editor, Themes, Notify"). */}}
-{{define "boards"}}
+{{/* Board view with real sections and tiles. Tiles show title/type only —
+     per-widget-type rendering (link status, RSS items, clock, KPIs, ...)
+     is a follow-up; the layout, overlay and rights are fully live. */}}
+{{define "board"}}
 <!doctype html>
 <html lang="{{.Ctx.Locale}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>dashboard</title>
+  <title>{{.Board.Name}} · dashboard</title>
   {{template "style" .}}
+  <style>
+    .board-nav { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .board-nav a { padding: .25rem .6rem; border: 1px solid #8884; border-radius: .4rem; font-size: .85rem; }
+    .section { margin-bottom: 1.5rem; }
+    .section h2 { font-size: 1rem; opacity: .8; margin: 0 0 .5rem; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .75rem; }
+    .tile { border: 1px solid #8884; border-radius: .5rem; padding: .75rem; }
+    .tile .kind { font-size: .75rem; opacity: .6; text-transform: uppercase; }
+  </style>
 </head>
 <body>
   {{template "header" .}}
   <main>
-    <h1>{{t "nav.home"}}</h1>
-    {{if not .Boards}}
-      <p>Noch keine Boards.</p>
+    {{if .NavBoards}}
+      <nav class="board-nav">
+        {{range .NavBoards}}<a href="/boards/{{.ID}}">{{.Name}}</a>{{end}}
+      </nav>
     {{end}}
-    {{range .Boards}}
-      <div class="card">
-        <strong>{{.Name}}</strong>
-        <div style="opacity:.7; font-size:.85rem">{{.SpaceName}}</div>
+    <h1>{{.Board.Name}}</h1>
+    {{range .Board.Sections}}
+      <div class="section">
+        {{if .Title}}<h2>{{.Title}}</h2>{{end}}
+        <div class="tiles">
+          {{range .Tiles}}
+            <div class="tile">
+              <div class="kind">{{.Type}}</div>
+              <strong>{{.Title}}</strong>
+            </div>
+          {{end}}
+        </div>
       </div>
     {{end}}
   </main>

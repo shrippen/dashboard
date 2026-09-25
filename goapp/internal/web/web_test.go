@@ -86,12 +86,29 @@ func login(t *testing.T, srv *httptest.Server, client *http.Client) {
 
 var csrfRe = regexp.MustCompile(`name="csrf" value="([^"]+)"`)
 
+// getFollowingRedirect GETs path and, if the response is a redirect,
+// follows its Location once (the client's own Jar carries the session
+// cookie, and CheckRedirect is set to not auto-follow elsewhere in this
+// file, so tests can see and assert on the redirect itself when they want to).
+func getFollowingRedirect(t *testing.T, srv *httptest.Server, client *http.Client, path string) *http.Response {
+	t.Helper()
+	resp, err := client.Get(srv.URL + path)
+	if err != nil {
+		t.Fatalf("get %s: %v", path, err)
+	}
+	if loc := resp.Header.Get("Location"); resp.StatusCode == http.StatusSeeOther && loc != "" {
+		resp.Body.Close()
+		resp, err = client.Get(srv.URL + loc)
+		if err != nil {
+			t.Fatalf("get %s: %v", loc, err)
+		}
+	}
+	return resp
+}
+
 func csrfToken(t *testing.T, srv *httptest.Server, client *http.Client) string {
 	t.Helper()
-	resp, err := client.Get(srv.URL + "/")
-	if err != nil {
-		t.Fatalf("get home: %v", err)
-	}
+	resp := getFollowingRedirect(t, srv, client, "/")
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	m := csrfRe.FindSubmatch(body)
@@ -117,14 +134,12 @@ func TestFullLoginLogoutFlow(t *testing.T) {
 
 	login(t, srv, client)
 
-	resp, err = client.Get(srv.URL + "/")
-	if err != nil {
-		t.Fatalf("get home after login: %v", err)
-	}
+	// "/" redirects to a freshly created start board.
+	resp = getFollowingRedirect(t, srv, client, "/")
 	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "Admin") {
-		t.Fatalf("expected home page showing the user, got %d:\n%s", resp.StatusCode, body)
+		t.Fatalf("expected board page showing the user, got %d:\n%s", resp.StatusCode, body)
 	}
 }
 
@@ -145,14 +160,15 @@ func TestLogoutRequiresCSRF(t *testing.T) {
 		t.Fatalf("expected 403 for logout without csrf, got %d", resp.StatusCode)
 	}
 
-	// Session must still be alive.
+	// Session must still be alive: "/" still redirects to a board, not to
+	// /login.
 	resp, err = client.Get(srv.URL + "/")
 	if err != nil {
 		t.Fatalf("get home: %v", err)
 	}
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected still logged in after rejected logout, got %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") == "/login" {
+		t.Fatalf("expected still logged in after rejected logout, got %d %s", resp.StatusCode, resp.Header.Get("Location"))
 	}
 
 	// With the real CSRF token, logout succeeds and the session ends.
@@ -190,5 +206,21 @@ func TestLoginWrongPasswordStaysOnLoginPage(t *testing.T) {
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(string(body), "fehlgeschlagen") {
 		t.Fatalf("expected 401 with error message, got %d:\n%s", resp.StatusCode, body)
+	}
+}
+
+// TestBoardViewShowsPlacedWidget confirms the board route is wired to the
+// real boards service, not just a placeholder list: a placed widget's
+// title and type show up on the rendered page.
+func TestBoardViewShowsPlacedWidget(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	resp := getFollowingRedirect(t, srv, client, "/")
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "Start") {
+		t.Fatalf("expected the auto-created start board, got %d:\n%s", resp.StatusCode, body)
 	}
 }

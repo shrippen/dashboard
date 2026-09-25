@@ -3,22 +3,16 @@ package web
 import (
 	"errors"
 	"net/http"
-	"sort"
+	"strconv"
 
-	"dashboard/internal/repos/content"
+	"dashboard/internal/services/boards"
+	"dashboard/internal/services/util"
 )
 
-// boardRow is the minimal board summary this placeholder page shows. Full
-// widget rendering needs the boards/widgets service (a later task).
-type boardRow struct {
-	ID        int64
-	Name      string
-	SpaceName string
-}
-
-// RegisterBoardRoutes wires the (placeholder) home page.
+// RegisterBoardRoutes wires the home page and board view.
 func (d Deps) RegisterBoardRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /{$}", d.handleHome)
+	mux.HandleFunc("GET /boards/{id}", d.handleBoardView)
 }
 
 func (d Deps) handleHome(w http.ResponseWriter, r *http.Request) {
@@ -28,24 +22,50 @@ func (d Deps) handleHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var spaceIDs []int64
-	for id := range ctx.Who.Spaces {
-		spaceIDs = append(spaceIDs, id)
+	id, err := boards.StartBoard(d.DB, ctx.Who, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/boards/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+}
+
+func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
 	}
 
-	boards, err := content.Boards(d.DB, spaceIDs)
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	view, err := boards.View(d.DB, ctx.Who, id)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	navBoards, err := boards.Visible(d.DB, ctx.Who)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	rows := make([]boardRow, 0, len(boards))
-	for _, b := range boards {
-		rows = append(rows, boardRow{ID: b.ID, Name: b.Name, SpaceName: ctx.Who.Spaces[b.SpaceID].Name})
-	}
-	sort.Slice(rows, func(i, j int) bool { return rows[i].Name < rows[j].Name })
+	_ = Page(w, ctx, "board", http.StatusOK, map[string]any{"Board": view, "NavBoards": navBoards})
+}
 
-	_ = Page(w, ctx, "boards", http.StatusOK, map[string]any{"Boards": rows})
+func (d Deps) handleBoardError(w http.ResponseWriter, r *http.Request, err error) {
+	switch {
+	case errors.Is(err, util.ErrNotFound):
+		http.NotFound(w, r)
+	case errors.Is(err, boards.ErrDenied):
+		http.Error(w, "forbidden", http.StatusForbidden)
+	default:
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleAuthError turns the sentinel errors from Require/Context into the
