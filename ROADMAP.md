@@ -14,19 +14,20 @@ Das Projekt ist vollständig von Python auf **Go** umgestellt (Zielplattform: Ra
 
 | Bereich | Stand |
 |---|---|
-| Anmeldung, Teams, Rechte, Freigaben, Overlays | umgesetzt |
-| Editor, Bibliothek, Revisionen | umgesetzt; YAML-Import/-Export und Dashy-Import (`porting.py`) **nicht portiert** |
-| Themes | umgesetzt; Schrift-Upload fehlt |
-| Kimai, Invoice Ninja, Snipe-IT, Dawarich | Adapter, 32 Regeln, Insight-Widgets umgesetzt; Endpunkte gegen Doku, nicht gegen Live-Systeme geprüft |
-| Start-Widgets (Link, RSS, Uhr, Wetter, iframe, Systeminfo, öffentliche IP, Notiz) | umgesetzt, live über htmx-Fragmente |
-| Benachrichtigungen | Apprise per HTTP an eine vorhandene Apprise-API-Instanz (kein eigener Container); Digest-Mail und iCal **nicht portiert** (kein SMTP-Outbound in Go) |
-| Trends, Prognosen | Tages-Snapshots, Verlauf, Jahresprognose, erwarteter Zahlungseingang |
-| Betrieb | CLI `dashboard backup`, `rotate-key`; `import` **nicht portiert** |
-| Icons-Dienst, Demo-Daten (`demo://`), OIDC-Login-Abschluss | **nicht portiert** |
+| Anmeldung (Passwort, TOTP, Passkeys, OIDC), Teams, Rechte, Freigaben, Overlays | umgesetzt |
+| Editor, Bibliothek, Revisionen, YAML-/Dashy-Import, Code-Ansicht (CodeMirror) | umgesetzt |
+| Themes (Editor, Import/Export, Schriften, Styleguide, WCAG-AA-Prüfung) | umgesetzt |
+| Kimai, Invoice Ninja, Snipe-IT, Dawarich | Adapter, Regeln, Insight-Widgets umgesetzt |
+| Homelab-Dienste (Phase 10) | 17 weitere Quellen mit Regeln; Obsidian zurückgestellt, Docker offen |
+| Prüflauf | Hintergrund-Job holt alle Integrationen (Start + alle `ANALYSIS_MINUTES`); Seiten zeigen nur diesen Stand, live nur der Status-Ping |
+| Benachrichtigungen | Apprise, Digest-Mail (SMTP), Wochenrückblick mit optionaler LLM-Zusammenfassung, iCal |
+| Trends, Prognosen | Snapshots, Verlauf, Saisonvergleich, Jahresprognose, Liquidität |
+| Betrieb | CLI `backup`, `rotate-key`, `import`; Demo-Modus; Icons-Dienst |
+| Produktivbetrieb | **offen:** Parallelbetrieb neben Dashy und Umstieg (manuell, Abschnitt 7.4) |
 
 **Abweichungen vom Plan:** Übersetzungen als YAML-Kataloge mit Schlüsseln (unverändert vom Python-Stand übernommen). Das mitgelieferte Theme liegt in `internal/web/templates/` (Builtin, eingebettet). Board-Vorlagen/Revisionen speichern den Board- bzw. Widget-eigenen Zustand, nicht die bereichsübergreifende YAML-Form aus `porting.py`.
 
-**Bekannte Unsicherheiten:** Deep-Links in Invoice Ninja (`/#/invoices/<id>/edit`), Snipe-IT meldet keine Version, Dawarich-Felder für Besuche (`area_id`, `place`) werden tolerant gelesen.
+**Bekannte Unsicherheiten:** Invoice Ninja v5 liefert IDs als Hash-Strings; Kunden-IDs werden bisher als Zahl gelesen (Kundenzuordnung, z. B. Stundensatz je Kunde, gegen v5 prüfen). Deep-Links in Invoice Ninja (`/#/invoices/<id>/edit`), Snipe-IT meldet keine Version, Dawarich-Felder für Besuche (`area_id`, `place`) werden tolerant gelesen.
 
 ---
 
