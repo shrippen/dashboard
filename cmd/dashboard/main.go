@@ -62,6 +62,7 @@ func main() {
 		os.Exit(1)
 	}
 	mail.Init(cfg)
+	themes.InitFonts(cfg.ThemesDir())
 	schedulerCtx, stopScheduler := context.WithCancel(context.Background())
 	defer stopScheduler()
 	if cfg.SchedulerEnabled {

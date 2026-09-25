@@ -63,6 +63,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		SessionAbsoluteHours: 24, SessionIdleMinutes: 60, Testing: true, BaseURL: "http://dash.test",
 	}
 	mail.Init(cfg)
+	themes.InitFonts(t.TempDir())
 	outbound.TakeOutbox()
 	deps := web.Deps{DB: database, Settings: cfg}
 	mux := http.NewServeMux()

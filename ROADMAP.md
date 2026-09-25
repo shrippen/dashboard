@@ -663,10 +663,10 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 - [x] Theme-Vertrag (Token-Liste, Version, Standardwerte) und Laden der Themes je Bereich
 - [x] shrippen als einziges mitgeliefertes, schreibgeschütztes Theme (dunkel + Leinen)
-- [ ] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA *(Go: Service `internal/services/themes` mit voller CRUD inkl. ZIP-Export/-Import fertig, keine Editor-Route/UI)*
-- [ ] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins *(eigenes CSS ja, Schrift-Upload fehlt; Go-Service kann ZIP, ohne UI unerreichbar)*
+- [x] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA *(Go: `/themes/{id}`)*
+- [x] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins *(Go: Schrift-Upload je Theme, Dateiname = Familie-Gewicht; Schriften reisen im ZIP mit)*
 - [x] Auswahlreihenfolge persönlich → Team → Instanz, optional erzwungenes Theme je Board
-- [ ] Seite `/styleguide` mit allen Komponenten im aktuellen Theme *(nur Python; in Go nicht portiert)*
+- [x] Seite `/styleguide` mit allen Komponenten im aktuellen Theme
 
 ### Phase 4: Freelance-Kern: Kimai + Invoice Ninja (v0.5, MVP der Auswertung)
 

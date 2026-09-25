@@ -527,6 +527,9 @@ themes:
   contrast: 'Kontrast zu gering ({mode}): {fg} auf {bg} = {ratio}:1 (WCAG AA braucht 4,5:1).'
   custom_css: Eigenes CSS
   custom_css_hint: Nur für Admins. Externe Ressourcen blockiert die Content-Security-Policy.
+  fonts: Schriften
+  fonts_hint: 'Nur für Admins. Dateiname = Familie-Gewicht, z. B. Inter-600.woff2; in den Tokens dann "Inter" verwenden.'
+  upload: Hochladen
 theme:
   none: – keins –
   default: Standard
@@ -535,6 +538,8 @@ theme:
   css_invalid: CSS ungültig oder zu lang.
   zip_invalid: ZIP-Datei ungültig.
   zip_too_large: ZIP-Datei zu groß.
+  font_name: 'Dateiname ungültig (Familie-Gewicht.woff2, .woff, .ttf oder .otf).'
+  font_size: Schrift zu groß oder zu viele Schriften (max. 1 MB, 12 Dateien).
 tokens:
   background: Hintergründe
   text: Text

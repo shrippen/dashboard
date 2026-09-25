@@ -43,7 +43,8 @@ const (
 	contractVer    = 1
 	defaultSetting = "theme_default"
 	maxCSS         = 50_000
-	maxZip         = 2 * 1024 * 1024
+	maxZip         = 8 * 1024 * 1024
+	zipFontDir     = "fonts/"
 	aaText         = 4.5
 )
 
@@ -193,6 +194,7 @@ func Render(theme *model.Theme) string {
 	light := merge(baseLight, stringMap(theme.Light))
 
 	var b strings.Builder
+	b.WriteString(fontFaces(theme))
 	writeBlock(&b, ":root", dark, "dark")
 	b.WriteByte('\n')
 	writeBlock(&b, `:root[data-theme="light"]`, light, "light")
@@ -663,6 +665,9 @@ func Delete(d *sql.DB, who *access.Principal, themeID int64) error {
 		if err := misc.DropShares(tx, enums.ResourceTheme, theme.ID); err != nil {
 			return err
 		}
+		if err := store().RemoveAll(themeKey(theme.ID)); err != nil {
+			return err
+		}
 		return misc.RemoveTheme(tx, theme.ID)
 	})
 }
@@ -714,6 +719,15 @@ func ExportZip(d *sql.DB, who *access.Principal, themeID int64) (string, []byte,
 	}
 	if theme.CustomCSS != "" {
 		if err := writeZipFile(zw, "custom.css", []byte(theme.CustomCSS)); err != nil {
+			return "", nil, err
+		}
+	}
+	for _, name := range theme.Fonts {
+		data, err := store().Get(themeKey(theme.ID), name)
+		if err != nil {
+			continue
+		}
+		if err := writeZipFile(zw, zipFontDir+name, data); err != nil {
 			return "", nil, err
 		}
 	}
@@ -781,6 +795,22 @@ func ImportZip(d *sql.DB, who *access.Principal, spaceID int64, blob []byte) (in
 	}
 	if _, err := Update(d, who, newID, meta.Name, darkAny, lightAny, cssPtr); err != nil {
 		return 0, err
+	}
+	if !who.IsAdmin() {
+		return newID, nil
+	}
+	for _, f := range zr.File {
+		name, ok := strings.CutPrefix(f.Name, zipFontDir)
+		if !ok || name == "" {
+			continue
+		}
+		data, err := readZipFile(zr, f.Name)
+		if err != nil {
+			return 0, ErrTheme{"theme.zip_invalid"}
+		}
+		if err := AddFont(d, who, newID, name, data); err != nil {
+			return 0, err
+		}
 	}
 	return newID, nil
 }

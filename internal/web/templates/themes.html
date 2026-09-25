@@ -1,0 +1,192 @@
+{{define "space_select"}}
+<select name="space_id" aria-label="{{t "field.space"}}">
+  {{range .}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+</select>
+{{end}}
+
+{{define "themes"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.themes"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.themes"}}</h1>
+    <p class="muted">{{t "themes.lead"}}</p>
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+    <div class="table-wrap"><table class="table">
+      <tr><th>{{t "field.name"}}</th><th></th></tr>
+      {{range .Items}}
+      <tr>
+        <td>{{.Name}}{{if .Builtin}} <span class="pill">{{t "themes.builtin"}}</span>{{end}}</td>
+        <td class="row-actions">
+          <a class="link-btn" href="/themes/{{.ID}}">{{if .CanEdit}}{{t "action.edit"}}{{else}}{{t "themes.view"}}{{end}}</a>
+          <a class="link-btn" href="/themes/{{.ID}}/export">{{t "action.export"}}</a>
+          {{if not .Builtin}}<a class="link-btn" href="/shares/theme/{{.ID}}">{{t "share.title"}}</a>{{end}}
+          <details class="inline-details"><summary>{{t "themes.duplicate"}}</summary>
+            <form method="post" action="/themes/duplicate" class="inline-form">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <input type="hidden" name="theme_id" value="{{.ID}}">
+              <input name="name" value="{{.Name}} 2" required aria-label="{{t "field.name"}}">
+              {{template "space_select" $.Spaces}}
+              <button type="submit" class="ghost">{{t "themes.duplicate"}}</button>
+            </form>
+          </details>
+        </td>
+      </tr>
+      {{end}}
+    </table></div>
+
+    <h2>{{t "themes.import"}}</h2>
+    <form method="post" action="/themes/import" enctype="multipart/form-data" class="card inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      {{template "space_select" .Spaces}}
+      <input type="file" name="file" accept=".zip" required aria-label="{{t "import.file"}}">
+      <button type="submit" class="ghost">{{t "import.run"}}</button>
+    </form>
+    <p><a class="link-btn" href="/styleguide">{{t "styleguide.title"}}</a></p>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "theme_edit"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Theme.Name}} · dashboard</title>
+  {{template "style" .}}
+  <script src="/static/theme-editor.js" defer></script>
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{.Theme.Name}}</h1>
+    <p class="muted">{{t "themes.edit_lead"}}</p>
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+    {{if .Saved}}<p class="pill" data-state="ok">{{t "saved"}}</p>{{end}}
+    {{if .Theme.Builtin}}<p class="card">{{t "themes.builtin_hint"}}</p>{{end}}
+    {{range .Issues}}<p class="pill" data-state="warn">{{t "themes.contrast" "mode" (t (print "mode." .Mode)) "fg" .FG "bg" .BG "ratio" .Ratio}}</p>{{end}}
+
+    <div class="editor-split">
+      <form method="post" action="/themes/{{.Theme.ID}}" class="card" id="theme-form">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="theme_name">{{t "field.name"}}</label>
+        <input id="theme_name" name="name" value="{{.Theme.Name}}"{{if not .Editable}} disabled{{end}}>
+        {{range .Groups}}
+        <h2>{{t (print "tokens." .Key)}}</h2>
+        <div class="token-grid">
+          <span class="label">Token</span><span class="label">{{t "mode.dark"}}</span><span class="label">{{t "mode.light"}}</span>
+          {{range .Rows}}
+          <code>{{.Name}}</code>
+          <span class="swatch-row">
+            {{if .DarkIsHex}}<input type="color" value="{{.DarkColor}}" data-for="dark{{.Name}}" aria-label="{{.Name}} {{t "mode.dark"}}"{{if not $.Editable}} disabled{{end}}>{{end}}
+            <input name="dark{{.Name}}" value="{{.Dark}}" data-token="{{.Name}}" data-mode="dark" aria-label="{{.Name}} {{t "mode.dark"}}"{{if not $.Editable}} disabled{{end}}>
+          </span>
+          <span class="swatch-row">
+            {{if .LightIsHex}}<input type="color" value="{{.LightColor}}" data-for="light{{.Name}}" aria-label="{{.Name}} {{t "mode.light"}}"{{if not $.Editable}} disabled{{end}}>{{end}}
+            <input name="light{{.Name}}" value="{{.Light}}" data-token="{{.Name}}" data-mode="light" aria-label="{{.Name}} {{t "mode.light"}}"{{if not $.Editable}} disabled{{end}}>
+          </span>
+          {{end}}
+        </div>
+        {{end}}
+        {{if and .Who.IsAdmin .Editable}}
+        <h2>{{t "themes.custom_css"}}</h2>
+        <textarea class="code-area short" name="custom_css" rows="8" spellcheck="false" aria-label="{{t "themes.custom_css"}}">{{.Theme.CustomCSS}}</textarea>
+        <p class="small muted">{{t "themes.custom_css_hint"}}</p>
+        {{end}}
+        {{if .Editable}}<button type="submit">{{t "action.save"}}</button>{{end}}
+      </form>
+
+      <aside class="theme-preview" id="theme-preview" data-mode="dark">
+        <div class="seg" role="group">
+          <button type="button" data-preview-mode="dark" aria-pressed="true">{{t "mode.dark"}}</button>
+          <button type="button" data-preview-mode="light" aria-pressed="false">{{t "mode.light"}}</button>
+        </div>
+        {{template "sample" .}}
+      </aside>
+    </div>
+
+    {{if and .Who.IsAdmin .Editable}}
+    <h2>{{t "themes.fonts"}}</h2>
+    <div class="card">
+      <p class="small muted">{{t "themes.fonts_hint"}}</p>
+      {{if .Theme.Fonts}}<ul>{{range .Theme.Fonts}}
+        <li><code>{{.}}</code>
+          <form method="post" action="/themes/{{$.Theme.ID}}/fonts/{{.}}/delete" class="inline-form">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <button type="submit" class="link-btn">{{t "action.delete"}}</button>
+          </form></li>{{end}}
+      </ul>{{end}}
+      <form method="post" action="/themes/{{.Theme.ID}}/fonts" enctype="multipart/form-data" class="inline-form">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <input type="file" name="file" accept=".woff2,.woff,.ttf,.otf" required aria-label="{{t "themes.fonts"}}">
+        <button type="submit" class="ghost">{{t "themes.upload"}}</button>
+      </form>
+    </div>
+    {{end}}
+
+    {{if .Editable}}
+    <form method="post" action="/themes/{{.Theme.ID}}/delete" data-confirm="{{t "edit.confirm_delete"}}">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <button type="submit" class="ghost">{{t "action.delete"}}</button>
+    </form>
+    {{end}}
+  </main>
+</body>
+</html>
+{{end}}
+
+{{/* Every component once, for the theme preview and /styleguide. */}}
+{{define "sample"}}
+<div class="sample">
+  <div class="kpi-row">
+    <div class="kpi"><span class="kpi-label">{{t "sample.revenue"}}</span><b class="kpi-value">{{money 48250}}</b><span class="kpi-delta" data-trend="up">+12 %</span></div>
+    <div class="kpi"><span class="kpi-label">{{t "sample.open"}}</span><b class="kpi-value">{{money 4180}}</b><span class="kpi-delta" data-trend="down">−3 %</span></div>
+  </div>
+  <div class="launch-grid">
+    <a class="launch" href="#sample"><span class="launch-icon"><span class="mono">KI</span></span><span class="launch-body"><b class="launch-title">Kimai</b><small>{{t "sample.tracking"}}</small><span class="pill" data-state="ok"><span class="dot"></span>{{t "status.up"}}</span></span></a>
+    <a class="launch" href="#sample"><span class="launch-icon"><span class="mono">SN</span></span><span class="launch-body"><b class="launch-title">Snipe-IT</b><small>Assets</small><span class="pill" data-state="fail"><span class="dot"></span>{{t "status.down"}}</span></span></a>
+  </div>
+  <ul class="hints">
+    <li class="hint" data-tier="red"><span class="hint-level">{{t "severity.critical"}}</span><div class="hint-main"><b>{{t "sample.hint1"}}</b></div></li>
+    <li class="hint" data-tier="yellow"><span class="hint-level">{{t "severity.warn"}}</span><div class="hint-main"><b>{{t "sample.hint2"}}</b></div></li>
+  </ul>
+  <div class="progress"><div class="progress-head"><span>{{t "sample.budget"}}</span><span>72 %</span></div><div class="progress-bar"><i style="--p:72%" data-tier="yellow"></i></div></div>
+  <p><button type="button">{{t "action.save"}}</button> <button type="button" class="ghost">{{t "action.cancel"}}</button> <a href="#sample">Link</a></p>
+  <label for="sample_input">{{t "field.name"}}</label><input id="sample_input" value="Input">
+</div>
+{{end}}
+
+{{define "styleguide"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "styleguide.title"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "styleguide.title"}}</h1>
+    <p class="muted">{{t "styleguide.lead"}}</p>
+    {{template "sample" .}}
+    <h2>.pill</h2>
+    <p><span class="pill" data-state="ok">ok</span> <span class="pill" data-state="warn">warn</span> <span class="pill" data-state="fail">fail</span> <span class="pill">info</span></p>
+    <h2>.error</h2>
+    <p class="error">{{t "error.denied"}}</p>
+    <h2>.table</h2>
+    <div class="table-wrap"><table class="table"><tr><th>{{t "field.name"}}</th><th>{{t "field.role"}}</th></tr><tr><td>Alex</td><td>{{t "role.editor"}}</td></tr></table></div>
+  </main>
+</body>
+</html>
+{{end}}
