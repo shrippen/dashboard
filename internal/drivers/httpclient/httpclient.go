@@ -220,3 +220,8 @@ func (g guardedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func Client(timeout time.Duration) *http.Client {
 	return &http.Client{Timeout: timeout, Transport: guardedTransport{http.DefaultTransport}}
 }
+
+// CheckHost applies the egress guard to a non-HTTP connection (IMAP).
+func CheckHost(host string) error {
+	return checkGuard("https://" + host)
+}

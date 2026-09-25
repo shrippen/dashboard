@@ -3,6 +3,7 @@ package sources
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"time"
 
 	"dashboard/internal/drivers/services"
@@ -171,8 +172,17 @@ func loadNinja(ctx context.Context, api services.NinjaApi, sctx Ctx) (*NinjaData
 			notes := asStr(em["public_notes"])
 			expenses = append(expenses, NinjaExpense{
 				ID: asInt64(em["id"]), Date: day(em["date"]), Amount: asFloat(em["amount"]),
-				Tax: round2(expenseTax(em)), Notes: notes, VendorID: asInt64(em["vendor_id"]),
+				Tax: round2(expenseTax(em)), Notes: notes, VendorID: asInt64(em["vendor_id"]), VendorKey: idKey(em["vendor_id"]),
 			})
+		}
+	}
+
+	// Vendor names let other sources match senders to expenses.
+	var vendors []NinjaVendor
+	if vendorsRaw, err := api.Pages(ctx, "vendors", nil); err == nil {
+		for _, v := range vendorsRaw {
+			vm := asMap(v)
+			vendors = append(vendors, NinjaVendor{Key: idKey(vm["id"]), Name: asStr(vm["name"])})
 		}
 	}
 
@@ -214,7 +224,7 @@ func loadNinja(ctx context.Context, api services.NinjaApi, sctx Ctx) (*NinjaData
 
 	return &NinjaDataset{
 		URL: sctx.URL, Currency: currency, Invoices: invoices, Payments: payments, Clients: clients,
-		Expenses: expenses, Quotes: quotes, Recurring: recurring, HomeCountryID: homeCountry,
+		Expenses: expenses, Vendors: vendors, Quotes: quotes, Recurring: recurring, HomeCountryID: homeCountry,
 	}, nil
 }
 
@@ -246,4 +256,16 @@ func (NinjaTest) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return nil, err
 	}
 	return map[string]any{"version": v}, nil
+}
+
+// idKey reads an id that Invoice Ninja v5 sends as hashed string and
+// older versions as number.
+func idKey(v any) string {
+	if s := asStr(v); s != "" {
+		return s
+	}
+	if f := asFloat(v); f != 0 {
+		return strconv.FormatInt(int64(f), 10)
+	}
+	return ""
 }

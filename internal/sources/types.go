@@ -93,12 +93,17 @@ type NinjaClient struct {
 }
 
 type NinjaExpense struct {
-	ID       int64
-	Date     string
-	Amount   float64
-	Tax      float64
-	Notes    string
-	VendorID int64
+	ID        int64
+	Date      string
+	Amount    float64
+	Tax       float64
+	Notes     string
+	VendorID  int64
+	VendorKey string // id as sent (hashed string in v5)
+}
+
+type NinjaVendor struct {
+	Key, Name string
 }
 
 type NinjaQuote struct {
@@ -127,6 +132,7 @@ type NinjaDataset struct {
 	Payments      []NinjaPayment
 	Clients       []NinjaClient
 	Expenses      []NinjaExpense
+	Vendors       []NinjaVendor
 	Quotes        []NinjaQuote
 	Recurring     []NinjaRecurring
 	HomeCountryID string

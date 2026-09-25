@@ -296,12 +296,24 @@ func (ProxmoxTest) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 
 // ── Paperless-ngx ──
 
-// PaperlessDataset is the inbox: documents carrying an inbox tag.
+// PaperlessDataset is the inbox (documents carrying an inbox tag) and the
+// recent documents typed as invoices.
 type PaperlessDataset struct {
 	URL         string
 	Inbox       int
 	OldestTitle string
 	OldestAdded string // "2026-09-01"
+	Invoices    []PaperlessDoc
+}
+
+// PaperlessDoc is one invoice document; Amount comes from a monetary
+// custom field (0 if none).
+type PaperlessDoc struct {
+	ID            int64
+	Title         string
+	Correspondent string
+	Created       string
+	Amount        float64
 }
 
 func paperlessAPI(sctx Ctx) (services.PaperlessApi, error) {
@@ -330,6 +342,7 @@ func (PaperlessData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if err != nil {
 		return nil, fetchError(err)
 	}
+	data.Invoices = loadPaperlessInvoices(ctx, api, sctx.Options)
 	return data, nil
 }
 
@@ -362,6 +375,83 @@ func loadPaperless(ctx context.Context, api services.PaperlessApi, sctx Ctx) (*P
 		data.OldestAdded = day(doc["added"])
 	}
 	return data, nil
+}
+
+const (
+	paperlessDays  = 90
+	paperlessPages = 3
+)
+
+var defaultInvoiceTypes = []string{"rechnung", "invoice", "eingangsrechnung"}
+
+// loadPaperlessInvoices reads documents of the invoice types (option
+// invoice_types) created in the last 90 days. Failures leave the list empty.
+func loadPaperlessInvoices(ctx context.Context, api services.PaperlessApi, options map[string]any) []PaperlessDoc {
+	wanted := map[string]bool{}
+	for _, t := range defaultInvoiceTypes {
+		wanted[t] = true
+	}
+	for _, t := range asList(options["invoice_types"]) {
+		wanted[strings.ToLower(asStr(t))] = true
+	}
+	names := func(path string) map[int64]string {
+		out := map[int64]string{}
+		raw, err := api.Get(ctx, path, url.Values{"page_size": {"100"}})
+		if err != nil {
+			return out
+		}
+		for _, r := range asList(asMap(raw)["results"]) {
+			m := asMap(r)
+			out[asInt64(m["id"])] = asStr(m["name"])
+		}
+		return out
+	}
+
+	var typeIDs []string
+	for id, name := range names("document_types/") {
+		if wanted[strings.ToLower(name)] {
+			typeIDs = append(typeIDs, strconv.FormatInt(id, 10))
+		}
+	}
+	if len(typeIDs) == 0 {
+		return nil
+	}
+	correspondents := names("correspondents/")
+	monetary := map[int64]bool{}
+	if raw, err := api.Get(ctx, "custom_fields/", url.Values{"page_size": {"100"}}); err == nil {
+		for _, r := range asList(asMap(raw)["results"]) {
+			if m := asMap(r); asStr(m["data_type"]) == "monetary" {
+				monetary[asInt64(m["id"])] = true
+			}
+		}
+	}
+
+	since := time.Now().UTC().AddDate(0, 0, -paperlessDays).Format(time.DateOnly)
+	var out []PaperlessDoc
+	for page := 1; page <= paperlessPages; page++ {
+		raw, err := api.Get(ctx, "documents/", url.Values{"document_type__id__in": {strings.Join(typeIDs, ",")},
+			"created__date__gt": {since}, "page_size": {"100"}, "page": {strconv.Itoa(page)}})
+		if err != nil {
+			break
+		}
+		body := asMap(raw)
+		for _, r := range asList(body["results"]) {
+			d := asMap(r)
+			doc := PaperlessDoc{ID: asInt64(d["id"]), Title: asStr(d["title"]), Created: day(d["created"]),
+				Correspondent: correspondents[asInt64(d["correspondent"])]}
+			for _, f := range asList(d["custom_fields"]) {
+				fm := asMap(f)
+				if monetary[asInt64(fm["field"])] {
+					doc.Amount = ParseAmount(strings.TrimLeft(asStr(fm["value"]), "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+				}
+			}
+			out = append(out, doc)
+		}
+		if body["next"] == nil {
+			break
+		}
+	}
+	return out
 }
 
 type PaperlessTest struct{}

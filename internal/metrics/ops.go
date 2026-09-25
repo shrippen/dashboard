@@ -131,3 +131,8 @@ func HassInfo(data *sources.HassDataset) []InfoPart {
 func LinkwardenInfo(data *sources.LinkwardenDataset) []InfoPart {
 	return []InfoPart{part("linkwarden.links", map[string]any{"count": len(data.Links)})}
 }
+
+// MailInfo: invoices found in the mailbox window.
+func MailInfo(data *sources.MailDataset) []InfoPart {
+	return []InfoPart{part("mail.invoices", map[string]any{"count": len(data.Invoices)})}
+}

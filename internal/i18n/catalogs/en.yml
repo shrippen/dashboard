@@ -358,6 +358,7 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, token user:app-password. Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only, attachments are not downloaded.'
   options_hint_pgbackweb: No options, no token. PG Back Web reports by webhook, see below.
   hook: Webhook
   hook_hint: 'In PG Back Web add one webhook per event (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) and backup: method POST, this URL, body as below with event and backup name. Keep the URL secret.'
@@ -372,7 +373,7 @@ conn:
   options_hint_umami: 'No options needed. Token = user:password (self-hosted) or API key (Umami Cloud).'
   options_hint_uptimekuma: No options needed. Token = API key from Uptime Kuma (Settings → API Keys).
   options_hint_proxmox: 'No options needed. Token = user@pam!name=uuid, role PVEAuditor, Sys.Audit for updates.'
-  options_hint_paperless: No options needed. Token from Paperless (profile → API auth token).
+  options_hint_paperless: 'Token from Paperless (profile → API auth token). Optional invoice_types: [Invoice] – document types compared with Invoice Ninja expenses; amount from a monetary field.'
   options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – checks the URL host and these hosts. No token needed.'
   lead: Connections to services. Tokens are stored encrypted and never shown again.
   new: New connection
@@ -401,6 +402,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  mail: Email (IMAP)
   pgbackweb: PG Back Web
   linkwarden: Linkwarden
   sure: Sure (finance)
@@ -652,6 +654,10 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  mail:
+    unrecorded:
+      title: 'Invoice from {sender} not in Invoice Ninja'
+      why: '“{subject}” on {day}, amount {amount}. Record it as an expense or exclude the sender.'
   pgbackweb:
     failed:
       title: 'Backup “{backup}” failed'
@@ -804,6 +810,9 @@ hint:
       title: 'Last backup of {guest} ({vmid}) on {day}'
       why: Check the backup job.
   paperless:
+    unrecorded:
+      title: 'Invoice from {sender} not in Invoice Ninja'
+      why: '“{subject}” on {day}, amount {amount}. Record it as an expense.'
     inbox:
       title: '{count} documents in the inbox'
       why: 'Oldest for {days} days: {title}.'
@@ -941,6 +950,8 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  mail:
+    invoices: '{count} invoices found'
   linkwarden:
     links: '{count} links'
   sure:
@@ -1038,6 +1049,8 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  mail.invoice_unrecorded: Mailed invoice not recorded
+  paperless.invoice_unrecorded: Paperless invoice not recorded
   pgbackweb.failed: Backup failed (Postgres)
   pgbackweb.stale: Backup without success (Postgres)
   pgbackweb.unhealthy: Database/destination unreachable

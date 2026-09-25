@@ -269,8 +269,11 @@ func DemoProxmox(now time.Time) *ProxmoxDataset {
 
 // DemoPaperless is the demo Paperless-ngx dataset.
 func DemoPaperless(now time.Time) *PaperlessDataset {
+	today := demoDay(now)
 	return &PaperlessDataset{URL: "https://docs.demo", Inbox: 7, OldestTitle: "Rechnung Telekom",
-		OldestAdded: iso(demoDay(now).AddDate(0, 0, -23))}
+		OldestAdded: iso(today.AddDate(0, 0, -23)),
+		Invoices: []PaperlessDoc{{ID: 311, Title: "Rechnung 09/2026", Correspondent: "Telekom Deutschland GmbH",
+			Created: iso(today.AddDate(0, 0, -23)), Amount: 39.95}}}
 }
 
 // DemoCerts is the demo certificate dataset.
@@ -399,5 +402,17 @@ func DemoPGBack(now time.Time) *PGBackDataset {
 		{Name: "kimai", LastSuccess: ago(2)},
 		{Name: "invoiceninja", LastSuccess: ago(50), LastFailure: ago(26)},
 		{Name: "immich", LastSuccess: ago(80)},
+	}}
+}
+
+// DemoMail is the demo mailbox: one invoice matches a demo expense
+// amount, one does not.
+func DemoMail(now time.Time) *MailDataset {
+	day := func(n int) time.Time { return now.UTC().AddDate(0, 0, -n) }
+	return &MailDataset{Mailbox: "INBOX", Scanned: 214, Invoices: []MailInvoice{
+		{UID: 1, Date: day(4), Sender: "Hetzner Online GmbH", Addr: "billing@hetzner.com", Domain: "hetzner.com",
+			Subject: "Ihre Rechnung R0012345", Amount: 41.65, Attachments: []string{"Hetzner_2026-09.pdf"}},
+		{UID: 2, Date: day(9), Sender: "JetBrains", Addr: "sales@jetbrains.com", Domain: "jetbrains.com",
+			Subject: "Invoice for your order", Amount: 289, Attachments: []string{"invoice.pdf"}},
 	}}
 }

@@ -358,6 +358,7 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, Token benutzer:app-passwort. Optionen: days: 60, keywords: [abrechnung], ignore_senders: [meinefirma.de] – nur lesend, Anhänge werden nicht geladen.'
   options_hint_pgbackweb: Keine Optionen, kein Token. PG Back Web meldet sich per Webhook, siehe unten.
   hook: Webhook
   hook_hint: 'In PG Back Web je Ereignis (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) und Backup einen Webhook anlegen: Methode POST, diese URL, Body wie unten mit Ereignis und Backup-Name. Die URL ist geheim.'
@@ -372,7 +373,7 @@ conn:
   options_hint_umami: 'Keine Optionen nötig. Token = benutzer:passwort (selbst gehostet) oder API-Schlüssel (Umami Cloud).'
   options_hint_uptimekuma: Keine Optionen nötig. Token = API-Schlüssel aus Uptime Kuma (Einstellungen → API-Schlüssel).
   options_hint_proxmox: 'Keine Optionen nötig. Token = user@pam!name=uuid, Rechte: PVEAuditor, für Updates Sys.Audit.'
-  options_hint_paperless: Keine Optionen nötig. Token aus Paperless (Profil → API-Auth-Token).
+  options_hint_paperless: 'Token aus Paperless (Profil → API-Auth-Token). Optional invoice_types: [Rechnung] – Dokumenttypen, die mit Invoice-Ninja-Ausgaben abgeglichen werden; Betrag aus einem Geld-Feld.'
   options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – geprüft werden URL-Host und diese Hosts. Kein Token nötig.'
   lead: Verbindungen zu Diensten. Tokens werden verschlüsselt gespeichert und nie wieder angezeigt.
   new: Neue Verbindung
@@ -401,6 +402,7 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  mail: E-Mail (IMAP)
   pgbackweb: PG Back Web
   linkwarden: Linkwarden
   sure: Sure (Finanzen)
@@ -652,6 +654,10 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  mail:
+    unrecorded:
+      title: 'Rechnung von {sender} nicht in Invoice Ninja'
+      why: '„{subject}“ vom {day}, Betrag {amount}. Als Ausgabe erfassen oder Absender ausnehmen.'
   pgbackweb:
     failed:
       title: 'Backup „{backup}“ fehlgeschlagen'
@@ -804,6 +810,9 @@ hint:
       title: 'Letztes Backup von {guest} ({vmid}) am {day}'
       why: Backup-Job prüfen.
   paperless:
+    unrecorded:
+      title: 'Rechnung von {sender} nicht in Invoice Ninja'
+      why: '„{subject}“ vom {day}, Betrag {amount}. Als Ausgabe erfassen.'
     inbox:
       title: '{count} Dokumente im Posteingang'
       why: 'Ältestes seit {days} Tagen: {title}.'
@@ -942,6 +951,8 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  mail:
+    invoices: '{count} Rechnungen erkannt'
   linkwarden:
     links: '{count} Links'
   sure:
@@ -1039,6 +1050,8 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  mail.invoice_unrecorded: Rechnung per Mail nicht erfasst
+  paperless.invoice_unrecorded: Rechnung in Paperless nicht erfasst
   pgbackweb.failed: Backup fehlgeschlagen (Postgres)
   pgbackweb.stale: Backup ohne Erfolg (Postgres)
   pgbackweb.unhealthy: Datenbank/Ziel nicht erreichbar

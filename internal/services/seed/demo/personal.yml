@@ -10,6 +10,8 @@ connections:
   - {id: invoiceninja, type: invoiceninja, name: Invoice Ninja, url: "demo://invoiceninja", credentials: shared}
   - {id: snipeit, type: snipeit, name: Snipe-IT, url: "demo://snipeit", credentials: shared}
   - {id: sure, type: sure, name: Sure, url: "demo://sure", credentials: shared}
+  - {id: mail, type: mail, name: Postfach, url: "demo://mail", credentials: shared}
+  - {id: paperless, type: paperless, name: Paperless, url: "demo://paperless", credentials: shared}
   - id: dawarich
     type: dawarich
     name: Dawarich
