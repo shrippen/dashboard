@@ -8,6 +8,7 @@ import (
 	"dashboard/internal/services/boards"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/services/util"
+	"dashboard/internal/services/widgetlib"
 )
 
 // RegisterBoardRoutes wires the home page and board view.
@@ -71,8 +72,17 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 	}
 	themeURL := "/theme/" + strconv.FormatInt(themeID, 10) + ".css?v=" + strconv.Itoa(themeVersion)
 
+	var library []widgetlib.Ref
+	if view.CanEdit {
+		library, err = widgetlib.Library(d.DB, ctx.Who)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	_ = Page(w, ctx, "board", http.StatusOK, map[string]any{
-		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL,
+		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL, "Library": library,
 	})
 }
 

@@ -1,0 +1,119 @@
+{{define "board_settings"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "edit.board_settings"}} · {{.Board.Name}}</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "edit.board_settings"}}</h1>
+    <form method="post" action="/boards/{{.Board.ID}}/settings">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <input type="hidden" name="version" value="{{.Board.Version}}">
+      <label for="name">{{t "field.name"}}</label>
+      <input id="name" name="name" value="{{.Board.Name}}" required>
+      <button type="submit">{{t "action.save"}}</button>
+    </form>
+    <form method="post" action="/boards/{{.Board.ID}}/delete" style="margin-top:1rem"
+          onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <button type="submit">{{t "board.delete"}}</button>
+    </form>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "widgets"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.library"}} · dashboard</title>
+  {{template "style" .}}
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    td, th { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #8884; }
+    .btn { display: inline-block; padding: .3rem .7rem; border: 1px solid #8884; border-radius: .3rem;
+           text-decoration: none; color: inherit; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.library"}}</h1>
+    <p><a class="btn" href="/widgets/new">+ {{t "action.create"}}</a></p>
+    <table>
+      <tr><th>{{t "field.title"}}</th><th>{{t "field.type"}}</th><th>{{t "field.space"}}</th><th></th></tr>
+      {{range .Widgets}}
+      <tr>
+        <td>{{.Title}}</td>
+        <td>{{.Type}}</td>
+        <td>{{.Space.Name}}</td>
+        <td>{{if .CanEdit}}<a class="btn" href="/widgets/{{.ID}}/edit">{{t "action.edit"}}</a>{{end}}</td>
+      </tr>
+      {{end}}
+    </table>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "widget_form"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.library"}} · dashboard</title>
+  {{template "style" .}}
+  <style>textarea { width: 100%; min-height: 8rem; font-family: var(--font-mono, monospace); box-sizing: border-box; }</style>
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{if .IsNew}}{{t "edit.new_widget"}}{{else}}{{t "action.edit"}}{{end}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+
+    <form method="post" action="{{if .IsNew}}/widgets{{else}}/widgets/{{.Widget.ID}}/edit{{end}}">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      {{if not .IsNew}}<input type="hidden" name="version" value="{{.Widget.Version}}">{{end}}
+
+      {{if .IsNew}}
+        <label for="space_id">{{t "field.space"}}</label>
+        <select id="space_id" name="space_id" required>
+          {{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+        </select>
+        <label for="type">{{t "field.type"}}</label>
+        <select id="type" name="type" required>
+          {{range .Types}}<option value="{{.Key}}">{{.Key}}</option>{{end}}
+        </select>
+      {{else}}
+        <p>{{t "field.type"}}: <strong>{{.Widget.Type}}</strong></p>
+      {{end}}
+
+      <label for="title">{{t "field.title"}}</label>
+      <input id="title" name="title" value="{{if .Widget}}{{.Widget.Title}}{{end}}">
+
+      <label for="config">Config (JSON)</label>
+      <textarea id="config" name="config">{{if .ConfigJSON}}{{.ConfigJSON}}{{else}}{}{{end}}</textarea>
+
+      <button type="submit">{{t "action.save"}}</button>
+    </form>
+
+    {{if not .IsNew}}
+      <form method="post" action="/widgets/{{.Widget.ID}}/delete" style="display:inline"
+            onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "action.delete"}}</button>
+      </form>
+    {{end}}
+  </main>
+</body>
+</html>
+{{end}}

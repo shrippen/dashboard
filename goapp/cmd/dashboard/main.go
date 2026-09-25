@@ -56,6 +56,7 @@ func main() {
 	deps.RegisterBoardRoutes(mux)
 	deps.RegisterThemeRoutes(mux)
 	deps.RegisterConnectionRoutes(mux)
+	deps.RegisterEditorRoutes(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 

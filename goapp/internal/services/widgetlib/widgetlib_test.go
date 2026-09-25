@@ -1,0 +1,147 @@
+package widgetlib_test
+
+import (
+	"database/sql"
+	"errors"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"dashboard/internal/db"
+	"dashboard/internal/enums"
+	"dashboard/internal/model"
+	"dashboard/internal/repos/content"
+	"dashboard/internal/repos/users"
+	"dashboard/internal/services/access"
+	"dashboard/internal/services/widgetlib"
+)
+
+func openTestDB(t *testing.T) *sql.DB {
+	t.Helper()
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	t.Cleanup(func() { d.Close() })
+	return d
+}
+
+func addUser(t *testing.T, q db.Queryer, email string) *model.User {
+	t.Helper()
+	u := &model.User{Email: email, Name: email, Role: enums.RoleUser, IsActive: true,
+		Locale: enums.LocaleDE, ColorMode: enums.ColorAuto, CreatedAt: time.Now().UTC()}
+	if err := users.Add(q, u); err != nil {
+		t.Fatalf("add user: %v", err)
+	}
+	personal := &model.Space{Kind: enums.SpacePersonal, Name: u.Name, OwnerUserID: &u.ID, Version: 1}
+	if err := content.AddSpace(q, personal); err != nil {
+		t.Fatalf("add personal space: %v", err)
+	}
+	return u
+}
+
+func TestCreateGetUpdateDelete(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	id, err := widgetlib.Create(d, who, space.ID, "note", "My Note", map[string]any{"text": "hi"}, nil, nil)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	w, right, err := widgetlib.Detail(d, who, id)
+	if err != nil || w.Title != "My Note" || right < enums.RightEdit {
+		t.Fatalf("detail: %+v right=%v err=%v", w, right, err)
+	}
+
+	if err := widgetlib.Update(d, who, id, w.Version, "Renamed", map[string]any{"text": "bye"}, nil, nil); err != nil {
+		t.Fatalf("update: %v", err)
+	}
+	w, _, _ = widgetlib.Detail(d, who, id)
+	if w.Title != "Renamed" || w.Config["text"] != "bye" {
+		t.Fatalf("expected update to persist, got %+v", w)
+	}
+
+	if err := widgetlib.Delete(d, who, id); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	if _, _, err := widgetlib.Detail(d, who, id); !errors.Is(err, widgetlib.ErrNotFound) {
+		t.Fatalf("expected not found after delete, got %v", err)
+	}
+}
+
+func TestCreateRejectsUnknownType(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	if _, err := widgetlib.Create(d, who, space.ID, "nope", "X", nil, nil, nil); !errors.Is(err, widgetlib.ErrUnknownType) {
+		t.Fatalf("expected ErrUnknownType, got %v", err)
+	}
+}
+
+func TestCreateRequiresConnectionForServiceWidget(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	// "sysinfo" is tied to ServiceGlances and needs a connection.
+	if _, err := widgetlib.Create(d, who, space.ID, "sysinfo", "Sys", nil, nil, nil); !errors.Is(err, widgetlib.ErrConnRequired) {
+		t.Fatalf("expected ErrConnRequired, got %v", err)
+	}
+}
+
+func TestUpdateConflict(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+	id, _ := widgetlib.Create(d, who, space.ID, "note", "N", nil, nil, nil)
+
+	if err := widgetlib.Update(d, who, id, 999, "X", nil, nil, nil); !errors.Is(err, widgetlib.ErrConflict) {
+		t.Fatalf("expected conflict, got %v", err)
+	}
+}
+
+func TestCopyCreatesIndependentWidget(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+	id, _ := widgetlib.Create(d, who, space.ID, "note", "Original", map[string]any{"text": "x"}, nil, nil)
+
+	copyID, err := widgetlib.Copy(d, who, id, space.ID)
+	if err != nil {
+		t.Fatalf("copy: %v", err)
+	}
+	if copyID == id {
+		t.Fatal("expected a distinct widget id")
+	}
+	copied, _, _ := widgetlib.Detail(d, who, copyID)
+	if copied.Title != "Original" || copied.Config["text"] != "x" {
+		t.Fatalf("expected copy to match original, got %+v", copied)
+	}
+}
+
+func TestLibraryFiltersByRight(t *testing.T) {
+	d := openTestDB(t)
+	owner := addUser(t, d, "owner@x.de")
+	stranger := addUser(t, d, "stranger@x.de")
+	ownerWho, _ := access.Load(d, owner.ID)
+	strangerWho, _ := access.Load(d, stranger.ID)
+	space, _ := content.PersonalSpace(d, owner.ID)
+	widgetlib.Create(d, ownerWho, space.ID, "note", "Private", nil, nil, nil)
+
+	lib, err := widgetlib.Library(d, ownerWho)
+	if err != nil || len(lib) != 1 {
+		t.Fatalf("expected owner to see 1 widget, got %d err=%v", len(lib), err)
+	}
+	lib, err = widgetlib.Library(d, strangerWho)
+	if err != nil || len(lib) != 0 {
+		t.Fatalf("expected stranger to see 0 widgets, got %d err=%v", len(lib), err)
+	}
+}
