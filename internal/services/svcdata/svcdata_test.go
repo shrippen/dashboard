@@ -51,3 +51,42 @@ func TestGetHonorsTTL(t *testing.T) {
 		t.Fatalf("forced read did not fetch: %d", calls)
 	}
 }
+
+type slowSource struct{ calls *int }
+
+func (slowSource) Key() string                { return "test.stored" }
+func (slowSource) TTL() time.Duration         { return time.Minute }
+func (slowSource) Service() enums.ServiceType { return "" }
+
+func (s slowSource) Fetch(context.Context, sources.Ctx) (any, error) {
+	*s.calls++
+	return "ok", nil
+}
+
+// TestStoredNeverFetchesInRequest: a Stored read answers Pending at once
+// and fills the value in the background; later reads get it.
+func TestStoredNeverFetchesInRequest(t *testing.T) {
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	calls := 0
+	sources.Register(slowSource{&calls})
+
+	first, _ := svcdata.Get(context.Background(), d, "test.stored", nil, nil, nil, svcdata.Stored)
+	if !first.Pending || first.Data != nil {
+		t.Fatalf("first read: %+v", first)
+	}
+	var got svcdata.Result
+	for range 50 {
+		got, _ = svcdata.Get(context.Background(), d, "test.stored", nil, nil, nil, svcdata.Stored)
+		if !got.Pending {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if got.Data != "ok" || calls != 1 {
+		t.Fatalf("stored read: %+v calls=%d", got, calls)
+	}
+}

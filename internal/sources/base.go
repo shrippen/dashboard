@@ -81,3 +81,15 @@ func All() map[string]Source {
 	}
 	return out
 }
+
+// dataAliases are services whose dataset source has another key.
+var dataAliases = map[enums.ServiceType]string{enums.ServiceGlances: "glances"}
+
+// DataKey is the key of a service's dataset source ("kimai.data",
+// "glances").
+func DataKey(service enums.ServiceType) string {
+	if key, ok := dataAliases[service]; ok {
+		return key
+	}
+	return string(service) + ".data"
+}

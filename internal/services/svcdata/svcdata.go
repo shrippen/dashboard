@@ -36,6 +36,9 @@ type Freshness int
 const (
 	Cached Freshness = iota
 	Force
+	// Stored returns the last result the background run fetched and never
+	// reaches the service; before the first run the result is Pending.
+	Stored
 )
 
 // ErrMissingCredential means personal credentials are required but the
@@ -43,12 +46,14 @@ const (
 var ErrMissingCredential = errors.New("svcdata: missing personal credential")
 
 // Result is one source fetch's outcome. Data is the source's own typed
-// dataset (e.g. *sources.KimaiDataset), or nil on failure.
+// dataset (e.g. *sources.KimaiDataset), or nil on failure. Pending means
+// no background run has fetched it yet.
 type Result struct {
 	Data      any
 	FetchedAt time.Time
 	OkAt      time.Time
 	Error     string
+	Pending   bool
 }
 
 // Ok reports whether the fetch succeeded.
@@ -137,6 +142,9 @@ type memEntry struct {
 var (
 	memMu sync.Mutex
 	mem   = map[string]memEntry{}
+	// latest keeps the last result per key without expiry, for Stored
+	// reads; a failed fetch keeps the last good data next to its error.
+	latest = map[string]memEntry{}
 )
 
 func remembered(key string, now time.Time) (Result, bool) {
@@ -165,6 +173,22 @@ func remember(key string, connID int64, result Result, ttl time.Duration) {
 		}
 	}
 	mem[key] = memEntry{result: result, connID: connID, expires: now.Add(ttl)}
+
+	kept := result
+	if prev, ok := latest[key]; ok && !result.Ok() && prev.result.Data != nil {
+		kept.Data, kept.OkAt = prev.result.Data, prev.result.OkAt
+	}
+	latest[key] = memEntry{result: kept, connID: connID}
+}
+
+func stored(key string) Result {
+	memMu.Lock()
+	defer memMu.Unlock()
+
+	if e, ok := latest[key]; ok {
+		return e.result
+	}
+	return Result{Pending: true}
 }
 
 // Forget drops every cached result of a connection, e.g. after its URL
@@ -176,6 +200,11 @@ func Forget(connID int64) {
 	for k, e := range mem {
 		if e.connID == connID {
 			delete(mem, k)
+		}
+	}
+	for k, e := range latest {
+		if e.connID == connID {
+			delete(latest, k)
 		}
 	}
 }
@@ -212,10 +241,55 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 		return Result{}, err
 	}
 
+	if fresh == Stored {
+		result := stored(key)
+		if result.Pending {
+			fillLater(d, key, source, sctx, conn)
+		}
+		return result, nil
+	}
+
+	return fetch(ctx, d, key, sourceKey, source, sctx, conn), nil
+}
+
+// backgroundWait bounds a background fill.
+const backgroundWait = 2 * time.Minute
+
+var (
+	inflightMu sync.Mutex
+	inflight   = map[string]bool{}
+)
+
+// fillLater fetches a missing Stored value outside the request, once per
+// key at a time (a new connection before the next background run).
+func fillLater(d *sql.DB, key string, source sources.Source, sctx sources.Ctx, conn *model.Connection) {
+	inflightMu.Lock()
+	if inflight[key] {
+		inflightMu.Unlock()
+		return
+	}
+	inflight[key] = true
+	inflightMu.Unlock()
+
+	go func() {
+		defer func() {
+			inflightMu.Lock()
+			delete(inflight, key)
+			inflightMu.Unlock()
+		}()
+		ctx, cancel := context.WithTimeout(context.Background(), backgroundWait)
+		defer cancel()
+		fetch(ctx, d, key, source.Key(), source, sctx, conn)
+	}()
+}
+
+// fetch reaches the service and remembers the outcome.
+func fetch(ctx context.Context, d *sql.DB, key, sourceKey string, source sources.Source, sctx sources.Ctx, conn *model.Connection) Result {
+	var err error
 	now := time.Now().UTC()
 	if push, ok := source.(sources.PushSource); ok && conn != nil {
 		if sctx.Events, err = pushedEvents(d, conn.ID, now.Add(-push.PushWindow())); err != nil {
-			return Result{}, err
+			return Result{FetchedAt: now, Error: err.Error()}
 		}
 	}
 	out, fetchErr := source.Fetch(ctx, sctx)
@@ -232,8 +306,7 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 	}
 	remember(key, memConn, result, source.TTL())
 	_ = persistCache(d, key, sourceKey, result) // best-effort; a cache write failure must not fail the fetch
-
-	return result, nil
+	return result
 }
 
 func pushedEvents(d *sql.DB, connID int64, since time.Time) ([]sources.Pushed, error) {

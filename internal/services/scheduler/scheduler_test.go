@@ -57,3 +57,43 @@ func TestPanickingJobDoesNotStopOthers(t *testing.T) {
 		t.Fatalf("expected the healthy job to keep running despite the other panicking, got %d calls", n)
 	}
 }
+
+func TestAtStartRunsImmediatelyAndRecordsRun(t *testing.T) {
+	var calls int32
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	scheduler.Start(ctx, []scheduler.Job{{
+		Name: "early", Interval: time.Hour, Start: scheduler.AtStart,
+		Run: func(context.Context) error { atomic.AddInt32(&calls, 1); return nil },
+	}})
+
+	time.Sleep(30 * time.Millisecond)
+	if atomic.LoadInt32(&calls) != 1 {
+		t.Fatalf("expected one run at start, got %d", calls)
+	}
+	if run, ok := scheduler.LastRun("early"); !ok || run.At.IsZero() || run.Err != "" {
+		t.Fatalf("last run: %+v %v", run, ok)
+	}
+}
+
+func TestTriggerRunsJobNow(t *testing.T) {
+	var calls int32
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	scheduler.Start(ctx, []scheduler.Job{{Name: "manual", Interval: time.Hour,
+		Run: func(context.Context) error { atomic.AddInt32(&calls, 1); return nil }}})
+	time.Sleep(10 * time.Millisecond)
+
+	if !scheduler.Trigger("manual") {
+		t.Fatal("trigger refused")
+	}
+	time.Sleep(30 * time.Millisecond)
+	if atomic.LoadInt32(&calls) != 1 {
+		t.Fatalf("expected one triggered run, got %d", calls)
+	}
+	if scheduler.Trigger("unknown") {
+		t.Fatal("unknown job triggered")
+	}
+}

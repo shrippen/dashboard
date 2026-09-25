@@ -23,10 +23,16 @@ import (
 	"dashboard/internal/repos/content"
 	data "dashboard/internal/repos/data"
 	"dashboard/internal/rules"
+	"dashboard/internal/services/access"
 	"dashboard/internal/services/hints"
+	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/sources"
 )
+
+// JobName is the scheduler job that runs RunAll: it fetches every
+// integration; page views only read its results.
+const JobName = "analysis"
 
 const (
 	connectorRule = "system.connector_down"
@@ -168,7 +174,7 @@ func runConnection(ctx context.Context, d *sql.DB, conn *model.Connection, users
 			scopes[key] = sc
 		}
 
-		sourceKey := conn.Service + ".data"
+		sourceKey := sources.DataKey(enums.ServiceType(conn.Service))
 		result, err := svcdata.Get(ctx, d, sourceKey, nil, conn, owner, svcdata.Cached)
 		if err != nil {
 			if errors.Is(err, svcdata.ErrMissingCredential) {
@@ -290,4 +296,23 @@ func syncHints(d *sql.DB, spaceID int64, owner *int64, connID *int64, ruleIDs []
 		return err
 	})
 	return n, err
+}
+
+// ErrNotScheduled means no scheduler runs the analysis (e.g. disabled).
+var ErrNotScheduled = errors.New("analysis.not_scheduled")
+
+// RequestRun asks the scheduler for a run now. Admins only.
+func RequestRun(who *access.Principal) error {
+	if !who.IsAdmin() {
+		return access.ErrDenied
+	}
+	if !scheduler.Trigger(JobName) {
+		return ErrNotScheduled
+	}
+	return nil
+}
+
+// LastRun reports the latest background run, false before the first.
+func LastRun() (scheduler.Run, bool) {
+	return scheduler.LastRun(JobName)
 }

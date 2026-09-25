@@ -27,12 +27,15 @@ import (
 	"dashboard/internal/services/hints"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
+	"dashboard/internal/sources"
 	"dashboard/internal/widgets"
 )
 
 // genericSources are query sources that resolve through the widget's own
 // connection service ("data" -> "kimai.data", "invoiceninja.data", ...).
-var genericSources = map[string]bool{"data": true, "test": true}
+var genericSources = map[string]bool{dataSource: true, "test": true}
+
+const dataSource = "data"
 
 var (
 	ErrNotFound         = util.ErrNotFound
@@ -296,6 +299,7 @@ type Slot struct {
 	Error             string
 	OkAt              time.Time
 	MissingCredential string // connection name, "" if credentials are fine
+	Pending           bool   // not fetched by a background run yet
 }
 
 // Fragment is a widget's live view: its queries' results shaped by its
@@ -312,19 +316,14 @@ type Fragment struct {
 	View      map[string]any
 }
 
-// sourceAliases maps a generic source that a service implements under
-// another key ("glances" has one query that is its data).
-var sourceAliases = map[string]string{"glances.data": "glances"}
-
 func sourceFor(q widgets.Query, target *model.Connection) string {
-	if target != nil && genericSources[q.Source] {
-		key := target.Service + "." + q.Source
-		if alias, ok := sourceAliases[key]; ok {
-			return alias
-		}
-		return key
+	if target == nil || !genericSources[q.Source] {
+		return q.Source
 	}
-	return q.Source
+	if q.Source == dataSource {
+		return sources.DataKey(enums.ServiceType(target.Service))
+	}
+	return target.Service + "." + q.Source
 }
 
 // infoKeyOf returns the connection key a link tile's info line names, or "".
@@ -438,7 +437,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 			frag.Slots[q.Name] = Slot{Error: "connection.missing"}
 			continue
 		}
-		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, fresh)
+		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, integrationFreshness(target, fresh))
 	}
 
 	serviceConn := conn
@@ -487,6 +486,17 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	return frag, nil
 }
 
+// integrationFreshness: data of a connection comes from the background
+// run (Stored), never live from a page view; only an explicit Force
+// fetches. Sources without a connection (status ping, feeds, weather)
+// keep their own cache.
+func integrationFreshness(target *model.Connection, fresh svcdata.Freshness) svcdata.Freshness {
+	if target != nil && fresh == svcdata.Cached {
+		return svcdata.Stored
+	}
+	return fresh
+}
+
 func runQuery(ctx context.Context, d *sql.DB, source string, params map[string]any, conn *model.Connection, userID int64, fresh svcdata.Freshness) Slot {
 	res, err := svcdata.Get(ctx, d, source, params, conn, &userID, fresh)
 	if err != nil {
@@ -499,7 +509,7 @@ func runQuery(ctx context.Context, d *sql.DB, source string, params map[string]a
 		}
 		return Slot{Error: "source.unknown"}
 	}
-	return Slot{Data: res.Data, Error: res.Error, OkAt: res.OkAt}
+	return Slot{Data: res.Data, Error: res.Error, OkAt: res.OkAt, Pending: res.Pending}
 }
 
 // loadPoints returns a trend widget's daily snapshots (written by the

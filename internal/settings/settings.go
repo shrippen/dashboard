@@ -30,6 +30,8 @@ type Settings struct {
 	SMTPURL      string
 	SMTPFrom     string
 	SMTPPassword string
+	// AnalysisMinutes is the interval of the integration check.
+	AnalysisMinutes int
 	// AnthropicAPIKey enables the optional weekly summary; "" = off.
 	AnthropicAPIKey string
 
@@ -136,6 +138,7 @@ func Load() Settings {
 		SessionIdleMinutes:   envInt("SESSION_IDLE_MINUTES", 60*24*7),
 		SessionAbsoluteHours: envInt("SESSION_ABSOLUTE_HOURS", 24*30),
 		OIDCSessionHours:     envInt("OIDC_SESSION_HOURS", 12),
+		AnalysisMinutes:      max(1, envInt("ANALYSIS_MINUTES", 5)),
 	}
 
 	for name, dst := range map[string]*string{

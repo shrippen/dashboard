@@ -13,6 +13,19 @@
     <h1>{{t "nav.admin_settings"}}</h1>
     {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
 
+    <h2>{{t "admin.analysis"}}</h2>
+    <div class="card">
+      <p>{{t "admin.analysis_every" "minutes" .AnalysisEvery}}</p>
+      {{with .AnalysisRun}}
+      <p class="small muted">{{t "admin.analysis_last" "when" (ago .At) "seconds" (num .Duration.Seconds 1)}}</p>
+      {{if .Err}}<p class="error">{{.Err}}</p>{{end}}
+      {{else}}<p class="small muted">{{t "admin.analysis_none"}}</p>{{end}}
+      <form method="post" action="/admin/settings/analysis">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "admin.analysis_run"}}</button>
+      </form>
+    </div>
+
     <h2>{{t "admin.general"}}</h2>
     <div class="card">
       <form method="post" action="/admin/settings/general">

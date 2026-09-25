@@ -594,7 +594,7 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 		t.Fatalf("no placement found on board:\n%s", boardBody)
 	}
 
-	fragBody := mustGet(t, srv, client, "/widget-fragments/"+string(placementMatch[1]))
+	fragBody := awaitFragment(t, srv, client, string(placementMatch[1]), "kpi-value")
 	if !strings.Contains(string(fragBody), "kpi-value") {
 		t.Fatalf("expected a rendered kpi value, got:\n%s", fragBody)
 	}
@@ -1018,4 +1018,19 @@ func mustGet(t *testing.T, srv *httptest.Server, client *http.Client, path strin
 func boardIDFrom(path string) string {
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 	return parts[len(parts)-1]
+}
+
+// awaitFragment polls a tile until want appears: connection data is
+// never fetched in the request, the first view fills it in the background.
+func awaitFragment(t *testing.T, srv *httptest.Server, client *http.Client, placement, want string) []byte {
+	t.Helper()
+	var body []byte
+	for range 100 {
+		body = mustGet(t, srv, client, "/widget-fragments/"+placement)
+		if strings.Contains(string(body), want) {
+			return body
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	return body
 }

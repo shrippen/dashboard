@@ -172,9 +172,18 @@ func TestEffectiveRateUsesPeerKimai(t *testing.T) {
 	}
 	w, _, _ := widgetlib.Detail(d, who, id)
 
-	frag, err := widgetlib.Load(context.Background(), d, who, w, svcdata.Cached)
-	if err != nil {
-		t.Fatalf("load: %v", err)
+	// Page views never fetch: the first load is pending and fills the data
+	// in the background.
+	var frag *widgetlib.Fragment
+	for range 100 {
+		frag, err = widgetlib.Load(context.Background(), d, who, w, svcdata.Cached)
+		if err != nil {
+			t.Fatalf("load: %v", err)
+		}
+		if !frag.Slots["data"].Pending && !frag.Slots["kimai"].Pending {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 	kpi, ok := frag.View["KPI"].(*widgets.KpiResult)
 	if !ok || kpi.Value <= 0 || kpi.SubCount == 0 {

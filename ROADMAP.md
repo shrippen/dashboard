@@ -719,6 +719,8 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 Jede Quelle liefert einen gecachten Datensatz (`<dienst>.data`), Regeln, eine Infozeile auf der Link-Kachel und Demodaten. Der Quell-Cache hält Ergebnisse jetzt für die TTL der Quelle im Speicher (vorher jeder Aufruf live).
 
+- [x] Prüflauf als Hintergrund-Job: holt alle Integrationen (beim Start und alle `ANALYSIS_MINUTES`, Standard 5) und leitet Hinweise ab; Seiten lesen nur diesen Stand, live ist nur der Status-Ping der Link-Kacheln. Fehlt ein Stand (neue Verbindung), wird er einmal im Hintergrund geholt. Admin → Instanz zeigt den letzten Lauf und startet ihn auf Wunsch sofort
+
 - [x] FreshRSS (Google-Reader-API): Leserückstand mit den größten Quellen, verstummte Feeds
 - [x] Gitea: wartende Reviews, fällige Issues, ruhende PRs, fehlgeschlagene Actions, veraltete Spiegel
 - [x] E-Mail (IMAP, nur lesend): Eingangsrechnungen erkennen (Betreff/Anhangsname, Betrag aus dem Text) und mit Invoice-Ninja-Ausgaben abgleichen (Betrag ± 1 ct im Datumsfenster, sonst Lieferantenname ~ Absender)
@@ -732,7 +734,7 @@ Jede Quelle liefert einen gecachten Datensatz (`<dienst>.data`), Regeln, eine In
 - [x] Scrutiny: SMART-Fehler, Temperatur, schweigender Collector
 - [x] Borg Backup Server: Clients offline/Fehler, fehlgeschlagene Jobs, Alter des letzten Backups, Speicher, Updates
 - [x] PG Back Web (keine Lese-API): signierte Webhook-URL je Verbindung; fehlgeschlagene/veraltete Backups, nicht erreichbare Datenbanken/Ziele, ausbleibende Webhooks
-- [ ] Obsidian (Vorschlag unten, noch nicht umgesetzt)
+- [ ] Obsidian – zurückgestellt, bis ein konkreter Nutzen feststeht (Wege zum Lesen des Vaults unten)
 - [ ] Docker
 
 **Obsidian – Vorschlag.** Obsidian hat keinen Server; der Vault ist ein Ordner mit Markdown. Drei Wege, ihn zu lesen:

@@ -299,6 +299,7 @@ wtype:
     name: Verlauf
     desc: Täglicher Verlauf einer Kennzahl (offene Posten, Umsatz, Stunden).
 widget:
+  pending: Wird beim nächsten Prüflauf geladen …
   loading: lädt …
   error: Fehler
   stale: veraltet
@@ -521,6 +522,11 @@ cred:
 credential:
   missing: Kein persönlicher Zugang hinterlegt.
 admin:
+  analysis: Prüflauf
+  analysis_every: 'Alle {minutes} Minuten holt der Prüflauf die Daten aller Integrationen und leitet Hinweise ab. Seiten zeigen nur diesen Stand; live ist nur der Status-Ping der Kacheln.'
+  analysis_last: 'Zuletzt {when}, Dauer {seconds} s.'
+  analysis_none: Noch kein Lauf seit dem Start.
+  analysis_run: Jetzt prüfen
   users_lead: Konten verwalten. Persönliche Inhalte sind für Admins nicht sichtbar.
   login: Letzte Anmeldung
   invite: Einladen
@@ -1240,3 +1246,5 @@ hass:
   'on': An
   'off': Aus
   missing: fehlt
+analysis:
+  not_scheduled: Der Hintergrunddienst läuft nicht (SCHEDULER_ENABLED).

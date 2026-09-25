@@ -26,7 +26,7 @@ const (
 // backgroundJobs is the fixed job list (ports app/services/jobs.py).
 func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 	return []scheduler.Job{
-		{Name: "analysis", Interval: 5 * minute, Run: func(ctx context.Context) error {
+		{Name: analysis.JobName, Interval: time.Duration(cfg.AnalysisMinutes) * minute, Start: scheduler.AtStart, Run: func(ctx context.Context) error {
 			_, err := analysis.RunAll(ctx, database, time.Now().UTC())
 			return err
 		}},

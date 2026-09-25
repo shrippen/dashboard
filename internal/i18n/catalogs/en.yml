@@ -299,6 +299,7 @@ wtype:
     name: Trend
     desc: Daily history of a metric (receivables, revenue, hours).
 widget:
+  pending: Loading with the next check …
   loading: loading …
   error: Error
   stale: stale
@@ -521,6 +522,11 @@ cred:
 credential:
   missing: No personal access stored.
 admin:
+  analysis: Integration check
+  analysis_every: 'Every {minutes} minutes the check fetches all integrations and derives hints. Pages show this state only; only the tiles'' status ping is live.'
+  analysis_last: 'Last run {when}, took {seconds} s.'
+  analysis_none: No run since start.
+  analysis_run: Check now
   users_lead: Manage accounts. Personal content is not visible to admins.
   login: Last login
   invite: Invite
@@ -1239,3 +1245,5 @@ hass:
   'on': 'On'
   'off': 'Off'
   missing: missing
+analysis:
+  not_scheduled: The background service is not running (SCHEDULER_ENABLED).

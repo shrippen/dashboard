@@ -1,6 +1,7 @@
 package web
 
 import (
+	"dashboard/internal/services/analysis"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ func (d Deps) RegisterSettingsRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /admin/settings/network", d.handleSettingsNetwork)
 	mux.HandleFunc("POST /admin/settings/oidc", d.handleSettingsOIDC)
 	mux.HandleFunc("POST /admin/settings/oidc/test", d.handleSettingsOIDCTest)
+	mux.HandleFunc("POST /admin/settings/analysis", d.handleAnalysisRun)
 	mux.HandleFunc("GET /admin/users/{id}/reapply", d.handleReapplyPreview)
 	mux.HandleFunc("POST /admin/users/{id}/reapply", d.handleReapply)
 }
@@ -87,6 +89,10 @@ func (d Deps) settingsPage(w http.ResponseWriter, ctx Ctx, status int, extra map
 		"CallbackURL":   strings.TrimRight(d.Settings.BaseURL, "/") + oidc.CallbackPath,
 		"InstanceRoles": []enums.InstanceRole{enums.RoleUser, enums.RoleAdmin},
 		"TeamRoles":     []enums.TeamRole{enums.TeamViewer, enums.TeamEditor, enums.TeamOwner},
+		"AnalysisEvery": d.Settings.AnalysisMinutes,
+	}
+	if run, ok := analysis.LastRun(); ok {
+		values["AnalysisRun"] = run
 	}
 	for k, v := range extra {
 		values[k] = v
@@ -157,6 +163,11 @@ func (d Deps) handleSettingsGeneral(w http.ResponseWriter, r *http.Request) {
 		}
 		return themes.SetDefault(d.DB, ctx.Who, id)
 	})
+}
+
+// handleAnalysisRun starts the integration check now.
+func (d Deps) handleAnalysisRun(w http.ResponseWriter, r *http.Request) {
+	d.settingsAction(w, r, func(ctx Ctx) error { return analysis.RequestRun(ctx.Who) })
 }
 
 func (d Deps) handleSettingsNetwork(w http.ResponseWriter, r *http.Request) {

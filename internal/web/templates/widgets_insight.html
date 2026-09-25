@@ -3,7 +3,9 @@
      Ports app/web/templates/widgets/*.html. */}}
 
 {{define "widget-slot-state"}}
-  {{if .MissingCredential}}
+  {{if .Pending}}
+    <p class="slot-note">{{t "widget.pending"}}</p>
+  {{else if .MissingCredential}}
     <p class="slot-note"><a href="/me/credentials">{{t "widget.setup_access" "name" .MissingCredential}}</a></p>
   {{else if and .Error (not .Data)}}
     <p class="slot-note is-error"><span class="pill" data-state="failed">{{t "widget.error"}}</span> <code>{{.Error}}</code></p>

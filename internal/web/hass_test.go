@@ -72,7 +72,7 @@ func TestHassToggle(t *testing.T) {
 	})
 	placement := string(regexp.MustCompile(`/placements/(\d+)/unplace`).FindSubmatch(mustGet(t, srv, client, boardURL+"?edit"))[1])
 
-	frag := string(mustGet(t, srv, client, "/widget-fragments/"+placement))
+	frag := string(awaitFragment(t, srv, client, placement, "aria-pressed"))
 	if !strings.Contains(frag, `aria-pressed="false"`) || !strings.Contains(frag, "/widget-fragments/"+placement+"/toggle") {
 		t.Fatalf("no toggle rendered:\n%s", frag)
 	}
