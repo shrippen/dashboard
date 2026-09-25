@@ -27,6 +27,9 @@ const (
 	ConnNone   ConnUse = ""
 	ConnWidget ConnUse = "widget"
 	ConnInfo   ConnUse = "info"
+	// ConnPeer is another connection of the widget's space, found by
+	// Query.Service (e.g. the Kimai hours next to Invoice Ninja revenue).
+	ConnPeer ConnUse = "peer"
 )
 
 // Extra is additional data the widgets service supplies besides the queries.
@@ -59,8 +62,9 @@ type ViewCtx struct {
 type Query struct {
 	Name   string
 	Source string
-	Params map[string]any
-	Conn   ConnUse
+	Params  map[string]any
+	Conn    ConnUse
+	Service enums.ServiceType // ConnPeer only
 }
 
 // DecodeFunc parses a widget's raw JSON config into its typed config value.

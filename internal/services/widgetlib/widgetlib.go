@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -351,6 +352,31 @@ func infoConnection(q db.Queryer, who *access.Principal, widget *model.Widget, k
 	return nil, nil
 }
 
+// peerConnection finds a connection of a service for ConnPeer queries:
+// first in the widget's space, then in any space the viewer reaches.
+func peerConnection(q db.Queryer, who *access.Principal, widget *model.Widget, service enums.ServiceType) (*model.Connection, error) {
+	spaceIDs := []int64{widget.SpaceID}
+	for spaceID := range who.Spaces {
+		if spaceID != widget.SpaceID {
+			spaceIDs = append(spaceIDs, spaceID)
+		}
+	}
+	slices.Sort(spaceIDs[1:])
+
+	for _, spaceID := range spaceIDs {
+		list, err := content.Connections(q, []int64{spaceID})
+		if err != nil {
+			return nil, err
+		}
+		for _, c := range list {
+			if c.Service == string(service) {
+				return c, nil
+			}
+		}
+	}
+	return nil, nil
+}
+
 // Load runs a widget's queries against its connection (svcdata.Get, so
 // caching and credential resolution apply) and shapes the results via its
 // type's View function.
@@ -403,6 +429,10 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 			target = conn
 		case widgets.ConnInfo:
 			target = infoConn
+		case widgets.ConnPeer:
+			if target, err = peerConnection(d, who, widget, q.Service); err != nil {
+				return nil, err
+			}
 		}
 		if q.Conn != widgets.ConnNone && target == nil {
 			frag.Slots[q.Name] = Slot{Error: "connection.missing"}

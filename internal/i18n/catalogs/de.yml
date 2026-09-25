@@ -176,6 +176,8 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  effective_rate: Effektiver Stundensatz
+  effective_rates: Stundensatz je Kunde
   newtab: Neuer Tab
   sametab: Gleicher Tab
   'off': Aus
@@ -722,6 +724,7 @@ info:
   glances:
     cpu: CPU {percent} %
 kpi:
+  per_hour: je Stunde, {count} Kunden, 12 Monate
   of_target: Soll {hours} h
   hours: '{hours} h'
   invoices: '{count} Rechnungen'
@@ -732,6 +735,7 @@ kpi:
   of_goal: Ziel {goal}
   cash_30: offen + wiederkehrend, 30 Tage
 col:
+  rate: Satz
   number: Nr.
   client: Kunde
   customer: Kunde

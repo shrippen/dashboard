@@ -31,6 +31,7 @@
   {{else if eq $k.SubKey "kpi.of_goal"}}<span class="kpi-sub">{{t "kpi.of_goal" "goal" (money $k.SubGoal $k.Currency)}}</span>
   {{else if eq $k.SubKey "kpi.cash_30"}}<span class="kpi-sub">{{t "kpi.cash_30"}}</span>
   {{else if eq $k.SubKey "kpi.reserve"}}<span class="kpi-sub">{{t "kpi.reserve" "rate" $k.SubRate}}</span>
+  {{else if eq $k.SubKey "kpi.per_hour"}}<span class="kpi-sub">{{t "kpi.per_hour" "count" $k.SubCount}}</span>
   {{else if eq $k.SubKey "kpi.assets"}}<span class="kpi-sub">{{t "kpi.assets" "count" $k.SubCount}}</span>
   {{end}}
 </div>

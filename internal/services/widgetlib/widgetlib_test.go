@@ -1,6 +1,7 @@
 package widgetlib_test
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"path/filepath"
@@ -13,7 +14,9 @@ import (
 	"dashboard/internal/repos/content"
 	"dashboard/internal/repos/users"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/widgetlib"
+	"dashboard/internal/widgets"
 )
 
 func openTestDB(t *testing.T) *sql.DB {
@@ -143,5 +146,38 @@ func TestLibraryFiltersByRight(t *testing.T) {
 	lib, err = widgetlib.Library(d, strangerWho)
 	if err != nil || len(lib) != 0 {
 		t.Fatalf("expected stranger to see 0 widgets, got %d err=%v", len(lib), err)
+	}
+}
+
+func TestEffectiveRateUsesPeerKimai(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "rate@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	// Demo Kimai and Invoice Ninja share customer names.
+	var ninjaID int64
+	for _, svc := range []enums.ServiceType{enums.ServiceKimai, enums.ServiceInvoiceNinja} {
+		c := &model.Connection{SpaceID: space.ID, Key: string(svc), Name: string(svc), Service: string(svc),
+			URL: "demo://" + string(svc), CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC()}
+		if err := content.AddConnection(d, c); err != nil {
+			t.Fatalf("add connection: %v", err)
+		}
+		ninjaID = c.ID
+	}
+
+	id, err := widgetlib.Create(d, who, space.ID, "kpi", "Rate", map[string]any{"metric": "effective_rate"}, &ninjaID, nil)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	w, _, _ := widgetlib.Detail(d, who, id)
+
+	frag, err := widgetlib.Load(context.Background(), d, who, w, svcdata.Cached)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	kpi, ok := frag.View["KPI"].(*widgets.KpiResult)
+	if !ok || kpi.Value <= 0 || kpi.SubCount == 0 {
+		t.Fatalf("kpi = %+v, slots %+v", kpi, frag.Slots)
 	}
 }

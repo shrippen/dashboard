@@ -672,7 +672,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 - [x] Kimai-Quelle und Kennzahlen, Regeln aus 8.1
 - [x] Invoice-Ninja-Quelle und Kennzahlen, Regeln aus 8.2
-- [ ] Abgleich Kimai ↔ Invoice Ninja: nicht abgerechnete Stunden je Kunde, effektiver Stundensatz *(nicht abgerechnete Stunden ja, effektiver Stundensatz fehlt)*
+- [x] Abgleich Kimai ↔ Invoice Ninja: nicht abgerechnete Stunden je Kunde, effektiver Stundensatz (KPI `effective_rate`, Tabelle `effective_rates`)
 - [x] Boards „Übersicht“ und „Freelance“ als Vorlagen mit `.kpi`, `.hint`, `.progress`, Tabelle offener Posten
 - [x] Regel-Einstellungen im Editor; Deep-Links von jedem Hinweis in die Fach-UI
 - [x] Infozeilen und Hinweis-Zähler auf den Link-Kacheln von Kimai und Invoice Ninja

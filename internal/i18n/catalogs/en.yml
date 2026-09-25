@@ -176,6 +176,8 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  effective_rate: Effective hourly rate
+  effective_rates: Rate per customer
   newtab: New tab
   sametab: Same tab
   'off': 'Off'
@@ -721,6 +723,7 @@ info:
   glances:
     cpu: CPU {percent} %
 kpi:
+  per_hour: per hour, {count} customers, 12 months
   of_target: target {hours} h
   hours: '{hours} h'
   invoices: '{count} invoices'
@@ -731,6 +734,7 @@ kpi:
   of_goal: goal {goal}
   cash_30: open + recurring, 30 days
 col:
+  rate: Rate
   number: No.
   client: Client
   customer: Client

@@ -38,6 +38,7 @@ const (
 	MetricAssetsReady     Metric = "assets_ready"
 	MetricRevenueForecast Metric = "revenue_forecast"
 	MetricCash30          Metric = "cash_30"
+	MetricEffectiveRate   Metric = "effective_rate"
 )
 
 // TableKind selects a "table" widget's row source.
@@ -50,6 +51,7 @@ const (
 	TableClientShares TableKind = "client_shares"
 	TableAssetDates   TableKind = "asset_dates"
 	TableTrips        TableKind = "trips"
+	TableRates        TableKind = "effective_rates"
 )
 
 // ChartKind selects a "chart" widget's series.
@@ -230,7 +232,7 @@ func kpiKimai(metric Metric, data *sources.KimaiDataset, ctx ViewCtx) *KpiResult
 	return nil
 }
 
-func kpiNinja(metric Metric, data *sources.NinjaDataset, ctx ViewCtx) *KpiResult {
+func kpiNinja(metric Metric, data *sources.NinjaDataset, peer any, ctx ViewCtx) *KpiResult {
 	tax := settingsMap(ctx.Settings, "tax")
 	interval := metrics.TaxVATInterval(ctx.Settings)
 	method := metrics.TaxVATMethod(ctx.Settings)
@@ -270,6 +272,13 @@ func kpiNinja(metric Metric, data *sources.NinjaDataset, ctx ViewCtx) *KpiResult
 	case MetricCash30:
 		return &KpiResult{Kind: "money", Value: metrics.NinjaCashExpected(data, today, 30), Currency: stats.Currency,
 			SubKey: "kpi.cash_30"}
+	case MetricEffectiveRate:
+		kimai, ok := peer.(*sources.KimaiDataset)
+		if !ok {
+			return nil
+		}
+		rows, overall := metrics.EffectiveRates(kimai, data, today)
+		return &KpiResult{Kind: "money", Value: overall, Currency: stats.Currency, SubKey: "kpi.per_hour", SubCount: len(rows)}
 	case MetricTaxReserve:
 		rate := settingsFloat(tax, "income_tax_rate", defaultIncomeTaxRate)
 		var expenses float64
@@ -310,7 +319,7 @@ func kpiView(cfgAny any, results map[string]any, ctx ViewCtx) map[string]any {
 	case enums.ServiceKimai:
 		kpi = kpiKimai(cfg.Metric, data.(*sources.KimaiDataset), ctx)
 	case enums.ServiceInvoiceNinja:
-		kpi = kpiNinja(cfg.Metric, data.(*sources.NinjaDataset), ctx)
+		kpi = kpiNinja(cfg.Metric, data.(*sources.NinjaDataset), results[peerKimai], ctx)
 	case enums.ServiceSnipeIT:
 		kpi = kpiSnipe(cfg.Metric, data.(*sources.SnipeDataset), ctx)
 	}
@@ -340,6 +349,8 @@ func colsFor(kind TableKind) []Col {
 		return []Col{{"name", "text"}, {"kind", "upcoming"}, {"due", "day"}}
 	case TableTrips:
 		return []Col{{"area", "text"}, {"day", "day"}, {"km", "km"}, {"away", "hours"}}
+	case TableRates:
+		return []Col{{"customer", "text"}, {"hours", "hours"}, {"amount", "money"}, {"rate", "money"}}
 	}
 	return nil
 }
@@ -385,6 +396,18 @@ func tableRows(kind TableKind, results map[string]any, ctx ViewCtx) ([]Row, bool
 		var rows []Row
 		for _, i := range metrics.SnipeUpcomingDates(data.(*sources.SnipeDataset), today, 0) {
 			rows = append(rows, Row{[]any{i.Name, i.Kind, i.Date}})
+		}
+		return rows, true
+
+	case kind == TableRates && service == enums.ServiceInvoiceNinja:
+		kimai, ok := results[peerKimai].(*sources.KimaiDataset)
+		if !ok {
+			return nil, false
+		}
+		rates, _ := metrics.EffectiveRates(kimai, data.(*sources.NinjaDataset), today)
+		var rows []Row
+		for _, r := range rates {
+			rows = append(rows, Row{[]any{r.Customer, r.Hours, r.Net, r.Rate}})
 		}
 		return rows, true
 
@@ -667,11 +690,30 @@ func dataQuery(any) []Query {
 	return []Query{{Name: "data", Source: "data", Conn: ConnWidget}}
 }
 
+// peerKimai names the space's Kimai dataset for rate views.
+const peerKimai = "kimai"
+
+var kimaiPeer = Query{Name: peerKimai, Source: "data", Conn: ConnPeer, Service: enums.ServiceKimai}
+
+func kpiQueries(cfg any) []Query {
+	if cfg.(KpiConfig).Metric == MetricEffectiveRate {
+		return append(dataQuery(nil), kimaiPeer)
+	}
+	return dataQuery(nil)
+}
+
+func tableQueries(cfg any) []Query {
+	if cfg.(TableConfig).Table == TableRates {
+		return append(dataQuery(nil), kimaiPeer)
+	}
+	return dataQuery(nil)
+}
+
 func init() {
 	Register(WidgetType{Key: "kpi", Decode: decodeKpi, Template: "widgets/kpi", Category: CategoryInsight,
-		RefreshS: 600, Queries: dataQuery, View: kpiView})
+		RefreshS: 600, Queries: kpiQueries, View: kpiView})
 	Register(WidgetType{Key: "table", Decode: decodeTable, Template: "widgets/table", Category: CategoryInsight,
-		RefreshS: 600, Queries: dataQuery, View: tableView})
+		RefreshS: 600, Queries: tableQueries, View: tableView})
 	Register(WidgetType{Key: "chart", Decode: decodeChart, Template: "widgets/chart", Category: CategoryInsight,
 		RefreshS: 3600, Queries: dataQuery, View: chartView})
 	Register(WidgetType{Key: "progress", Decode: decodeProgress, Template: "widgets/progress", Category: CategoryInsight,
