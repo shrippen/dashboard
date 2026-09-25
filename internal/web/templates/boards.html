@@ -1,9 +1,8 @@
-{{/* Board view with real sections and tiles. Every tile lazy-loads its
-     live fragment via htmx (GET /widget-fragments/{id}): simpler than
-     Python's inline-vs-fragment split, since Go's html/template can't
-     {{template}} a dynamically-named partial the way Jinja's `include`
-     can — ExecuteTemplate (used by the fragment route) can, so
-     everything goes through it uniformly. */}}
+{{/* Board page. Link tiles render inline (search, hotkeys and the first
+     paint need them in the HTML); their live part (status, info line,
+     hint count) and every data widget lazy-load via htmx from
+     /widget-fragments/{id}. Modes: ?edit (board editors), ?layout (own
+     overlay: hide, size, order), ?view=compact (only links). */}}
 {{define "board"}}
 <!doctype html>
 <html lang="{{.Ctx.Locale}}">
@@ -11,91 +10,256 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Board.Name}} · dashboard</title>
+  <link rel="manifest" href="/manifest.webmanifest">
   {{template "style" .}}
   {{template "htmx" .}}
+  {{if or .Edit .LayerEdit}}
+  <script src="/static/vendor/sortable/Sortable.min.js" defer></script>
+  <script src="/static/editor.js" defer></script>
+  {{end}}
 </head>
 <body>
+  {{if not .Embed}}{{template "header" .}}{{end}}
+  <main class="board-page">
   {{if not .Embed}}
-  {{template "header" .}}
-  <nav class="board-nav" style="padding:.6rem 1.2rem 0">
-    {{range .NavBoards}}<a href="/boards/{{.ID}}">{{.Name}}</a>{{end}}
-    {{if .Board.CanEdit}}<a href="/boards/{{.Board.ID}}/settings">{{t "edit.board_settings"}}</a>{{end}}
+  <nav class="board-nav" aria-label="Boards">
+    {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.Board.ID}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
   </nav>
+
+  <div class="board-head">
+    <h1 class="board-title">{{.Board.Name}}</h1>
+    <label class="search">
+      <span class="sr">{{t "board.search"}}</span>
+      <input id="search" type="search" autocomplete="off" placeholder="{{t "board.search_hint"}}"
+             data-engine="{{.SearchEngine}}" aria-keyshortcuts="/">
+      <kbd>/</kbd>
+    </label>
+    <div class="board-tools">
+      {{if .Board.CanEdit}}
+        {{if .Edit}}<a class="link-btn" href="/boards/{{.Board.ID}}">{{t "edit.done"}}</a>
+        {{else}}<a class="link-btn" href="/boards/{{.Board.ID}}?edit">{{t "edit.edit"}}</a>{{end}}
+      {{end}}
+      {{if .LayerEdit}}<a class="link-btn" href="/boards/{{.Board.ID}}">{{t "edit.done"}}</a>
+      {{else if not .Edit}}<a class="link-btn" href="/boards/{{.Board.ID}}?layout">{{t "edit.my_layout"}}</a>{{end}}
+      <a class="link-btn" href="/boards/{{.Board.ID}}{{if not .Compact}}?view=compact{{end}}">{{if .Compact}}{{t "board.full"}}{{else}}{{t "board.compact"}}{{end}}</a>
+      {{if .Board.HasOverlay}}
+      <form method="post" action="/boards/{{.Board.ID}}/overlay/reset" class="inline-form">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit" class="link-btn">{{t "edit.reset_layout"}}</button>
+      </form>
+      {{end}}
+    </div>
+  </div>
+
+  {{if .Edit}}
+  <div class="editbar">
+    <b>{{t "edit.mode"}} · {{.Board.Space.Name}} · v{{.Board.Version}}</b>
+    <form method="post" action="/boards/{{.Board.ID}}/sections" class="inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <input type="hidden" name="version" value="{{.Board.Version}}">
+      <input name="title" placeholder="{{t "edit.section_title"}}" aria-label="{{t "edit.section_title"}}">
+      <button type="submit">{{t "edit.add_section"}}</button>
+    </form>
+    <span class="sp">
+      <a href="/boards/{{.Board.ID}}/settings">{{t "edit.board_settings"}}</a>
+      <a href="/boards/{{.Board.ID}}/history">{{t "edit.history"}}</a>
+      <a href="/shares/board/{{.Board.ID}}">{{t "edit.share"}}</a>
+      <a href="/spaces/{{.Board.Space.ID}}/code">{{t "edit.code"}}</a>
+    </span>
+  </div>
+  {{end}}
   {{end}}
 
   {{$hasSide := false}}
   {{range .Board.Sections}}{{if eq .Area "side"}}{{$hasSide = true}}{{end}}{{end}}
-  <div class="body-cols{{if not $hasSide}} single{{end}}">
-    <div class="col">
+  <div class="board{{if and $hasSide (not .Compact)}} has-side{{end}}{{if .Compact}} is-compact{{end}}"
+       data-board="{{.Board.ID}}" data-version="{{.Board.Version}}"
+       data-mode="{{if .Edit}}board{{else if .LayerEdit}}overlay{{end}}">
+    <div class="board-col board-main">
       {{range .Board.Sections}}{{if ne .Area "side"}}{{template "section" dict "S" . "B" $}}{{end}}{{end}}
     </div>
     {{if $hasSide}}
-    <div class="col">
+    <div class="board-col board-side">
       {{range .Board.Sections}}{{if eq .Area "side"}}{{template "section" dict "S" . "B" $}}{{end}}{{end}}
     </div>
     {{end}}
   </div>
-
-  {{if .Board.CanEdit}}
-    <div style="padding:0 1.2rem 1.4rem">
-      <form class="inline-form" method="post" action="/boards/{{.Board.ID}}/sections">
-        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
-        <input type="hidden" name="version" value="{{.Board.Version}}">
-        <input name="title" placeholder="{{t "edit.section_title"}}">
-        <button type="submit">{{t "edit.add_section"}}</button>
-      </form>
-    </div>
-  {{end}}
+  <p class="search-empty" hidden>{{t "board.no_match"}}</p>
+  </main>
 </body>
 </html>
 {{end}}
 
-{{/* "dict" (a small render.go func) packs the section plus the root
-     context (for $.CSRFField, $.Board.CanEdit, ...) into one map, since
-     {{template}} only takes a single pipeline argument. */}}
+{{/* "dict" packs the section and the root context into one pipeline,
+     since {{template}} takes a single argument. */}}
 {{define "section"}}
 {{$b := .B}}{{with .S}}
-  <div class="fold">
-    {{if .Title}}<b>{{.Title}}</b>{{end}}<span>({{len .Tiles}})</span>
-    {{if $b.Board.CanEdit}}
-      <form class="inline-form sp" method="post" action="/sections/{{.ID}}/delete"
-            data-confirm="{{t "edit.confirm_delete"}}">
+<section class="dsec{{if .Collapsed}} is-collapsed{{end}}" data-section="{{.ID}}">
+  <header class="dsec-head">
+    <button class="fold-btn" type="button" aria-expanded="{{if .Collapsed}}false{{else}}true{{end}}"
+            data-fold="/boards/{{$b.Board.ID}}/fold/{{.ID}}">
+      <span class="fold-mark" aria-hidden="true"></span>
+      <h2>{{if .Title}}{{.Title}}{{else}}{{t "board.untitled"}}{{end}}</h2>
+      <span class="dsec-count">{{len .Tiles}}</span>
+    </button>
+    {{if $b.Edit}}
+    <details class="section-tools">
+      <summary class="link-btn">{{t "edit.section"}}</summary>
+      <form method="post" action="/sections/{{.ID}}/edit" class="section-form">
         <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
-        <input type="hidden" name="version" value="{{$b.Board.Version}}">
         <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
+        <input type="hidden" name="version" value="{{$b.Board.Version}}">
+        <label>{{t "field.title"}}<input name="title" value="{{.Title}}"></label>
+        <label>{{t "field.cols"}}<input name="cols" type="number" min="1" max="12" value="{{with .Cols}}{{.}}{{end}}"></label>
+        <label>{{t "field.size"}}<select name="size">{{$size := .Size}}{{range $b.Sizes}}<option value="{{.}}"{{if eq . $size}} selected{{end}}>{{t (print "size." .)}}</option>{{end}}</select></label>
+        <label>{{t "field.sort"}}<select name="sort">{{$sort := .Sort}}{{range $b.Sorts}}<option value="{{.}}"{{if eq . $sort}} selected{{end}}>{{t (print "sort." .)}}</option>{{end}}</select></label>
+        <label>{{t "field.area"}}<select name="area">{{$area := .Area}}{{range $b.Areas}}<option value="{{.}}"{{if eq . $area}} selected{{end}}>{{t (print "area." .)}}</option>{{end}}</select></label>
+        <label class="check"><input type="checkbox" name="collapsed"{{if .Collapsed}} checked{{end}}> {{t "field.collapsed"}}</label>
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+      <form method="post" action="/sections/{{.ID}}/delete" data-confirm="{{t "edit.confirm_delete"}}">
+        <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+        <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
+        <input type="hidden" name="version" value="{{$b.Board.Version}}">
         <button type="submit" class="ghost">{{t "edit.delete_section"}}</button>
       </form>
-    {{end}}
-  </div>
-
-  <div class="launch-grid">
-    {{range .Tiles}}
-      <div class="launch">
-        {{if $b.Board.CanEdit}}
-          <form method="post" action="/placements/{{.PlacementID}}/unplace">
-            <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
-            <input type="hidden" name="version" value="{{$b.Board.Version}}">
-            <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
-            <button type="submit" class="launch-remove" title="{{t "edit.remove"}}">×</button>
-          </form>
-        {{end}}
-        {{if .Title}}<div class="launch-top"><b>{{.Title}}</b></div>{{end}}
-        <div class="launch-body" hx-get="/widget-fragments/{{.PlacementID}}{{if $b.EmbedToken}}?token={{$b.EmbedToken}}{{end}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
-          <span class="loading">{{t "widget.loading"}}</span>
-        </div>
-      </div>
-    {{end}}
-  </div>
-
-  {{if $b.Board.CanEdit}}
-    <form class="inline-form" method="post" action="/boards/{{$b.Board.ID}}/sections/{{.ID}}/place" style="margin-bottom:1.4rem">
+    </details>
+    {{else if $b.LayerEdit}}
+    <form method="post" action="/boards/{{$b.Board.ID}}/size/{{.ID}}" class="inline-form section-tools">
       <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
-      <input type="hidden" name="version" value="{{$b.Board.Version}}">
-      <select name="widget_id">
-        {{range $b.Library}}<option value="{{.ID}}">{{.Title}} ({{.Type}})</option>{{end}}
-      </select>
-      <button type="submit" class="ghost">{{t "edit.place"}}</button>
+      {{$size := .Size}}
+      <select name="value" data-autosubmit aria-label="{{t "field.size"}}">{{range $b.Sizes}}<option value="{{.}}"{{if eq . $size}} selected{{end}}>{{t (print "size." .)}}</option>{{end}}</select>
     </form>
-  {{end}}
+    {{end}}
+  </header>
+  <div class="dsec-body size-{{.Size}}"{{with .Cols}} style="--cols:{{.}}"{{end}} data-sortable="{{.ID}}">
+    {{range .Tiles}}
+      {{if or (not .Hidden) $b.LayerEdit}}{{template "tile" dict "T" . "B" $b}}{{end}}
+    {{end}}
+    {{if $b.Edit}}
+    <div class="add-tile" data-static>
+      <a class="link-btn" href="/widgets/new?space={{$b.Board.Space.ID}}&section={{.ID}}&board={{$b.Board.ID}}&version={{$b.Board.Version}}">+ {{t "edit.new_widget"}}</a>
+      <a class="link-btn" href="/sections/{{.ID}}/pick?board_id={{$b.Board.ID}}&version={{$b.Board.Version}}">{{t "edit.from_library"}}</a>
+    </div>
+    {{end}}
+  </div>
+</section>
 {{end}}
+{{end}}
+
+{{define "tile"}}
+{{$b := .B}}{{with .T}}
+{{$frag := print "/widget-fragments/" .PlacementID}}{{if $b.EmbedToken}}{{$frag = print $frag "?token=" $b.EmbedToken}}{{end}}
+<div class="tile-slot w-{{.Type}}{{if .Hidden}} is-hidden{{end}}" data-placement="{{.PlacementID}}">
+  {{if eq .Type "link"}}
+    {{$c := .Config}}
+    <a class="launch" href="{{$c.URL}}"{{if eq (print $c.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}}
+       data-search="{{.Title}} {{$c.Description}} {{$c.URL}}"{{if $c.Hotkey}} data-hotkey="{{$c.Hotkey}}"{{end}}>
+      <span class="launch-icon">{{if .IconURL}}<img src="{{.IconURL}}" alt="" loading="lazy">{{else}}<span class="mono">{{monogram .Title}}</span>{{end}}</span>
+      <span class="launch-body">
+        <b class="launch-title">{{.Title}}</b>
+        {{if $c.Description}}<small class="launch-desc">{{$c.Description}}</small>{{end}}
+        {{if or (ne (print $c.Status) "off") $c.InfoConn}}
+        <span class="launch-live" hx-get="{{$frag}}" hx-trigger="load, every 300s" hx-swap="innerHTML"></span>
+        {{end}}
+      </span>
+      {{if $c.Hotkey}}<kbd class="launch-key">{{$c.Hotkey}}</kbd>{{end}}
+    </a>
+  {{else}}
+    <article class="card">
+      {{if .Title}}<h3 class="card-title">{{.Title}}</h3>{{end}}
+      <div class="card-body" hx-get="{{$frag}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
+        <span class="loading">{{t "widget.loading"}}</span>
+      </div>
+    </article>
+  {{end}}
+  {{if $b.Edit}}
+  <div class="tile-tools" data-static>
+    <a href="/widgets/{{.WidgetID}}/edit?board={{$b.Board.ID}}">{{t "action.edit"}}</a>
+    <a href="/shares/widget/{{.WidgetID}}">{{t "edit.share"}}</a>
+    <form method="post" action="/placements/{{.PlacementID}}/unplace" class="inline-form">
+      <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+      <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
+      <input type="hidden" name="version" value="{{$b.Board.Version}}">
+      <button class="link-btn" type="submit">{{t "edit.remove"}}</button>
+    </form>
+  </div>
+  {{else if $b.LayerEdit}}
+  <form class="tile-tools" method="post" action="/boards/{{$b.Board.ID}}/show/{{.PlacementID}}" data-static>
+    <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+    <input type="hidden" name="state" value="{{if .Hidden}}shown{{else}}hidden{{end}}">
+    <button class="link-btn" type="submit">{{if .Hidden}}{{t "edit.show"}}{{else}}{{t "edit.hide"}}{{end}}</button>
+  </form>
+  {{end}}
+</div>
+{{end}}
+{{end}}
+
+{{define "board_history"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "edit.history"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "edit.history"}}</h1>
+    <p class="muted">{{.Board.Name}}</p>
+    <div class="table-wrap"><table class="table">
+      <tr><th>v</th><th>{{t "history.when"}}</th><th>{{t "history.sections"}}</th><th></th></tr>
+      {{range $i, $r := .Revisions}}
+      <tr>
+        <td>{{$r.Version}}</td>
+        <td>{{ago $r.At}}</td>
+        <td>{{range $j, $s := $r.Sections}}{{if $j}}, {{end}}{{if $s.Title}}{{$s.Title}}{{else}}–{{end}} ({{$s.Widgets}}){{end}}</td>
+        <td>{{if $i}}
+          <form method="post" action="/boards/{{$.Board.ID}}/restore/{{$r.ID}}" class="inline-form">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <button type="submit" class="ghost">{{t "history.restore"}}</button>
+          </form>{{end}}</td>
+      </tr>
+      {{end}}
+    </table></div>
+    <p><a class="link-btn" href="/boards/{{.Board.ID}}?edit">{{t "action.cancel"}}</a></p>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "board_pick"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "edit.from_library"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "edit.from_library"}}</h1>
+    <div class="table-wrap"><table class="table">
+      <tr><th>{{t "field.title"}}</th><th>{{t "field.type"}}</th><th></th></tr>
+      {{range .Library}}
+      <tr>
+        <td>{{.Title}}</td><td><code>{{.Type}}</code></td>
+        <td>
+          <form method="post" action="/boards/{{$.BoardID}}/sections/{{$.SectionID}}/place" class="inline-form">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <input type="hidden" name="version" value="{{$.Version}}">
+            <input type="hidden" name="widget_id" value="{{.ID}}">
+            <button type="submit" class="ghost">{{t "edit.place"}}</button>
+          </form>
+        </td>
+      </tr>
+      {{else}}<tr><td colspan="3" class="muted">{{t "library.empty"}}</td></tr>{{end}}
+    </table></div>
+  </main>
+</body>
+</html>
 {{end}}

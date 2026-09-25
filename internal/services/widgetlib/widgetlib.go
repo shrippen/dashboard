@@ -311,11 +311,44 @@ type Fragment struct {
 	View      map[string]any
 }
 
+// sourceAliases maps a generic source that a service implements under
+// another key ("glances" has one query that is its data).
+var sourceAliases = map[string]string{"glances.data": "glances"}
+
 func sourceFor(q widgets.Query, target *model.Connection) string {
 	if target != nil && genericSources[q.Source] {
-		return target.Service + "." + q.Source
+		key := target.Service + "." + q.Source
+		if alias, ok := sourceAliases[key]; ok {
+			return alias
+		}
+		return key
 	}
 	return q.Source
+}
+
+// infoKeyOf returns the connection key a link tile's info line names, or "".
+func infoKeyOf(cfg any) string {
+	link, ok := cfg.(widgets.LinkConfig)
+	if !ok {
+		return ""
+	}
+	return link.InfoConn
+}
+
+// infoConnection finds a connection by key: first in the widget's space,
+// then in any space the viewer reaches.
+func infoConnection(q db.Queryer, who *access.Principal, widget *model.Widget, key string) (*model.Connection, error) {
+	found, err := content.ConnectionByKey(q, widget.SpaceID, key)
+	if err != nil || found != nil {
+		return found, err
+	}
+	for spaceID := range who.Spaces {
+		found, err := content.ConnectionByKey(q, spaceID, key)
+		if err != nil || found != nil {
+			return found, err
+		}
+	}
+	return nil, nil
 }
 
 // Load runs a widget's queries against its connection (svcdata.Get, so
@@ -329,8 +362,9 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	cfg, _ := widgets.Decode(widget.Type, widget.Config)
 	frag := &Fragment{WidgetID: widget.ID, Type: widget.Type, Title: widget.Title, Config: cfg, Slots: map[string]Slot{}}
 
-	var conn *model.Connection
+	var conn, infoConn *model.Connection
 	var settings map[string]any
+	infoKey := infoKeyOf(cfg)
 	err := db.WithTx(d, func(tx *sql.Tx) error {
 		if widget.ConnectionID != nil {
 			c, err := content.Connection(tx, *widget.ConnectionID)
@@ -338,6 +372,13 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 				return err
 			}
 			conn = c
+		}
+		if infoKey != "" {
+			c, err := infoConnection(tx, who, widget, infoKey)
+			if err != nil {
+				return err
+			}
+			infoConn = c
 		}
 		space, err := content.Space(tx, widget.SpaceID)
 		if err != nil {
@@ -355,14 +396,13 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		settings = map[string]any{}
 	}
 
-	// ConnUse.INFO (a widget naming a connection by key, e.g. the link
-	// widget's status line) is not wired up yet; those queries surface as
-	// "connection.missing" until that's ported alongside the remaining
-	// start widgets.
 	for _, q := range kind.Queries(cfg) {
 		var target *model.Connection
-		if q.Conn == widgets.ConnWidget {
+		switch q.Conn {
+		case widgets.ConnWidget:
 			target = conn
+		case widgets.ConnInfo:
+			target = infoConn
 		}
 		if q.Conn != widgets.ConnNone && target == nil {
 			frag.Slots[q.Name] = Slot{Error: "connection.missing"}
@@ -371,8 +411,12 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, fresh)
 	}
 
-	if conn != nil {
-		count, level, err := hints.CountFor(d, who, conn.ID)
+	serviceConn := conn
+	if infoConn != nil {
+		serviceConn = infoConn
+	}
+	if serviceConn != nil {
+		count, level, err := hints.CountFor(d, who, serviceConn.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -390,8 +434,8 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 
 	if kind.View != nil {
 		viewCtx := widgets.ViewCtx{Today: time.Now().UTC().Format("2006-01-02"), Settings: settings}
-		if conn != nil {
-			viewCtx.Service, viewCtx.Options = conn.Service, conn.Options
+		if serviceConn != nil {
+			viewCtx.Service, viewCtx.Options = serviceConn.Service, serviceConn.Options
 		}
 		results := map[string]any{}
 		for name, slot := range frag.Slots {

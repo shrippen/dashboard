@@ -113,7 +113,7 @@ func (d Deps) handleSectionAdd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+r.PathValue("id"), http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+r.PathValue("id")+"?edit", http.StatusSeeOther)
 }
 
 func (d Deps) handleSectionEdit(w http.ResponseWriter, r *http.Request) {
@@ -136,14 +136,20 @@ func (d Deps) handleSectionEdit(w http.ResponseWriter, r *http.Request) {
 	size := enums.TileSize(r.FormValue("size"))
 	sortOrder := enums.SortOrder(r.FormValue("sort"))
 	area := r.FormValue("area")
-	changes := boards.SectionChanges{Title: &title, Size: &size, Sort: &sortOrder, Area: &area}
+	collapsed := r.FormValue("collapsed") != ""
+	var cols *int
+	if n, err := strconv.Atoi(r.FormValue("cols")); err == nil && n > 0 {
+		cols = &n
+	}
+	changes := boards.SectionChanges{Title: &title, Size: &size, Sort: &sortOrder, Area: &area,
+		Collapsed: &collapsed, Cols: &cols}
 
 	boardID := r.FormValue("board_id")
 	if err := boards.EditSection(d.DB, ctx.Who, id, version, changes); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+boardID, http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+boardID+"?edit", http.StatusSeeOther)
 }
 
 func (d Deps) handleSectionDelete(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +173,7 @@ func (d Deps) handleSectionDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+boardID, http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+boardID+"?edit", http.StatusSeeOther)
 }
 
 func (d Deps) handlePlace(w http.ResponseWriter, r *http.Request) {
@@ -196,7 +202,7 @@ func (d Deps) handlePlace(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+strconv.FormatInt(boardID, 10), http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+strconv.FormatInt(boardID, 10)+"?edit", http.StatusSeeOther)
 }
 
 func (d Deps) handleUnplace(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +226,7 @@ func (d Deps) handleUnplace(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+boardID, http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+boardID+"?edit", http.StatusSeeOther)
 }
 
 // ── Widget library ──

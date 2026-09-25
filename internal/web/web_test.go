@@ -18,6 +18,7 @@ import (
 	"dashboard/internal/db"
 	"dashboard/internal/outbound"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/icons"
 	"dashboard/internal/services/mail"
 	"dashboard/internal/services/system"
 	"dashboard/internal/services/themes"
@@ -64,6 +65,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	}
 	mail.Init(cfg)
 	themes.InitFonts(t.TempDir())
+	icons.Init(t.TempDir())
 	outbound.TakeOutbox()
 	deps := web.Deps{DB: database, Settings: cfg}
 	mux := http.NewServeMux()
@@ -84,6 +86,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterAPIRoutes(mux)
 	deps.RegisterSettingsRoutes(mux)
 	deps.RegisterOIDCRoutes(mux)
+	deps.RegisterIconRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(deps.Secure(mux))
@@ -429,6 +432,28 @@ func TestConnectionsCreateEditDelete(t *testing.T) {
 	}
 }
 
+// placeTarget finds, via the board's edit mode and the library picker,
+// where to place the widget titled title: board path, section id, board
+// version and widget id.
+func placeTarget(t *testing.T, srv *httptest.Server, client *http.Client, title string) (string, string, string, string) {
+	t.Helper()
+	resp := getFollowingRedirect(t, srv, client, "/")
+	resp.Body.Close()
+	boardURL := resp.Request.URL.Path
+
+	board := mustGet(t, srv, client, boardURL+"?edit")
+	pick := regexp.MustCompile(`/sections/(\d+)/pick\?board_id=\d+&(?:amp;)?version=(\d+)`).FindSubmatch(board)
+	if pick == nil {
+		t.Fatalf("no library link in edit mode:\n%s", board)
+	}
+	picker := mustGet(t, srv, client, "/sections/"+string(pick[1])+"/pick")
+	widget := regexp.MustCompile(`<td>` + regexp.QuoteMeta(title) + `</td>[\s\S]*?name="widget_id" value="(\d+)"`).FindSubmatch(picker)
+	if widget == nil {
+		t.Fatalf("expected %q in the library picker:\n%s", title, picker)
+	}
+	return boardURL, string(pick[1]), string(pick[2]), string(widget[1])
+}
+
 // TestEditorCreateWidgetPlaceUnplace drives the editor flow end to end:
 // create a widget in the library, place it on the start board, see the
 // tile, unplace it, add a section, delete it.
@@ -437,15 +462,6 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 	setupAdmin(t, srv, client, code)
 	login(t, srv, client)
 
-	boardResp := getFollowingRedirect(t, srv, client, "/")
-	boardBody, _ := io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
-	boardURL := boardResp.Request.URL.Path
-	sectionMatch := regexp.MustCompile(`/boards/\d+/sections/(\d+)/place`).FindSubmatch(boardBody)
-	if sectionMatch == nil {
-		t.Fatalf("no section place form found on board page:\n%s", boardBody)
-	}
-	sectionID := string(sectionMatch[1])
 	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))
 	if spaceMatch == nil {
 		t.Fatal("no space option found in new-widget form")
@@ -464,20 +480,7 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 	if resp.StatusCode != http.StatusSeeOther {
 		t.Fatalf("expected 303 after widget create, got %d", resp.StatusCode)
 	}
-	// Board version for the place form.
-	boardResp = getFollowingRedirect(t, srv, client, boardURL)
-	boardBody, _ = io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
-	versionMatch := regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
-	if versionMatch == nil {
-		t.Fatalf("no version field found on board page:\n%s", boardBody)
-	}
-	version := string(versionMatch[1])
-	widgetIDMatch := regexp.MustCompile(`<option value="(\d+)">My Note`).FindSubmatch(boardBody)
-	if widgetIDMatch == nil {
-		t.Fatalf("expected My Note in the place-widget picker:\n%s", boardBody)
-	}
-	widgetID := string(widgetIDMatch[1])
+	boardURL, sectionID, version, widgetID := placeTarget(t, srv, client, "My Note")
 
 	csrf = csrfToken(t, srv, client)
 	resp, err = client.PostForm(srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+sectionID+"/place", url.Values{
@@ -492,9 +495,7 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 		t.Fatalf("expected 303 after place, got %d: %s", resp.StatusCode, placeBody)
 	}
 
-	boardResp = getFollowingRedirect(t, srv, client, boardURL)
-	boardBody, _ = io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
+	boardBody := mustGet(t, srv, client, boardURL+"?edit")
 	if !strings.Contains(string(boardBody), "My Note") {
 		t.Fatalf("expected placed widget's title on the board:\n%s", boardBody)
 	}
@@ -503,7 +504,7 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 	if placementMatch == nil {
 		t.Fatalf("no unplace form found:\n%s", boardBody)
 	}
-	versionMatch = regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
+	versionMatch := regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
 	version = string(versionMatch[1])
 
 	csrf = csrfToken(t, srv, client)
@@ -519,11 +520,8 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 		t.Fatalf("expected 303 after unplace, got %d: %s", resp.StatusCode, unplaceBody)
 	}
 
-	boardResp = getFollowingRedirect(t, srv, client, boardURL)
-	boardBody, _ = io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
-	// "My Note" still legitimately appears in the place-widget library
-	// picker; what must be gone is its unplace form for this placement id.
+	boardBody = mustGet(t, srv, client, boardURL+"?edit")
+	// What must be gone is the unplace form for this placement id.
 	if strings.Contains(string(boardBody), "/placements/"+string(placementMatch[1])+"/unplace") {
 		t.Fatalf("expected the placement's unplace form gone from the board after unplace:\n%s", boardBody)
 	}
@@ -574,33 +572,18 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 		t.Fatalf("expected 303 after widget create, got %d", resp.StatusCode)
 	}
 
-	boardResp := getFollowingRedirect(t, srv, client, "/")
-	boardBody, _ := io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
-	boardURL := boardResp.Request.URL.Path
-	sectionMatch := regexp.MustCompile(`/boards/\d+/sections/(\d+)/place`).FindSubmatch(boardBody)
-	if sectionMatch == nil {
-		t.Fatalf("no section place form found on board page:\n%s", boardBody)
-	}
-	sectionID := string(sectionMatch[1])
-	versionMatch := regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
-	widgetIDMatch := regexp.MustCompile(`<option value="(\d+)">Hours today`).FindSubmatch(boardBody)
-	if widgetIDMatch == nil {
-		t.Fatalf("expected Hours today in the place-widget picker:\n%s", boardBody)
-	}
+	boardURL, sectionID, version, widgetID := placeTarget(t, srv, client, "Hours today")
 
 	csrf = csrfToken(t, srv, client)
 	resp, err = client.PostForm(srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+sectionID+"/place", url.Values{
-		"csrf": {csrf}, "widget_id": {string(widgetIDMatch[1])}, "version": {string(versionMatch[1])},
+		"csrf": {csrf}, "widget_id": {widgetID}, "version": {version},
 	})
 	if err != nil {
 		t.Fatalf("place: %v", err)
 	}
 	resp.Body.Close()
 
-	boardResp = getFollowingRedirect(t, srv, client, boardURL)
-	boardBody, _ = io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
+	boardBody := mustGet(t, srv, client, boardURL+"?edit")
 	placementMatch := regexp.MustCompile(`/placements/(\d+)/unplace`).FindSubmatch(boardBody)
 	if placementMatch == nil {
 		t.Fatalf("no placement found on board:\n%s", boardBody)
@@ -661,30 +644,18 @@ func TestWidgetFragmentRendersRssFeed(t *testing.T) {
 		t.Fatalf("expected 303 after widget create, got %d", resp.StatusCode)
 	}
 
-	boardResp := getFollowingRedirect(t, srv, client, "/")
-	boardBody, _ := io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
-	boardURL := boardResp.Request.URL.Path
-	sectionMatch := regexp.MustCompile(`/boards/\d+/sections/(\d+)/place`).FindSubmatch(boardBody)
-	sectionID := string(sectionMatch[1])
-	versionMatch := regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
-	widgetIDMatch := regexp.MustCompile(`<option value="(\d+)">News`).FindSubmatch(boardBody)
-	if widgetIDMatch == nil {
-		t.Fatalf("expected News in the place-widget picker:\n%s", boardBody)
-	}
+	boardURL, sectionID, version, widgetID := placeTarget(t, srv, client, "News")
 
 	csrf = csrfToken(t, srv, client)
 	resp, err = client.PostForm(srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+sectionID+"/place", url.Values{
-		"csrf": {csrf}, "widget_id": {string(widgetIDMatch[1])}, "version": {string(versionMatch[1])},
+		"csrf": {csrf}, "widget_id": {widgetID}, "version": {version},
 	})
 	if err != nil {
 		t.Fatalf("place: %v", err)
 	}
 	resp.Body.Close()
 
-	boardResp = getFollowingRedirect(t, srv, client, boardURL)
-	boardBody, _ = io.ReadAll(boardResp.Body)
-	boardResp.Body.Close()
+	boardBody := mustGet(t, srv, client, boardURL+"?edit")
 	placementMatch := regexp.MustCompile(`/placements/(\d+)/unplace`).FindSubmatch(boardBody)
 	if placementMatch == nil {
 		t.Fatalf("no placement found on board:\n%s", boardBody)

@@ -13,6 +13,7 @@ import (
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/icons"
 	"dashboard/internal/services/mail"
 	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/system"
@@ -63,6 +64,7 @@ func main() {
 	}
 	mail.Init(cfg)
 	themes.InitFonts(cfg.ThemesDir())
+	icons.Init(cfg.IconsDir())
 	schedulerCtx, stopScheduler := context.WithCancel(context.Background())
 	defer stopScheduler()
 	if cfg.SchedulerEnabled {
@@ -88,6 +90,7 @@ func main() {
 	deps.RegisterAPIRoutes(mux)
 	deps.RegisterSettingsRoutes(mux)
 	deps.RegisterOIDCRoutes(mux)
+	deps.RegisterIconRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: deps.Secure(mux)}

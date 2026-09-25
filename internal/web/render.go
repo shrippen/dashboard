@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"dashboard/internal/enums"
@@ -33,6 +34,7 @@ func mustParse() *template.Template {
 		"pct":       func(float64) string { return "" },
 		"ago":       func(any) string { return "" },
 		"clockDate": func(string) string { return "" },
+		"tt":        func(string, map[string]any) string { return "" },
 
 		// barPct/tier are locale-independent (plain numbers/CSS keywords),
 		// so unlike the above they're the real implementation, not a
@@ -43,6 +45,7 @@ func mustParse() *template.Template {
 		"weatherKind": weatherKind,
 		"clockNow":    clockNow,
 		"dict":        dict,
+		"monogram":    monogram,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }
@@ -133,6 +136,10 @@ func (d Deps) Page(w http.ResponseWriter, ctx Ctx, name string, status int, valu
 		"pct":       func(v float64) string { return i18n.Num(v*pctScale, locale, 0) + " %" },
 		"ago":       func(v any) string { return i18n.Ago(asTimePtr(v), locale) },
 		"clockDate": func(tz string) string { return clockDate(tz, locale) },
+		// tt translates with typed params ({"$money": 12.5} -> "12,50 €").
+		"tt": func(key string, params map[string]any) string {
+			return i18n.T(key, locale, i18n.Typed(params, locale))
+		},
 	}
 
 	data := map[string]any{"Ctx": ctx, "Who": ctx.Who, "CSRFField": CSRFField, "CSRFHeader": CSRFHeader}
@@ -217,4 +224,25 @@ func pairs(kv []any) map[string]any {
 		}
 	}
 	return out
+}
+
+// monogram is the fallback icon text: initials of two words, else the
+// first two letters ("Invoice Ninja" -> "IN", "Kimai" -> "KI").
+func monogram(title string) string {
+	words := strings.Fields(strings.ReplaceAll(title, "-", " "))
+	var letters []rune
+	if len(words) > 1 {
+		for _, w := range words[:2] {
+			letters = append(letters, []rune(w)[0])
+		}
+	} else {
+		letters = []rune(title)
+		if len(letters) > 2 {
+			letters = letters[:2]
+		}
+	}
+	if len(letters) == 0 {
+		return "?"
+	}
+	return strings.ToUpper(string(letters))
 }

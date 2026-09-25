@@ -24,6 +24,7 @@ import (
 	"dashboard/internal/repos/content"
 	"dashboard/internal/repos/misc"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/icons"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
 	"dashboard/internal/services/widgetlib"
@@ -60,6 +61,7 @@ type Tile struct {
 	RefreshS    int
 	Config      any
 	Hidden      bool
+	IconURL     string // link tiles: cached icon, "" = monogram
 }
 
 // SectionView is one section with its visible tiles.
@@ -362,10 +364,14 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 			continue
 		}
 		cfg, _ := widgets.Decode(w.Type, w.Config)
-		view.Tiles = append(view.Tiles, Tile{
+		tile := Tile{
 			PlacementID: placement.ID, WidgetID: w.ID, Type: w.Type, Title: w.Title, Template: kind.Template,
 			Category: kind.Category, Inline: kind.Inline, RefreshS: kind.RefreshS, Config: cfg, Hidden: hidden[placement.ID],
-		})
+		}
+		if link, ok := cfg.(widgets.LinkConfig); ok {
+			tile.IconURL = icons.URL(link.Icon, link.URL)
+		}
+		view.Tiles = append(view.Tiles, tile)
 	}
 
 	if view.Sort == enums.SortAlphabetical {

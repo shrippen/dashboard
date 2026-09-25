@@ -3,8 +3,10 @@ package widgets
 
 import (
 	"strings"
+	"time"
 
 	"dashboard/internal/enums"
+	"dashboard/internal/metrics"
 	"dashboard/internal/sources"
 )
 
@@ -124,15 +126,32 @@ func firstNonEmpty(a, b string) string {
 	return b
 }
 
-func linkView(cfgAny any, results map[string]any, ctx ViewCtx) map[string]any {
+// linkView turns the info connection's dataset into the tile's info line,
+// e.g. Kimai -> ["3,5 h heute", "Timer läuft"].
+func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 	info := results["info"]
 	if info == nil || ctx.Service == "" {
 		return map[string]any{}
 	}
-	// The actual metrics.*Info() call happens in the widgets service (it
-	// knows the concrete dataset type per ctx.Service); this view only
-	// passes the pre-computed parts through.
-	return map[string]any{"info": info}
+	today, err := time.Parse(time.DateOnly, ctx.Today)
+	if err != nil {
+		today = time.Now().UTC()
+	}
+
+	var parts []metrics.InfoPart
+	switch data := info.(type) {
+	case *sources.KimaiDataset:
+		parts = metrics.KimaiInfo(data, today)
+	case *sources.NinjaDataset:
+		parts = metrics.NinjaInfo(data, today)
+	case *sources.SnipeDataset:
+		parts = metrics.SnipeInfo(data, today)
+	case *sources.DawarichDataset:
+		parts = metrics.DawarichInfo(data.LastPoint)
+	case *sources.GlancesResult:
+		parts = metrics.GlancesInfo(data.CPU)
+	}
+	return map[string]any{"Info": parts}
 }
 
 // RssConfig is the "rss" widget's config.

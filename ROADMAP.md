@@ -600,7 +600,7 @@ Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
 
 - [x] `dashboard.css` in `internal/web/static/` angelegt: nur Tokens (`var(--…)`), keine Hex-Werte außerhalb `themes/`
 - [x] `base.html`: `system-ui`-Fallback durch `.app-nav`/`.app-links`/`.app-side` und echte Formularstile ersetzt; jede Seite lädt jetzt ihr aktives Theme (`Deps.Page` setzt `ThemeURL`, vorher nur die Board-Seite)
-- [ ] `.launch` / `.launch-grid`: Link-Kachel — Grid und Kachel-Rahmen stehen (`boards.html`), aber noch ohne Icon-Quadrat, Status-Punkt und Hinweis-Zähler-Badge aus dem Entwurf
+- [x] `.launch`: Link-Kachel mit Icon-Quadrat (Monogramm als Rückfall), Status-Punkt, Infozeile und Hinweis-Zähler
 - [x] `.kpi` / `.kpi-row`: Kennzahl-Kacheln (`widgets_insight.html`, bereits vor diesem Abschnitt vorhanden, jetzt mit den echten Tokens statt Fallback-Werten)
 - [x] `.hint`: Hinweis-Karte mit Stufe, Quelle, aufklappbarem „Warum?“, Aktion — bestehende Struktur, jetzt mit Tokens gestylt
 - [x] `.pill` mit `data-state`: Connector-/Link-Status
@@ -633,12 +633,12 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 1: Startseite, Editor und Dashy-Migration (v0.2)
 
-- [ ] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache *(nur Python; kein Icons-Service in Go)*
+- [x] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache *(Go: `services/icons`, `sources/icons.go`, `/icons/{key}`)*
 - [x] Quelle `http_status` und Statuspunkt auf den Kacheln
 - [x] Boards, einklappbare Abschnitte, `cols`, Kachelgrößen, Sortierung
 - [x] Suche mit Filter, `Enter`, Hotkeys, Websuche als Rückfall
 - [x] Widgets `rss`, `clock`, `weather` (Open-Meteo)
-- [ ] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest *(Widgets ja; kompakte Ansicht und Manifest fehlen in Go)*
+- [x] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
 - [ ] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen *(Bibliothek/Verbindungstest/Revisionen ja; Board-Bearbeitung läuft in Go über separate Formularseiten statt Inline-Editbar/Drag & Drop — `.editbar`/`.dropzone` nur als CSS vorbereitet)*
 - [ ] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(nur Python `porting.py`; in Go nicht portiert, CLI `import` gibt nur einen Hinweis aus)*
 - [x] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine

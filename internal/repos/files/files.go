@@ -75,3 +75,35 @@ func (s Store) RemoveAll(key string) error {
 	}
 	return os.RemoveAll(filepath.Dir(p))
 }
+
+// Names lists the file names under key (none if the directory is missing).
+func (s Store) Names(key string) ([]string, error) {
+	p, err := s.path(key, "x")
+	if err != nil {
+		return nil, err
+	}
+	entries, err := os.ReadDir(filepath.Dir(p))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	out := make([]string, 0, len(entries))
+	for _, e := range entries {
+		if !e.IsDir() {
+			out = append(out, e.Name())
+		}
+	}
+	return out, nil
+}
+
+// Exists reports whether name under key is present.
+func (s Store) Exists(key, name string) bool {
+	p, err := s.path(key, name)
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(p)
+	return err == nil
+}

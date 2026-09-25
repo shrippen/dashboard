@@ -43,6 +43,11 @@ func (d Deps) apiPrincipal(r *http.Request, scopes ...enums.TokenScope) *access.
 
 func writeJSON(w http.ResponseWriter, value any) {
 	w.Header().Set("Content-Type", "application/json")
+	writeJSONAs(w, value)
+}
+
+// writeJSONAs encodes value, keeping a Content-Type the caller already set.
+func writeJSONAs(w http.ResponseWriter, value any) {
 	_ = json.NewEncoder(w).Encode(value)
 }
 

@@ -4,9 +4,9 @@
 //	every 1 min   push notifications
 //	every 5 min   digest mails
 //	hourly        housekeeping (sessions, cache, hints, audit)
+//	daily         retry icons that failed to download
 //
-// Ports app/services/scheduler.py + app/services/jobs.py. Not ported: the
-// daily icon-retry job (icons service isn't ported).
+// Ports app/services/scheduler.py + app/services/jobs.py.
 package scheduler
 
 import (

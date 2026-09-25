@@ -10,6 +10,7 @@ import (
 	"dashboard/internal/services/audit"
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/hints"
+	"dashboard/internal/services/icons"
 	"dashboard/internal/services/notify"
 	"dashboard/internal/services/scheduler"
 	"dashboard/internal/services/svcdata"
@@ -19,10 +20,10 @@ import (
 const (
 	minute = time.Minute
 	hour   = time.Hour
+	day    = 24 * time.Hour
 )
 
-// backgroundJobs is the fixed job list (ports app/services/jobs.py). The
-// daily icon-retry job is not ported (icons service isn't ported).
+// backgroundJobs is the fixed job list (ports app/services/jobs.py).
 func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 	return []scheduler.Job{
 		{Name: "analysis", Interval: 5 * minute, Run: func(ctx context.Context) error {
@@ -36,6 +37,9 @@ func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 		{Name: "digest", Interval: 5 * minute, Run: func(context.Context) error {
 			_, err := notify.Digests(database, time.Now())
 			return err
+		}},
+		{Name: "icons", Interval: day, Run: func(context.Context) error {
+			return icons.ForgetMisses()
 		}},
 		{Name: "housekeeping", Interval: hour, Run: func(context.Context) error {
 			return housekeeping(database)
