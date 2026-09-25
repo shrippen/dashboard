@@ -1,0 +1,571 @@
+saved: Gespeichert.
+
+nav:
+  home: Zur Startseite
+  hints: Hinweise
+  new_board: Neues Board
+  library: Widget-Bibliothek
+  connections: Verbindungen
+  import: Import
+  themes: Themes
+  teams: Teams
+  profile: Profil
+  security: Sicherheit
+  credentials: Meine Zugänge
+  notify: Benachrichtigungen
+  admin_users: Benutzer
+  admin_settings: Instanz
+  audit: Audit-Log
+  logout: Abmelden
+
+action:
+  save: Speichern
+  cancel: Abbrechen
+  create: Anlegen
+  delete: Löschen
+  edit: Bearbeiten
+  export: Exportieren
+  open: Öffnen
+  open_in_kimai: In Kimai öffnen
+  open_in_invoiceninja: In Invoice Ninja öffnen
+  open_in_snipeit: In Snipe-IT öffnen
+  open_in_dawarich: In Dawarich öffnen
+
+error:
+  csrf: Die Anfrage war abgelaufen. Bitte Seite neu laden.
+  denied: Keine Berechtigung.
+  not_found: Nicht gefunden.
+  conflict: Inzwischen hat jemand anderes gespeichert. Bitte neu laden und erneut ändern.
+
+login:
+  title: Anmelden
+  submit: Anmelden
+  with: Mit {provider} anmelden
+  or: oder
+  forgot: Passwort vergessen?
+  back: Zurück zur Anmeldung
+  failed: E-Mail oder Passwort falsch.
+  throttled: Zu viele Versuche. Bitte in 15 Minuten erneut probieren.
+  oidc_only: Anmeldung nur über Single Sign-on.
+
+totp:
+  title: Zweiter Faktor
+  code: Code aus der Authenticator-App
+  submit: Bestätigen
+  recovery_hint: Kein Zugriff auf die App? Einen Wiederherstellungscode eingeben.
+  invalid: Code ungültig.
+
+setup:
+  title: Einrichtung
+  lead: Ersten Administrator anlegen. Den Einrichtungscode zeigt das Container-Log.
+  code: Einrichtungscode
+  submit: Administrator anlegen
+  closed: Die Einrichtung ist abgeschlossen.
+  bad_code: Einrichtungscode falsch.
+
+invite:
+  title: Einladung annehmen
+  submit: Konto anlegen
+  invalid: Einladung ungültig oder abgelaufen.
+  oidc: Oder direkt über
+
+register:
+  title: Registrieren
+  submit: Konto anlegen
+  closed: Registrierung ist geschlossen.
+
+reset:
+  title: Passwort zurücksetzen
+  request: Link senden
+  sent: Falls ein Konto existiert, ist ein Link unterwegs.
+  new: Neues Passwort
+  invalid: Link ungültig oder abgelaufen.
+
+password:
+  rules: Mindestens 12 Zeichen.
+  too_short: Passwort zu kurz (mindestens 12 Zeichen).
+  wrong: Aktuelles Passwort falsch.
+
+account:
+  email_taken: Diese E-Mail-Adresse ist bereits vergeben.
+
+oidc:
+  denied: Anmeldung abgebrochen.
+  disabled: Single Sign-on ist nicht eingerichtet.
+  failed: Single Sign-on fehlgeschlagen.
+  no_account: Kein Konto für diese Anmeldung. Bitte an den Admin wenden.
+  state: Anmeldung abgelaufen. Bitte erneut versuchen.
+  sub_taken: Dieses authentik-Konto ist bereits mit einem anderen Benutzer verknüpft.
+  unreachable: Identity Provider nicht erreichbar.
+
+board:
+  search: Suchen
+  search_hint: Suchen oder Websuche …
+  no_match: Keine Treffer. Enter startet die Websuche.
+  untitled: Ohne Titel
+  new: Neues Board
+  delete: Board löschen
+
+edit:
+  edit: Bearbeiten
+  done: Fertig
+  mode: Bearbeitungsmodus
+  my_layout: Mein Layout
+  reset_layout: Auf Standard zurücksetzen
+  add_section: Abschnitt hinzufügen
+  section_title: Titel des Abschnitts
+  section: Abschnitt
+  delete_section: Abschnitt löschen
+  board_settings: Board-Einstellungen
+  history: Verlauf
+  share: Freigeben
+  code: Code-Ansicht
+  new_widget: Neues Widget
+  from_library: Aus der Bibliothek
+  place: Platzieren
+  remove: Entfernen
+  hide: Ausblenden
+  show: Einblenden
+  preview: Vorschau
+  confirm_delete: Wirklich löschen?
+
+field:
+  title: Titel
+  name: Name
+  email: E-Mail
+  password: Passwort
+  locale: Sprache
+  color_mode: Hell/Dunkel
+  theme: Theme
+  theme_forced: Theme erzwingen
+  start_board: Start-Board
+  search_engine: Suchmaschine
+  search_engine_hint: "{query} wird durch den Suchbegriff ersetzt."
+  space: Bereich
+  type: Typ
+  role: Rolle
+  team_role: Team-Rolle
+  scope: Umfang
+  service: Dienst
+  url: URL
+  token: API-Token
+  insecure: TLS-Zertifikat nicht prüfen
+  connection: Verbindung
+  min_role: Sichtbar ab Team-Rolle
+  min_role_hint: Nur für Team-Bereiche. Freigaben gelten zusätzlich.
+  cols: Spalten
+  size: Kachelgröße
+  sort: Sortierung
+  area: Spalte
+  collapsed: Standardmäßig eingeklappt
+  list_hint: Mehrere Werte mit Komma trennen.
+  icon_hint: "si-name (Simple Icons), hl-name (Dashboard Icons), favicon oder Bild-URL."
+  description: Beschreibung
+  icon: Icon
+  target: Öffnen in
+  status: Statusprüfung
+  status_url: Status-URL (falls abweichend)
+  accept: Gültige HTTP-Codes
+  hotkey: Tastenkürzel
+  metric: Kennzahl
+  limit: Anzahl
+  summary: Zusammenfassung zeigen
+  timezones: Zeitzonen
+  seconds: Sekunden zeigen
+  date: Datum zeigen
+  label: Beschriftung
+  lat: Breitengrad
+  lon: Längengrad
+  height: Höhe (px)
+  text: Text
+  sources: Quellen
+  min_severity: Mindeststufe
+  days: Tage
+  query: Auswertung
+  months: Monate
+  goal: Ziel
+
+opt:
+  newtab: Neuer Tab
+  sametab: Gleicher Tab
+  "off": Aus
+  http: HTTP
+
+size:
+  small: Klein
+  medium: Mittel
+  large: Groß
+
+sort:
+  manual: Manuell
+  alphabetical: Alphabetisch
+
+area:
+  main: Hauptspalte
+  side: Seitenspalte
+
+category:
+  start: Startseite
+  insight: Auswertung
+
+wtype:
+  link: {name: Link, desc: Kachel mit Icon, Status und optionaler Infozeile.}
+  rss: {name: RSS-Feed, desc: Neueste Einträge eines Feeds.}
+  clock: {name: Uhr, desc: Uhrzeit und Datum, mehrere Zeitzonen.}
+  weather: {name: Wetter, desc: Aktuelles Wetter und Vorschau (Open-Meteo).}
+  iframe: {name: Eingebettete Seite, desc: Andere Seite im Rahmen anzeigen.}
+  sysinfo: {name: Systemwerte, desc: CPU, RAM und Datenträger über Glances.}
+  public_ip: {name: Öffentliche IP, desc: Aktuelle öffentliche IP-Adresse.}
+  note: {name: Notiz, desc: Freier Text.}
+  hints: {name: Hinweise, desc: Offene Hinweise aus allen Diensten.}
+  kpi: {name: Kennzahl, desc: Eine Kennzahl mit Vergleich zum Vorzeitraum.}
+  table: {name: Tabelle, desc: Liste aus einem Dienst, z. B. offene Rechnungen.}
+  chart: {name: Diagramm, desc: Monatswerte mit Vorjahresvergleich.}
+  progress: {name: Fortschritt, desc: Budgets und Ziele als Balken.}
+  deadlines: {name: Fristen, desc: Anstehende Fristen und Termine.}
+
+widget:
+  loading: lädt …
+  error: Fehler
+  stale: veraltet
+  as_of: "Stand: {when}"
+  empty: Keine Einträge.
+  setup_access: "Zugang für {name} einrichten"
+  setup_access_short: Zugang einrichten
+  choose_type: Widget-Typ wählen.
+  unknown_type: Unbekannter Widget-Typ.
+  connection_required: Dieses Widget braucht eine Verbindung.
+  connection_missing: Verbindung nicht gefunden.
+  connection_type: Die Verbindung passt nicht zum Widget-Typ.
+
+connection:
+  missing: Verbindung fehlt
+  location_personal: Standortdaten sind nur als persönliche Verbindung erlaubt.
+
+source:
+  unknown: Unbekannte Quelle
+
+status:
+  up: online
+  down: offline
+
+weather:
+  clear: Klar
+  cloudy: Bewölkt
+  fog: Nebel
+  drizzle: Niesel
+  rain: Regen
+  snow: Schnee
+  showers: Schauer
+  thunder: Gewitter
+  unknown: –
+
+sys:
+  cpu: CPU
+  mem: RAM
+  swap: Swap
+  load: Last (5 min)
+
+hints:
+  title: Hinweise
+  lead: Offene Hinweise aus allen Bereichen, auf die du Zugriff hast.
+  why: Warum?
+  since: "seit {when}"
+  snooze: 7 Tage pausieren
+  ack: Erledigt
+  none: Keine offenen Hinweise.
+
+severity:
+  info: Info
+  warn: Warnung
+  critical: Kritisch
+
+library:
+  lead: Einmal eingerichtete Widgets, beliebig oft platzierbar.
+  uses: Verwendet
+  copy: Als Kopie übernehmen
+  empty: Noch keine Widgets.
+
+history:
+  when: Zeitpunkt
+  sections: Abschnitte
+  restore: Wiederherstellen
+
+conn:
+  lead: Verbindungen zu Diensten. Tokens werden verschlüsselt gespeichert und nie wieder angezeigt.
+  new: Neue Verbindung
+  credentials: Zugangsdaten
+  mode_hint: Geteilt = ein Token für alle. Persönlich = jeder hinterlegt sein eigenes.
+  token_hint: Leer lassen bei persönlichen Zugangsdaten.
+  test: Testen
+  empty: Noch keine Verbindungen.
+  secret_set: Token hinterlegt
+  secret_missing: kein Token
+  mine_set: dein Token hinterlegt
+  mine_missing: dein Token fehlt
+  secret_keep: (unverändert lassen)
+  shared_warning: Geteilte Zugangsdaten bedeuten geteilte Daten. Wer ein Widget auf dieser Verbindung sehen darf, sieht, was dieses Token sieht.
+  delete: Verbindung löschen
+
+mode:
+  shared: Geteilt
+  personal: Persönlich
+  auto: Automatisch
+  dark: Dunkel
+  light: Hell
+
+service:
+  kimai: Kimai
+  invoiceninja: Invoice Ninja
+  snipeit: Snipe-IT
+  dawarich: Dawarich
+  glances: Glances
+
+test:
+  ok: OK
+  failed: Fehler
+
+code:
+  lead: Bereich als YAML. Zugangsdaten sind nie enthalten.
+  error: Nicht übernommen
+  replace: Ersetzen
+  merge: Zusammenführen
+
+import:
+  lead: Dashy conf.yml oder YAML-Export in einen Bereich übernehmen.
+  kind: Format
+  file: Datei
+  run: Importieren
+  too_large: Datei zu groß.
+  not_mapping: Unerwartetes YAML-Format.
+
+report:
+  done: "Übernommen: {boards} Boards, {widgets} Widgets, {connections} Verbindungen."
+  skipped: Nicht übernommen
+  notes: Hinweise
+
+share:
+  title: Wer hat Zugriff?
+  via_space: "Über den Bereich {space}"
+  all_users: alle angemeldeten Benutzer
+  grantee: Für
+  right: Recht
+  grant: Freigeben
+  revoke: Entziehen
+  none: Keine zusätzlichen Freigaben.
+  right_invalid: Ungültiges Recht.
+
+grantee:
+  user: Benutzer
+  team: Team
+
+right:
+  none: Kein Zugriff
+  view: Ansehen
+  use: Verwenden
+  edit: Bearbeiten
+  manage: Verwalten
+
+role:
+  owner: Owner
+  editor: Editor
+  viewer: Viewer
+  everyone: alle Mitglieder
+
+irole:
+  admin: Administrator
+  user: Benutzer
+
+space:
+  personal: Persönlich
+  team: Team
+  instance: Instanz
+
+locale:
+  de: Deutsch
+  en: English
+
+scope:
+  read: Lesen (API)
+  embed: Einbetten
+
+security:
+  password: Passwort
+  current: Aktuelles Passwort
+  new: Neues Passwort
+  totp: Zweiter Faktor (TOTP)
+  enable: Einrichten
+  scan: Code mit der Authenticator-App scannen und den ersten Code eingeben.
+  confirm: Bestätigen
+  active: aktiv
+  disable: Deaktivieren
+  code_or_recovery: Code oder Wiederherstellungscode
+  totp_on: Zweiter Faktor aktiv.
+  recovery: Wiederherstellungscodes (einmal sichtbar, sicher aufbewahren)
+  oidc_linked: Mit authentik verknüpft.
+  oidc_link: Mit Single Sign-on verknüpfen
+  sessions: Aktive Sitzungen
+  device: Gerät
+  last_seen: Zuletzt aktiv
+  this: diese
+  end: Beenden
+  end_others: Alle anderen beenden
+  tokens: API- und Embed-Tokens
+  token_once: Token jetzt kopieren. Er wird nicht wieder angezeigt.
+  no_tokens: Keine Tokens.
+  expires: Läuft ab
+  last_used: Zuletzt genutzt
+  days: Gültig (Tage)
+  boards_only: Nur diese Boards (optional)
+
+cred:
+  lead: Verbindungen mit persönlichen Zugangsdaten. Dein Token sieht nur du.
+  state: Status
+  set: hinterlegt
+  missing: fehlt
+  none: Keine Verbindungen mit persönlichen Zugangsdaten.
+  credential_missing: Zugang fehlt
+
+credential:
+  missing: Kein persönlicher Zugang hinterlegt.
+
+admin:
+  users_lead: Konten verwalten. Persönliche Inhalte sind für Admins nicht sichtbar.
+  login: Letzte Anmeldung
+  invite: Einladen
+  send_invite: Einladung senden
+  invite_sent: "Einladung erstellt. Link (auch per E-Mail verschickt, falls SMTP eingerichtet):"
+  reset: Reset-Link
+  reset_link: "Reset-Link (48 h gültig):"
+  activate: Aktivieren
+  deactivate: Deaktivieren
+  breakglass: Notzugang
+  breakglass_on: Als Notzugang markieren
+  breakglass_off: Notzugang entfernen
+  reapply: Startwerte aus authentik
+  reapply_lead: Rolle und Teams erneut aus den zuletzt gesehenen authentik-Gruppen setzen.
+  reapply_do: Übernehmen
+  groups: Gruppen
+  confirm_delete: Konto und persönlichen Bereich endgültig löschen?
+  last_admin: Der letzte Administrator kann nicht entfernt werden.
+  self: Das eigene Konto kann so nicht geändert werden.
+  general: Allgemein
+  iframe: Erlaubte iframe-Ziele
+  iframe_hint: Ursprünge, die eingebettete Seiten laden dürfen (Content-Security-Policy).
+  default_theme: Standard-Theme
+  force_totp: Zweiten Faktor für Admins erzwingen
+  registration: Selbstregistrierung erlauben
+  location_shared: Geteilte Dawarich-Verbindungen erlauben
+  network: Netzwerk
+  net_mode: Ausgehende Verbindungen
+  net_public: Öffentliche Adressen erlauben
+  net_networks: Erlaubte Netze (CIDR)
+  net_hosts: Erlaubte Hosts
+  oidc: Single Sign-on (authentik)
+  oidc_enabled: Aktiv
+  oidc_label: Beschriftung
+  oidc_issuer: Issuer-URL
+  oidc_redirect: "Redirect-URI in authentik:"
+  oidc_auto: Konten bei erster Anmeldung anlegen
+  oidc_email_link: Bestehende Konten über bestätigte E-Mail verknüpfen
+  oidc_only: Nur Single Sign-on (Notzugang über /login?local)
+  oidc_rules: Gruppen → Startwerte
+  oidc_rules_hint: Gilt nur beim automatischen Anlegen eines Kontos. Danach werden Rolle und Teams im Dashboard gepflegt.
+  group: authentik-Gruppe
+  team: Team
+
+net:
+  open: Offen
+  allowlist: Nur erlaubte Netze
+
+audit:
+  who: Wer
+  action: Aktion
+  target: Ziel
+
+teams:
+  lead: Teams teilen Verbindungen, Widgets und Boards.
+  remove: Entfernen
+  no_members: Keine Mitglieder.
+  set_member: Mitglied setzen
+  hint_ack: Hinweise quittieren
+  theme: Team-Theme
+  delete: Team löschen
+  confirm_delete: Team mit allen Inhalten löschen?
+  none: Keine Teams.
+  new: Name des neuen Teams
+
+team:
+  name_missing: Name fehlt.
+  name_taken: Name bereits vergeben.
+  not_found: Team nicht gefunden.
+
+ack:
+  per_user: je Benutzer
+  team: für das ganze Team
+
+themes:
+  lead: Mitgeliefert ist nur shrippen. Eigene Themes entstehen durch Duplizieren.
+  builtin: mitgeliefert
+  view: Ansehen
+  duplicate: Duplizieren
+  import: Theme importieren (ZIP)
+  edit_lead: Werte der Design-Tokens für dunkel und hell.
+  builtin_hint: Das mitgelieferte Theme ist schreibgeschützt. Zum Anpassen duplizieren.
+  contrast: "Kontrast zu gering ({mode}): {fg} auf {bg} = {ratio}:1 (WCAG AA braucht 4,5:1)."
+  custom_css: Eigenes CSS
+  custom_css_hint: Nur für Admins. Externe Ressourcen blockiert die Content-Security-Policy.
+
+theme:
+  none: – keins –
+  default: Standard
+  bad_value: Ungültiger Token-Wert.
+  builtin: Mitgelieferte Themes sind schreibgeschützt.
+  css_invalid: CSS ungültig oder zu lang.
+  zip_invalid: ZIP-Datei ungültig.
+  zip_too_large: ZIP-Datei zu groß.
+
+tokens:
+  background: Hintergründe
+  text: Text
+  semantic: Signalfarben
+  roles: Rollen
+  shape: Form und Maße
+  fonts: Schriften
+
+styleguide:
+  title: Komponenten
+  lead: Alle Dashboard-Komponenten im aktuellen Theme.
+
+sample:
+  revenue: Umsatz 2026
+  open: Offene Posten
+  tracking: Zeiterfassung
+  hint1: Rechnung R-2026-041 seit 21 Tagen überfällig
+  hint2: 38 h bei Muster GmbH nicht abgerechnet
+  budget: Budget Projekt Relaunch
+
+icon:
+  invalid: Icon ungültig (SVG, PNG, WebP, JPEG, ICO bis 512 KB).
+
+url:
+  scheme: URL muss mit http:// oder https:// beginnen.
+
+mail:
+  footer: "dashboard · {url}"
+  invite:
+    subject: Einladung zum Dashboard
+    body: "{inviter} hat dich zum Dashboard eingeladen. Der Link ist 7 Tage gültig."
+    button: Konto anlegen
+  reset:
+    subject: Passwort zurücksetzen
+    body: Für dein Konto wurde ein neues Passwort angefordert. Der Link ist 2 Stunden gültig. Warst du das nicht, ignoriere diese Mail.
+    button: Neues Passwort setzen
+  security:
+    password_changed: Dein Passwort wurde geändert.
+    totp_enabled: Der zweite Faktor wurde aktiviert.
+    totp_disabled: Der zweite Faktor wurde deaktiviert.
+    token_created: Ein neues API-Token wurde erstellt.
+    new_login: Anmeldung von einem neuen Gerät
+    new_login_body: "Neue Anmeldung von {ip} ({agent})."
+    hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.

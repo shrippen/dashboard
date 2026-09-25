@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('styleguide.title'), t('styleguide.lead')) }}
+{% include "partials/sample.html" %}
+<h2 class="sub-head">.callout</h2>
+<div class="callout">{{ t('severity.info') }}</div><div class="callout callout-warn">{{ t('severity.warn') }}</div><div class="callout callout-danger">{{ t('severity.critical') }}</div><div class="callout callout-ok">OK</div>
+<h2 class="sub-head">.pill</h2>
+<p><span class="pill" data-state="analyzing">analyzing</span> <span class="pill" data-state="reviewing">reviewing</span> <span class="pill" data-state="applied">applied</span> <span class="pill" data-state="failed">failed</span></p>
+<h2 class="sub-head">.feed</h2>
+<article class="card"><ul class="feed"><li><a href="#s">Lorem ipsum dolor sit amet</a><small>vor 2 Std.</small></li><li><a href="#s">Consectetur adipiscing</a><small>vor 5 Std.</small></li></ul></article>
+{% endblock %}

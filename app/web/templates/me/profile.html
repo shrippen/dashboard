@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('nav.profile'), profile.email) }}
+{% if saved %}<div class="callout callout-ok">{{ t('saved') }}</div>{% endif %}
+<form method="post" action="/me" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('field.name') }}</label><input class="input" name="name" value="{{ profile.name }}"></div>
+  <div class="field"><label>{{ t('field.locale') }}</label><select class="select" name="locale">{% for l in locales %}<option value="{{ l.value }}"{% if profile.locale == l %} selected{% endif %}>{{ t('locale.' ~ l.value) }}</option>{% endfor %}</select></div>
+  <div class="field"><label>{{ t('field.color_mode') }}</label><select class="select" name="color_mode">{% for m in modes %}<option value="{{ m.value }}"{% if profile.color_mode == m %} selected{% endif %}>{{ t('mode.' ~ m.value) }}</option>{% endfor %}</select></div>
+  <div class="field"><label>{{ t('field.theme') }}</label><select class="select" name="theme_id"><option value="">{{ t('theme.default') }}</option>{% for th in theme_list %}<option value="{{ th.id }}"{% if profile.theme_id == th.id %} selected{% endif %}>{{ th.name }}</option>{% endfor %}</select></div>
+  <div class="field"><label>{{ t('field.start_board') }}</label><select class="select" name="start_board_id"><option value="">–</option>{% for b in boards_list %}<option value="{{ b.id }}"{% if profile.start_board_id == b.id %} selected{% endif %}>{{ b.name }} · {{ b.space.name }}</option>{% endfor %}</select></div>
+  <div class="field wide"><label>{{ t('field.search_engine') }}</label><input class="input" name="search_engine" value="{{ profile.search_engine or '' }}" placeholder="https://duckduckgo.com/?q={query}"><span class="field-hint">{{ t('field.search_engine_hint') }}</span></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button></div>
+</form>
+{% endblock %}

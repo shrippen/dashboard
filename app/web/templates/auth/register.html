@@ -1,0 +1,12 @@
+{% extends "auth/_frame.html" %}
+{% block box %}
+<h1>{{ t('register.title') }}</h1>
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+<form method="post" action="/register" class="stack">
+  <div class="field"><label for="email">{{ t('field.email') }}</label><input class="input" id="email" name="email" type="email" required></div>
+  <div class="field"><label for="name">{{ t('field.name') }}</label><input class="input" id="name" name="name" required></div>
+  <div class="field"><label for="password">{{ t('field.password') }}</label><input class="input" id="password" name="password" type="password" minlength="12" autocomplete="new-password" required></div>
+  <div class="field"><label for="locale">{{ t('field.locale') }}</label><select class="select" id="locale" name="locale"><option value="de">Deutsch</option><option value="en">English</option></select></div>
+  <button class="btn btn-accent wide-btn" type="submit">{{ t('register.submit') }}</button>
+</form>
+{% endblock %}

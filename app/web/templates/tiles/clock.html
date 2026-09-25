@@ -1,0 +1,10 @@
+{% set c = frag.config %}
+<div class="card clock-card">
+  {% if frag.title %}<h3 class="card-title">{{ frag.title }}</h3>{% endif %}
+  {% for tz in c.timezones %}
+  <div class="clock" data-tz="{{ tz }}" data-seconds="{{ 'yes' if c.seconds else 'no' }}" data-date="{{ 'yes' if c.date else 'no' }}" data-locale="{{ ctx.locale.value }}">
+    <b class="clock-time">--:--</b>{% if c.date %}<small class="clock-date"></small>{% endif %}
+    {% if c.timezones | length > 1 %}<small class="clock-zone">{{ tz.split('/')[-1].replace('_', ' ') }}</small>{% endif %}
+  </div>
+  {% endfor %}
+</div>

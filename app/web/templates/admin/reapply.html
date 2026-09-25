@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('admin.reapply'), t('admin.reapply_lead')) }}
+<div class="panel">
+  <p>{{ t('admin.groups') }}: {% for g in plan.groups %}<code>{{ g }}</code> {% else %}–{% endfor %}</p>
+  <p>{{ t('field.role') }}: <b>{{ t('irole.' ~ plan.role.value) }}</b></p>
+  <p>{{ t('nav.teams') }}: {% for tm in plan.teams %}{{ tm.team }} ({{ t('role.' ~ tm.role) }}){% if not loop.last %}, {% endif %}{% else %}–{% endfor %}</p>
+  <form method="post" action="/admin/users/{{ user_id }}/reapply">{{ csrf_input }}<button class="btn btn-accent" type="submit">{{ t('admin.reapply_do') }}</button>
+    <a class="btn btn-outline" href="/admin/users">{{ t('action.cancel') }}</a></form>
+</div>
+{% endblock %}

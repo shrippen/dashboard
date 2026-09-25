@@ -1,0 +1,17 @@
+{% extends "auth/_frame.html" %}
+{% block title %}{{ t('login.title') }} · dashboard{% endblock %}
+{% block box %}
+<h1>{{ t('login.title') }}</h1>
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+{% if oidc %}
+<a class="btn btn-accent wide-btn" href="/auth/oidc/login?next={{ next | urlencode }}">{{ t('login.with', provider=oidc) }}</a>
+<p class="or"><span>{{ t('login.or') }}</span></p>
+{% endif %}
+<form method="post" action="/login" class="stack">
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="field"><label for="email">{{ t('field.email') }}</label><input class="input" id="email" name="email" type="email" autocomplete="username" required value="{{ email or '' }}" autofocus></div>
+  <div class="field"><label for="password">{{ t('field.password') }}</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" required></div>
+  <button class="btn btn-outline wide-btn" type="submit">{{ t('login.submit') }}</button>
+</form>
+<p class="muted small"><a href="/reset">{{ t('login.forgot') }}</a></p>
+{% endblock %}

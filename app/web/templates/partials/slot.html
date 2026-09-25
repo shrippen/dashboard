@@ -1,0 +1,11 @@
+{# Common states of one data slot: missing credential, error, stale data. #}
+{% macro state(slot) %}
+  {% if slot is none %}
+  {% elif slot.missing_credential %}
+    <p class="slot-note"><a href="/me/credentials">{{ t('widget.setup_access', name=slot.missing_credential) }}</a></p>
+  {% elif slot.error and slot.data is none %}
+    <p class="slot-note is-error"><span class="pill" data-state="failed">{{ t('widget.error') }}</span> <code>{{ slot.error }}</code></p>
+  {% elif slot.error %}
+    <p class="slot-note"><span class="pill" data-state="reviewing">{{ t('widget.stale') }}</span> {{ t('widget.as_of', when=ago(slot.ok_at)) }}</p>
+  {% endif %}
+{% endmacro %}

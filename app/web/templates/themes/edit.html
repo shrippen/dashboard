@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block head %}<script src="/static/theme-editor.js" defer></script>{% endblock %}
+{% block content %}
+{{ head(theme.name, t('themes.edit_lead')) }}
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+{% if theme.builtin %}<div class="callout">{{ t('themes.builtin_hint') }}</div>{% endif %}
+{% for issue in issues %}<div class="callout callout-warn">{{ t('themes.contrast', mode=t('mode.' ~ issue.mode.value), fg=issue.fg, bg=issue.bg, ratio=issue.ratio) }}</div>{% endfor %}
+{% set editable = granted >= Right.EDIT and not theme.builtin %}
+<div class="editor-split">
+<form method="post" action="/themes/{{ theme.id }}" class="panel" id="theme-form">{{ csrf_input }}
+  <div class="field"><label>{{ t('field.name') }}</label><input class="input" name="name" value="{{ theme.name }}"{% if not editable %} disabled{% endif %}></div>
+  {% for group, names in groups.items() %}
+  <h2 class="sub-head">{{ t('tokens.' ~ group) }}</h2>
+  <div class="token-grid">
+    <span class="toolbar-label">Token</span><span class="toolbar-label">{{ t('mode.dark') }}</span><span class="toolbar-label">{{ t('mode.light') }}</span>
+    {% for name in names %}
+    <code>{{ name }}</code>
+    {% for mode, values in [('dark', dark), ('light', light)] %}
+    <span class="swatch-row">
+      {% if values[name] | is_hex %}<input type="color" value="{{ values[name] | hex6 }}" data-for="{{ mode }}{{ name }}"{% if not editable %} disabled{% endif %}>{% endif %}
+      <input class="input" name="{{ mode }}{{ name }}" value="{{ values[name] }}" data-token="{{ name }}" data-mode="{{ mode }}"{% if not editable %} disabled{% endif %}>
+    </span>
+    {% endfor %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% if who.is_admin and editable %}
+  <h2 class="sub-head">{{ t('themes.custom_css') }}</h2>
+  <textarea class="input code-area" name="custom_css" rows="8" spellcheck="false">{{ theme.custom_css }}</textarea>
+  <p class="field-hint">{{ t('themes.custom_css_hint') }}</p>
+  {% endif %}
+  {% if editable %}<div class="row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button></div>{% endif %}
+</form>
+<aside class="preview theme-preview" id="theme-preview">
+  <div class="seg" role="group"><button type="button" data-preview-mode="dark" aria-pressed="true">{{ t('mode.dark') }}</button><button type="button" data-preview-mode="light" aria-pressed="false">{{ t('mode.light') }}</button></div>
+  {% include "partials/sample.html" %}
+</aside>
+</div>
+{% if editable %}
+<form method="post" action="/themes/{{ theme.id }}/delete" class="panel" data-confirm="{{ t('edit.confirm_delete') }}">{{ csrf_input }}<button class="btn btn-outline danger" type="submit">{{ t('action.delete') }}</button></form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('nav.admin_settings')) }}
+{% if error %}<div class="callout callout-danger">{{ error }}</div>{% endif %}
+
+<h2 class="sub-head">{{ t('admin.general') }}</h2>
+<form method="post" action="/admin/settings/general" class="panel panel-grid">{{ csrf_input }}
+  <div class="field wide"><label>{{ t('admin.iframe') }}</label><input class="input" name="iframe" value="{{ iframe }}" placeholder="https://grafana.example.lan"><span class="field-hint">{{ t('admin.iframe_hint') }}</span></div>
+  <div class="field"><label>{{ t('admin.default_theme') }}</label><select class="select" name="default_theme"><option value="">shrippen</option>{% for th in theme_list %}<option value="{{ th.id }}"{% if default_theme == th.id %} selected{% endif %}>{{ th.name }}</option>{% endfor %}</select></div>
+  <label class="check"><input type="checkbox" name="force_admin_totp"{% if security.get('force_admin_totp') %} checked{% endif %}> {{ t('admin.force_totp') }}</label>
+  <label class="check"><input type="checkbox" name="registration"{% if registration %} checked{% endif %}> {{ t('admin.registration') }}</label>
+  <label class="check"><input type="checkbox" name="location_shared"{% if location_shared %} checked{% endif %}> {{ t('admin.location_shared') }}</label>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button></div>
+</form>
+
+<h2 class="sub-head">{{ t('admin.network') }}</h2>
+<form method="post" action="/admin/settings/network" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('admin.net_mode') }}</label><select class="select" name="mode">{% for m in net_modes %}<option value="{{ m.value }}"{% if net.mode == m %} selected{% endif %}>{{ t('net.' ~ m.value) }}</option>{% endfor %}</select></div>
+  <label class="check"><input type="checkbox" name="public"{% if net.public %} checked{% endif %}> {{ t('admin.net_public') }}</label>
+  <div class="field wide"><label>{{ t('admin.net_networks') }}</label><textarea class="input" name="networks" rows="3" placeholder="192.168.10.0/24">{{ net.networks | join('\n') }}</textarea></div>
+  <div class="field wide"><label>{{ t('admin.net_hosts') }}</label><textarea class="input" name="hosts" rows="2" placeholder="kimai.example.lan">{{ net.hosts | join('\n') }}</textarea></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button></div>
+</form>
+
+<h2 class="sub-head">{{ t('admin.oidc') }}</h2>
+<form method="post" action="/admin/settings/oidc" class="panel panel-grid">{{ csrf_input }}
+  <label class="check"><input type="checkbox" name="enabled"{% if oidc_cfg.enabled %} checked{% endif %}> {{ t('admin.oidc_enabled') }}</label>
+  <div class="field"><label>{{ t('admin.oidc_label') }}</label><input class="input" name="label" value="{{ oidc_cfg.label }}"></div>
+  <div class="field wide"><label>{{ t('admin.oidc_issuer') }}</label><input class="input" name="issuer" value="{{ oidc_cfg.issuer }}" placeholder="https://auth.example.lan/application/o/dashboard/"></div>
+  <div class="field"><label>Client-ID</label><input class="input" name="client_id" value="{{ oidc_cfg.client_id }}"></div>
+  <div class="field"><label>Client-Secret</label><input class="input" name="secret" type="password" autocomplete="off" placeholder="{{ t('conn.secret_keep') if oidc_cfg.has_secret else '' }}"></div>
+  <p class="wide field-hint">{{ t('admin.oidc_redirect') }} <code>{{ base_url }}/auth/oidc/callback</code></p>
+  <label class="check"><input type="checkbox" name="auto_create"{% if oidc_cfg.auto_create %} checked{% endif %}> {{ t('admin.oidc_auto') }}</label>
+  <label class="check"><input type="checkbox" name="email_link"{% if oidc_cfg.email_link %} checked{% endif %}> {{ t('admin.oidc_email_link') }}</label>
+  <label class="check"><input type="checkbox" name="only"{% if oidc_cfg.only %} checked{% endif %}> {{ t('admin.oidc_only') }}</label>
+  <div class="wide">
+    <p class="field-label">{{ t('admin.oidc_rules') }}</p>
+    <p class="field-hint">{{ t('admin.oidc_rules_hint') }}</p>
+    <table class="table rules">
+      <thead><tr><th>{{ t('admin.group') }}</th><th>{{ t('field.role') }}</th><th>{{ t('admin.team') }}</th><th>{{ t('field.team_role') }}</th></tr></thead>
+      <tbody>
+      {% for r in oidc_cfg.rules + [none, none] %}
+      <tr><td><input class="input" name="rule_group" value="{{ r.group if r else '' }}"></td>
+        <td><select class="select" name="rule_role"><option value="">–</option>{% for ro in roles %}<option value="{{ ro.value }}"{% if r and r.role == ro %} selected{% endif %}>{{ t('irole.' ~ ro.value) }}</option>{% endfor %}</select></td>
+        <td><input class="input" name="rule_team" value="{{ r.team or '' if r else '' }}"></td>
+        <td><select class="select" name="rule_team_role">{% for ro in team_roles %}<option value="{{ ro.value }}"{% if r and r.team_role == ro %} selected{% endif %}>{{ t('role.' ~ ro.value) }}</option>{% endfor %}</select></td></tr>
+      {% endfor %}
+      </tbody></table>
+  </div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button>
+    <button class="btn btn-outline" type="button" hx-post="/admin/settings/oidc/test" hx-target="#oidc-test">{{ t('conn.test') }}</button><span id="oidc-test"></span></div>
+</form>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('nav.security')) }}
+{% if saved %}<div class="callout callout-ok">{{ t('saved') }}</div>{% endif %}
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+
+<h2 class="sub-head">{{ t('security.password') }}</h2>
+<form method="post" action="/me/password" class="panel panel-grid">{{ csrf_input }}
+  {% if profile.has_password %}<div class="field"><label>{{ t('security.current') }}</label><input class="input" name="current" type="password" autocomplete="current-password" required></div>{% endif %}
+  <div class="field"><label>{{ t('security.new') }}</label><input class="input" name="new" type="password" minlength="12" autocomplete="new-password" required><span class="field-hint">{{ t('password.rules') }}</span></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.save') }}</button></div>
+</form>
+
+<h2 class="sub-head">{{ t('security.totp') }}</h2>
+<div class="panel">
+  {% if recovery %}
+    <div class="callout callout-ok">{{ t('security.totp_on') }}</div>
+    <p>{{ t('security.recovery') }}</p><pre class="codeblock">{{ recovery | join('\n') }}</pre>
+  {% elif totp_secret %}
+    <p>{{ t('security.scan') }}</p>
+    <img class="qr" src="{{ totp_qr }}" alt="QR" width="200" height="200">
+    <p><code>{{ totp_secret }}</code></p>
+    <form method="post" action="/me/totp/confirm" class="inline-form">{{ csrf_input }}
+      <input class="input" name="code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" required>
+      <button class="btn btn-accent btn-sm" type="submit">{{ t('security.confirm') }}</button></form>
+  {% elif profile.totp_enabled %}
+    <p><span class="pill" data-state="applied">{{ t('security.active') }}</span></p>
+    <form method="post" action="/me/totp/disable" class="inline-form">{{ csrf_input }}
+      <input class="input" name="code" placeholder="{{ t('security.code_or_recovery') }}" required>
+      <button class="btn btn-outline btn-sm danger" type="submit">{{ t('security.disable') }}</button></form>
+  {% else %}
+    <form method="post" action="/me/totp/begin">{{ csrf_input }}<button class="btn btn-outline btn-sm" type="submit">{{ t('security.enable') }}</button></form>
+  {% endif %}
+  {% if profile.oidc_linked %}<p class="muted">{{ t('security.oidc_linked') }}</p>
+  {% else %}<form method="post" action="/me/oidc/link" class="inline-form">{{ csrf_input }}<button class="btn btn-outline btn-sm" type="submit">{{ t('security.oidc_link') }}</button></form>{% endif %}
+</div>
+
+<h2 class="sub-head">{{ t('security.sessions') }}</h2>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ t('security.device') }}</th><th>IP</th><th>{{ t('security.last_seen') }}</th><th></th></tr></thead>
+  <tbody>{% for sn in sessions %}
+  <tr><td>{{ sn.user_agent[:60] }}{% if sn.id == who.session_id %} <span class="pill" data-state="applied">{{ t('security.this') }}</span>{% endif %}</td><td><code>{{ sn.ip }}</code></td><td>{{ ago(sn.last_seen) }}</td>
+    <td>{% if sn.id != who.session_id %}<form method="post" action="/me/sessions/{{ sn.id }}/end">{{ csrf_input }}<button class="link-btn danger" type="submit">{{ t('security.end') }}</button></form>{% endif %}</td></tr>
+  {% endfor %}</tbody></table></div>
+<form method="post" action="/me/sessions/others/end">{{ csrf_input }}<button class="btn btn-outline btn-sm" type="submit">{{ t('security.end_others') }}</button></form>
+
+<h2 class="sub-head">{{ t('security.tokens') }}</h2>
+{% if new_token %}<div class="callout callout-warn">{{ t('security.token_once') }}<pre class="codeblock">{{ new_token }}</pre></div>{% endif %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ t('field.name') }}</th><th>{{ t('field.scope') }}</th><th>{{ t('security.expires') }}</th><th>{{ t('security.last_used') }}</th><th></th></tr></thead>
+  <tbody>{% for tk in tokens %}
+  <tr><td>{{ tk.name }} <code>{{ tk.prefix }}…</code></td><td>{{ tk.scope }}</td><td>{{ day(tk.expires_at) if tk.expires_at else '–' }}</td><td>{{ ago(tk.last_used_at) if tk.last_used_at else '–' }}</td>
+    <td><form method="post" action="/me/tokens/{{ tk.id }}/delete">{{ csrf_input }}<button class="link-btn danger" type="submit">{{ t('action.delete') }}</button></form></td></tr>
+  {% else %}<tr><td colspan="5">{{ t('security.no_tokens') }}</td></tr>{% endfor %}</tbody></table></div>
+<form method="post" action="/me/tokens" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('field.name') }}</label><input class="input" name="name" required></div>
+  <div class="field"><label>{{ t('field.scope') }}</label><select class="select" name="scope">{% for sc in scopes %}<option value="{{ sc.value }}">{{ t('scope.' ~ sc.value) }}</option>{% endfor %}</select></div>
+  <div class="field"><label>{{ t('security.days') }}</label><input class="input" name="days" type="number" min="1" value="90"></div>
+  <div class="field wide"><label>{{ t('security.boards_only') }}</label><select class="select" name="boards" multiple size="4">{% for b in boards_list %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}</select></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.create') }}</button></div>
+</form>
+{% endblock %}

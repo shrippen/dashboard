@@ -1,0 +1,10 @@
+{% from "partials/slot.html" import state %}
+{% set st = frag.slots.get('status') %}
+{% set info = frag.slots.get('info') %}
+{% if st and st.data %}
+<span class="dot" data-up="{{ 'yes' if st.data.up else 'no' }}" title="{% if st.data.code %}HTTP {{ st.data.code }} · {{ st.data.ms }} ms{% else %}{{ st.data.error }}{% endif %}">{{ t('status.up') if st.data.up else t('status.down') }}</span>
+{% endif %}
+{% if info and info.data %}<span class="launch-info">{{ info.data.line if info.data.line is string else '' }}{% for part in info.data.parts or [] %}{% if not loop.first %} · {% endif %}{{ t('info.' ~ part.key, **part.params) }}{% endfor %}</span>
+{% elif info and info.missing_credential %}<span class="launch-info">{{ t('widget.setup_access_short') }}</span>
+{% elif info and info.error %}<span class="launch-info is-error">{{ t('widget.error') }}</span>{% endif %}
+{% if frag.hint_count %}<span class="launch-hints" data-level="{{ frag.hint_level }}">{{ frag.hint_count }}</span>{% endif %}

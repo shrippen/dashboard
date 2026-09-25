@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head, space_select %}
+{% block content %}
+{{ head(t('nav.library'), t('library.lead')) }}
+<p><a class="btn btn-accent btn-sm" href="/widgets/new">+ {{ t('edit.new_widget') }}</a></p>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ t('field.title') }}</th><th>{{ t('field.type') }}</th><th>{{ t('field.space') }}</th><th>{{ t('library.uses') }}</th><th></th></tr></thead>
+  <tbody>
+  {% for w in items %}
+  <tr><td>{{ w.title or w.key }}</td><td><code>{{ w.type }}</code></td><td>{{ w.space.name }}</td><td>{{ w.uses }}</td>
+    <td class="row-actions">
+      {% if w.can_edit %}<a href="/widgets/{{ w.id }}">{{ t('action.edit') }}</a> <a href="/share/widget/{{ w.id }}">{{ t('edit.share') }}</a>{% endif %}
+      <details class="inline-details"><summary>{{ t('library.copy') }}</summary>
+        <form method="post" action="/widgets/{{ w.id }}/copy" class="inline-form">{{ csrf_input }}{{ space_select(spaces, t) }}<button class="btn btn-outline btn-sm" type="submit">{{ t('library.copy') }}</button></form></details>
+      {% if w.can_edit %}<form method="post" action="/widgets/{{ w.id }}/delete" data-confirm="{{ t('edit.confirm_delete') }}">{{ csrf_input }}<button class="link-btn danger" type="submit">{{ t('action.delete') }}</button></form>{% endif %}
+    </td></tr>
+  {% else %}<tr><td colspan="5">{{ t('library.empty') }}</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

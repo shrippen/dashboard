@@ -51,16 +51,16 @@ web/        Routen, Templates, Formulare        (FastAPI, Jinja, HTMX)
   ↓
 services/   Anwendungslogik, Rechteprüfung      (einzige Stelle für can())
   ↓
-repos/      Datenbankzugriff                    sources/  Dienst-Adapter (Domänenmodelle)
-  ↓                                               ↓
-db/         SQLAlchemy-Modelle, Session         drivers/  rohes HTTP je Dienst
+repos/      Datenbankzugriff     sources/  Dienst-Adapter (lesen)   outbound/  Mail, Apprise (senden)
+  ↓                                 ↓                                  ↓
+db/         SQLAlchemy, Session  drivers/  rohes HTTP/SMTP je Dienst
 ```
-- Routen rufen nie Repos, Sources oder Drivers direkt auf.
+- Routen rufen nie Repos, Sources, Outbound oder Drivers direkt auf.
 - Widgets (`widgets/`) rendern nur Daten, die ein Service liefert.
 - Private Namen mit `_`-Präfix; Freigabe nach außen nur mit Rückfrage.
 
 ## Konventionen
 - Python 3.11+, Ruff, Pytest. `make check` vor jedem Commit.
-- Texte nur über `_()`/`gettext`; Hinweise speichern Schlüssel + Parameter.
+- Texte nur über `t(key)` (Kataloge `app/i18n/*.yml`); Hinweise speichern Schlüssel + Parameter.
 - CSS nur mit Theme-Tokens, keine Hex-Werte außerhalb `themes/`.
 - Zugangsdaten nur verschlüsselt (`services/crypto`), nie im Log, nie im Export.

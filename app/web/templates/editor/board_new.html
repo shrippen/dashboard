@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head, space_select %}
+{% block content %}
+{{ head(t('board.new')) }}
+<form method="post" action="/boards/new" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('field.name') }}</label><input class="input" name="name" required autofocus></div>
+  <div class="field"><label>{{ t('field.space') }}</label>{{ space_select(spaces, t) }}</div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('action.create') }}</button></div>
+</form>
+{% endblock %}

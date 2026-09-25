@@ -1,0 +1,14 @@
+{% from "partials/slot.html" import state %}
+{% set feed = frag.slots.get('feed') %}
+{{ state(feed) }}
+{% if feed and feed.data %}
+<ul class="feed">
+  {% for item in feed.data['items'] %}
+  <li>
+    {% if item.link %}<a href="{{ item.link }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}<span>{{ item.title }}</span>{% endif %}
+    {% if frag.config.summary and item.summary %}<p class="feed-sum">{{ item.summary }}</p>{% endif %}
+    <small>{% if item.published %}{{ ago(item.published | iso) }}{% endif %}</small>
+  </li>
+  {% else %}<li class="muted">{{ t('widget.empty') }}</li>{% endfor %}
+</ul>
+{% endif %}

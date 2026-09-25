@@ -1,0 +1,9 @@
+{% extends "auth/_frame.html" %}
+{% block box %}
+<h1>{{ t('reset.new') }}</h1>
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+<form method="post" action="/reset/{{ token }}" class="stack">
+  <div class="field"><label for="password">{{ t('field.password') }}</label><input class="input" id="password" name="password" type="password" minlength="12" autocomplete="new-password" required><span class="field-hint">{{ t('password.rules') }}</span></div>
+  <button class="btn btn-accent wide-btn" type="submit">{{ t('action.save') }}</button>
+</form>
+{% endblock %}

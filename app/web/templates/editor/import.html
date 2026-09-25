@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head, space_select %}
+{% block content %}
+{{ head(t('nav.import'), t('import.lead')) }}
+{% if error %}<div class="callout callout-danger">{{ t('code.error') }}: <code>{{ error }}</code></div>{% endif %}
+{% if report %}{% include "partials/report.html" %}{% endif %}
+<form method="post" action="/import" enctype="multipart/form-data" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('field.space') }}</label>{{ space_select(spaces, t) }}</div>
+  <div class="field"><label>{{ t('import.kind') }}</label><select class="select" name="kind"><option value="dashy">Dashy conf.yml</option><option value="yaml">dashboard YAML</option></select></div>
+  <div class="field wide"><label>{{ t('import.file') }}</label><input class="input" type="file" name="file" accept=".yml,.yaml" required></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('import.run') }}</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% from "partials/slot.html" import state %}
+{% set st = frag.slots.get('stats') %}
+{{ state(st) }}
+{% if st and st.data %}
+<div class="meters">
+  {% for key in ['cpu', 'mem', 'swap'] %}{% set v = st.data[key] or 0 %}
+  <div class="progress">
+    <div class="progress-head"><span>{{ t('sys.' ~ key) }}</span><span>{{ num(v, 0) }} %</span></div>
+    <div class="progress-bar"><i style="--p:{{ v }}%" data-tier="{{ 'red' if v > 90 else ('yellow' if v > 75 else 'green') }}"></i></div>
+  </div>
+  {% endfor %}
+  {% for d in st.data.disks %}
+  <div class="progress">
+    <div class="progress-head"><span>{{ d.mount }}</span><span>{{ num(d.percent or 0, 0) }} %</span></div>
+    <div class="progress-bar"><i style="--p:{{ d.percent or 0 }}%" data-tier="{{ 'red' if (d.percent or 0) > 90 else ('yellow' if (d.percent or 0) > 80 else 'green') }}"></i></div>
+  </div>
+  {% endfor %}
+  {% if st.data.load is not none %}<p class="muted">{{ t('sys.load') }} {{ num(st.data.load, 2) }}</p>{% endif %}
+</div>
+{% endif %}

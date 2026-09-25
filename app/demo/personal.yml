@@ -1,0 +1,15 @@
+connections:
+  - {id: kimai, type: kimai, name: Kimai (Demo), url: "demo://kimai", credentials: shared}
+  - {id: invoiceninja, type: invoiceninja, name: Invoice Ninja (Demo), url: "demo://invoiceninja", credentials: shared}
+  - {id: snipeit, type: snipeit, name: Snipe-IT (Demo), url: "demo://snipeit", credentials: shared}
+  - {id: dawarich, type: dawarich, name: Dawarich (Demo), url: "demo://dawarich", credentials: shared}
+widgets:
+  - {id: kimai-link, type: link, title: Kimai, connection: null, config: {url: "https://www.kimai.org", icon: "hl-kimai", status: "off", info: {connection: kimai, metric: summary}}}
+  - {id: in-link, type: link, title: Invoice Ninja, config: {url: "https://invoiceninja.com", icon: "hl-invoice-ninja", status: "off", info: {connection: invoiceninja, metric: summary}}}
+  - {id: hints, type: hints, title: Hinweise, config: {}}
+boards:
+  - name: Start
+    slug: start
+    sections:
+      - {title: Freelance, widgets: [kimai-link, in-link]}
+      - {title: Hinweise, widgets: [hints]}
