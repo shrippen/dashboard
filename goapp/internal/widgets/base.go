@@ -21,7 +21,10 @@ import (
 type ConnUse string
 
 const (
-	ConnNone   ConnUse = "none"
+	// ConnNone is "" (Go's zero value for a string type), not "none": a
+	// Query built without setting Conn must default to "no connection
+	// needed", the same as Python's Query(conn=ConnUse.NONE) default.
+	ConnNone   ConnUse = ""
 	ConnWidget ConnUse = "widget"
 	ConnInfo   ConnUse = "info"
 )

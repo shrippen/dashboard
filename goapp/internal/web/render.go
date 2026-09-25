@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"dashboard/internal/enums"
 	"dashboard/internal/i18n"
 )
 
@@ -21,19 +22,22 @@ func mustParse() *template.Template {
 		// t/money/etc. are bound per-render in Page() via t.Funcs, since
 		// they close over the request's locale. These placeholders let the
 		// templates parse before that binding happens.
-		"t":     func(string, ...any) string { return "" },
-		"money": func(float64, ...string) string { return "" },
-		"num":   func(float64, ...int) string { return "" },
-		"day":   func(any) string { return "" },
-		"pct":   func(float64) string { return "" },
-		"ago":   func(any) string { return "" },
+		"t":         func(string, ...any) string { return "" },
+		"money":     func(float64, ...string) string { return "" },
+		"num":       func(float64, ...int) string { return "" },
+		"day":       func(any) string { return "" },
+		"pct":       func(float64) string { return "" },
+		"ago":       func(any) string { return "" },
+		"clockDate": func(string) string { return "" },
 
 		// barPct/tier are locale-independent (plain numbers/CSS keywords),
 		// so unlike the above they're the real implementation, not a
 		// placeholder.
-		"barPct": barPct,
-		"tier":   tier,
-		"eqID":   func(a *int64, b int64) bool { return a != nil && *a == b },
+		"barPct":      barPct,
+		"tier":        tier,
+		"eqID":        func(a *int64, b int64) bool { return a != nil && *a == b },
+		"weatherKind": weatherKind,
+		"clockNow":    clockNow,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }
@@ -51,6 +55,25 @@ func barPct(ratio float64) int {
 	}
 }
 
+// weatherThresholds maps a WMO weather code's upper bound to its icon key
+// (e.g. code 61 -> "rain"): the first threshold the code doesn't exceed.
+var weatherThresholds = []struct {
+	max  int
+	kind string
+}{
+	{0, "clear"}, {3, "cloudy"}, {48, "fog"}, {57, "drizzle"}, {67, "rain"},
+	{77, "snow"}, {82, "showers"}, {86, "snow"}, {99, "thunder"},
+}
+
+func weatherKind(code int) string {
+	for _, t := range weatherThresholds {
+		if code <= t.max {
+			return t.kind
+		}
+	}
+	return "unknown"
+}
+
 // tier is a progress bar's colour band: red at/over budget, yellow near it.
 func tier(ratio float64) string {
 	switch {
@@ -61,6 +84,28 @@ func tier(ratio float64) string {
 	default:
 		return "green"
 	}
+}
+
+// clockNow formats the current time in an IANA timezone ("" or unknown ->
+// server-local). Locale-independent (24h HH:MM[:SS]), unlike clockDate.
+func clockNow(tz string, seconds bool) string {
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		loc = time.Local
+	}
+	if seconds {
+		return time.Now().In(loc).Format("15:04:05")
+	}
+	return time.Now().In(loc).Format("15:04")
+}
+
+func clockDate(tz string, locale enums.Locale) string {
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		loc = time.Local
+	}
+	now := time.Now().In(loc)
+	return i18n.Weekday(now, locale) + ", " + i18n.Day(now, locale)
 }
 
 // Page renders a full page with the common translation/formatting helpers
@@ -76,10 +121,11 @@ func Page(w http.ResponseWriter, ctx Ctx, name string, status int, values map[st
 			}
 			return i18n.Money(v, locale, c)
 		},
-		"num": func(v float64, digits ...int) string { return i18n.Num(v, locale, firstOr(digits, 0)) },
-		"day": func(v any) string { return i18n.Day(v, locale) },
-		"pct": func(v float64) string { return i18n.Num(v*pctScale, locale, 0) + " %" },
-		"ago": func(v any) string { return i18n.Ago(asTimePtr(v), locale) },
+		"num":       func(v float64, digits ...int) string { return i18n.Num(v, locale, firstOr(digits, 0)) },
+		"day":       func(v any) string { return i18n.Day(v, locale) },
+		"pct":       func(v float64) string { return i18n.Num(v*pctScale, locale, 0) + " %" },
+		"ago":       func(v any) string { return i18n.Ago(asTimePtr(v), locale) },
+		"clockDate": func(tz string) string { return clockDate(tz, locale) },
 	}
 
 	data := map[string]any{"Ctx": ctx, "Who": ctx.Who, "CSRFField": CSRFField, "CSRFHeader": CSRFHeader}

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"dashboard/internal/enums"
+	"dashboard/internal/sources"
 )
 
 const defaultTimezone = "Europe/Berlin"
@@ -171,6 +172,21 @@ func decodeClock(raw map[string]any) any {
 	return ClockConfig{Timezones: tz, Seconds: asBool(raw["seconds"]), Date: date}
 }
 
+// weatherView drops today from the forecast (the current conditions
+// already show it) so the template only lists the days ahead.
+func weatherView(cfgAny any, results map[string]any, _ ViewCtx) map[string]any {
+	cfg := cfgAny.(WeatherConfig)
+	data, ok := results["weather"].(*sources.WeatherResult)
+	if !ok || data == nil {
+		return map[string]any{}
+	}
+	var ahead []sources.WeatherDay
+	if len(data.Days) > 1 {
+		ahead = data.Days[1:]
+	}
+	return map[string]any{"Temp": data.Temp, "Code": data.Code, "Label": cfg.Label, "Days": ahead}
+}
+
 // WeatherConfig is the "weather" widget's config.
 type WeatherConfig struct {
 	Label string
@@ -214,35 +230,35 @@ type EmptyConfig struct{}
 func decodeEmpty(map[string]any) any { return EmptyConfig{} }
 
 func init() {
-	Register(WidgetType{Key: "link", Decode: decodeLink, Template: "widgets/link.html",
+	Register(WidgetType{Key: "link", Decode: decodeLink, Template: "widgets/link",
 		Category: CategoryStart, Inline: true, Queries: linkQueries, View: linkView})
 
-	Register(WidgetType{Key: "rss", Decode: decodeRss, Template: "widgets/rss.html",
+	Register(WidgetType{Key: "rss", Decode: decodeRss, Template: "widgets/rss",
 		Category: CategoryStart, RefreshS: 30 * 60, Queries: func(cfgAny any) []Query {
 			cfg := cfgAny.(RssConfig)
 			return []Query{{Name: "feed", Source: "rss", Params: map[string]any{"url": cfg.URL, "limit": cfg.Limit}}}
 		}})
 
-	Register(WidgetType{Key: "clock", Decode: decodeClock, Template: "widgets/clock.html",
-		Category: CategoryStart, Inline: true})
+	Register(WidgetType{Key: "clock", Decode: decodeClock, Template: "widgets/clock",
+		Category: CategoryStart, Inline: true, RefreshS: 30})
 
-	Register(WidgetType{Key: "weather", Decode: decodeWeather, Template: "widgets/weather.html",
-		Category: CategoryStart, RefreshS: 30 * 60, Queries: func(cfgAny any) []Query {
+	Register(WidgetType{Key: "weather", Decode: decodeWeather, Template: "widgets/weather",
+		Category: CategoryStart, RefreshS: 30 * 60, View: weatherView, Queries: func(cfgAny any) []Query {
 			cfg := cfgAny.(WeatherConfig)
 			return []Query{{Name: "weather", Source: "open_meteo", Params: map[string]any{"lat": cfg.Lat, "lon": cfg.Lon}}}
 		}})
 
-	Register(WidgetType{Key: "iframe", Decode: decodeIframe, Template: "widgets/iframe.html",
+	Register(WidgetType{Key: "iframe", Decode: decodeIframe, Template: "widgets/iframe",
 		Category: CategoryStart, Inline: true})
 
-	Register(WidgetType{Key: "sysinfo", Decode: decodeEmpty, Template: "widgets/sysinfo.html",
+	Register(WidgetType{Key: "sysinfo", Decode: decodeEmpty, Template: "widgets/sysinfo",
 		Category: CategoryStart, Service: enums.ServiceGlances, RefreshS: 60,
 		Queries: func(any) []Query { return []Query{{Name: "stats", Source: "glances", Conn: ConnWidget}} }})
 
-	Register(WidgetType{Key: "public_ip", Decode: decodeEmpty, Template: "widgets/public_ip.html",
+	Register(WidgetType{Key: "public_ip", Decode: decodeEmpty, Template: "widgets/public_ip",
 		Category: CategoryStart, RefreshS: 60 * 60,
 		Queries: func(any) []Query { return []Query{{Name: "ip", Source: "public_ip"}} }})
 
-	Register(WidgetType{Key: "note", Decode: decodeNote, Template: "widgets/note.html",
+	Register(WidgetType{Key: "note", Decode: decodeNote, Template: "widgets/note",
 		Category: CategoryStart, Inline: true})
 }

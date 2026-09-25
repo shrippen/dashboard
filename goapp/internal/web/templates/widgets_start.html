@@ -1,0 +1,78 @@
+{{/* Start widget fragments (link/rss/clock/weather/iframe/sysinfo/
+     public_ip/note), lazy-loaded like the insight ones — see boards.html. */}}
+
+{{define "widgets/link"}}
+{{$cfg := .Frag.Config}}
+<a class="link-tile" href="{{$cfg.URL}}"{{if eq $cfg.Target "newtab"}} target="_blank" rel="noopener noreferrer"{{end}}>
+  {{if $cfg.Icon}}<img src="{{$cfg.Icon}}" alt="" loading="lazy">{{end}}
+  <strong>{{.Frag.Title}}</strong>
+  {{if $cfg.Description}}<p class="muted small">{{$cfg.Description}}</p>{{end}}
+</a>
+{{with $s := index .Frag.Slots "status"}}{{with $d := $s.Data}}
+  <span class="pill" data-state="{{if $d.Up}}ok{{else}}failed{{end}}">{{if $d.Up}}{{$d.Ms}} ms{{else}}{{t "widget.error"}}{{end}}</span>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/rss"}}
+{{with $slot := index .Frag.Slots "feed"}}{{template "widget-slot-state" $slot}}
+{{with $feed := $slot.Data}}
+<ul class="feed-list">
+  {{range $feed.Items}}
+  <li>
+    {{if .Link}}<a href="{{.Link}}" target="_blank" rel="noopener noreferrer">{{.Title}}</a>{{else}}{{.Title}}{{end}}
+    {{if .Published}}<time datetime="{{.Published}}">{{day .Published}}</time>{{end}}
+    {{if and $.Frag.Config.Summary .Summary}}<p class="muted small">{{.Summary}}</p>{{end}}
+  </li>
+  {{else}}<li class="muted">{{t "widget.empty"}}</li>{{end}}
+</ul>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/clock"}}
+<div class="clock-tile">
+  {{range .Frag.Config.Timezones}}
+    <div class="clock-zone"><span class="muted small">{{.}}</span> <strong>{{clockNow . $.Frag.Config.Seconds}}</strong>
+      {{if $.Frag.Config.Date}}<span class="muted small">{{clockDate .}}</span>{{end}}
+    </div>
+  {{end}}
+</div>
+{{end}}
+
+{{define "widgets/weather"}}
+{{with $slot := index .Frag.Slots "weather"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $w := .Frag.View}}
+<div class="weather-tile">
+  <div class="weather-now">
+    <b>{{num $w.Temp 0}}°</b>
+    <span>{{t (printf "weather.%s" (weatherKind $w.Code))}}</span>
+    {{if $w.Label}}<small>{{$w.Label}}</small>{{end}}
+  </div>
+  <ol class="weather-days">
+    {{range $w.Days}}<li><small>{{day .Day}}</small><span>{{num .Max 0}}° / {{num .Min 0}}°</span><small>{{t (printf "weather.%s" (weatherKind .Code))}}</small></li>{{end}}
+  </ol>
+</div>
+{{end}}
+{{end}}
+
+{{define "widgets/iframe"}}
+<iframe class="frame" src="{{.Frag.Config.URL}}" height="{{.Frag.Config.Height}}" loading="lazy" referrerpolicy="no-referrer"></iframe>
+{{end}}
+
+{{define "widgets/sysinfo"}}
+{{with $slot := index .Frag.Slots "stats"}}{{template "widget-slot-state" $slot}}
+{{with $s := $slot.Data}}
+<div class="sysinfo-tile">
+  <p>{{t "sys.cpu"}}: {{num $s.CPU 0}} % · {{t "sys.mem"}}: {{num $s.Mem 0}} % · {{t "sys.swap"}}: {{num $s.Swap 0}} % · {{t "sys.load"}}: {{num $s.Load 2}}</p>
+  <ul>{{range $s.Disks}}<li>{{.Mount}}: {{num .Percent 0}} %</li>{{end}}</ul>
+</div>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/public_ip"}}
+{{with $slot := index .Frag.Slots "ip"}}{{template "widget-slot-state" $slot}}
+{{with $ip := $slot.Data}}<p class="kpi-value">{{$ip.IP}}</p>{{end}}{{end}}
+{{end}}
+
+{{define "widgets/note"}}
+<p class="note-tile">{{.Frag.Config.Text}}</p>
+{{end}}

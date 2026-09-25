@@ -563,6 +563,74 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 	}
 }
 
+// TestWidgetFragmentRendersRssFeed drives a "rss" start widget end to end:
+// no connection needed, just a config pointing at a feed URL.
+func TestWidgetFragmentRendersRssFeed(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	feed := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<rss version="2.0"><channel><title>T</title>
+<item><title>First post</title><link>https://example.org/1</link></item>
+</channel></rss>`))
+	}))
+	defer feed.Close()
+
+	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))
+	if spaceMatch == nil {
+		t.Fatal("no space option found in new-widget form")
+	}
+	spaceID := string(spaceMatch[1])
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/widgets", url.Values{
+		"csrf": {csrf}, "space_id": {spaceID}, "type": {"rss"}, "title": {"News"},
+		"config": {`{"url":"` + feed.URL + `"}`},
+	})
+	if err != nil {
+		t.Fatalf("create widget: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after widget create, got %d", resp.StatusCode)
+	}
+
+	boardResp := getFollowingRedirect(t, srv, client, "/")
+	boardBody, _ := io.ReadAll(boardResp.Body)
+	boardResp.Body.Close()
+	boardURL := boardResp.Request.URL.Path
+	sectionMatch := regexp.MustCompile(`/boards/\d+/sections/(\d+)/place`).FindSubmatch(boardBody)
+	sectionID := string(sectionMatch[1])
+	versionMatch := regexp.MustCompile(`name="version" value="(\d+)"`).FindSubmatch(boardBody)
+	widgetIDMatch := regexp.MustCompile(`<option value="(\d+)">News`).FindSubmatch(boardBody)
+	if widgetIDMatch == nil {
+		t.Fatalf("expected News in the place-widget picker:\n%s", boardBody)
+	}
+
+	csrf = csrfToken(t, srv, client)
+	resp, err = client.PostForm(srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+sectionID+"/place", url.Values{
+		"csrf": {csrf}, "widget_id": {string(widgetIDMatch[1])}, "version": {string(versionMatch[1])},
+	})
+	if err != nil {
+		t.Fatalf("place: %v", err)
+	}
+	resp.Body.Close()
+
+	boardResp = getFollowingRedirect(t, srv, client, boardURL)
+	boardBody, _ = io.ReadAll(boardResp.Body)
+	boardResp.Body.Close()
+	placementMatch := regexp.MustCompile(`/placements/(\d+)/unplace`).FindSubmatch(boardBody)
+	if placementMatch == nil {
+		t.Fatalf("no placement found on board:\n%s", boardBody)
+	}
+
+	fragBody := mustGet(t, srv, client, "/widget-fragments/"+string(placementMatch[1]))
+	if !strings.Contains(string(fragBody), "First post") || !strings.Contains(string(fragBody), "https://example.org/1") {
+		t.Fatalf("expected the feed's item rendered, got:\n%s", fragBody)
+	}
+}
+
 // TestNotifyChannelAddTestDelete drives the notify page: add an apprise://
 // channel pointed at a local fake Apprise API, test it, then delete it.
 func TestNotifyChannelAddTestDelete(t *testing.T) {

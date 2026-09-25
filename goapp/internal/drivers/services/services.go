@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"dashboard/internal/drivers/httpclient"
 )
@@ -211,6 +212,33 @@ func (a SnipeApi) Rows(ctx context.Context, path string, params url.Values) ([]a
 		}
 	}
 	return items, nil
+}
+
+// ── Glances ──
+
+const defaultGlancesAPIVersion = 4
+
+type GlancesApi struct {
+	URL     string
+	Token   string // "" if the Glances API has no auth configured
+	Verify  bool
+	Version int // 0 = defaultGlancesAPIVersion
+}
+
+func (a GlancesApi) headers() map[string]string {
+	if a.Token == "" {
+		return nil
+	}
+	return map[string]string{"Authorization": "Bearer " + a.Token}
+}
+
+// Get performs one GET against /api/<version>/<path>.
+func (a GlancesApi) Get(ctx context.Context, path string) (any, error) {
+	version := a.Version
+	if version == 0 {
+		version = defaultGlancesAPIVersion
+	}
+	return fetchJSON(ctx, fmt.Sprintf("%s/api/%d/%s", strings.TrimRight(a.URL, "/"), version, path), a.headers(), nil, !a.Verify)
 }
 
 // ── Dawarich ──
