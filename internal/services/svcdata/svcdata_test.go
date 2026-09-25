@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/sources"
@@ -26,7 +27,7 @@ func (s countingSource) Fetch(context.Context, sources.Ctx) (any, error) {
 // TestGetHonorsTTL: a cached read within the source's TTL does not reach
 // the service again; Force does.
 func TestGetHonorsTTL(t *testing.T) {
-	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +67,7 @@ func (s slowSource) Fetch(context.Context, sources.Ctx) (any, error) {
 // TestStoredNeverFetchesInRequest: a Stored read answers Pending at once
 // and fills the value in the background; later reads get it.
 func TestStoredNeverFetchesInRequest(t *testing.T) {
-	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

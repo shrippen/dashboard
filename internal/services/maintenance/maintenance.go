@@ -40,7 +40,7 @@ func Backup(d *sql.DB, dbPath, targetDir string) (string, error) {
 	copyPath := filepath.Join(targetDir, fmt.Sprintf("dashboard-%s.db", stamp))
 	archivePath := filepath.Join(targetDir, fmt.Sprintf("dashboard-%s.tar.gz", stamp))
 
-	if _, err := d.Exec("VACUUM INTO ?", copyPath); err != nil {
+	if err := db.Snapshot(d, copyPath); err != nil {
 		return "", err
 	}
 	defer os.Remove(copyPath)
@@ -80,12 +80,27 @@ func archiveOne(sourcePath, arcname, archivePath string) error {
 	return err
 }
 
-// RotateKey re-encrypts every secret under a new master key. Returns the
-// number of values re-encrypted. The caller must then replace the
-// master_key secret and restart — this process keeps using the old key
-// until it does.
-func RotateKey(d *sql.DB, newSecret string) (int, error) {
+// RotateKey re-encrypts every secret under a new master key and writes
+// the database file under the new file key (swapped in at the next
+// start). Returns the number of values re-encrypted. The caller must then
+// replace the master_key secret and restart — this process keeps using
+// the old key until it does, and its later writes are lost.
+func RotateKey(d *sql.DB, dbPath, newSecret string) (int, error) {
 	newKey := crypto.MasterFrom(newSecret)
+	count, err := swapSecrets(d, newKey)
+	if err != nil {
+		return 0, err
+	}
+
+	fileKey, err := crypto.DatabaseKey(newKey)
+	if err != nil {
+		return 0, err
+	}
+	return count, db.Rekey(d, dbPath, fileKey)
+}
+
+// swapSecrets re-encrypts the secret columns under newKey.
+func swapSecrets(d *sql.DB, newKey []byte) (int, error) {
 	count := 0
 
 	swap := func(blob []byte, purpose crypto.Purpose) ([]byte, error) {

@@ -44,6 +44,7 @@ const (
 	PurposeNotify     Purpose = "notify"
 	PurposeSetting    Purpose = "setting"
 	PurposeHook       Purpose = "hook"
+	PurposeDatabase   Purpose = "database"
 )
 
 // ErrMissingKey means crypto was used before Init or without a master key.
@@ -74,6 +75,12 @@ func key(purpose Purpose, m []byte) ([]byte, error) {
 		return nil, err
 	}
 	return out, nil
+}
+
+// DatabaseKey is the database file key, under the process master key or
+// an explicit one (key rotation).
+func DatabaseKey(m []byte) ([]byte, error) {
+	return key(PurposeDatabase, m)
 }
 
 // Encrypt seals text under purpose, optionally with an explicit master key

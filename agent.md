@@ -85,6 +85,7 @@ internal/services/scheduler/    Background-Jobs (Ticker je Job, panic-/error-iso
 ## Gelernte Fehler
 - Go 1.22+ Mux: Pfadmuster wie `/theme/{id}.css` (Wildcard + fester Suffix in einem Segment) werden nicht unterstützt ("bad wildcard segment"). Ganzes Segment als Wildcard registrieren, Suffix im Handler abschneiden.
 - `html/template` kann kein Template mit zur Laufzeit berechnetem Namen einbinden (`{{template}}` braucht einen String-Literal) — anders als Jinjas `include`. Für pro-Typ-Fragmente (Widgets) daher `ExecuteTemplate` mit dynamischem Namen aus einer eigenen Route aufrufen (siehe `/widget-fragments/{id}`), nicht versuchen, es inline im Template zu lösen.
-- `modernc.org/sqlite` liefert TEXT-Spalten als `string`, nicht als `time.Time` — auch wenn der Wert wie ein Zeitstempel aussieht. Erst in `string` scannen, dann `db.ParseTime`.
+- Der SQLite-Treiber liefert TEXT-Spalten als `string`, nicht als `time.Time` — auch wenn der Wert wie ein Zeitstempel aussieht. Erst in `string` scannen, dann `db.ParseTime`.
 - String-Enum mit explizitem Zero-Value versehen, wenn die Go-Zero-Value (`""`) semantisch "Standard"/"keiner" bedeuten soll (z. B. `ConnUse`s `ConnNone`); sonst weicht ein Feld, das nie explizit gesetzt wird, unbemerkt vom Default ab.
+- DB-Datei ist verschlüsselt (Adiantum-VFS); Kopien nur über `db.Snapshot`/`db.OpenReadOnly`, nie per Dateikopie oder `sql.Open`. Reine Lesepfade über `db.WithRead`, `db.WithTx` nimmt die Schreibsperre sofort.
 - Board-Freigabe muss Widgets aus dem Bereich des Boards sichtbar machen (`boards.seenRight`).

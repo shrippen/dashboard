@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	"dashboard/internal/repos/auth"
@@ -14,7 +15,7 @@ import (
 
 func openTestDB(t *testing.T) db.Queryer {
 	t.Helper()
-	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}

@@ -1,6 +1,9 @@
 package db
 
-import "database/sql"
+import (
+	"context"
+	"database/sql"
+)
 
 // Queryer is satisfied by both *sql.DB and *sql.Tx, so repo functions take
 // it and work inside or outside an explicit transaction.
@@ -29,4 +32,19 @@ func WithTx(d *sql.DB, fn func(*sql.Tx) error) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+// readOnly begins a deferred, query-only transaction: it never takes the
+// write lock, so it runs next to a writer (WAL).
+var readOnly = &sql.TxOptions{ReadOnly: true}
+
+// WithRead runs fn on one consistent read-only snapshot; any write fails.
+func WithRead(d *sql.DB, fn func(*sql.Tx) error) error {
+	tx, err := d.BeginTx(context.Background(), readOnly)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	return fn(tx)
 }

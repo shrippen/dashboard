@@ -10,7 +10,7 @@ Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **
 
 ## Umsetzungsstand (2026-09-25)
 
-Das Projekt ist vollständig von Python auf **Go** umgestellt (Zielplattform: Raspberry Pi, `net/http` + `html/template` + htmx, `modernc.org/sqlite` — kein cgo, kein C-Toolchain nötig). Die frühere Python-Fassung ist nur noch in der Git-Historie vorhanden. Getestet mit gemockten API-Antworten (`httptest`), **nicht gegen echte Instanzen**. Vor dem Produktivbetrieb die Verbindungstests je Dienst ausführen und die Hinweise auf Plausibilität prüfen.
+Das Projekt ist vollständig von Python auf **Go** umgestellt (Zielplattform: Raspberry Pi, `net/http` + `html/template` + htmx, `ncruces/go-sqlite3` (WebAssembly) mit Adiantum-Verschlüsselung — kein cgo, kein C-Toolchain nötig). Die frühere Python-Fassung ist nur noch in der Git-Historie vorhanden. Getestet mit gemockten API-Antworten (`httptest`), **nicht gegen echte Instanzen**. Vor dem Produktivbetrieb die Verbindungstests je Dienst ausführen und die Hinweise auf Plausibilität prüfen.
 
 | Bereich | Stand |
 |---|---|

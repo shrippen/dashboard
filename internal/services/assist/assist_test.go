@@ -10,6 +10,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/drivers/llm"
 	"dashboard/internal/enums"
 	"dashboard/internal/rules"
@@ -22,7 +23,7 @@ import (
 func setup(t *testing.T) (*sql.DB, *access.Principal, int64) {
 	t.Helper()
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

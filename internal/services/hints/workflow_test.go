@@ -7,6 +7,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
@@ -45,7 +46,7 @@ func ownSpace(who *access.Principal) int64 {
 // shows after repeated reopenings; outsiders cannot be assigned.
 func TestHintWorkflow(t *testing.T) {
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "w.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "w.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

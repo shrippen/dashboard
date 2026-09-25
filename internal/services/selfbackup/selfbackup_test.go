@@ -8,6 +8,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
@@ -19,7 +20,7 @@ import (
 // restore test (rows, decryptable secrets); only Keep copies stay.
 func TestRunVerifiesAndPrunes(t *testing.T) {
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "live.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "live.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

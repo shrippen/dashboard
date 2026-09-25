@@ -8,6 +8,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/rules"
 	"dashboard/internal/services/hints"
@@ -17,7 +18,7 @@ import (
 // a rule whose hints are all dismissed shows as noisy.
 func TestValueAndNoisyRules(t *testing.T) {
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "v.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "v.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

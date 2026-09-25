@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/repos/content"
 	"dashboard/internal/services/access"
@@ -15,7 +16,7 @@ import (
 
 func openTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}

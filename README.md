@@ -9,6 +9,7 @@ Self-hosted, multi-user dashboard for an IT landscape and a freelance business. 
 - German and English
 - Push notifications through an existing Apprise API instance
 - One Docker container, SQLite in `/data`, pure Go (no cgo — runs on a Raspberry Pi without a C toolchain)
+- Database file, WAL and backups encrypted (Adiantum, key derived from `MASTER_KEY`); an older plaintext database is encrypted at first start
 
 Plan and decisions: [ROADMAP.md](ROADMAP.md) (German). Working rules: [agent.md](agent.md).
 
@@ -37,3 +38,7 @@ Layers: `web → services → repos | sources | outbound → db | drivers`. See 
 docker compose exec dashboard dashboard backup /data/backups
 docker compose exec dashboard dashboard rotate-key /run/secrets/new_master_key
 ```
+
+`rotate-key` also writes `dashboard.db.rekeyed` under the new key; the
+next start swaps it in. Replace the secret and restart right away:
+writes in between are lost. Older backups keep the old key.

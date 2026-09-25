@@ -16,6 +16,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/outbound"
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/icons"
@@ -48,7 +49,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	t.Helper()
 	crypto.Init("test-master-key")
 	auth.ResetThrottle()
-	database, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	database, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}

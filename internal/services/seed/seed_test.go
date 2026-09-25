@@ -7,6 +7,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/repos/users"
 	"dashboard/internal/services/access"
@@ -20,7 +21,7 @@ import (
 // and the analysis turns the demo datasets into hints.
 func TestDemoFillsBoardsAndFiresRules(t *testing.T) {
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

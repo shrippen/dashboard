@@ -17,6 +17,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/repos/users"
 	"dashboard/internal/services/access"
@@ -91,7 +92,7 @@ func (idp *fakeIdP) sign(t *testing.T) string {
 func setup(t *testing.T) (*sql.DB, settings.Settings, *access.Principal, *fakeIdP) {
 	t.Helper()
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

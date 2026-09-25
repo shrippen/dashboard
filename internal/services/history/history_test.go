@@ -8,6 +8,7 @@ import (
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	data "dashboard/internal/repos/data"
 	"dashboard/internal/rules"
@@ -21,7 +22,7 @@ import (
 // hint appears shows as its prehistory; the hint and later events do not.
 func TestBeforeShowsUpdateBeforeOutage(t *testing.T) {
 	crypto.Init("test-master-key")
-	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

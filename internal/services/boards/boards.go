@@ -190,7 +190,7 @@ func load(q db.Queryer, who *access.Principal, boardID int64, required enums.Rig
 // Visible lists the boards who may at least VIEW, personal spaces first.
 func Visible(d *sql.DB, who *access.Principal) ([]BoardRef, error) {
 	var out []BoardRef
-	err := db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithRead(d, func(tx *sql.Tx) error {
 		spaceIDs := make([]int64, 0, len(who.Spaces))
 		for id := range who.Spaces {
 			spaceIDs = append(spaceIDs, id)
@@ -272,7 +272,7 @@ func StartBoard(d *sql.DB, who *access.Principal, preferred *int64) (int64, erro
 // View renders a board for who, applying their personal overlay.
 func View(d *sql.DB, who *access.Principal, boardID int64) (*BoardView, error) {
 	var out *BoardView
-	err := db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithRead(d, func(tx *sql.Tx) error {
 		board, err := load(tx, who, boardID, enums.RightView)
 		if err != nil {
 			return err
@@ -437,7 +437,7 @@ func int64FromAny(v any) int64 {
 // PlacedWidget returns the widget behind a placement, checking view rights.
 func PlacedWidget(d *sql.DB, who *access.Principal, placementID int64) (*model.Widget, error) {
 	var w *model.Widget
-	err := db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithRead(d, func(tx *sql.Tx) error {
 		placement, err := content.Placement(tx, placementID)
 		if err != nil {
 			return err

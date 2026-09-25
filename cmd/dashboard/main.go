@@ -41,7 +41,12 @@ func main() {
 		slog.Error("create data dir", "err", err)
 		os.Exit(1)
 	}
-	database, err := db.Open(cfg.DBPath())
+	dbKey, err := crypto.DatabaseKey(nil)
+	if err != nil {
+		slog.Error("database key", "err", err)
+		os.Exit(1)
+	}
+	database, err := db.Open(cfg.DBPath(), dbKey)
 	if err != nil {
 		slog.Error("open database", "err", err)
 		os.Exit(1)

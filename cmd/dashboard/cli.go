@@ -49,7 +49,7 @@ func runCLI(argv []string, database *sql.DB, dbPath string) (ok bool, exitCode i
 			fmt.Fprintln(os.Stderr, "rotate-key:", err)
 			return true, 1
 		}
-		count, err := maintenance.RotateKey(database, strings.TrimSpace(string(raw)))
+		count, err := maintenance.RotateKey(database, dbPath, strings.TrimSpace(string(raw)))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "rotate-key:", err)
 			return true, 1

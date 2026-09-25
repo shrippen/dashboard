@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
@@ -31,7 +32,7 @@ func (s budgetSource) Fetch(context.Context, sources.Ctx) (any, error) {
 // answer with the last result instead of reaching the service; every
 // fetch counts towards the health record.
 func TestBudgetStopsFetching(t *testing.T) {
-	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatal(err)
 	}

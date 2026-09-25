@@ -402,7 +402,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	var conn, infoConn *model.Connection
 	var settings map[string]any
 	infoKey := infoKeyOf(cfg)
-	err := db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithRead(d, func(tx *sql.Tx) error {
 		if widget.ConnectionID != nil {
 			c, err := content.Connection(tx, *widget.ConnectionID)
 			if err != nil {
@@ -571,7 +571,7 @@ func loadPoints(d *sql.DB, conn *model.Connection, userID int64, metric string, 
 	since := time.Now().UTC().AddDate(0, 0, -days).Format("2006-01-02")
 
 	var out [][2]any
-	err := db.WithTx(d, func(tx *sql.Tx) error {
+	err := db.WithRead(d, func(tx *sql.Tx) error {
 		points, err := data.Points(tx, scope, metric, since)
 		if err != nil {
 			return err

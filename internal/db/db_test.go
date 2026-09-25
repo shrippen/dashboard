@@ -8,7 +8,7 @@ import (
 func TestOpenCreatesSchemaAndIsIdempotent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "test.db")
 
-	d1, err := Open(path)
+	d1, err := Open(path, testKey)
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
@@ -24,7 +24,7 @@ func TestOpenCreatesSchemaAndIsIdempotent(t *testing.T) {
 	d1.Close()
 
 	// Reopening must not fail or re-apply the migration.
-	d2, err := Open(path)
+	d2, err := Open(path, testKey)
 	if err != nil {
 		t.Fatalf("reopen: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestOpenCreatesSchemaAndIsIdempotent(t *testing.T) {
 
 func TestForeignKeysEnforced(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "test.db")
-	d, err := Open(path)
+	d, err := Open(path, testKey)
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}

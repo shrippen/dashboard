@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# ── Build: static binary, no cgo (modernc.org/sqlite is pure Go — no C
+# ── Build: static binary, no cgo (ncruces/go-sqlite3 runs SQLite as Wasm — no C
 #    toolchain needed, which is the whole point on a Raspberry Pi target) ──
 FROM golang:1.26-bookworm AS build
 WORKDIR /src

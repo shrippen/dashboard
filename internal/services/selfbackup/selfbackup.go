@@ -114,7 +114,7 @@ func snapshot(d *sql.DB, dir string, now time.Time) (string, error) {
 // verify opens the copy like a restore would and returns the first
 // problem, "" if none.
 func verify(live *sql.DB, path string, status *Status) string {
-	copyDB, err := db.OpenReadOnly(path)
+	copyDB, err := db.OpenReadOnly(live, path)
 	if err != nil {
 		return err.Error()
 	}

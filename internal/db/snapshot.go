@@ -3,6 +3,8 @@ package db
 // Backup copies for the self-backup job:
 //
 //	Snapshot      VACUUM INTO: a consistent copy while the app keeps running
+//	              (encrypted under the live database's key)
+//	Rekey         the same copy under a new key, swapped in at next Open
 //	OpenReadOnly  opens a copy without migrating it, for the test restore
 //	Integrity     PRAGMA integrity_check ("ok" when sound)
 //	Migrations    number of applied migrations (copy and live must match)
@@ -11,7 +13,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"net/url"
 )
 
 // integrityOK is SQLite's answer for a sound database.
@@ -19,14 +20,42 @@ const integrityOK = "ok"
 
 // Snapshot writes a consistent copy of the database to path.
 func Snapshot(d *sql.DB, path string) error {
-	_, err := d.Exec("VACUUM INTO ?", path)
+	key := keyOf(d)
+	if key == nil {
+		return ErrKey
+	}
+	_, err := d.Exec("VACUUM INTO ?", fileURI(path, key))
 	return err
 }
 
-// OpenReadOnly opens a database file without writing to it.
-func OpenReadOnly(path string) (*sql.DB, error) {
-	dsn := fmt.Sprintf("file:%s?mode=ro&_pragma=busy_timeout(%d)", url.PathEscape(path), busyTimeoutMS)
-	return sql.Open("sqlite", dsn)
+// Rekey writes a copy of the database at path under newKey. Open swaps
+// it in once the process runs with the new key; writes after Rekey are
+// not in the copy, so restart right away.
+func Rekey(d *sql.DB, path string, newKey []byte) error {
+	if len(newKey) != keyLen {
+		return ErrKey
+	}
+	next := path + rekeyedSuffix
+	if err := removeIfExists(next); err != nil {
+		return err
+	}
+	_, err := d.Exec("VACUUM INTO ?", fileURI(next, newKey))
+	return err
+}
+
+// OpenReadOnly opens a Snapshot of live without writing to it.
+func OpenReadOnly(live *sql.DB, path string) (*sql.DB, error) {
+	key := keyOf(live)
+	if key == nil {
+		return nil, ErrKey
+	}
+	return sql.Open(driverName, dsn(path, key, "&mode=ro"))
+}
+
+func keyOf(d *sql.DB) []byte {
+	keysMu.Lock()
+	defer keysMu.Unlock()
+	return keys[d]
 }
 
 // Integrity reports whether SQLite finds the file sound; the message

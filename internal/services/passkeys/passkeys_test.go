@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"dashboard/internal/db"
+	"dashboard/internal/db/dbtest"
 	"dashboard/internal/enums"
 	"dashboard/internal/model"
 	authrepo "dashboard/internal/repos/auth"
@@ -24,7 +25,7 @@ var cfg = settings.Settings{BaseURL: "https://dash.example.org:8443"}
 
 func openTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
+	d, err := db.Open(filepath.Join(t.TempDir(), "test.db"), dbtest.Key)
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
