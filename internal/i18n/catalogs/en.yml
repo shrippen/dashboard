@@ -18,6 +18,9 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_freshrss: Open in FreshRSS
+  open_in_gitea: Open in Gitea
+  open_in_borgbackup: Open in Borg Backup Server
   open_in_scrutiny: Open in Scrutiny
   open_in_immich: Open in Immich
   open_in_umami: Open in Umami
@@ -345,6 +348,9 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_freshrss: 'No options needed. Token = user:api-password (FreshRSS → profile → API password; API access must be enabled).'
+  options_hint_gitea: No options needed. Token = access token with read scopes (read:user, read:issue, read:repository, read:notification).
+  options_hint_borgbackup: No options needed. Token = API token bbs_tok_… (settings → API).
   options_hint_scrutiny: No options, no token needed.
   options_hint_immich: No options needed. Token = API key (account → API keys); statistics and jobs need an admin key.
   options_hint_umami: 'No options needed. Token = user:password (self-hosted) or API key (Umami Cloud).'
@@ -379,6 +385,9 @@ mode:
   dark: Dark
   light: Light
 service:
+  freshrss: FreshRSS
+  gitea: Gitea
+  borgbackup: Borg Backup Server
   scrutiny: Scrutiny
   immich: Immich
   umami: Umami
@@ -623,6 +632,48 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  freshrss:
+    backlog:
+      title: '{count} unread articles'
+      why: 'Largest sources: {feeds}. Unsubscribe, filter or mark as read.'
+    stale:
+      title: 'Feed “{feed}” went silent'
+      why: 'Last article on {day}. Moved or discontinued?'
+  gitea:
+    review:
+      title: 'Review waiting: {repo}#{number}'
+      why: '“{title}” has waited {days} days for you.'
+    due:
+      title: 'Due {day}: {repo}#{number}'
+      why: '“{title}” is assigned to you.'
+    stale_pr:
+      title: 'PR {repo}#{number} idle for {days} days'
+      why: '“{title}”: finish or close it.'
+    actions:
+      title: 'Build failed in {repo}'
+      why: 'Latest run: {run}.'
+    mirror:
+      title: 'Mirror {repo} not updated since {day}'
+      why: Source reachable? Credentials expired?
+  borg:
+    client_error:
+      title: 'Backup client {client} reports an error'
+      why: Check Borg Backup Server.
+    client_offline:
+      title: 'Backup client {client} offline since {day}'
+      why: Device off, agent stopped or network down.
+    failed:
+      title: '{count} failed backup jobs (24 h)'
+      why: '{ok} succeeded. Check the cause in the queue.'
+    old:
+      title: 'Last backup {hours} hours ago'
+      why: Check schedules and agents.
+    storage:
+      title: 'Backup storage {percent} % full'
+      why: Shorten retention, compact or add storage.
+    update:
+      title: Borg Backup Server update
+      why: 'Server or {agents} agents outdated.'
   scrutiny:
     failed:
       title: 'Disk {disk} reports errors'
@@ -811,6 +862,14 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  freshrss:
+    unread: '{count} unread'
+  gitea:
+    open: '{issues} assigned'
+    reviews: '{reviews} reviews'
+  borg:
+    clients: '{online}/{count} clients'
+    last: 'backup {hours} h ago'
   scrutiny:
     disks: '{ok}/{count} disks ok'
   immich:
@@ -894,6 +953,18 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  freshrss.backlog: Reading backlog
+  freshrss.stale_feed: Silent feed
+  gitea.review_waiting: Pending reviews
+  gitea.due: Due issues
+  gitea.stale_pr: Idle PRs
+  gitea.actions_failed: Failed builds
+  gitea.mirror_stale: Stale mirrors
+  borg.client_offline: Backup client offline
+  borg.jobs_failed: Failed backups
+  borg.backup_old: Backup outdated (Borg)
+  borg.storage: Backup storage
+  borg.update: Update (Borg)
   scrutiny.disk_failed: Disk failure
   scrutiny.disk_hot: Disk temperature
   scrutiny.stale: SMART data stale
@@ -942,6 +1013,8 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  warn_hours: Warn from hours
+  critical_hours: Critical from hours
   drop: Drop from (share)
   min_visitors: From visitors (previous week)
   min_count: From count

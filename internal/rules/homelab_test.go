@@ -51,3 +51,55 @@ func TestUmamiTrafficDrop(t *testing.T) {
 		t.Fatalf("no data: %+v", got)
 	}
 }
+
+func TestFreshRSSRules(t *testing.T) {
+	data := sources.DemoFreshRSS(time.Now())
+	got := run(t, "freshrss.backlog", data, todayEnv(nil))
+	if len(got) != 1 || got[0].Params["feeds"] != "heise online (540), Selfhosted Weekly (260), Go Blog (12)" {
+		t.Fatalf("backlog: %+v", got)
+	}
+	if got := run(t, "freshrss.stale_feed", data, todayEnv(nil)); len(got) != 1 || got[0].Params["feed"] != "Altes Projektblog" {
+		t.Fatalf("stale: %+v", got)
+	}
+}
+
+func TestGiteaRules(t *testing.T) {
+	data := sources.DemoGitea(time.Now())
+	env := todayEnv(nil)
+	if got := run(t, "gitea.review_waiting", data, env); len(got) != 1 || got[0].Params["repo"] != "team/infra" {
+		t.Fatalf("review: %+v", got)
+	}
+	if got := run(t, "gitea.due", data, env); len(got) != 1 || got[0].Severity != enums.SeverityCritical {
+		t.Fatalf("due: %+v", got)
+	}
+	if got := run(t, "gitea.stale_pr", data, env); len(got) != 1 || got[0].Params["number"] != int64(4) {
+		t.Fatalf("stale pr: %+v", got)
+	}
+	if got := run(t, "gitea.actions_failed", data, env); len(got) != 1 {
+		t.Fatalf("actions: %+v", got)
+	}
+	if got := run(t, "gitea.mirror_stale", data, env); len(got) != 1 {
+		t.Fatalf("mirror: %+v", got)
+	}
+}
+
+func TestBorgRules(t *testing.T) {
+	data := sources.DemoBorg(time.Now())
+	env := todayEnv(nil)
+	if got := run(t, "borg.client_offline", data, env); len(got) != 1 || got[0].Params["client"] != "laptop" {
+		t.Fatalf("offline: %+v", got)
+	}
+	if got := run(t, "borg.jobs_failed", data, env); len(got) != 1 {
+		t.Fatalf("failed: %+v", got)
+	}
+	if got := run(t, "borg.backup_old", data, env); len(got) != 0 {
+		t.Fatalf("7 h old backup reported: %+v", got)
+	}
+	data.LastBackup = time.Now().Add(-80 * time.Hour)
+	if got := run(t, "borg.backup_old", data, env); len(got) != 1 || got[0].Severity != enums.SeverityCritical {
+		t.Fatalf("old: %+v", got)
+	}
+	if got := run(t, "borg.storage", data, env); len(got) != 0 {
+		t.Fatalf("78 %% storage reported: %+v", got)
+	}
+}

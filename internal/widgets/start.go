@@ -164,6 +164,12 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.ImmichInfo(data)
 	case *sources.UmamiDataset:
 		parts = metrics.UmamiInfo(data)
+	case *sources.FreshRSSDataset:
+		parts = metrics.FreshRSSInfo(data)
+	case *sources.GiteaDataset:
+		parts = metrics.GiteaInfo(data)
+	case *sources.BorgDataset:
+		parts = metrics.BorgInfo(data, time.Now().UTC())
 	}
 	return map[string]any{"Info": parts}
 }

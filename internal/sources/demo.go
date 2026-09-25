@@ -305,3 +305,40 @@ func DemoUmami() *UmamiDataset {
 		{ID: "2", Name: "Shop", Domain: "shop.demo", Views: 120, Visitors: 41, PrevViews: 980, PrevVisit: 305},
 	}}
 }
+
+// DemoFreshRSS is the demo FreshRSS dataset.
+func DemoFreshRSS(now time.Time) *FreshRSSDataset {
+	day := func(n int) time.Time { return now.UTC().AddDate(0, 0, -n) }
+	return &FreshRSSDataset{URL: "https://rss.demo", Unread: 812, Feeds: []Feed{
+		{ID: "feed/1", Title: "heise online", Category: "News", Unread: 540, Newest: day(0)},
+		{ID: "feed/2", Title: "Go Blog", Category: "Tech", Unread: 12, Newest: day(9)},
+		{ID: "feed/3", Title: "Altes Projektblog", Category: "Tech", Unread: 0, Newest: day(400)},
+		{ID: "feed/4", Title: "Selfhosted Weekly", Category: "Tech", Unread: 260, Newest: day(2)},
+	}}
+}
+
+// DemoGitea is the demo Gitea dataset.
+func DemoGitea(now time.Time) *GiteaDataset {
+	day := func(n int) time.Time { return now.UTC().AddDate(0, 0, n) }
+	return &GiteaDataset{URL: "https://git.demo", User: "alex", Notifications: 4,
+		Assigned: []Issue{
+			{Repo: "alex/dashboard", Title: "Export als PDF", URL: "https://git.demo/alex/dashboard/issues/12", Number: 12, Due: day(-2), Updated: day(-10)},
+			{Repo: "alex/website", Title: "Neues Theme", URL: "https://git.demo/alex/website/pulls/4", Number: 4, Pull: true, Updated: day(-21)},
+		},
+		Reviews: []Issue{{Repo: "team/infra", Title: "Traefik 3 Migration", URL: "https://git.demo/team/infra/pulls/7", Number: 7, Pull: true, Updated: day(-4)}},
+		Repos: []Repo{
+			{Name: "alex/dashboard", URL: "https://git.demo/alex/dashboard", Updated: day(0), FailedWorkflow: "test"},
+			{Name: "mirror/linux", URL: "https://git.demo/mirror/linux", Mirror: true, MirrorUpdated: day(-12), Updated: day(-12)},
+		},
+	}
+}
+
+// DemoBorg is the demo Borg Backup Server dataset.
+func DemoBorg(now time.Time) *BorgDataset {
+	return &BorgDataset{URL: "https://borg.demo", Failed24h: 1, Completed24h: 5, UsedBytes: 3.1e12, TotalBytes: 4e12,
+		LastBackup: now.UTC().Add(-7 * time.Hour), AgentsOutdated: 1,
+		Clients: []BorgClient{
+			{Name: "nas", Status: "online", LastSeen: now.UTC().Add(-time.Minute)},
+			{Name: "laptop", Status: "offline", LastSeen: now.UTC().AddDate(0, 0, -6)},
+		}}
+}

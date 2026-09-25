@@ -99,3 +99,81 @@ func TestUmamiLoginAndBothStatShapes(t *testing.T) {
 		t.Fatalf("sites: %+v", sites)
 	}
 }
+
+func TestFreshRSSGoogleReader(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/greader.php/accounts/ClientLogin", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("Passwd") != "pw" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Write([]byte("SID=alex/x\nLSID=null\nAuth=alex/tok\n"))
+	})
+	authed := func(body any) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if r.Header.Get("Authorization") != "GoogleLogin auth=alex/tok" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			json.NewEncoder(w).Encode(body)
+		}
+	}
+	mux.HandleFunc("/api/greader.php/reader/api/0/subscription/list", authed(map[string]any{"subscriptions": []any{
+		map[string]any{"id": "feed/1", "title": "heise", "categories": []any{map[string]any{"label": "News"}}},
+		map[string]any{"id": "feed/2", "title": "Old"},
+	}}))
+	mux.HandleFunc("/api/greader.php/reader/api/0/unread-count", authed(map[string]any{"unreadcounts": []any{
+		map[string]any{"id": "feed/1", "count": 7, "newestItemTimestampUsec": "1758780000000000"},
+		map[string]any{"id": "user/-/state/com.google/reading-list", "count": 7},
+	}}))
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	out, err := sources.FreshRSSData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "alex:pw", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := out.(*sources.FreshRSSDataset)
+	if d.Unread != 7 || len(d.Feeds) != 2 || d.Feeds[0].Title != "Old" || d.Feeds[1].Category != "News" || d.Feeds[1].Newest.IsZero() {
+		t.Fatalf("data: %+v", d)
+	}
+}
+
+func TestGiteaAssignedReviewsRepos(t *testing.T) {
+	srv := jsonServer(t, map[string]any{
+		"/api/v1/user":              map[string]any{"login": "alex"},
+		"/api/v1/notifications/new": map[string]any{"new": 3},
+		"/api/v1/repos/issues/search": []any{map[string]any{"number": 12, "title": "Bug", "html_url": "u",
+			"repository": map[string]any{"full_name": "alex/app"}, "due_date": "2026-09-20T00:00:00Z", "updated_at": "2026-09-01T00:00:00Z"}},
+		"/api/v1/user/repos": []any{map[string]any{"full_name": "alex/app", "updated_at": "2020-01-01T00:00:00Z"},
+			map[string]any{"full_name": "alex/old", "archived": true}},
+	}, func(r *http.Request) bool { return r.Header.Get("Authorization") == "token t" })
+
+	out, err := sources.GiteaData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "t", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := out.(*sources.GiteaDataset)
+	if d.User != "alex" || d.Notifications != 3 || len(d.Assigned) != 1 || d.Assigned[0].Due.IsZero() || len(d.Repos) != 1 {
+		t.Fatalf("data: %+v", d)
+	}
+}
+
+func TestBorgDashboardAndClients(t *testing.T) {
+	srv := jsonServer(t, map[string]any{
+		"/api/v1/dashboard": map[string]any{"jobs": map[string]any{"failed_24h": 2, "completed_24h": 9},
+			"storage":  map[string]any{"used_bytes": 90, "total_bytes": 100},
+			"archives": map[string]any{"last_backup_at": "2026-09-25T03:00:00Z"},
+			"updates":  map[string]any{"server_available": true, "agents_outdated": 0}},
+		"/api/v1/clients": map[string]any{"clients": []any{map[string]any{"name": "nas", "status": "online", "last_heartbeat": "2026-09-25 10:00:00"}}},
+	}, func(r *http.Request) bool { return r.Header.Get("Authorization") == "Bearer bbs_tok_x" })
+
+	out, err := sources.BorgData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "bbs_tok_x", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := out.(*sources.BorgDataset)
+	if d.Failed24h != 2 || d.TotalBytes != 100 || d.LastBackup.IsZero() || !d.ServerUpdate || len(d.Clients) != 1 || d.Clients[0].LastSeen.IsZero() {
+		t.Fatalf("data: %+v", d)
+	}
+}

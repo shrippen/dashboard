@@ -86,3 +86,32 @@ func UmamiInfo(data *sources.UmamiDataset) []InfoPart {
 	}
 	return []InfoPart{part("umami.visitors", map[string]any{"visitors": map[string]any{"$num": float64(visitors)}})}
 }
+
+// FreshRSSInfo: "812 unread".
+func FreshRSSInfo(data *sources.FreshRSSDataset) []InfoPart {
+	return []InfoPart{part("freshrss.unread", map[string]any{"count": map[string]any{"$num": float64(data.Unread)}})}
+}
+
+// GiteaInfo: "2 assigned · 1 review".
+func GiteaInfo(data *sources.GiteaDataset) []InfoPart {
+	found := []InfoPart{part("gitea.open", map[string]any{"issues": len(data.Assigned)})}
+	if len(data.Reviews) > 0 {
+		found = append(found, part("gitea.reviews", map[string]any{"reviews": len(data.Reviews)}))
+	}
+	return found
+}
+
+// BorgInfo: "1/2 clients · backup 7 h ago".
+func BorgInfo(data *sources.BorgDataset, now time.Time) []InfoPart {
+	online := 0
+	for _, c := range data.Clients {
+		if c.Status == "online" {
+			online++
+		}
+	}
+	found := []InfoPart{part("borg.clients", map[string]any{"online": online, "count": len(data.Clients)})}
+	if !data.LastBackup.IsZero() {
+		found = append(found, part("borg.last", map[string]any{"hours": int(now.Sub(data.LastBackup).Hours())}))
+	}
+	return found
+}

@@ -18,6 +18,9 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_freshrss: In FreshRSS öffnen
+  open_in_gitea: In Gitea öffnen
+  open_in_borgbackup: In Borg Backup Server öffnen
   open_in_scrutiny: In Scrutiny öffnen
   open_in_immich: In Immich öffnen
   open_in_umami: In Umami öffnen
@@ -345,6 +348,9 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_freshrss: 'Keine Optionen nötig. Token = benutzer:api-passwort (FreshRSS → Profil → API-Passwort; API-Zugriff muss erlaubt sein).'
+  options_hint_gitea: Keine Optionen nötig. Token = Zugriffstoken mit Leserechten (read:user, read:issue, read:repository, read:notification).
+  options_hint_borgbackup: Keine Optionen nötig. Token = API-Token bbs_tok_… (Einstellungen → API).
   options_hint_scrutiny: Keine Optionen, kein Token nötig.
   options_hint_immich: Keine Optionen nötig. Token = API-Schlüssel (Konto → API-Schlüssel); Statistik und Jobs brauchen einen Admin-Schlüssel.
   options_hint_umami: 'Keine Optionen nötig. Token = benutzer:passwort (selbst gehostet) oder API-Schlüssel (Umami Cloud).'
@@ -379,6 +385,9 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  freshrss: FreshRSS
+  gitea: Gitea
+  borgbackup: Borg Backup Server
   scrutiny: Scrutiny
   immich: Immich
   umami: Umami
@@ -623,6 +632,48 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  freshrss:
+    backlog:
+      title: '{count} ungelesene Artikel'
+      why: 'Größte Quellen: {feeds}. Abbestellen, filtern oder als gelesen markieren.'
+    stale:
+      title: 'Feed „{feed}“ ist verstummt'
+      why: 'Letzter Artikel am {day}. Adresse geändert oder Seite eingestellt?'
+  gitea:
+    review:
+      title: 'Review wartet: {repo}#{number}'
+      why: '„{title}“ wartet seit {days} Tagen auf dich.'
+    due:
+      title: 'Fällig am {day}: {repo}#{number}'
+      why: '„{title}“ ist dir zugewiesen.'
+    stale_pr:
+      title: 'PR {repo}#{number} ruht seit {days} Tagen'
+      why: '„{title}“: abschließen oder schließen.'
+    actions:
+      title: 'Build in {repo} fehlgeschlagen'
+      why: 'Letzter Lauf: {run}.'
+    mirror:
+      title: 'Spiegel {repo} seit {day} nicht aktualisiert'
+      why: Quelle erreichbar? Zugangsdaten abgelaufen?
+  borg:
+    client_error:
+      title: 'Backup-Client {client} meldet Fehler'
+      why: Im Borg Backup Server nachsehen.
+    client_offline:
+      title: 'Backup-Client {client} offline seit {day}'
+      why: Gerät aus, Agent gestoppt oder Netzwerk getrennt.
+    failed:
+      title: '{count} fehlgeschlagene Backup-Jobs (24 h)'
+      why: '{ok} erfolgreich. Fehlerursache in der Warteschlange prüfen.'
+    old:
+      title: 'Letztes Backup vor {hours} Stunden'
+      why: Zeitpläne und Agents prüfen.
+    storage:
+      title: 'Backup-Speicher zu {percent} % belegt'
+      why: Aufbewahrung kürzen, komprimieren oder Speicher erweitern.
+    update:
+      title: Update für Borg Backup Server
+      why: 'Server oder {agents} Agents veraltet.'
   scrutiny:
     failed:
       title: 'Platte {disk} meldet Fehler'
@@ -812,6 +863,14 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  freshrss:
+    unread: '{count} ungelesen'
+  gitea:
+    open: '{issues} zugewiesen'
+    reviews: '{reviews} Reviews'
+  borg:
+    clients: '{online}/{count} Clients'
+    last: 'Backup vor {hours} h'
   scrutiny:
     disks: '{ok}/{count} Platten ok'
   immich:
@@ -895,6 +954,18 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  freshrss.backlog: Leserückstand
+  freshrss.stale_feed: Verstummter Feed
+  gitea.review_waiting: Offene Reviews
+  gitea.due: Fällige Issues
+  gitea.stale_pr: Ruhende PRs
+  gitea.actions_failed: Fehlgeschlagene Builds
+  gitea.mirror_stale: Veraltete Spiegel
+  borg.client_offline: Backup-Client offline
+  borg.jobs_failed: Fehlgeschlagene Backups
+  borg.backup_old: Backup veraltet (Borg)
+  borg.storage: Backup-Speicher
+  borg.update: Update (Borg)
   scrutiny.disk_failed: Plattenfehler
   scrutiny.disk_hot: Plattentemperatur
   scrutiny.stale: SMART-Daten veraltet
@@ -943,6 +1014,8 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  warn_hours: Warnung ab Stunden
+  critical_hours: Kritisch ab Stunden
   drop: Rückgang ab (Anteil)
   min_visitors: Ab Besuchern (Vorwoche)
   min_count: Ab Anzahl
