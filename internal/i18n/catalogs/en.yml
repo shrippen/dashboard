@@ -182,7 +182,7 @@ field:
   area: Column
   collapsed: Collapsed by default
   list_hint: Separate several values with commas.
-  icon_hint: si-name (Simple Icons), hl-name (Dashboard Icons), favicon or image URL.
+  icon_hint: si-name (Simple Icons), hl-name (Dashboard Icons), sh-name (selfh.st), mdi-name (Material Design), "fas fa-name" (Font Awesome), emoji, favicon or image URL.
   description: Description
   icon: Icon
   target: Open in

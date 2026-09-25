@@ -8,6 +8,7 @@ import (
 
 	"dashboard/internal/enums"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/icons"
 	"dashboard/internal/services/util"
 )
 
@@ -23,7 +24,7 @@ const (
 	startTitle         = "Start"
 )
 
-var dashyIconPrefixes = []string{"si-", "hl-", "favicon", "http://", "https://"}
+var dashyIconPrefixes = []string{"si-", "hl-", "sh-", "mdi-", "favicon", "http://", "https://"}
 
 var dashyWidgets = map[string]string{
 	"rss-feed": "rss", "clock": "clock", "weather": "weather", "weather-forecast": "weather",
@@ -178,6 +179,9 @@ func dashyIcon(icon string) string {
 		if strings.HasPrefix(icon, prefix) {
 			return icon
 		}
+	}
+	if icons.Glyph(icon) || icons.Emoji(icon) != "" {
+		return icon
 	}
 	return ""
 }

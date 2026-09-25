@@ -11,9 +11,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"log/slog"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"dashboard/internal/repos/files"
 	"dashboard/internal/sources"
@@ -72,6 +74,54 @@ func specKey(spec, pageURL string) string {
 	}
 	return hashKey(spec)
 }
+
+// glyphPrefixes are single-color icon sets: black shapes that need
+// inverting on dark themes.
+var glyphPrefixes = []string{"si-", "mdi-"}
+
+// Glyph reports whether spec's icon is a single-color glyph.
+func Glyph(spec string) bool {
+	spec = strings.TrimSpace(spec)
+	for _, p := range glyphPrefixes {
+		if strings.HasPrefix(spec, p) {
+			return true
+		}
+	}
+	return sources.IsFontAwesome(spec)
+}
+
+const (
+	emojiMin    = 0x2000 // below: letters and common symbols
+	emojiMaxLen = 8      // runes; flags and ZWJ sequences need several
+	hexBase     = 16
+)
+
+// Emoji returns the emoji spec stands for ("🚀", "U+1F680", "1f680"),
+// or "" if it is none. Emojis render as text, nothing is downloaded.
+func Emoji(spec string) string {
+	spec = strings.TrimSpace(spec)
+	hex := strings.TrimPrefix(strings.TrimPrefix(spec, "U+"), "u+")
+	if n, err := strconv.ParseInt(hex, hexBase, 32); err == nil && len(hex) >= 4 && len(hex) <= 6 {
+		r := rune(n)
+		if r >= emojiMin && utf8.ValidRune(r) {
+			return string(r)
+		}
+		return ""
+	}
+
+	runes := []rune(spec)
+	if len(runes) == 0 || len(runes) > emojiMaxLen {
+		return ""
+	}
+	for _, r := range runes {
+		if r < emojiMin && r != zeroWidthJoiner {
+			return ""
+		}
+	}
+	return spec
+}
+
+const zeroWidthJoiner = 0x200D
 
 // URL returns the local URL of spec's icon, or "" while it is missing
 // (a background download starts on first request).

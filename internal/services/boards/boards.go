@@ -63,6 +63,8 @@ type Tile struct {
 	Config      any
 	Hidden      bool
 	IconURL     string // link tiles: cached icon, "" = monogram
+	IconEmoji   string // link tiles: emoji instead of an image
+	IconGlyph   bool   // single-color icon, inverted on dark themes
 	Items       []TileItem
 }
 
@@ -384,7 +386,11 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 			Category: kind.Category, Inline: kind.Inline, RefreshS: kind.RefreshS, Config: cfg, Hidden: hidden[placement.ID],
 		}
 		if link, ok := cfg.(widgets.LinkConfig); ok {
-			tile.IconURL = icons.URL(link.Icon, link.URL)
+			tile.IconEmoji = icons.Emoji(link.Icon)
+			tile.IconGlyph = icons.Glyph(link.Icon)
+			if tile.IconEmoji == "" {
+				tile.IconURL = icons.URL(link.Icon, link.URL)
+			}
 			for _, item := range link.Items {
 				tile.Items = append(tile.Items, TileItem{Title: item.Title, URL: item.URL, IconURL: icons.URL(item.Icon, item.URL)})
 			}

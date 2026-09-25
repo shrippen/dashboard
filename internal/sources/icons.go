@@ -18,12 +18,19 @@ import (
 //
 //	si-github        → Simple Icons (SVG)
 //	hl-kimai         → Dashboard Icons (SVG, PNG fallback)
+//	sh-kimai         → selfh.st icons (SVG, PNG fallback)
+//	mdi-server       → Material Design Icons (SVG)
+//	fas fa-rocket    → Font Awesome Free (SVG; fab = brands, far = regular)
 //	favicon + url    → <origin>/favicon.ico
 //	https://…/x.png  → as is
 
 const (
 	simpleIcons    = "https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/%s.svg"
 	dashboardIcons = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/%s/%s.%s"
+	selfhstIcons   = "https://cdn.jsdelivr.net/gh/selfhst/icons/%s/%s.%s"
+	mdiIcons       = "https://cdn.jsdelivr.net/npm/@mdi/svg@latest/svg/%s.svg"
+	faIcons        = "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/svgs/%s/%s.svg"
+	faSolid        = "solid"
 	maxIcon        = 512 * 1024
 	iconTimeout    = 10 * time.Second
 	svgType        = "image/svg+xml"
@@ -56,6 +63,17 @@ func IconCandidates(spec, pageURL string) []string {
 	case strings.HasPrefix(spec, "hl-"):
 		name := spec[3:]
 		return []string{fmt.Sprintf(dashboardIcons, "svg", name, "svg"), fmt.Sprintf(dashboardIcons, "png", name, "png")}
+	case strings.HasPrefix(spec, "sh-"):
+		name := spec[3:]
+		return []string{fmt.Sprintf(selfhstIcons, "svg", name, "svg"), fmt.Sprintf(selfhstIcons, "png", name, "png")}
+	case strings.HasPrefix(spec, "mdi-"):
+		return []string{fmt.Sprintf(mdiIcons, spec[4:])}
+	case IsFontAwesome(spec):
+		style, name := fontAwesome(spec)
+		if name == "" {
+			return nil
+		}
+		return []string{fmt.Sprintf(faIcons, style, name)}
 	case spec == "favicon":
 		u, err := url.Parse(pageURL)
 		if err != nil || u.Host == "" {
@@ -66,6 +84,32 @@ func IconCandidates(spec, pageURL string) []string {
 		return []string{spec}
 	}
 	return nil
+}
+
+// faStyles maps Font Awesome style classes (v5 and v6) to its SVG folders.
+var faStyles = map[string]string{
+	"fas": faSolid, "fa-solid": faSolid, "fab": "brands", "fa-brands": "brands", "far": "regular", "fa-regular": "regular",
+}
+
+// IsFontAwesome: "fas fa-rocket", "fa-brands fa-github".
+func IsFontAwesome(spec string) bool {
+	first, _, _ := strings.Cut(spec, " ")
+	_, ok := faStyles[first]
+	return ok
+}
+
+func fontAwesome(spec string) (style, name string) {
+	style = faSolid
+	for _, part := range strings.Fields(spec) {
+		if s, ok := faStyles[part]; ok {
+			style = s
+			continue
+		}
+		if n, ok := strings.CutPrefix(part, "fa-"); ok && n != "" {
+			name = n
+		}
+	}
+	return style, name
 }
 
 // CleanSVG removes scripts, event handlers, foreign objects and external

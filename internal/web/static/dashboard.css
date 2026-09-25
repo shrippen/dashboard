@@ -255,6 +255,12 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .size-small .launch-icon { flex-basis: 1.8rem; height: 1.8rem; }
 .size-large .launch-icon { flex-basis: 3.2rem; height: 3.2rem; }
 .launch-icon img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.launch-icon .emoji { font-size: 1.8rem; line-height: 1; }
+.size-small .launch-icon .emoji { font-size: 1.3rem; }
+/* Glyph sets (si-, mdi-, Font Awesome) are black shapes: invert on dark. */
+.launch-icon img.is-glyph { filter: invert(1); }
+:root[data-theme="light"] .launch-icon img.is-glyph { filter: none; }
+@media (prefers-color-scheme: light) { :root:not([data-theme]) .launch-icon img.is-glyph { filter: none; } }
 .mono { width: 100%; height: 100%; display: grid; place-items: center; background: var(--bg-hard); color: var(--accent); font-family: var(--font-heading); font-weight: 700; font-size: 1rem; letter-spacing: .04em; }
 .launch-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .launch-title { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; letter-spacing: .03em; color: var(--fg0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

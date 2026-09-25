@@ -332,7 +332,7 @@ Das Dashboard übernimmt die Rolle von Dashy als Startseite. Migriert werden die
 |---|---|---|
 | Seiten (`pages`), Abschnitte (`sections`), Einträge (`items`) | Boards → Abschnitte → Widgets | Muss |
 | Eintrag: `title`, `description`, `url`, `icon`, `target` (`newtab`, `sametab`) | Widget `link`; `modal` und `workspace` entfallen (öffnen als neuer Tab) | Muss |
-| Icons: `favicon`, `si-*` (Simple Icons), `hl-*` (Dashboard Icons), URL, lokale Datei | Server holt das Icon einmal, bereinigt SVGs und legt es unter `/data/icons` ab; Upload im Editor; Font-Awesome-Icons (`fas fa-*`) werden zu einem Monogramm-Icon im Design-System-Stil | Muss |
+| Icons: `favicon`, `si-*` (Simple Icons), `hl-*` (Dashboard Icons), URL, lokale Datei | Server holt das Icon einmal, bereinigt SVGs und legt es unter `/data/icons` ab; Upload im Editor; dazu `sh-*` (selfh.st), `mdi-*` (Material Design), Font Awesome (`fas fa-*`) und Emoji; einfarbige Sätze werden im dunklen Modus invertiert | Muss |
 | Statusprüfung (`statusCheck`, `statusCheckUrl`, `statusCheckAcceptCodes`, `statusCheckAllowInsecure`, `statusCheckInterval`) | Quelle `http_status` auf dem Server; Punkt auf der Kachel mit Antwortzeit im Tooltip; Status nie nur über Farbe | Muss |
 | Suche/Filter durch Tippen, Tastenkürzel je Eintrag (`hotkey`) | Suchfeld (`/` fokussiert), filtert Kacheln live, `Enter` öffnet den ersten Treffer, Ziffern-Hotkeys | Muss |
 | Websuche als Rückfall (`webSearch`, `searchEngine`) | Keine Treffer → Suche an konfigurierte Suchmaschine (je Benutzer einstellbar) | Muss |
@@ -748,7 +748,7 @@ Auswahl vom 25.09.2026 (Checkliste „Dashy-Abgleich“). Abgelehnt: Overlay, Ar
 - [x] Rechtsklick-Menü je Kachel (neuer Tab, selber Tab, Adresse kopieren; Umschalt + Rechtsklick öffnet das Browser-Menü)
 - [x] Layout: Abschnitte über mehrere Zeilen, eigene Farbe je Abschnitt und Link (aus Theme-Farben) *(Abschnitte zusätzlich in Vierteln der Breite; Farbe nur als Linie, Text bleibt kontrastgeprüft)*
 - [x] Status-Checks mit eigenen HTTP-Headern *(verschlüsselt in der Widget-Konfiguration, nie im Formular oder Export)*
-- [ ] Icons: Material Design Icons, selfh.st, Emoji, Font Awesome
+- [x] Icons: Material Design Icons, selfh.st, Emoji, Font Awesome *(Emoji als Text, ohne Download; Shortcodes wie `:rocket:` nicht)*
 - [ ] Themes: Auswahl der Dashy-Themes nachbauen; Dashy-Farben beim Import als Theme übernehmen
 - [ ] Widgets ohne eigenen Dienst: Kalender (iCal), Custom API, eigene Liste, Feiertage, xkcd, NASA-Bild des Tages, Witze, Krypto, Aktien, Flüge, Nahverkehr
 - [ ] Widgets/Quellen fürs Homelab: Pi-hole/AdGuard, Nextcloud, Sabnzbd, Gluetun/Mullvad, Glances im Detail, Domain-Ablauf, Blacklist-Check

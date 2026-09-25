@@ -169,7 +169,7 @@
     {{$c := .Config}}
     <a class="launch" href="{{$c.URL}}"{{if eq (print $c.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}}
        data-search="{{.Title}} {{$c.Description}} {{$c.URL}}{{range $c.Tags}} #{{.}}{{end}}{{range .Items}} {{.Title}}{{end}}"{{if $c.Hotkey}} data-hotkey="{{$c.Hotkey}}"{{end}}{{with $c.Color}} data-color="{{.}}"{{end}}>
-      <span class="launch-icon">{{if .IconURL}}<img src="{{.IconURL}}" alt="" loading="lazy">{{else}}<span class="mono">{{monogram .Title}}</span>{{end}}</span>
+      <span class="launch-icon">{{if .IconEmoji}}<span class="emoji" aria-hidden="true">{{.IconEmoji}}</span>{{else if .IconURL}}<img src="{{.IconURL}}" alt="" loading="lazy"{{if .IconGlyph}} class="is-glyph"{{end}}>{{else}}<span class="mono">{{monogram .Title}}</span>{{end}}</span>
       <span class="launch-body">
         <b class="launch-title">{{.Title}}</b>
         {{if $c.Description}}<small class="launch-desc">{{$c.Description}}</small>{{end}}

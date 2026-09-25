@@ -61,3 +61,16 @@ func TestURLDownloadsOnceAndRemembersMisses(t *testing.T) {
 		t.Fatalf("expected ErrInvalid for non-image upload, got %v", err)
 	}
 }
+
+func TestEmojiAndGlyph(t *testing.T) {
+	for spec, want := range map[string]string{"🚀": "🚀", "U+1F680": "🚀", "1f680": "🚀", "👨‍💻": "👨‍💻", "hl-kimai": "", "0041": "", "abc": ""} {
+		if got := icons.Emoji(spec); got != want {
+			t.Errorf("Emoji(%q) = %q, want %q", spec, got, want)
+		}
+	}
+	for spec, want := range map[string]bool{"mdi-server": true, "si-github": true, "fab fa-github": true, "hl-kimai": false, "sh-immich": false} {
+		if icons.Glyph(spec) != want {
+			t.Errorf("Glyph(%q) != %v", spec, want)
+		}
+	}
+}

@@ -182,7 +182,7 @@ field:
   area: Spalte
   collapsed: Standardmäßig eingeklappt
   list_hint: Mehrere Werte mit Komma trennen.
-  icon_hint: si-name (Simple Icons), hl-name (Dashboard Icons), favicon oder Bild-URL.
+  icon_hint: si-name (Simple Icons), hl-name (Dashboard Icons), sh-name (selfh.st), mdi-name (Material Design), „fas fa-name“ (Font Awesome), Emoji, favicon oder Bild-URL.
   description: Beschreibung
   icon: Icon
   target: Öffnen in

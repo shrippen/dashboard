@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"dashboard/internal/sources"
@@ -197,5 +198,20 @@ func TestHTTPStatusSendsHeaders(t *testing.T) {
 	}})
 	if status := out.(*sources.HTTPStatusResult); !status.Up {
 		t.Fatalf("header not sent: %+v", status)
+	}
+}
+
+func TestIconCandidatesForNewSets(t *testing.T) {
+	for spec, want := range map[string]string{
+		"sh-immich":          "selfhst/icons/svg/immich.svg",
+		"mdi-server":         "@mdi/svg@latest/svg/server.svg",
+		"fab fa-github":      "svgs/brands/github.svg",
+		"fa-regular fa-bell": "svgs/regular/bell.svg",
+		"fas fa-rocket":      "svgs/solid/rocket.svg",
+	} {
+		got := sources.IconCandidates(spec, "")
+		if len(got) == 0 || !strings.HasSuffix(got[0], want) {
+			t.Errorf("%s: %v", spec, got)
+		}
 	}
 }
