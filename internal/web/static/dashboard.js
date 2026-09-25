@@ -220,6 +220,129 @@
     window.addEventListener("blur", close);
   }
 
+  // ── Command palette (Ctrl+K) and shortcut help (?) ──
+  var PALETTE_MAX = 12;
+  var paletteItems = null;
+  var paletteSel = 0;
+
+  function paletteMatches(q) {
+    q = q.trim().toLowerCase();
+    return (paletteItems || []).filter(function (it) {
+      return !q || (it.title + " " + (it.detail || "") + " " + it.url).toLowerCase().indexOf(q) >= 0;
+    }).slice(0, PALETTE_MAX);
+  }
+
+  function renderPalette() {
+    var list = d.getElementById("palette-list");
+    var q = d.getElementById("palette-q").value;
+    var hits = paletteMatches(q);
+    paletteSel = Math.min(paletteSel, Math.max(hits.length - 1, 0));
+    list.innerHTML = "";
+    hits.forEach(function (it, i) {
+      var li = d.createElement("li");
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", String(i === paletteSel));
+      li.dataset.kind = it.kind;
+      var a = d.createElement("a");
+      a.href = it.url;
+      if (it.kind === "link") {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
+      a.textContent = it.title;
+      li.appendChild(a);
+      if (it.detail) {
+        var small = d.createElement("small");
+        small.textContent = it.detail;
+        li.appendChild(small);
+      }
+      list.appendChild(li);
+    });
+  }
+
+  function openPalette() {
+    var dlg = d.getElementById("palette");
+    if (!dlg || dlg.open) {
+      return;
+    }
+    dlg.showModal();
+    var input = d.getElementById("palette-q");
+    input.value = "";
+    paletteSel = 0;
+    if (paletteItems) {
+      renderPalette();
+      return;
+    }
+    fetch("/palette.json", { credentials: "same-origin" }).then(function (r) {
+      return r.ok ? r.json() : [];
+    }).then(function (items) {
+      paletteItems = items || [];
+      renderPalette();
+    });
+  }
+
+  function setupPalette() {
+    var dlg = d.getElementById("palette");
+    if (!dlg) {
+      return;
+    }
+    var input = d.getElementById("palette-q");
+    input.addEventListener("input", function () {
+      paletteSel = 0;
+      renderPalette();
+    });
+    input.addEventListener("keydown", function (e) {
+      var count = d.getElementById("palette-list").children.length;
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (count) {
+          paletteSel = (paletteSel + (e.key === "ArrowDown" ? 1 : -1) + count) % count;
+          renderPalette();
+        }
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        var link = d.querySelector('#palette-list li[aria-selected="true"] a');
+        if (link) {
+          link.click();
+          dlg.close();
+        }
+      }
+    });
+    d.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest('[data-open="palette"]')) {
+        openPalette();
+      }
+    });
+    d.addEventListener("keydown", function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        openPalette();
+        return;
+      }
+      if (e.key === "?" && !isTyping(e.target)) {
+        var help = d.getElementById("shortcuts");
+        if (help && !help.open) {
+          e.preventDefault();
+          help.showModal();
+        }
+      }
+    });
+  }
+
+  // ── Click counting for "frequently used" (beacon: never delays navigation) ──
+  function setupClicks() {
+    d.addEventListener("click", function (e) {
+      var link = e.target.closest && e.target.closest("[data-click]");
+      if (!link || !navigator.sendBeacon) {
+        return;
+      }
+      var form = new FormData();
+      form.append("csrf", csrf());
+      navigator.sendBeacon("/clicks/" + link.getAttribute("data-click"), form);
+    });
+  }
+
   // ── Clocks ──
   function tick() {
     [].forEach.call(d.querySelectorAll(".clock"), function (el) {
@@ -285,6 +408,8 @@
     setupHotkeys();
     setupFolding();
     setupContextMenu();
+    setupPalette();
+    setupClicks();
     setupConfirm();
     tick();
     window.setInterval(tick, CLOCK_TICK_MS);

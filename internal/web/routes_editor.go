@@ -190,7 +190,7 @@ func (d Deps) handleSectionDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+boardID+"?edit", http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+boardID+"?edit&undo", http.StatusSeeOther)
 }
 
 func (d Deps) handlePlace(w http.ResponseWriter, r *http.Request) {
@@ -243,7 +243,7 @@ func (d Deps) handleUnplace(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+boardID+"?edit", http.StatusSeeOther)
+	http.Redirect(w, r, "/boards/"+boardID+"?edit&undo", http.StatusSeeOther)
 }
 
 // ── Widget library ──

@@ -781,14 +781,14 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Stunden-Heatmap
 
 **Startseite und Bedienung**
-- [ ] Befehlspalette (Strg+K)
-- [ ] Link per URL hinzufügen (Titel und Icon automatisch)
-- [ ] Häufig genutzte Links
+- [x] Befehlspalette (Strg+K) *(Boards, Link-Kacheln aller sichtbaren Boards, Seiten; Aktionen wie Timer/Schalter bleiben auf den Kacheln)*
+- [x] Link per URL hinzufügen (Titel und Icon automatisch)
+- [x] Häufig genutzte Links *(ab 3 Klicks, je Benutzer)*
 - [ ] Tote Links melden
-- [ ] Rückgängig im Editor
+- [x] Rückgängig im Editor *(stellt die vorige Board-Version wieder her)*
 - [ ] Mehrere Kacheln gleichzeitig bearbeiten
 - [ ] Board duplizieren und Vorlagen
-- [ ] Tastenkürzel-Übersicht („?“)
+- [x] Tastenkürzel-Übersicht („?“)
 - [ ] Verfügbarkeit auf der Kachel (30 Tage, Antwortzeit)
 
 **Anzeigen und Geräte**

@@ -19,6 +19,7 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  close: Schließen
   open_in_jsonapi: API öffnen
   open_in_pihole: In Pi-hole öffnen
   open_in_adguard: In AdGuard Home öffnen
@@ -114,6 +115,9 @@ oidc:
   sub_taken: Dieses authentik-Konto ist bereits mit einem anderen Benutzer verknüpft.
   unreachable: Identity Provider nicht erreichbar.
 board:
+  frequent: Häufig
+  nothing_to_undo: Nichts zum Rückgängigmachen.
+  bad_url: Das ist keine gültige Adresse.
   canceled: fällt aus
   platform: 'Gleis {platform}'
   page_links: Seitenlinks
@@ -129,6 +133,8 @@ board:
   full: Alles zeigen
   compact: Kompakt
 edit:
+  undo: Rückgängig
+  quick_link: Link per URL hinzufügen
   edit: Bearbeiten
   done: Fertig
   mode: Bearbeitungsmodus
@@ -1690,3 +1696,19 @@ billing:
 mailfwd:
   no_paperless: Im Bereich des Postfachs gibt es keine Paperless-Verbindung.
   no_files: Die Mail hat keine PDF- oder Bilddatei.
+palette:
+  open: Suchen
+  title: Befehlspalette
+  hint: Board, Link oder Seite …
+  keys: '↑ ↓ wählen · Enter öffnen · Esc schließen'
+keys:
+  title: Tastenkürzel
+  search: Suche auf dem Board
+  hits: Durch Treffer gehen und öffnen
+  palette: Befehlspalette
+  help: Diese Übersicht
+  close: Schließen, Suche leeren
+  tile_key: Kachel-Taste
+  tile: öffnet die Kachel (im Editor festgelegt)
+  shift_click: Umschalt + Rechtsklick
+  context: Browser-Menü statt Kachel-Menü

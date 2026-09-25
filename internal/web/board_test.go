@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	"net/textproto"
 	"net/url"
 	"regexp"
@@ -216,5 +217,56 @@ func TestLinkExtrasAndPage(t *testing.T) {
 	}
 	if strings.Contains(string(mustGet(t, srv, client, "/widgets/"+widget+"/edit")), "secret-token") {
 		t.Fatal("stored header shown in the form")
+	}
+}
+
+// TestQuickLinkClicksPaletteUndo: a pasted URL becomes a titled tile,
+// clicks make it "frequent", the palette lists it, undo removes it.
+func TestQuickLinkClicksPaletteUndo(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	page := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<html><head><title>Login | Jellyfin</title></head></html>`))
+	}))
+	defer page.Close()
+
+	board := boardIDFrom(getFollowingRedirect(t, srv, client, "/").Request.URL.Path)
+	edit := string(mustGet(t, srv, client, "/boards/"+board+"?edit"))
+	section := regexp.MustCompile(`/sections/(\d+)/quick-link`).FindStringSubmatch(edit)
+	if section == nil {
+		postForm(t, client, srv.URL+"/boards/"+board+"/sections", url.Values{"csrf": {csrf}, "title": {"Links"},
+			"version": {regexp.MustCompile(`data-version="(\d+)"`).FindStringSubmatch(edit)[1]}})
+		edit = string(mustGet(t, srv, client, "/boards/"+board+"?edit"))
+		section = regexp.MustCompile(`/sections/(\d+)/quick-link`).FindStringSubmatch(edit)
+	}
+	version := regexp.MustCompile(`data-version="(\d+)"`).FindStringSubmatch(edit)[1]
+	resp := postForm(t, client, srv.URL+"/sections/"+section[1]+"/quick-link", url.Values{"csrf": {csrf}, "board_id": {board}, "version": {version}, "url": {page.URL}})
+	if resp.StatusCode != http.StatusSeeOther || !strings.Contains(resp.Header.Get("Location"), "undo") {
+		t.Fatalf("quick link: %d", resp.StatusCode)
+	}
+	view := string(mustGet(t, srv, client, "/boards/"+board))
+	if !strings.Contains(view, `<b class="launch-title">Jellyfin</b>`) {
+		t.Fatalf("tile missing:\n%s", view)
+	}
+
+	placement := regexp.MustCompile(`class="launch" data-click="(\d+)"`).FindStringSubmatch(view)[1]
+	for range 3 {
+		if r := postForm(t, client, srv.URL+"/clicks/"+placement, url.Values{"csrf": {csrf}}); r.StatusCode != http.StatusNoContent {
+			t.Fatalf("click: %d", r.StatusCode)
+		}
+	}
+	if !strings.Contains(string(mustGet(t, srv, client, "/boards/"+board)), `class="frequent"`) {
+		t.Fatal("frequent row missing after three clicks")
+	}
+	if palette := string(mustGet(t, srv, client, "/palette.json")); !strings.Contains(palette, `"title":"Jellyfin"`) || !strings.Contains(palette, `"kind":"page"`) {
+		t.Fatalf("palette: %s", palette)
+	}
+
+	postForm(t, client, srv.URL+"/boards/"+board+"/undo", url.Values{"csrf": {csrf}})
+	if strings.Contains(string(mustGet(t, srv, client, "/boards/"+board)), "Jellyfin</b>") {
+		t.Fatal("undo kept the tile")
 	}
 }

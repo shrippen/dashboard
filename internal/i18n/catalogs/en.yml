@@ -19,6 +19,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  close: Close
   open_in_jsonapi: Open API
   open_in_pihole: Open in Pi-hole
   open_in_adguard: Open in AdGuard Home
@@ -114,6 +115,9 @@ oidc:
   sub_taken: This authentik account is already linked to another user.
   unreachable: Identity provider unreachable.
 board:
+  frequent: Frequent
+  nothing_to_undo: Nothing to undo.
+  bad_url: That is not a valid address.
   canceled: canceled
   platform: 'Platform {platform}'
   page_links: Page links
@@ -129,6 +133,8 @@ board:
   full: Show all
   compact: Compact
 edit:
+  undo: Undo
+  quick_link: Add link by URL
   edit: Edit
   done: Done
   mode: Edit mode
@@ -1689,3 +1695,19 @@ billing:
 mailfwd:
   no_paperless: The mailbox's space has no Paperless connection.
   no_files: The mail has no PDF or image file.
+palette:
+  open: Search
+  title: Command palette
+  hint: Board, link or page …
+  keys: '↑ ↓ select · Enter open · Esc close'
+keys:
+  title: Keyboard shortcuts
+  search: Search the board
+  hits: Move through hits and open
+  palette: Command palette
+  help: This overview
+  close: Close, clear search
+  tile_key: Tile key
+  tile: opens the tile (set in the editor)
+  shift_click: Shift + right click
+  context: Browser menu instead of the tile menu

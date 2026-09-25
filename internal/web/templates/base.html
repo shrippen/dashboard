@@ -58,7 +58,28 @@
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "nav.logout"}}</button>
       </form>
+      <button type="button" class="link-btn" data-open="palette" aria-keyshortcuts="Control+K">{{t "palette.open"}} <kbd>Ctrl K</kbd></button>
     </div>
   {{end}}
 </header>
+{{if .Who}}
+<dialog id="palette" class="palette" aria-label="{{t "palette.title"}}">
+  <input id="palette-q" type="search" autocomplete="off" placeholder="{{t "palette.hint"}}" aria-label="{{t "palette.title"}}">
+  <ul id="palette-list" role="listbox"></ul>
+  <p class="small muted palette-foot">{{t "palette.keys"}}</p>
+</dialog>
+<dialog id="shortcuts" class="shortcuts" aria-label="{{t "keys.title"}}">
+  <h2>{{t "keys.title"}}</h2>
+  <dl>
+    <dt><kbd>/</kbd></dt><dd>{{t "keys.search"}}</dd>
+    <dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></dt><dd>{{t "keys.hits"}}</dd>
+    <dt><kbd>Ctrl</kbd> <kbd>K</kbd></dt><dd>{{t "keys.palette"}}</dd>
+    <dt><kbd>?</kbd></dt><dd>{{t "keys.help"}}</dd>
+    <dt><kbd>Esc</kbd></dt><dd>{{t "keys.close"}}</dd>
+    <dt>{{t "keys.tile_key"}}</dt><dd>{{t "keys.tile"}}</dd>
+    <dt>{{t "keys.shift_click"}}</dt><dd>{{t "keys.context"}}</dd>
+  </dl>
+  <form method="dialog"><button type="submit" class="ghost">{{t "action.close"}}</button></form>
+</dialog>
+{{end}}
 {{end}}

@@ -456,6 +456,27 @@ table.table tr:last-child td { border-bottom: 0; }
 .cash-events li { display: flex; gap: .5rem; }
 .cash-events li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cash-events time { font-family: var(--font-mono); font-size: .72rem; color: var(--fg3); }
+/* ── command palette, shortcut help ── */
+.palette, .shortcuts { width: min(36rem, calc(100vw - 2rem)); background: var(--bg-hard); color: var(--fg1); border: 1px solid var(--bg2); padding: 1rem; }
+.palette::backdrop, .shortcuts::backdrop { background: var(--scrim); }
+.palette input { width: 100%; margin: 0 0 .6rem; }
+#palette-list { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow-y: auto; }
+#palette-list li { display: flex; justify-content: space-between; gap: .8rem; padding: .35rem .5rem; border-left: 3px solid transparent; }
+#palette-list li[aria-selected="true"] { background: var(--bg1); border-left-color: var(--yellow); }
+#palette-list li a { color: var(--fg0); text-decoration: none; }
+#palette-list li small { color: var(--fg3); font-family: var(--font-mono); font-size: .7rem; }
+#palette-list li[data-kind="board"] a::before { content: "▦ "; color: var(--fg3); }
+#palette-list li[data-kind="page"] a::before { content: "› "; color: var(--fg3); }
+.shortcuts dl { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1rem; }
+.shortcuts dd { margin: 0; }
+/* ── frequently used row, quick link, undo hint ── */
+.frequent { display: flex; flex-wrap: wrap; gap: .4rem .8rem; align-items: center; margin: -.4rem 0 1.2rem; font-size: .82rem; }
+.frequent-label { font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--fg3); }
+.frequent a { display: inline-flex; gap: .35rem; align-items: center; color: var(--fg1); text-decoration: none; padding: .2rem .5rem; border: 1px solid var(--bg1); }
+.frequent a:hover { border-color: var(--bg2); }
+.frequent img { width: 1rem; height: 1rem; object-fit: contain; }
+.quick-link input { width: 14rem; margin: 0; }
+.is-hint { outline: 2px solid var(--yellow); }
 .topic-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; font-size: .86rem; }
 .topic-list li { display: flex; flex-direction: column; border-left: 3px solid var(--blue); padding-left: .5rem; }
 .topic-list li[data-tier="yellow"] { border-left-color: var(--yellow); }

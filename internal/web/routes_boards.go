@@ -108,7 +108,7 @@ func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embed
 	_ = d.Page(w, ctx, "board", http.StatusOK, map[string]any{
 		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL,
 		"Embed": embed, "EmbedToken": embedToken, "SearchEngine": searchEngine,
-		"Edit": mode.edit, "LayerEdit": mode.layer && !embed, "Compact": mode.compact,
+		"Edit": mode.edit, "LayerEdit": mode.layer && !embed, "Compact": mode.compact, "UndoHint": r.URL.Query().Has("undo"),
 		"Sizes": []enums.TileSize{enums.TileSmall, enums.TileMedium, enums.TileLarge},
 		"Sorts": []enums.SortOrder{enums.SortManual, enums.SortAlphabetical},
 		"Areas": []string{"main", "side"},

@@ -101,6 +101,7 @@ type BoardView struct {
 	HasOverlay  bool
 	Sections    []SectionView
 	Page        spaces.PageInfo
+	Frequent    []Tile // the viewer's most clicked links
 }
 
 // BoardRef is a lightweight board reference for listings.
@@ -307,6 +308,9 @@ func View(d *sql.DB, who *access.Principal, boardID int64) (*BoardView, error) {
 				return err
 			}
 			view.Sections = append(view.Sections, sv)
+		}
+		if view.Frequent, err = frequent(tx, who, view.Sections); err != nil {
+			return err
 		}
 		out = view
 		return nil
