@@ -517,7 +517,7 @@ conn:
   options_hint_komodo: Keine Optionen. Token = key:secret eines Komodo-API-Schlüssels (nur lesend genügt).
   options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1). Optionen: org: <Organisations-ID>. Token = Integration-API-Schlüssel.'
   options_hint_authentik: Keine Optionen. Token = API-Token eines Kontos mit Leserechten auf Ereignisse und Benutzer.
-  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, Token benutzer:app-passwort. Optionen: days: 60, keywords: [abrechnung], ignore_senders: [meinefirma.de] – nur lesend, Anhänge werden nicht geladen.'
+  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, Token benutzer:app-passwort. Optionen: days: 60, keywords: [abrechnung], ignore_senders: [meinefirma.de] – nur lesend; Anhänge werden nur geladen, wenn du eine Rechnung an Paperless übergibst.'
   options_hint_pgbackweb: Keine Optionen, kein Token. PG Back Web meldet sich per Webhook, siehe unten.
   hook: Webhook
   hook_hint: 'In PG Back Web je Ereignis (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) und Backup einen Webhook anlegen: Methode POST, diese URL, Body wie unten mit Ereignis und Backup-Name. Die URL ist geheim.'
@@ -532,7 +532,7 @@ conn:
   options_hint_umami: 'Keine Optionen nötig. Token = benutzer:passwort (selbst gehostet) oder API-Schlüssel (Umami Cloud).'
   options_hint_uptimekuma: Keine Optionen nötig. Token = API-Schlüssel aus Uptime Kuma (Einstellungen → API-Schlüssel).
   options_hint_proxmox: 'Keine Optionen nötig. Token = user@pam!name=uuid, Rechte: PVEAuditor, für Updates Sys.Audit.'
-  options_hint_paperless: 'Token aus Paperless (Profil → API-Auth-Token). Optional invoice_types: [Rechnung] – Dokumenttypen, die mit Invoice-Ninja-Ausgaben abgeglichen werden; Betrag aus einem Geld-Feld.'
+  options_hint_paperless: 'Token aus Paperless (Profil → API-Auth-Token). Optional invoice_types: [Rechnung] – Dokumenttypen, die mit Invoice-Ninja-Ausgaben abgeglichen werden; Betrag aus einem Geld-Feld. Optional contract_tag: Vertrag – Verträge mit Feldern „Vertragsende“ und „Kündigungsfrist“ (sonst aus dem Text).'
   options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – geprüft werden URL-Host und diese Hosts. Mit auto: true zusätzlich alle https-Kacheln und Pangolin-Ressourcen. Kein Token nötig.'
   lead: Verbindungen zu Diensten. Tokens werden verschlüsselt gespeichert und nie wieder angezeigt.
   new: Neue Verbindung
@@ -1095,6 +1095,9 @@ hint:
       title: 'Letztes Backup von {guest} ({vmid}) am {day}'
       why: Backup-Job prüfen.
   paperless:
+    contract_notice:
+      title: '{title} bis {day} kündigen'
+      why: '{correspondent}, Vertragsende {end}. Noch {days} Tage, sonst verlängert er sich.'
     unrecorded:
       title: 'Rechnung von {sender} nicht in Invoice Ninja'
       why: '„{subject}“ vom {day}, Betrag {amount}. Als Ausgabe erfassen.'
@@ -1377,6 +1380,7 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  paperless.contract_notice: Kündigungsfrist
   in.payment_worse: Kunde zahlt langsamer
   truenas.snapshot_failed: Snapshot fehlgeschlagen
   backups.gap: Dienste ohne Backup
@@ -1660,6 +1664,13 @@ cashflow:
   prepayment: Steuervorauszahlung
   relative_hint: Ohne Sure-Verbindung ab 0 gerechnet – die Kurve zeigt die Veränderung, nicht den Kontostand.
 billing:
+  mails: Rechnungsmails
+  sender: Absender
+  subject: Betreff
+  to_paperless: An Paperless
+  forwarded: '{count} Dateien an Paperless übergeben.'
+  no_paperless: Keine Paperless-Verbindung im Bereich
+  no_mails: Keine erkannten Rechnungsmails (Stand des letzten Prüflaufs).
   lead: Unabgerechnete Kimai-Zeiten als Rechnungsentwurf in Invoice Ninja anlegen, und das Jahrespaket für die Steuer.
   drafts: Rechnungsentwürfe
   since: 'Arbeit seit {day}'
@@ -1676,3 +1687,6 @@ billing:
   year: Jahr
   download: ZIP herunterladen
   export_hint: 'Rechnungen, Zahlungen, Ausgaben, Umsatzsteuer je Monat und Stunden als CSV (Semikolon, Dezimalkomma). Enthält das laufende und das Vorjahr.'
+mailfwd:
+  no_paperless: Im Bereich des Postfachs gibt es keine Paperless-Verbindung.
+  no_files: Die Mail hat keine PDF- oder Bilddatei.

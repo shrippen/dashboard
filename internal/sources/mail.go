@@ -184,3 +184,33 @@ func init() {
 		return map[string]any{"mailbox": m.Mailbox, "scanned": m.Scanned, "invoices": len(m.Invoices)}
 	}})
 }
+
+// paperlessTypes are attachment types Paperless can consume.
+var paperlessTypes = map[string]bool{
+	"application/pdf": true, "image/png": true, "image/jpeg": true, "image/tiff": true, "image/webp": true,
+}
+
+// MailFile is an attachment worth archiving.
+type MailFile struct {
+	Name    string
+	Content []byte
+}
+
+// MailFiles downloads the PDF and image attachments of one mail.
+func MailFiles(ctx context.Context, sctx Ctx, uid uint32) ([]MailFile, error) {
+	cfg, err := mailConfig(sctx)
+	if err != nil {
+		return nil, err
+	}
+	all, err := imapmail.Attachments(ctx, cfg, uid)
+	if err != nil {
+		return nil, newSourceError("%s", err.Error())
+	}
+	var out []MailFile
+	for _, a := range all {
+		if paperlessTypes[a.MediaType] || strings.HasSuffix(strings.ToLower(a.Name), ".pdf") {
+			out = append(out, MailFile{Name: a.Name, Content: a.Content})
+		}
+	}
+	return out, nil
+}

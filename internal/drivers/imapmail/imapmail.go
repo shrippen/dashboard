@@ -1,6 +1,7 @@
 // Package imapmail reads a mailbox over IMAP, read-only: envelopes and
 // attachment names of recent mail, and the text part of mail the caller
-// picks (to keep traffic small, attachments are never downloaded).
+// picks. Attachments are downloaded only on request (Attachments), for
+// one message a user chose to forward.
 package imapmail
 
 import (
@@ -230,4 +231,81 @@ func decode(r io.Reader, part *textPart) string {
 		text = html.UnescapeString(tagRe.ReplaceAllString(text, " "))
 	}
 	return strings.Join(strings.Fields(text), " ")
+}
+
+// Attachment is one downloaded file of a message.
+type Attachment struct {
+	Name, MediaType string
+	Content         []byte
+}
+
+const attachmentMax = 20 << 20
+
+// Attachments downloads the files of one message (by UID), leaving it
+// unread (BODY.PEEK).
+func Attachments(ctx context.Context, cfg Config, uid uint32) ([]Attachment, error) {
+	c, err := open(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	defer c.Logout()
+
+	set := new(imap.SeqSet)
+	set.AddNum(uid)
+	ch := make(chan *imap.Message, 1)
+	if err := c.UidFetch(set, []imap.FetchItem{imap.FetchBodyStructure}, ch); err != nil {
+		return nil, fmt.Errorf("fetch: %w", err)
+	}
+	m := <-ch
+	if m == nil || m.BodyStructure == nil {
+		return nil, fmt.Errorf("message %d not found", uid)
+	}
+
+	type filePart struct {
+		path     []int
+		name     string
+		media    string
+		encoding string
+	}
+	var parts []filePart
+	m.BodyStructure.Walk(func(path []int, part *imap.BodyStructure) bool {
+		if name, _ := part.Filename(); name != "" {
+			p := append([]int(nil), path...)
+			if len(p) == 0 {
+				p = []int{1}
+			}
+			parts = append(parts, filePart{p, name, strings.ToLower(part.MIMEType + "/" + part.MIMESubType), strings.ToLower(part.Encoding)})
+		}
+		return true
+	})
+
+	var out []Attachment
+	for _, p := range parts {
+		section := &imap.BodySectionName{BodyPartName: imap.BodyPartName{Path: p.path}, Peek: true}
+		ch := make(chan *imap.Message, 1)
+		if err := c.UidFetch(set, []imap.FetchItem{section.FetchItem()}, ch); err != nil {
+			return nil, fmt.Errorf("fetch part: %w", err)
+		}
+		msg := <-ch
+		if msg == nil {
+			continue
+		}
+		body := msg.GetBody(section)
+		if body == nil {
+			continue
+		}
+		var r io.Reader = body
+		switch p.encoding {
+		case "base64":
+			r = base64.NewDecoder(base64.StdEncoding, r)
+		case "quoted-printable":
+			r = quotedprintable.NewReader(r)
+		}
+		content, err := io.ReadAll(io.LimitReader(r, attachmentMax))
+		if err != nil {
+			return nil, fmt.Errorf("decode %s: %w", p.name, err)
+		}
+		out = append(out, Attachment{Name: p.name, MediaType: p.media, Content: content})
+	}
+	return out, nil
 }

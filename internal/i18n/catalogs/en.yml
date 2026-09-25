@@ -517,7 +517,7 @@ conn:
   options_hint_komodo: No options. Token = key:secret of a Komodo API key (read-only suffices).
   options_hint_pangolin: 'Integration API URL including /v1 (e.g. https://api.pangolin.example.org/v1). Options: org: <organisation id>. Token = integration API key.'
   options_hint_authentik: No options. Token = API token of an account allowed to read events and users.
-  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, token user:app-password. Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only, attachments are not downloaded.'
+  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, token user:app-password. Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only; attachments are downloaded only when you hand an invoice to Paperless.'
   options_hint_pgbackweb: No options, no token. PG Back Web reports by webhook, see below.
   hook: Webhook
   hook_hint: 'In PG Back Web add one webhook per event (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) and backup: method POST, this URL, body as below with event and backup name. Keep the URL secret.'
@@ -532,7 +532,7 @@ conn:
   options_hint_umami: 'No options needed. Token = user:password (self-hosted) or API key (Umami Cloud).'
   options_hint_uptimekuma: No options needed. Token = API key from Uptime Kuma (Settings → API Keys).
   options_hint_proxmox: 'No options needed. Token = user@pam!name=uuid, role PVEAuditor, Sys.Audit for updates.'
-  options_hint_paperless: 'Token from Paperless (profile → API auth token). Optional invoice_types: [Invoice] – document types compared with Invoice Ninja expenses; amount from a monetary field.'
+  options_hint_paperless: 'Token from Paperless (profile → API auth token). Optional invoice_types: [Invoice] – document types compared with Invoice Ninja expenses; amount from a monetary field. Optional contract_tag: Vertrag – contracts with fields "Vertragsende" and "Kündigungsfrist" (else read from the text).'
   options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – checks the URL host and these hosts. With auto: true also every https tile and Pangolin resource. No token needed.'
   lead: Connections to services. Tokens are stored encrypted and never shown again.
   new: New connection
@@ -1095,6 +1095,9 @@ hint:
       title: 'Last backup of {guest} ({vmid}) on {day}'
       why: Check the backup job.
   paperless:
+    contract_notice:
+      title: 'Cancel {title} by {day}'
+      why: '{correspondent}, ends {end}. {days} days left, else it renews.'
     unrecorded:
       title: 'Invoice from {sender} not in Invoice Ninja'
       why: '“{subject}” on {day}, amount {amount}. Record it as an expense.'
@@ -1376,6 +1379,7 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  paperless.contract_notice: Cancellation deadline
   in.payment_worse: Client pays slower
   truenas.snapshot_failed: Snapshot failed
   backups.gap: Services without backup
@@ -1659,6 +1663,13 @@ cashflow:
   prepayment: Tax prepayment
   relative_hint: Without a Sure connection it starts at 0 – the curve shows the change, not the balance.
 billing:
+  mails: Invoice mails
+  sender: Sender
+  subject: Subject
+  to_paperless: To Paperless
+  forwarded: '{count} files handed to Paperless.'
+  no_paperless: No Paperless connection in this space
+  no_mails: No invoice mails found (as of the last check).
   lead: Turn unbilled Kimai time into Invoice Ninja drafts, and download the tax year package.
   drafts: Invoice drafts
   since: 'Work since {day}'
@@ -1675,3 +1686,6 @@ billing:
   year: Year
   download: Download ZIP
   export_hint: 'Invoices, payments, expenses, VAT per month and hours as CSV (semicolon, decimal comma). Covers the current and the previous year.'
+mailfwd:
+  no_paperless: The mailbox's space has no Paperless connection.
+  no_files: The mail has no PDF or image file.

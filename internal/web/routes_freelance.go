@@ -9,6 +9,7 @@ import (
 
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/billing"
+	"dashboard/internal/services/mailfwd"
 
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/timer"
@@ -48,6 +49,7 @@ func (d Deps) RegisterBillingRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /billing", d.handleBillingPage)
 	mux.HandleFunc("POST /billing/draft", d.handleBillingDraft)
 	mux.HandleFunc("GET /billing/export", d.handleBillingExport)
+	mux.HandleFunc("POST /billing/mail", d.handleMailForward)
 }
 
 func (d Deps) billingPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status int, extra map[string]any) {
@@ -56,8 +58,13 @@ func (d Deps) billingPage(w http.ResponseWriter, r *http.Request, ctx Ctx, statu
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	mails, err := mailfwd.List(r.Context(), d.DB, ctx.Who)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	year := time.Now().Year()
-	values := map[string]any{"Drafts": drafts, "Spaces": access.EditableSpaces(ctx.Who), "Years": []int{year, year - 1}}
+	values := map[string]any{"Drafts": drafts, "Mails": mails, "Spaces": access.EditableSpaces(ctx.Who), "Years": []int{year, year - 1}}
 	for k, v := range extra {
 		values[k] = v
 	}
@@ -70,7 +77,8 @@ func (d Deps) handleBillingPage(w http.ResponseWriter, r *http.Request) {
 		d.handleAuthError(w, r, err)
 		return
 	}
-	d.billingPage(w, r, ctx, http.StatusOK, map[string]any{"Created": r.URL.Query().Get("created")})
+	query := r.URL.Query()
+	d.billingPage(w, r, ctx, http.StatusOK, map[string]any{"Created": query.Get("created"), "Forwarded": query.Get("forwarded")})
 }
 
 func (d Deps) handleBillingDraft(w http.ResponseWriter, r *http.Request) {
@@ -109,4 +117,21 @@ func (d Deps) handleBillingExport(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
 	w.Write(blob)
+}
+
+// handleMailForward sends one invoice mail's attachments to Paperless.
+func (d Deps) handleMailForward(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	conn, _ := strconv.ParseInt(r.FormValue("conn"), 10, 64)
+	uid, _ := strconv.ParseUint(r.FormValue("uid"), 10, 32)
+	n, err := mailfwd.Forward(r.Context(), d.DB, ctx.Who, conn, uint32(uid), ClientIP(r))
+	if err != nil {
+		d.billingPage(w, r, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
+		return
+	}
+	http.Redirect(w, r, "/billing?forwarded="+strconv.Itoa(n), http.StatusSeeOther)
 }

@@ -775,8 +775,8 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Kimai-Timer starten/stoppen (mit der leichten Kimai-Quelle aus Phase 10) *(Widget `kimai_timer`; Schreibzugriffe nur über `outbound`, mit Nutzungsrecht auf die Verbindung)*
 - [x] Liquiditätsverlauf 90 Tage *(Widget `cashflow`: Sure-Kontostand, offene Rechnungen nach Zahlungsgewohnheit des Kunden, feste Kosten, USt und Vorauszahlungen)*
 - [x] Zahlungsmoral je Kunde *(Tabelle `payment_morale`, Regel `in.payment_worse`)*
-- [ ] Verträge und Kündigungsfristen aus Paperless
-- [ ] Rechnungsmail an Paperless übergeben
+- [x] Verträge und Kündigungsfristen aus Paperless *(Tag „Vertrag“; Felder „Vertragsende“/„Kündigungsfrist“ oder Text; automatische Verlängerung wird fortgeschrieben; Regel `paperless.contract_notice` mit Fälligkeit)*
+- [x] Rechnungsmail an Paperless übergeben *(Seite „Abrechnung“; Anhänge werden erst dann per IMAP geladen)*
 - [x] Jahrespaket für die Steuer (CSV/ZIP) *(laufendes und Vorjahr, so weit die Datensätze reichen)*
 - [x] Stunden-Heatmap
 

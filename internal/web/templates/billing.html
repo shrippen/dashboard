@@ -14,6 +14,7 @@
     <p class="muted">{{t "billing.lead"}}</p>
     {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
     {{with .Created}}<p class="pill" data-state="ok">{{t "billing.created" "number" .}}</p>{{end}}
+    {{with .Forwarded}}<p class="pill" data-state="ok">{{t "billing.forwarded" "count" .}}</p>{{end}}
 
     <h2>{{t "billing.drafts"}}</h2>
     {{range .Drafts}}
@@ -35,6 +36,22 @@
       {{else}}<p class="small late">{{t "billing.no_client"}}</p>{{end}}
     </section>
     {{else}}<p class="muted">{{t "billing.none"}}</p>{{end}}
+
+    <h2>{{t "billing.mails"}}</h2>
+    {{if .Mails}}
+    <div class="table-wrap"><table class="table">
+      <tr><th>{{t "col.day"}}</th><th>{{t "billing.sender"}}</th><th>{{t "billing.subject"}}</th><th class="num">{{t "col.amount"}}</th><th></th></tr>
+      {{range .Mails}}
+      <tr id="mail-{{.UID}}"><td>{{day .Date}}</td><td>{{.Sender}}</td><td>{{.Subject}}{{with .Attachments}}<small class="muted"> · {{range $i, $a := .}}{{if $i}}, {{end}}{{$a}}{{end}}</small>{{end}}</td>
+        <td class="num">{{if .Amount}}{{money .Amount}}{{else}}–{{end}}</td>
+        <td>{{if and .Paperless .Attachments}}<form method="post" action="/billing/mail" class="inline-form">
+          <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+          <input type="hidden" name="conn" value="{{.MailConn}}"><input type="hidden" name="uid" value="{{.UID}}">
+          <button type="submit" class="ghost">{{t "billing.to_paperless"}}</button>
+        </form>{{else if not .Paperless}}<small class="muted">{{t "billing.no_paperless"}}</small>{{end}}</td></tr>
+      {{end}}
+    </table></div>
+    {{else}}<p class="muted">{{t "billing.no_mails"}}</p>{{end}}
 
     <h2>{{t "billing.export"}}</h2>
     <form method="get" action="/billing/export" class="card inline-form">

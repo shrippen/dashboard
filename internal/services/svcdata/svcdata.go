@@ -83,6 +83,18 @@ func cacheKey(sourceKey string, connID *int64, owner *int64, params map[string]a
 	return fmt.Sprintf("%x", sum)
 }
 
+// SourceCtx builds the source context of a connection for one-off calls
+// outside the cache (downloads a user asked for).
+func SourceCtx(d *sql.DB, conn *model.Connection, userID int64) (sources.Ctx, error) {
+	var sctx sources.Ctx
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		var err error
+		sctx, err = buildCtx(tx, conn, &userID, nil)
+		return err
+	})
+	return sctx, err
+}
+
 func buildCtx(q db.Queryer, conn *model.Connection, userID *int64, params map[string]any) (sources.Ctx, error) {
 	if conn == nil {
 		return sources.Ctx{Params: params}, nil

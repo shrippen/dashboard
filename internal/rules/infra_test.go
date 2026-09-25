@@ -136,3 +136,11 @@ func TestCustomRules(t *testing.T) {
 		t.Fatalf("custom: %+v", got)
 	}
 }
+
+func TestContractNotice(t *testing.T) {
+	// Deadline in 20 days → warn (critical from 14 days).
+	got := run(t, "paperless.contract_notice", sources.DemoPaperless(time.Now()), todayEnv(nil))
+	if len(got) != 1 || got[0].Severity != enums.SeverityWarn || got[0].Due == "" {
+		t.Fatalf("contract: %+v", got)
+	}
+}

@@ -273,7 +273,9 @@ func DemoPaperless(now time.Time) *PaperlessDataset {
 	return &PaperlessDataset{URL: "https://docs.demo", Inbox: 7, OldestTitle: "Rechnung Telekom",
 		OldestAdded: iso(today.AddDate(0, 0, -23)),
 		Invoices: []PaperlessDoc{{ID: 311, Title: "Rechnung 09/2026", Correspondent: "Telekom Deutschland GmbH",
-			Created: iso(today.AddDate(0, 0, -23)), Amount: 39.95}}}
+			Created: iso(today.AddDate(0, 0, -23)), Amount: 39.95}},
+		Contracts: []PaperlessContract{{ID: 88, Title: "Mobilfunkvertrag", Correspondent: "Telekom Deutschland GmbH",
+			End: today.AddDate(0, 3, 20), NoticeMonths: 3, Deadline: today.AddDate(0, 0, 20), RenewsAutomatic: true}}}
 }
 
 // DemoCerts is the demo certificate dataset.

@@ -304,6 +304,7 @@ type PaperlessDataset struct {
 	OldestTitle string
 	OldestAdded string // "2026-09-01"
 	Invoices    []PaperlessDoc
+	Contracts   []PaperlessContract
 }
 
 // PaperlessDoc is one invoice document; Amount comes from a monetary
@@ -343,6 +344,7 @@ func (PaperlessData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return nil, fetchError(err)
 	}
 	data.Invoices = loadPaperlessInvoices(ctx, api, sctx.Options)
+	data.Contracts = loadContracts(ctx, api, sctx.Options, time.Now().UTC())
 	return data, nil
 }
 

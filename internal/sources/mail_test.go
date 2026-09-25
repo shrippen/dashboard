@@ -80,3 +80,35 @@ func TestMailFindsInvoiceOverIMAP(t *testing.T) {
 		t.Fatalf("invoice: %+v", inv)
 	}
 }
+
+func TestMailFilesDownloadsPDF(t *testing.T) {
+	be := memory.New()
+	user, _ := be.Login(nil, "username", "password")
+	box, _ := user.GetMailbox("INBOX")
+	body := strings.ReplaceAll(invoiceMail, "%DATE%", time.Now().UTC().Format(time.RFC1123Z))
+	if err := box.CreateMessage(nil, time.Now(), strings.NewReader(body)); err != nil {
+		t.Fatal(err)
+	}
+	srv := server.New(be)
+	srv.AllowInsecureAuth = true
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	go srv.Serve(l)
+	t.Cleanup(func() { srv.Close() })
+	sctx := sources.Ctx{URL: "imap://" + l.Addr().String() + "/INBOX", Secret: "username:password"}
+
+	data, err := sources.MailData{}.Fetch(context.Background(), sctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid := data.(*sources.MailDataset).Invoices[0].UID
+	files, err := sources.MailFiles(context.Background(), sctx, uid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != 1 || files[0].Name != "Rechnung_R0012345.pdf" || string(files[0].Content) != "%PDF-1.4\n" {
+		t.Fatalf("files: %+v", files)
+	}
+}
