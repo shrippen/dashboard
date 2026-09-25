@@ -1,0 +1,66 @@
+{{define "report"}}
+<p class="pill" data-state="ok">{{t "report.done" "boards" .Boards "widgets" .Widgets "connections" .Connections}}</p>
+{{if .Skipped}}<div class="card"><b>{{t "report.skipped"}}</b><ul>{{range .Skipped}}<li><code>{{.}}</code></li>{{end}}</ul></div>{{end}}
+{{if .Notes}}<div class="card"><b>{{t "report.notes"}}</b><ul>{{range .Notes}}<li>{{.}}</li>{{end}}</ul></div>{{end}}
+{{end}}
+
+{{define "import"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.import"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.import"}}</h1>
+    <p class="muted">{{t "import.lead"}}</p>
+    {{if .Error}}<p class="error">{{t "code.error"}}: <code>{{t .Error}}</code></p>{{end}}
+    {{with .Report}}{{template "report" .}}{{end}}
+    <form method="post" action="/import" enctype="multipart/form-data" class="card">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <label for="import_space">{{t "field.space"}}</label>
+      <select id="import_space" name="space_id">{{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select>
+      <label for="import_kind">{{t "import.kind"}}</label>
+      <select id="import_kind" name="kind"><option value="dashy">Dashy conf.yml</option><option value="yaml">dashboard YAML</option></select>
+      <label for="import_file">{{t "import.file"}}</label>
+      <input id="import_file" type="file" name="file" accept=".yml,.yaml" required>
+      <button type="submit">{{t "import.run"}}</button>
+    </form>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "space_code"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "edit.code"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "edit.code"}}</h1>
+    <p class="muted">{{t "code.lead"}}</p>
+    {{if .Error}}<p class="error">{{t "code.error"}}: <code>{{t .Error}}</code></p>{{end}}
+    {{with .Report}}{{template "report" .}}{{end}}
+    <form method="post" action="/spaces/{{.SpaceID}}/code">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <textarea class="code-area" name="text" rows="28" spellcheck="false" data-code="yaml" aria-label="YAML">{{.Text}}</textarea>
+      <div class="row-actions">
+        <select name="mode" aria-label="{{t "code.replace"}}"><option value="replace">{{t "code.replace"}}</option><option value="merge">{{t "code.merge"}}</option></select>
+        <button type="submit">{{t "action.save"}}</button>
+        <a class="link-btn" href="/spaces/{{.SpaceID}}/export">{{t "action.export"}}</a>
+      </div>
+    </form>
+  </main>
+</body>
+</html>
+{{end}}

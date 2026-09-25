@@ -629,7 +629,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Hinweis-Engine: Fingerprint, Zustände je Benutzer/Team, Snooze/Ack
 - [x] Dockerfile (multi-stage, non-root, `HEALTHCHECK`), `docker-compose.example.yml`
 - [x] GitHub Actions: Tests, Image-Build `linux/amd64` + `linux/arm64`, Push nach GHCR
-- [ ] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots) *(nur Python; Go hat den `Demo`-Schalter in `settings.go`, aber keinen Fixture-Generator)*
+- [x] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots) *(Go: `DASHBOARD_DEMO=true`, `services/seed`, `sources/demo.go`)*
 
 ### Phase 1: Startseite, Editor und Dashy-Migration (v0.2)
 
@@ -640,7 +640,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Widgets `rss`, `clock`, `weather` (Open-Meteo)
 - [x] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
 - [ ] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen *(Bibliothek/Verbindungstest/Revisionen ja; Board-Bearbeitung läuft in Go über separate Formularseiten statt Inline-Editbar/Drag & Drop — `.editbar`/`.dropzone` nur als CSS vorbereitet)*
-- [ ] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(nur Python `porting.py`; in Go nicht portiert, CLI `import` gibt nur einen Hinweis aus)*
+- [x] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(Go: `services/porting`, `/import`, `/spaces/{id}/code`, CLI `dashboard import`)*
 - [x] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
 - [x] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten
 - [ ] Parallelbetrieb, dann Umstieg nach Checkliste (Abschnitt 7.4)
@@ -654,7 +654,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste *(Go: `/me/security`)*
 - [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: `/teams`)*
 - [x] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: `/shares/{kind}/{id}`, bisher nur von der Verbindungsliste verlinkt)*
-- [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
+- [x] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie)*
 - [x] Verbindungen mit persönlichen Zugangsdaten
 - [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`; `/api/summary`, `/api/hints`, `/embed/hints`, `/embed/b/{id}`)*
 - [x] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: `/admin/users`, `/admin/audit`, `/admin/settings`)*

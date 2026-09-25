@@ -57,7 +57,7 @@ func (DawarichData) Service() enums.ServiceType { return enums.ServiceDawarich }
 
 func (DawarichData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if isDemo(sctx) {
-		return nil, newSourceError("demo data not yet ported")
+		return DemoDawarich(time.Now()), nil
 	}
 	api, err := dawarichAPI(sctx)
 	if err != nil {

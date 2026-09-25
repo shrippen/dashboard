@@ -16,6 +16,7 @@ import (
 	"dashboard/internal/services/icons"
 	"dashboard/internal/services/mail"
 	"dashboard/internal/services/scheduler"
+	"dashboard/internal/services/seed"
 	"dashboard/internal/services/system"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
@@ -49,15 +50,10 @@ func main() {
 		os.Exit(code)
 	}
 
-	if _, err := auth.EnsureSetupCode(database); err != nil {
-		slog.Error("ensure setup code", "err", err)
-		os.Exit(1)
-	}
 	if _, err := themes.EnsureBuiltin(database); err != nil {
 		slog.Error("ensure builtin theme", "err", err)
 		os.Exit(1)
 	}
-
 	if err := system.Start(database); err != nil {
 		slog.Error("start", "err", err)
 		os.Exit(1)
@@ -65,6 +61,22 @@ func main() {
 	mail.Init(cfg)
 	themes.InitFonts(cfg.ThemesDir())
 	icons.Init(cfg.IconsDir())
+
+	// Demo and seed.yml run before the setup code: the demo creates users.
+	if cfg.Demo {
+		if err := seed.Demo(context.Background(), database); err != nil {
+			slog.Error("demo", "err", err)
+		}
+	}
+	if cfg.SeedFile != "" {
+		if err := seed.FromFile(database, cfg.SeedFile); err != nil {
+			slog.Error("seed file", "err", err)
+		}
+	}
+	if _, err := auth.EnsureSetupCode(database); err != nil {
+		slog.Error("ensure setup code", "err", err)
+		os.Exit(1)
+	}
 	schedulerCtx, stopScheduler := context.WithCancel(context.Background())
 	defer stopScheduler()
 	if cfg.SchedulerEnabled {
@@ -91,6 +103,7 @@ func main() {
 	deps.RegisterSettingsRoutes(mux)
 	deps.RegisterOIDCRoutes(mux)
 	deps.RegisterIconRoutes(mux)
+	deps.RegisterPortingRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	server := &http.Server{Addr: ":8080", Handler: deps.Secure(mux)}

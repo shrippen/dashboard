@@ -60,7 +60,7 @@ func (SnipeData) Service() enums.ServiceType { return enums.ServiceSnipeIT }
 
 func (SnipeData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if isDemo(sctx) {
-		return nil, newSourceError("demo data not yet ported")
+		return DemoSnipe(time.Now()), nil
 	}
 	api, err := snipeAPI(sctx)
 	if err != nil {

@@ -95,7 +95,7 @@ func (KimaiData) Service() enums.ServiceType { return enums.ServiceKimai }
 
 func (KimaiData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if isDemo(sctx) {
-		return nil, newSourceError("demo data not yet ported")
+		return DemoKimai(time.Now()), nil
 	}
 	api, err := kimaiAPI(sctx)
 	if err != nil {

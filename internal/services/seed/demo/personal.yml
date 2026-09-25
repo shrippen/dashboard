@@ -1,0 +1,67 @@
+settings:
+  goals: {revenue_year: 90000, hours_per_day: 7}
+  tax:
+    vat: {method: ist, return_interval: monthly, extension: true}
+    prepayments: {amount: 1200}
+    annual_due: "07-31"
+    income_tax_rate: 0.3
+connections:
+  - {id: kimai, type: kimai, name: Kimai, url: "demo://kimai", credentials: shared}
+  - {id: invoiceninja, type: invoiceninja, name: Invoice Ninja, url: "demo://invoiceninja", credentials: shared}
+  - {id: snipeit, type: snipeit, name: Snipe-IT, url: "demo://snipeit", credentials: shared}
+  - id: dawarich
+    type: dawarich
+    name: Dawarich
+    url: "demo://dawarich"
+    credentials: shared
+    options:
+      areas:
+        "Muster GmbH Büro": {customer_id: 1}
+        "Home": {home: true}
+widgets:
+  - {id: kimai-link, type: link, title: Kimai, config: {url: "https://www.kimai.org", icon: "hl-kimai", description: Zeiterfassung, status: "off", info: {connection: kimai}, hotkey: "k"}}
+  - {id: in-link, type: link, title: Invoice Ninja, config: {url: "https://invoiceninja.com", icon: "hl-invoice-ninja", description: Rechnungen, status: "off", info: {connection: invoiceninja}, hotkey: "i"}}
+  - {id: snipe-link, type: link, title: Snipe-IT, config: {url: "https://snipeitapp.com", icon: "hl-snipe-it", description: Assets, status: "off", info: {connection: snipeit}}}
+  - {id: dawarich-link, type: link, title: Dawarich, config: {url: "https://dawarich.app", icon: "hl-dawarich", description: Standortverlauf, status: "off", info: {connection: dawarich}}}
+  - {id: kpi-revenue, type: kpi, title: "", connection: invoiceninja, config: {metric: revenue_ytd}}
+  - {id: kpi-open, type: kpi, title: "", connection: invoiceninja, config: {metric: open_amount}}
+  - {id: kpi-hours, type: kpi, title: "", connection: kimai, config: {metric: hours_month}}
+  - {id: kpi-util, type: kpi, title: "", connection: kimai, config: {metric: utilization}}
+  - {id: kpi-vat, type: kpi, title: "", connection: invoiceninja, config: {metric: vat_liability}}
+  - {id: kpi-reserve, type: kpi, title: "", connection: invoiceninja, config: {metric: tax_reserve}}
+  - {id: hints, type: hints, title: Hinweise, config: {limit: 8}}
+  - {id: deadlines, type: deadlines, title: Fristen, config: {days: 60}}
+  - {id: open-invoices, type: table, title: Offene Rechnungen, connection: invoiceninja, config: {table: open_invoices}}
+  - {id: unbilled, type: table, title: Nicht abgerechnet, connection: kimai, config: {table: unbilled}}
+  - {id: revenue-chart, type: chart, title: Umsatz netto, connection: invoiceninja, config: {chart: revenue, months: 12}}
+  - {id: budgets, type: progress, title: Projektbudgets, connection: kimai, config: {}}
+  - {id: goal, type: progress, title: Jahresziel, connection: invoiceninja, config: {}}
+  - {id: assets, type: table, title: Garantie und Lizenzen, connection: snipeit, config: {table: asset_dates}}
+  - {id: trips, type: table, title: Fahrten, connection: dawarich, config: {table: trips}}
+  - {id: forecast, type: kpi, title: "", connection: invoiceninja, config: {metric: revenue_forecast}}
+  - {id: cash, type: kpi, title: "", connection: invoiceninja, config: {metric: cash_30}}
+  - {id: open-trend, type: trend, title: Offene Posten (Verlauf), connection: invoiceninja, config: {metric: open_amount, days: 90}}
+  - {id: shares, type: table, title: Umsatz je Kunde, connection: invoiceninja, config: {table: client_shares}}
+boards:
+  - name: Übersicht
+    slug: start
+    sections:
+      - {title: Dienste, cols: 4, widgets: [kimai-link, in-link, snipe-link, dawarich-link]}
+      - {title: Kennzahlen, widgets: [kpi-revenue, kpi-open, kpi-hours, kpi-util, kpi-vat, kpi-reserve]}
+      - {title: Hinweise, widgets: [hints]}
+      - {title: Fristen, area: side, widgets: [deadlines]}
+      - {title: Ziele, area: side, widgets: [goal, budgets]}
+  - name: Freelance
+    slug: freelance
+    sections:
+      - {title: Umsatz, widgets: [forecast, cash, revenue-chart, open-trend]}
+      - {title: Offene Posten, widgets: [open-invoices, unbilled]}
+      - {title: Kunden, widgets: [shares]}
+  - name: IT
+    slug: it
+    sections:
+      - {title: Assets, widgets: [assets]}
+  - name: Reisen
+    slug: reisen
+    sections:
+      - {title: Fahrten, widgets: [trips]}

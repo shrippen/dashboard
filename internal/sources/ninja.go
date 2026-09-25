@@ -96,7 +96,7 @@ func (NinjaData) Service() enums.ServiceType { return enums.ServiceInvoiceNinja 
 
 func (NinjaData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if isDemo(sctx) {
-		return nil, newSourceError("demo data not yet ported")
+		return DemoNinja(time.Now()), nil
 	}
 	api, err := ninjaAPI(sctx)
 	if err != nil {
