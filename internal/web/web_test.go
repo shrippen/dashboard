@@ -89,6 +89,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterIconRoutes(mux)
 	deps.RegisterPortingRoutes(mux)
 	deps.RegisterSpaceRoutes(mux)
+	deps.RegisterMoreRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(deps.Secure(mux))

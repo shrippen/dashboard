@@ -24,6 +24,7 @@
   {{if not .Embed}}
   <nav class="board-nav" aria-label="Boards">
     {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.Board.ID}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
+    <a href="/boards/new">+ {{t "board.new"}}</a>
   </nav>
 
   <div class="board-head">

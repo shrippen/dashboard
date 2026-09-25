@@ -54,6 +54,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.library"}}</h1>
+    <p class="muted">{{t "library.lead"}}</p>
     <p><a class="link-btn" href="/widgets/new">+ {{t "action.create"}}</a></p>
     <div class="table-wrap"><table class="table">
       <tr><th>{{t "field.title"}}</th><th>{{t "field.type"}}</th><th>{{t "field.space"}}</th><th></th></tr>
@@ -62,7 +63,16 @@
         <td>{{.Title}}</td>
         <td>{{.Type}}</td>
         <td>{{.Space.Name}}</td>
-        <td>{{if .CanEdit}}<a class="link-btn" href="/widgets/{{.ID}}/edit">{{t "action.edit"}}</a>{{end}}</td>
+        <td class="row-actions">{{if .CanEdit}}<a class="link-btn" href="/widgets/{{.ID}}/edit">{{t "action.edit"}}</a>{{end}}
+          <a class="link-btn" href="/shares/widget/{{.ID}}">{{t "edit.share"}}</a>
+          <details class="inline-details"><summary>{{t "library.copy"}}</summary>
+            <form method="post" action="/widgets/{{.ID}}/copy" class="inline-form">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <select name="space_id" aria-label="{{t "field.space"}}">{{range $.Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select>
+              <button type="submit" class="ghost">{{t "library.copy"}}</button>
+            </form>
+          </details>
+        </td>
       </tr>
       {{end}}
     </table></div>

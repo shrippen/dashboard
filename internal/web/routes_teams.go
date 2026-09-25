@@ -6,7 +6,9 @@ import (
 
 	"dashboard/internal/enums"
 	"dashboard/internal/repos/users"
+	"dashboard/internal/services/spaces"
 	"dashboard/internal/services/teams"
+	"dashboard/internal/services/themes"
 )
 
 // RegisterTeamRoutes wires /teams: overview, create, rename, member
@@ -31,7 +33,25 @@ func (d Deps) teamsPage(w http.ResponseWriter, ctx Ctx, status int, extra map[st
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	values := map[string]any{"Teams": overview, "Users": allUsers}
+	themeList, err := themes.Listing(d.DB, ctx.Who)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Per team space: hint handling and theme, for the team settings form.
+	ackTeam := map[int64]bool{}
+	themeOf := map[int64]int64{}
+	for _, team := range overview {
+		settings, err := spaces.Settings(d.DB, ctx.Who, team.SpaceID)
+		if err != nil {
+			continue
+		}
+		ackTeam[team.SpaceID] = settings["hint_ack"] == string(enums.AckTeam)
+		if id, ok := settings["theme_id"].(float64); ok {
+			themeOf[team.SpaceID] = int64(id)
+		}
+	}
+	values := map[string]any{"Teams": overview, "Users": allUsers, "Themes": themeList, "AckTeam": ackTeam, "ThemeOf": themeOf}
 	for k, v := range extra {
 		values[k] = v
 	}

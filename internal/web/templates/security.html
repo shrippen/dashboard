@@ -89,6 +89,10 @@
         </tr>
         {{end}}
       </table></div>
+      <form method="post" action="/me/security/sessions/others/end">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit" class="ghost">{{t "security.end_others"}}</button>
+      </form>
     </div>
 
     <div class="card">

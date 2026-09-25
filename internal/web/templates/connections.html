@@ -42,7 +42,7 @@
   {{template "header" .}}
   <main>
     <h1>{{if .IsNew}}{{t "action.create"}}{{else}}{{t "action.edit"}}{{end}} — {{t "nav.connections"}}</h1>
-    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
     {{if .TestResult}}
       <p class="{{if not .TestResult.Ok}}error{{end}}">
         {{if .TestResult.Ok}}✓ OK{{if .TestResult.Version}} ({{.TestResult.Version}}){{end}}{{else}}✗ {{.TestResult.Message}}{{end}}
@@ -53,13 +53,13 @@
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
 
       {{if .IsNew}}
-        <label for="space_id">Space</label>
+        <label for="space_id">{{t "field.space"}}</label>
         <select id="space_id" name="space_id" required>
           {{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
         </select>
         <label for="service">{{t "field.service"}}</label>
         <select id="service" name="service" required>
-          {{range .Services}}<option value="{{.}}">{{.}}</option>{{end}}
+          {{range .Services}}<option value="{{.}}">{{t (print "service." .)}}</option>{{end}}
         </select>
       {{end}}
 
@@ -69,31 +69,41 @@
       <label for="url">{{t "field.url"}}</label>
       <input id="url" name="url" type="url" value="{{if .Conn}}{{.Conn.URL}}{{end}}" required>
 
-      <label for="mode">{{t "field.scope"}}</label>
+      <label for="mode">{{t "conn.credentials"}}</label>
       <select id="mode" name="mode">
-        <option value="shared" {{if .Conn}}{{if eq (print .Conn.Mode) "shared"}}selected{{end}}{{end}}>shared</option>
-        <option value="personal" {{if .Conn}}{{if eq (print .Conn.Mode) "personal"}}selected{{end}}{{end}}>personal</option>
+        <option value="shared" {{if .Conn}}{{if eq (print .Conn.Mode) "shared"}}selected{{end}}{{end}}>{{t "mode.shared"}}</option>
+        <option value="personal" {{if .Conn}}{{if eq (print .Conn.Mode) "personal"}}selected{{end}}{{end}}>{{t "mode.personal"}}</option>
       </select>
+      <p class="small muted">{{t "conn.mode_hint"}} {{t "conn.shared_warning"}}</p>
 
       <label for="secret">{{t "field.token"}}</label>
-      <input id="secret" name="secret" type="password" placeholder="{{if .Conn}}{{if .Conn.HasSecret}}••••••••{{end}}{{end}}">
+      <input id="secret" name="secret" type="password" autocomplete="off" placeholder="{{if .Conn}}{{if .Conn.HasSecret}}{{t "conn.secret_keep"}}{{end}}{{end}}">
+      <p class="small muted">{{t "conn.token_hint"}}</p>
 
       <label for="tls">TLS</label>
       <select id="tls" name="tls">
-        <option value="verify" {{if .Conn}}{{if .Conn.VerifyTLS}}selected{{end}}{{end}}>verify</option>
-        <option value="skip" {{if .Conn}}{{if not .Conn.VerifyTLS}}selected{{end}}{{end}}>skip</option>
+        <option value="verify" {{if .Conn}}{{if .Conn.VerifyTLS}}selected{{end}}{{end}}>✓</option>
+        <option value="skip" {{if .Conn}}{{if not .Conn.VerifyTLS}}selected{{end}}{{end}}>{{t "field.insecure"}}</option>
       </select>
 
       <button type="submit">{{t "action.save"}}</button>
     </form>
 
     {{if not .IsNew}}
+      <h2>{{t "conn.options"}}</h2>
+      <form method="post" action="/connections/{{.Conn.ID}}/options" class="card">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <textarea class="code-area short" name="options" rows="6" spellcheck="false" data-code="yaml" aria-label="{{t "conn.options"}}">{{.OptionsYAML}}</textarea>
+        <p class="small muted">{{t (print "conn.options_hint_" .Conn.Service)}}</p>
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+      <p><a class="link-btn" href="/shares/connection/{{.Conn.ID}}">{{t "share.title"}}</a></p>
       <form method="post" action="/connections/{{.Conn.ID}}/test" style="display:inline">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "conn.test"}}</button>
       </form>
       <form method="post" action="/connections/{{.Conn.ID}}/delete" style="display:inline"
-            data-confirm="{{t "action.delete"}}?">
+            data-confirm="{{t "edit.confirm_delete"}}">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "conn.delete"}}</button>
       </form>

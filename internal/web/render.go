@@ -46,6 +46,7 @@ func mustParse() *template.Template {
 		"clockNow":    clockNow,
 		"dict":        dict,
 		"monogram":    monogram,
+		"deref":       func(p *enums.TeamRole) enums.TeamRole { return *p },
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }

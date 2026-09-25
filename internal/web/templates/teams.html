@@ -70,6 +70,26 @@
         <button type="submit">{{t "teams.set_member"}}</button>
       </form>
 
+      {{if and .MyRole (eq (print (deref .MyRole)) "owner")}}
+      <form method="post" action="/spaces/{{.SpaceID}}/team-settings" class="inline-form">
+        <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+        <label for="ack_{{.ID}}">{{t "teams.hint_ack"}}</label>
+        {{$ack := index $.AckTeam .SpaceID}}
+        <select id="ack_{{.ID}}" name="hint_ack">
+          <option value="per_user"{{if not $ack}} selected{{end}}>{{t "ack.per_user"}}</option>
+          <option value="team"{{if $ack}} selected{{end}}>{{t "ack.team"}}</option>
+        </select>
+        <label for="theme_{{.ID}}">{{t "teams.theme"}}</label>
+        {{$theme := index $.ThemeOf .SpaceID}}
+        <select id="theme_{{.ID}}" name="theme_id">
+          <option value="">{{t "theme.none"}}</option>
+          {{range $.Themes}}<option value="{{.ID}}"{{if eq .ID $theme}} selected{{end}}>{{.Name}}</option>{{end}}
+        </select>
+        <button type="submit" class="ghost">{{t "action.save"}}</button>
+        <a class="link-btn" href="/spaces/{{.SpaceID}}/settings">{{t "nav.space_settings"}}</a>
+      </form>
+      {{end}}
+
       {{if $.Who.IsAdmin}}
       <form method="post" action="/teams/{{.ID}}/delete" data-confirm="{{t "teams.confirm_delete"}}">
         <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">

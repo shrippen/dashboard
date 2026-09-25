@@ -256,7 +256,7 @@ func (d Deps) handleWidgetLibrary(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = d.Page(w, ctx, "widgets", http.StatusOK, map[string]any{"Widgets": lib})
+	_ = d.Page(w, ctx, "widgets", http.StatusOK, map[string]any{"Widgets": lib, "Spaces": access.EditableSpaces(ctx.Who)})
 }
 
 // widgetTarget is where a new widget goes after saving: a board section

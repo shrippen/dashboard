@@ -620,3 +620,15 @@ func ImportForEmail(d *sql.DB, email, text string, kind Kind) (*Report, error) {
 	}
 	return ImportSpace(d, who, space.ID, text, Merge)
 }
+
+// DumpMap renders a plain map (e.g. connection options) as YAML; {} for none.
+func DumpMap(m map[string]any) string {
+	if len(m) == 0 {
+		return ""
+	}
+	out, err := yaml.Marshal(m)
+	if err != nil {
+		return ""
+	}
+	return string(out)
+}

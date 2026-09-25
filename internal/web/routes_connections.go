@@ -7,6 +7,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/connections"
+	"dashboard/internal/services/porting"
 )
 
 // RegisterConnectionRoutes wires the connections list/create/edit/delete/test pages.
@@ -101,6 +102,7 @@ func (d Deps) handleConnectionEditForm(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
 		"Conn": conn, "Services": serviceOptions, "IsNew": false,
+		"OptionsYAML": porting.DumpMap(conn.Options), "Error": r.URL.Query().Get("error"),
 	})
 }
 
@@ -135,7 +137,8 @@ func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {
 	if err := connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil); err != nil {
 		conn, _ := connections.Get(d.DB, ctx.Who, id)
 		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
-			"Conn": conn, "Services": serviceOptions, "IsNew": false, "Error": err.Error(),
+			"Conn": conn, "Services": serviceOptions, "IsNew": false,
+			"OptionsYAML": porting.DumpMap(conn.Options), "Error": errKey(err),
 		})
 		return
 	}
@@ -178,6 +181,7 @@ func (d Deps) handleConnectionTest(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, _ := connections.Get(d.DB, ctx.Who, id)
 	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
-		"Conn": conn, "Services": serviceOptions, "IsNew": false, "TestResult": result,
+		"Conn": conn, "Services": serviceOptions, "IsNew": false,
+		"OptionsYAML": porting.DumpMap(conn.Options), "Error": r.URL.Query().Get("error"), "TestResult": result,
 	})
 }
