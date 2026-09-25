@@ -182,3 +182,20 @@ func TestGlancesFetchUsesBearerToken(t *testing.T) {
 		t.Fatalf("expected bearer token header, got %q", gotAuth)
 	}
 }
+
+func TestHTTPStatusSendsHeaders(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Api") != "t" {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	}))
+	defer srv.Close()
+
+	source, _ := sources.Get("http_status")
+	out, _ := source.Fetch(context.Background(), sources.Ctx{Params: map[string]any{
+		"url": srv.URL, "headers": map[string]string{"X-Api": "t"},
+	}})
+	if status := out.(*sources.HTTPStatusResult); !status.Up {
+		t.Fatalf("header not sent: %+v", status)
+	}
+}

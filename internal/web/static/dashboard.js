@@ -27,7 +27,9 @@
     return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (target && target.isContentEditable);
   }
 
-  // ── Search: filter link tiles; Enter opens the first hit or the web search ──
+  // ── Search: filter link tiles; arrows pick a hit, Enter opens it or the web search ──
+  var selected = 0;
+
   function visibleTiles() {
     return [].filter.call(d.querySelectorAll(".launch"), function (a) {
       return !a.closest(".tile-slot").hidden;
@@ -60,15 +62,33 @@
       }
     });
 
-    var first = visibleTiles()[0];
-    if (q && first) {
-      first.classList.add("is-first");
-    }
+    selected = 0;
+    mark();
 
     var empty = d.querySelector(".search-empty");
     if (empty) {
       empty.hidden = !(q && hits === 0);
     }
+  }
+
+  // mark highlights the selected hit ("is-first" keeps its old name).
+  function mark() {
+    var input = d.getElementById("search");
+    var searching = input && input.value.trim() !== "";
+    visibleTiles().forEach(function (a, i) {
+      a.classList.toggle("is-first", searching && i === selected);
+    });
+  }
+
+  // move steps the selection by delta, wrapping at both ends.
+  function move(delta) {
+    var tiles = visibleTiles();
+    if (!tiles.length) {
+      return;
+    }
+    selected = (selected + delta + tiles.length) % tiles.length;
+    mark();
+    tiles[selected].scrollIntoView({ block: "nearest" });
   }
 
   function openSearch(input) {
@@ -77,9 +97,9 @@
       return;
     }
 
-    var first = visibleTiles()[0];
-    if (first) {
-      first.click();
+    var hit = visibleTiles()[selected];
+    if (hit) {
+      hit.click();
       return;
     }
 
@@ -102,6 +122,10 @@
       if (e.key === "Enter") {
         e.preventDefault();
         openSearch(input);
+      }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        move(e.key === "ArrowDown" ? 1 : -1);
       }
       if (e.key === "Escape") {
         input.value = "";
@@ -133,6 +157,67 @@
         tile.click();
       }
     });
+  }
+
+  // ── Context menu on links: new tab, same tab, copy address ──
+  // Shift + right click keeps the browser's own menu.
+  function setupContextMenu() {
+    var menu = d.getElementById("ctx-menu");
+    if (!menu) {
+      return;
+    }
+    var target = "";
+
+    function close() {
+      menu.hidden = true;
+    }
+
+    d.addEventListener("contextmenu", function (e) {
+      var link = e.target.closest && e.target.closest(".launch, .launch-items a");
+      if (!link || e.shiftKey) {
+        close();
+        return;
+      }
+      e.preventDefault();
+      target = link.href;
+      menu.hidden = false;
+
+      // Keep the menu inside the viewport.
+      var x = Math.min(e.clientX, window.innerWidth - menu.offsetWidth - 4);
+      var y = Math.min(e.clientY, window.innerHeight - menu.offsetHeight - 4);
+      menu.style.left = Math.max(0, x) + "px";
+      menu.style.top = Math.max(0, y) + "px";
+      menu.querySelector("button").focus();
+    });
+
+    menu.addEventListener("click", function (e) {
+      var btn = e.target.closest("button");
+      if (!btn) {
+        return;
+      }
+      var act = btn.getAttribute("data-act");
+      if (act === "newtab") {
+        window.open(target, "_blank", "noopener");
+      } else if (act === "sametab") {
+        window.location.href = target;
+      } else if (act === "copy" && navigator.clipboard) {
+        navigator.clipboard.writeText(target);
+      }
+      close();
+    });
+
+    d.addEventListener("click", function (e) {
+      if (!menu.contains(e.target)) {
+        close();
+      }
+    });
+    d.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        close();
+      }
+    });
+    window.addEventListener("scroll", close, { passive: true });
+    window.addEventListener("blur", close);
   }
 
   // ── Clocks ──
@@ -199,6 +284,7 @@
     setupSearch();
     setupHotkeys();
     setupFolding();
+    setupContextMenu();
     setupConfirm();
     tick();
     window.setInterval(tick, CLOCK_TICK_MS);

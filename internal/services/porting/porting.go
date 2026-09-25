@@ -107,6 +107,15 @@ func boardDoc(b *model.Board, spaces map[int64]*model.Space) map[string]any {
 		if sec.Area != mainArea && sec.Area != "" {
 			item["area"] = sec.Area
 		}
+		if sec.Span > 0 {
+			item["span"] = sec.Span
+		}
+		if sec.Rows > 0 {
+			item["rows"] = sec.Rows
+		}
+		if sec.Color != "" {
+			item["color"] = sec.Color
+		}
 		sections = append(sections, item)
 	}
 	return map[string]any{"name": b.Name, "slug": b.Slug, "sections": sections}
@@ -160,7 +169,7 @@ func ExportSpace(d *sql.DB, who *access.Principal, spaceID int64) (string, error
 		}
 		widgetDocs := []any{}
 		for _, w := range list {
-			item := map[string]any{"id": w.Key, "type": w.Type, "title": w.Title, "config": w.Config}
+			item := map[string]any{"id": w.Key, "type": w.Type, "title": w.Title, "config": util.StripSecrets(w.Config)}
 			if w.ConnectionID != nil {
 				item["connection"] = connKeys[*w.ConnectionID]
 			}
@@ -431,6 +440,10 @@ func importWidgets(q db.Queryer, spaceID int64, items []map[string]any, connIDs 
 		if config == nil {
 			config = map[string]any{}
 		}
+		config, err := util.SealHeaders(config, nil)
+		if err != nil {
+			return nil, err
+		}
 		unique := util.Unique(key, taken)
 		w := &model.Widget{SpaceID: spaceID, Key: unique, Type: kind, Title: str(item, "title"), Config: config,
 			Version: 1, UpdatedAt: time.Now().UTC()}
@@ -526,6 +539,9 @@ func importBoard(q db.Queryer, who *access.Principal, spaceID int64, item map[st
 			sec.Area = a
 		}
 		sec.Collapsed, _ = raw["collapsed"].(bool)
+		sec.Span, _ = intOf(raw["span"])
+		sec.Rows, _ = intOf(raw["rows"])
+		sec.Color = str(raw, "color")
 		if err := content.AddSection(q, sec); err != nil {
 			return err
 		}

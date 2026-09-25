@@ -155,8 +155,11 @@ func (d Deps) handleSectionEdit(w http.ResponseWriter, r *http.Request) {
 	if n, err := strconv.Atoi(r.FormValue("cols")); err == nil && n > 0 {
 		cols = &n
 	}
+	span, _ := strconv.Atoi(r.FormValue("span"))
+	rows, _ := strconv.Atoi(r.FormValue("rows"))
+	color := r.FormValue("color")
 	changes := boards.SectionChanges{Title: &title, Size: &size, Sort: &sortOrder, Area: &area,
-		Collapsed: &collapsed, Cols: &cols}
+		Collapsed: &collapsed, Cols: &cols, Span: &span, Rows: &rows, Color: &color}
 
 	boardID := r.FormValue("board_id")
 	if err := boards.EditSection(d.DB, ctx.Who, id, version, changes); err != nil {

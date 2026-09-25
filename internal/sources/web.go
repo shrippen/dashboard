@@ -51,9 +51,10 @@ func (HTTPStatusSource) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	target := asStr(sctx.Params["url"])
 	accept, _ := sctx.Params["accept"].([]int)
 	insecure, _ := sctx.Params["insecure"].(bool)
+	headers, _ := sctx.Params["headers"].(map[string]string)
 
 	started := time.Now()
-	resp, err := httpclient.Request(ctx, "GET", target, httpclient.Options{SkipVerify: insecure})
+	resp, err := httpclient.Request(ctx, "GET", target, httpclient.Options{SkipVerify: insecure, Headers: headers})
 	if err != nil {
 		msg := "egress"
 		var denied httpclient.EgressDenied

@@ -15,6 +15,19 @@
     {{if .Saved}}<p class="pill" data-state="ok">{{t "saved"}}</p>{{end}}
     <form method="post" action="/spaces/{{.SpaceID}}/settings">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <h2>{{t "settings.page"}}</h2>
+      <div class="card">
+        <label for="title">{{t "settings.page_title"}}</label>
+        <input id="title" name="title" value="{{.Page.Title}}">
+        <label for="description">{{t "settings.page_description"}}</label>
+        <input id="description" name="description" value="{{.Page.Description}}">
+        <label for="nav">{{t "settings.page_nav"}}</label>
+        <textarea id="nav" name="nav" rows="3">{{.NavText}}</textarea>
+        <p class="small muted">{{t "settings.page_nav_hint"}}</p>
+        <label for="footer">{{t "settings.page_footer"}}</label>
+        <input id="footer" name="footer" value="{{.Page.Footer}}">
+      </div>
+
       <h2>{{t "settings.goals"}}</h2>
       <div class="card">
         <label for="revenue_year">{{t "settings.revenue_year"}}</label>

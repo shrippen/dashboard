@@ -64,7 +64,7 @@ func (d Deps) handleSpaceSettings(w http.ResponseWriter, r *http.Request) {
 		"SpaceID": id, "Goals": goals, "Tax": tax, "VAT": asMap(tax["vat"]), "Prepay": asMap(tax["prepayments"]),
 		"Costs": asMap(settings["costs"]),
 		"Rules": spaces.RuleViews(settings), "Methods": vatMethods, "Intervals": vatIntervals,
-		"Saved": r.URL.Query().Has("saved"),
+		"Saved": r.URL.Query().Has("saved"), "Page": spaces.PageOf(settings), "NavText": spaces.NavText(spaces.PageOf(settings)),
 	})
 }
 
@@ -125,6 +125,9 @@ func (d Deps) handleSpaceSettingsSave(w http.ResponseWriter, r *http.Request) {
 		},
 		"costs": map[string]any{"fixed_monthly": number(r.FormValue("fixed_monthly"), 0)},
 		"rules": spaces.ParseRules(r.FormValue),
+	}
+	for k, v := range spaces.ParsePage(r.FormValue) {
+		changes[k] = v
 	}
 	if err := spaces.Update(d.DB, ctx.Who, id, changes, ClientIP(r)); err != nil {
 		d.handleBoardError(w, r, err)

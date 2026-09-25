@@ -25,6 +25,7 @@ import (
 	"dashboard/internal/repos/misc"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/icons"
+	"dashboard/internal/services/spaces"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
 	"dashboard/internal/services/widgetlib"
@@ -62,6 +63,12 @@ type Tile struct {
 	Config      any
 	Hidden      bool
 	IconURL     string // link tiles: cached icon, "" = monogram
+	Items       []TileItem
+}
+
+// TileItem is a link tile's sub-link with its resolved icon.
+type TileItem struct {
+	Title, URL, IconURL string
 }
 
 // SectionView is one section with its visible tiles.
@@ -73,6 +80,9 @@ type SectionView struct {
 	Sort      enums.SortOrder
 	Collapsed bool
 	Area      string
+	Span      int
+	Rows      int
+	Color     string
 	Tiles     []Tile
 }
 
@@ -88,6 +98,7 @@ type BoardView struct {
 	CanEdit     bool
 	HasOverlay  bool
 	Sections    []SectionView
+	Page        spaces.PageInfo
 }
 
 // BoardRef is a lightweight board reference for listings.
@@ -285,6 +296,9 @@ func View(d *sql.DB, who *access.Principal, boardID int64) (*BoardView, error) {
 		if space != nil {
 			view.Space = *space
 		}
+		if sp, err := content.Space(tx, board.SpaceID); err == nil && sp != nil {
+			view.Page = spaces.PageOf(sp.Settings)
+		}
 		for _, section := range board.Sections {
 			sv, err := viewSection(tx, who, section, board, layer)
 			if err != nil {
@@ -318,7 +332,7 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 	}
 
 	view := SectionView{ID: section.ID, Title: section.Title, Cols: section.Cols, Size: size, Sort: section.Sort,
-		Collapsed: collapsed, Area: area}
+		Collapsed: collapsed, Area: area, Span: section.Span, Rows: section.Rows, Color: section.Color}
 
 	hidden := map[int64]bool{}
 	if hiddenList, ok := layer["hidden"].([]any); ok {
@@ -371,6 +385,9 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 		}
 		if link, ok := cfg.(widgets.LinkConfig); ok {
 			tile.IconURL = icons.URL(link.Icon, link.URL)
+			for _, item := range link.Items {
+				tile.Items = append(tile.Items, TileItem{Title: item.Title, URL: item.URL, IconURL: icons.URL(item.Icon, item.URL)})
+			}
 		}
 		view.Tiles = append(view.Tiles, tile)
 	}
@@ -580,6 +597,9 @@ type SectionChanges struct {
 	Sort      *enums.SortOrder
 	Collapsed *bool
 	Area      *string
+	Span      *int
+	Rows      *int
+	Color     *string
 }
 
 // EditSection applies changes to one section.
@@ -616,6 +636,15 @@ func EditSection(d *sql.DB, who *access.Principal, sectionID int64, version int,
 		}
 		if changes.Area != nil {
 			section.Area = *changes.Area
+		}
+		if changes.Span != nil {
+			section.Span = clampLayout(*changes.Span, MaxSpan)
+		}
+		if changes.Rows != nil {
+			section.Rows = clampLayout(*changes.Rows, MaxRows)
+		}
+		if changes.Color != nil {
+			section.Color = sectionColor(*changes.Color)
 		}
 		if err := content.UpdateSection(tx, section); err != nil {
 			return err
@@ -927,6 +956,9 @@ type snapshotSection struct {
 	Sort      string  `json:"sort"`
 	Collapsed bool    `json:"collapsed"`
 	Area      string  `json:"area"`
+	Span      int     `json:"span,omitempty"`
+	Rows      int     `json:"rows,omitempty"`
+	Color     string  `json:"color,omitempty"`
 	Widgets   []int64 `json:"widgets"`
 }
 
@@ -944,7 +976,7 @@ func snapshot(q db.Queryer, who *access.Principal, board *model.Board) error {
 	for _, sec := range fresh.Sections {
 		row := snapshotSection{
 			Title: sec.Title, Cols: sec.Cols, Size: string(sec.Size), Sort: string(sec.Sort),
-			Collapsed: sec.Collapsed, Area: sec.Area,
+			Collapsed: sec.Collapsed, Area: sec.Area, Span: sec.Span, Rows: sec.Rows, Color: sec.Color,
 		}
 		for _, p := range sec.Placements {
 			row.Widgets = append(row.Widgets, p.WidgetID)
@@ -1054,6 +1086,7 @@ func Restore(d *sql.DB, who *access.Principal, boardID, revisionID int64) error 
 			newSection := &model.Section{
 				BoardID: board.ID, Title: sec.Title, Position: index, Cols: sec.Cols,
 				Size: size, Sort: sortOrder, Collapsed: sec.Collapsed, Area: area,
+				Span: clampLayout(sec.Span, MaxSpan), Rows: clampLayout(sec.Rows, MaxRows), Color: sectionColor(sec.Color),
 			}
 			if err := content.AddSection(tx, newSection); err != nil {
 				return err
@@ -1097,4 +1130,28 @@ func EnsureEditable(d *sql.DB, who *access.Principal, boardID int64) error {
 		}
 		return access.Need(granted, enums.RightEdit)
 	})
+}
+
+// Section layout limits: the main column is four quarters wide.
+const (
+	MaxSpan = 4
+	MaxRows = 4
+)
+
+// clampLayout keeps span/rows in 0..max; 0 means the default.
+func clampLayout(v, max int) int {
+	if v < 0 || v > max {
+		return 0
+	}
+	return v
+}
+
+// sectionColor accepts only theme color names.
+func sectionColor(raw string) string {
+	for _, c := range widgets.TileColors {
+		if string(c) == raw {
+			return raw
+		}
+	}
+	return ""
 }

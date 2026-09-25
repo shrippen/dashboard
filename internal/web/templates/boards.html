@@ -28,7 +28,7 @@
   </nav>
 
   <div class="board-head">
-    <h1 class="board-title">{{.Board.Name}}</h1>
+    <h1 class="board-title">{{with .Board.Page.Title}}{{.}}{{else}}{{.Board.Name}}{{end}}</h1>
     <label class="search">
       <span class="sr">{{t "board.search"}}</span>
       <input id="search" type="search" autocomplete="off" placeholder="{{t "board.search_hint"}}"
@@ -51,6 +51,9 @@
       {{end}}
     </div>
   </div>
+
+  {{with .Board.Page.Description}}<p class="page-desc">{{.}}</p>{{end}}
+  {{with .Board.Page.Nav}}<nav class="page-links" aria-label="{{t "board.page_links"}}">{{range .}}<a href="{{.URL}}">{{.Title}}</a>{{end}}</nav>{{end}}
 
   {{if .Edit}}
   <div class="editbar">
@@ -87,6 +90,12 @@
     {{end}}
   </div>
   <p class="search-empty" hidden>{{t "board.no_match"}}</p>
+  <ul class="ctx-menu" id="ctx-menu" role="menu" hidden>
+    <li><button type="button" role="menuitem" data-act="newtab">{{t "board.ctx_newtab"}}</button></li>
+    <li><button type="button" role="menuitem" data-act="sametab">{{t "board.ctx_sametab"}}</button></li>
+    <li><button type="button" role="menuitem" data-act="copy">{{t "board.ctx_copy"}}</button></li>
+  </ul>
+  {{if not .Embed}}{{with .Board.Page.Footer}}<footer class="page-foot">{{.}}</footer>{{end}}{{end}}
   </main>
 </body>
 </html>
@@ -96,7 +105,7 @@
      since {{template}} takes a single argument. */}}
 {{define "section"}}
 {{$b := .B}}{{with .S}}
-<section class="dsec{{if .Collapsed}} is-collapsed{{end}}" data-section="{{.ID}}">
+<section class="dsec{{if .Collapsed}} is-collapsed{{end}}" data-section="{{.ID}}"{{with .Span}} data-span="{{.}}"{{end}}{{with .Rows}} data-rows="{{.}}"{{end}}{{with .Color}} data-color="{{.}}"{{end}}>
   <header class="dsec-head">
     <button class="fold-btn" type="button" aria-expanded="{{if .Collapsed}}false{{else}}true{{end}}"
             data-fold="/boards/{{$b.Board.ID}}/fold/{{.ID}}">
@@ -116,6 +125,9 @@
         <label>{{t "field.size"}}<select name="size">{{$size := .Size}}{{range $b.Sizes}}<option value="{{.}}"{{if eq . $size}} selected{{end}}>{{t (print "size." .)}}</option>{{end}}</select></label>
         <label>{{t "field.sort"}}<select name="sort">{{$sort := .Sort}}{{range $b.Sorts}}<option value="{{.}}"{{if eq . $sort}} selected{{end}}>{{t (print "sort." .)}}</option>{{end}}</select></label>
         <label>{{t "field.area"}}<select name="area">{{$area := .Area}}{{range $b.Areas}}<option value="{{.}}"{{if eq . $area}} selected{{end}}>{{t (print "area." .)}}</option>{{end}}</select></label>
+        <label>{{t "field.span"}}<select name="span">{{$span := .Span}}{{range $b.Spans}}<option value="{{.}}"{{if eq . $span}} selected{{end}}>{{t (print "span." .)}}</option>{{end}}</select></label>
+        <label>{{t "field.rows"}}<select name="rows">{{$rows := .Rows}}{{if eq $rows 0}}{{$rows = 1}}{{end}}{{range $b.RowSpans}}<option value="{{.}}"{{if eq . $rows}} selected{{end}}>{{.}}</option>{{end}}</select></label>
+        <label>{{t "field.color"}}<select name="color">{{$color := .Color}}<option value="">{{t "opt.none"}}</option>{{range $b.Colors}}<option value="{{.}}"{{if eq (print .) $color}} selected{{end}}>{{t (print "opt." .)}}</option>{{end}}</select></label>
         <label class="check"><input type="checkbox" name="collapsed"{{if .Collapsed}} checked{{end}}> {{t "field.collapsed"}}</label>
         <button type="submit">{{t "action.save"}}</button>
       </form>
@@ -156,17 +168,23 @@
   {{if eq .Type "link"}}
     {{$c := .Config}}
     <a class="launch" href="{{$c.URL}}"{{if eq (print $c.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}}
-       data-search="{{.Title}} {{$c.Description}} {{$c.URL}}"{{if $c.Hotkey}} data-hotkey="{{$c.Hotkey}}"{{end}}>
+       data-search="{{.Title}} {{$c.Description}} {{$c.URL}}{{range $c.Tags}} #{{.}}{{end}}{{range .Items}} {{.Title}}{{end}}"{{if $c.Hotkey}} data-hotkey="{{$c.Hotkey}}"{{end}}{{with $c.Color}} data-color="{{.}}"{{end}}>
       <span class="launch-icon">{{if .IconURL}}<img src="{{.IconURL}}" alt="" loading="lazy">{{else}}<span class="mono">{{monogram .Title}}</span>{{end}}</span>
       <span class="launch-body">
         <b class="launch-title">{{.Title}}</b>
         {{if $c.Description}}<small class="launch-desc">{{$c.Description}}</small>{{end}}
+        {{with $c.Tags}}<small class="launch-tags">{{range .}}<span>#{{.}}</span>{{end}}</small>{{end}}
         {{if or (ne (print $c.Status) "off") $c.InfoConn}}
         <span class="launch-live" hx-get="{{$frag}}" hx-trigger="load, every 300s" hx-swap="innerHTML"></span>
         {{end}}
       </span>
       {{if $c.Hotkey}}<kbd class="launch-key">{{$c.Hotkey}}</kbd>{{end}}
     </a>
+    {{with .Items}}
+    <ul class="launch-items">
+      {{range .}}<li><a href="{{.URL}}"{{if eq (print $c.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}}>{{if .IconURL}}<img src="{{.IconURL}}" alt="" loading="lazy">{{end}}{{.Title}}</a></li>{{end}}
+    </ul>
+    {{end}}
   {{else}}
     <article class="card">
       {{if .Title}}<h3 class="card-title">{{.Title}}</h3>{{end}}

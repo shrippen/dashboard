@@ -83,6 +83,61 @@ type LinkConfig struct {
 	Insecure    bool
 	Hotkey      string
 	InfoConn    string // connection key for the info line, "" if none
+	Tags        []string
+	Items       []SubLink         // more links in the same tile
+	Color       TileColor         // "" = theme default
+	Headers     map[string]string // sent with the status check
+}
+
+// SubLink is one extra link inside a link tile, e.g. "Admin" next to the
+// main URL.
+type SubLink struct {
+	Title, URL, Icon string
+}
+
+// TileColor names a theme color token, never a raw value.
+type TileColor string
+
+// TileColors are the selectable accents; each maps to var(--<name>).
+var TileColors = []TileColor{"yellow", "green", "red", "blue", "purple", "aqua", "orange"}
+
+func tileColor(raw any) TileColor {
+	want := TileColor(asString(raw))
+	for _, c := range TileColors {
+		if c == want {
+			return c
+		}
+	}
+	return ""
+}
+
+func subLinks(raw any) []SubLink {
+	list, _ := raw.([]any)
+	var out []SubLink
+	for _, item := range list {
+		m, _ := item.(map[string]any)
+		link := SubLink{Title: asString(m["title"]), URL: webURL(m["url"]), Icon: asString(m["icon"])}
+		if link.URL == "" {
+			continue
+		}
+		if link.Title == "" {
+			link.Title = link.URL
+		}
+		out = append(out, link)
+	}
+	return out
+}
+
+func stringMap(raw any) map[string]string {
+	m, _ := raw.(map[string]any)
+	if len(m) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(m))
+	for k, v := range m {
+		out[k] = asString(v)
+	}
+	return out
 }
 
 func decodeLink(raw map[string]any) any {
@@ -98,6 +153,7 @@ func decodeLink(raw map[string]any) any {
 		URL: webURL(raw["url"]), Description: asString(raw["description"]), Icon: asString(raw["icon"]),
 		Target: target, Status: status, StatusURL: webURL(raw["status_url"]),
 		Accept: asIntList(raw["accept"]), Insecure: asBool(raw["insecure"]), Hotkey: asString(raw["hotkey"]),
+		Tags: asStringList(raw["tags"]), Items: subLinks(raw["items"]), Color: tileColor(raw["color"]), Headers: stringMap(raw["headers"]),
 	}
 	if info, ok := raw["info"].(map[string]any); ok {
 		cfg.InfoConn = asString(info["connection"])
@@ -110,7 +166,7 @@ func linkQueries(cfgAny any) []Query {
 	var found []Query
 	if cfg.Status == StatusHTTP {
 		found = append(found, Query{Name: "status", Source: "http_status", Params: map[string]any{
-			"url": firstNonEmpty(cfg.StatusURL, cfg.URL), "accept": cfg.Accept, "insecure": cfg.Insecure,
+			"url": firstNonEmpty(cfg.StatusURL, cfg.URL), "accept": cfg.Accept, "insecure": cfg.Insecure, "headers": cfg.Headers,
 		}})
 	}
 	if cfg.InfoConn != "" {

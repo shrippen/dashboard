@@ -161,7 +161,7 @@
           <label for="{{.Name}}">{{t (print "field." .Label)}}</label>
           {{if eq (print .Input) "select"}}
             <select id="{{.Name}}" name="{{.Name}}">{{$v := .Text}}{{range .Options}}<option value="{{.}}"{{if eq . $v}} selected{{end}}>{{t (print "opt." .)}}</option>{{end}}</select>
-          {{else if eq (print .Input) "textarea"}}
+          {{else if or (eq (print .Input) "textarea") (eq (print .Input) "links") (eq (print .Input) "headers")}}
             <textarea id="{{.Name}}" name="{{.Name}}" rows="3">{{.Text}}</textarea>
           {{else if eq (print .Input) "number"}}
             <input id="{{.Name}}" name="{{.Name}}" type="number" step="any" value="{{.Text}}"{{if .Required}} required{{end}}>
@@ -171,6 +171,8 @@
             <input id="{{.Name}}" name="{{.Name}}" value="{{.Text}}"{{if .Required}} required{{end}}>
           {{end}}
           {{if or (eq (print .Input) "list") (eq (print .Input) "numbers")}}<p class="small muted">{{t "field.list_hint"}}</p>{{end}}
+          {{if eq (print .Input) "links"}}<p class="small muted">{{t "field.links_hint"}}</p>{{end}}
+          {{if eq (print .Input) "headers"}}<p class="small muted">{{t "field.headers_hint"}}</p>{{end}}
           {{if eq .Label "icon"}}<p class="small muted">{{t "field.icon_hint"}}</p>
             <input class="icon-upload" type="file" accept="image/svg+xml,image/png,image/webp,image/jpeg,image/x-icon" data-target="{{.Name}}" aria-label="{{t "field.icon"}}">{{end}}
           {{end}}

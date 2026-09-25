@@ -105,6 +105,10 @@ oidc:
   sub_taken: Dieses authentik-Konto ist bereits mit einem anderen Benutzer verknüpft.
   unreachable: Identity Provider nicht erreichbar.
 board:
+  page_links: Seitenlinks
+  ctx_newtab: In neuem Tab öffnen
+  ctx_sametab: Im selben Tab öffnen
+  ctx_copy: Adresse kopieren
   search: Suchen
   search_hint: Suchen oder Websuche …
   no_match: Keine Treffer. Enter startet die Websuche.
@@ -136,6 +140,14 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  tags: Tags
+  items: Weitere Links
+  color: Farbe
+  headers: HTTP-Header für den Status-Check
+  links_hint: 'Ein Link je Zeile: Titel | URL | Icon (Icon optional).'
+  headers_hint: 'Ein Header je Zeile: Name: Wert. Wird verschlüsselt gespeichert und nicht angezeigt; leer lassen behält die gespeicherten, „-“ löscht sie.'
+  span: Breite
+  rows: Zeilen
   data_mode: Daten
   entities: Entitäten (z. B. light.buero, sensor.temperatur)
   link: Link beim Klick
@@ -199,6 +211,14 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  none: Keine
+  yellow: Gelb
+  green: Grün
+  red: Rot
+  blue: Blau
+  purple: Violett
+  aqua: Türkis
+  orange: Orange
   app_usage: Nutzung je Anwendung
   data_auto: Automatisch (Vorgabe des Typs)
   data_live: Live beim Anzeigen
@@ -1258,6 +1278,12 @@ param:
   date_window: Datumsfenster (Tage)
   notice_days: Vorlauf (Tage)
 settings:
+  page: Seite
+  page_title: Titel
+  page_description: Beschreibung
+  page_nav: Navigationslinks
+  page_nav_hint: 'Ein Link je Zeile: Titel | URL (https://… oder /pfad).'
+  page_footer: Fußzeile
   fixed_monthly: Feste Ausgaben je Monat
   title: Auswertung
   lead: Ziele, Steuerwerte und Schwellwerte der Hinweise für diesen Bereich.
@@ -1336,3 +1362,8 @@ hass:
   missing: fehlt
 analysis:
   not_scheduled: Der Hintergrunddienst läuft nicht (SCHEDULER_ENABLED).
+span:
+  '0': Volle Breite
+  '1': Ein Viertel
+  '2': Halb
+  '3': Drei Viertel

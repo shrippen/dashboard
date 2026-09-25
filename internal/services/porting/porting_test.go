@@ -196,3 +196,57 @@ func TestDashyImportExtraWidgets(t *testing.T) {
 		t.Fatalf("configs: %+v %+v %+v", image, rates, feed)
 	}
 }
+
+const dashyLinks = `
+pageInfo: {title: Heim, description: Alles an einem Ort, footerText: Privat}
+sections:
+  - name: Tools
+    displayData: {rows: 2}
+    items:
+      - title: Gitea
+        url: "https://git.lan"
+        tags: [code, dev]
+        statusCheckHeaders: {Authorization: "Bearer abc"}
+        subItems:
+          - {title: Admin, url: "https://git.lan/admin", icon: hl-gitea}
+          - {title: Bad, url: "ftp://x"}
+`
+
+// Tags, sub-items, rows and page texts survive the Dashy import; status
+// headers are stored sealed and never exported.
+func TestDashyLinksAndPage(t *testing.T) {
+	d := setup(t)
+	who, space := user(t, d, "a@x.de")
+	report, err := porting.ImportDashy(d, who, space, dashyLinks)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !contains(report.Skipped, "ftp://x") {
+		t.Fatalf("report: %+v", report)
+	}
+
+	visible, _ := boards.Visible(d, who)
+	view, err := boards.View(d, who, visible[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sec := view.Sections[0]
+	link := sec.Tiles[0].Config.(widgets.LinkConfig)
+	if sec.Rows != 2 || len(link.Tags) != 2 || len(sec.Tiles[0].Items) != 1 || sec.Tiles[0].Items[0].Title != "Admin" {
+		t.Fatalf("section %+v link %+v", sec, link)
+	}
+	if view.Page.Title != "Heim" || view.Page.Footer != "Privat" {
+		t.Fatalf("page: %+v", view.Page)
+	}
+
+	text, err := porting.ExportSpace(d, who, space)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(text, "abc") || strings.Contains(text, "headers") {
+		t.Fatalf("export leaks headers:\n%s", text)
+	}
+	if !strings.Contains(text, "rows: 2") {
+		t.Fatalf("export lost rows:\n%s", text)
+	}
+}

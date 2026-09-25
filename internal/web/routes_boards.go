@@ -111,6 +111,7 @@ func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embed
 		"Sizes": []enums.TileSize{enums.TileSmall, enums.TileMedium, enums.TileLarge},
 		"Sorts": []enums.SortOrder{enums.SortManual, enums.SortAlphabetical},
 		"Areas": []string{"main", "side"},
+		"Spans": []int{0, 1, 2, 3}, "RowSpans": []int{1, 2, 3, 4}, "Colors": widgets.TileColors,
 	})
 }
 

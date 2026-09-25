@@ -105,6 +105,10 @@ oidc:
   sub_taken: This authentik account is already linked to another user.
   unreachable: Identity provider unreachable.
 board:
+  page_links: Page links
+  ctx_newtab: Open in new tab
+  ctx_sametab: Open in same tab
+  ctx_copy: Copy address
   search: Search
   search_hint: Search or web search …
   no_match: No match. Enter starts a web search.
@@ -136,6 +140,14 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  tags: Tags
+  items: More links
+  color: Color
+  headers: HTTP headers for the status check
+  links_hint: 'One link per line: title | URL | icon (icon optional).'
+  headers_hint: 'One header per line: Name: value. Stored encrypted and never shown; leave empty to keep the stored ones, "-" removes them.'
+  span: Width
+  rows: Rows
   data_mode: Data
   entities: Entities (e.g. light.office, sensor.temperature)
   link: Link on click
@@ -199,6 +211,14 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  none: None
+  yellow: Yellow
+  green: Green
+  red: Red
+  blue: Blue
+  purple: Purple
+  aqua: Aqua
+  orange: Orange
   app_usage: Usage per application
   data_auto: Automatic (type default)
   data_live: Live on view
@@ -1257,6 +1277,12 @@ param:
   date_window: Date window (days)
   notice_days: Notice (days)
 settings:
+  page: Page
+  page_title: Title
+  page_description: Description
+  page_nav: Navigation links
+  page_nav_hint: 'One link per line: title | URL (https://… or /path).'
+  page_footer: Footer
   fixed_monthly: Fixed costs per month
   title: Analysis
   lead: Goals, tax values and hint thresholds of this space.
@@ -1335,3 +1361,8 @@ hass:
   missing: missing
 analysis:
   not_scheduled: The background service is not running (SCHEDULER_ENABLED).
+span:
+  '0': Full width
+  '1': One quarter
+  '2': Half
+  '3': Three quarters

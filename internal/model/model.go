@@ -122,6 +122,9 @@ type Section struct {
 	Sort      enums.SortOrder
 	Collapsed bool
 	Area      string
+	Span      int    // quarters of the main column, 0 = full width
+	Rows      int    // grid rows, 0 = one
+	Color     string // theme color token, "" = none
 
 	Placements []Placement // populated by repos.Board
 }

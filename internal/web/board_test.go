@@ -179,3 +179,40 @@ func TestBoardSettingsKeepTheme(t *testing.T) {
 		t.Fatalf("theme not stored:\n%s", settings)
 	}
 }
+
+// TestLinkExtrasAndPage: sub-links, tags, colors, section layout and the
+// space's page texts reach the board; stored headers never reach the form.
+func TestLinkExtrasAndPage(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	space := string(regexp.MustCompile(`space=(\d+)`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))[1])
+	postForm(t, client, srv.URL+"/widgets", url.Values{"csrf": {csrf}, "space_id": {space}, "type": {"link"}, "title": {"Gitea"},
+		"cfg.url": {"https://git.example"}, "cfg.status": {"off"}, "cfg.tags": {"code"}, "cfg.color": {"green"},
+		"cfg.items": {"Admin | https://git.example/admin"}, "cfg.headers": {"X-Api: secret-token"}})
+	boardURL, section, version, widget := placeTarget(t, srv, client, "Gitea")
+	board := boardIDFrom(boardURL)
+	postForm(t, client, srv.URL+"/boards/"+board+"/sections/"+section+"/place", url.Values{"csrf": {csrf}, "widget_id": {widget}, "version": {version}})
+
+	version = regexp.MustCompile(`data-version="(\d+)"`).FindStringSubmatch(string(mustGet(t, srv, client, "/boards/"+board)))[1]
+	postForm(t, client, srv.URL+"/sections/"+section+"/edit", url.Values{"csrf": {csrf}, "board_id": {board}, "version": {version},
+		"title": {"Code"}, "size": {"medium"}, "sort": {"manual"}, "area": {"main"}, "span": {"2"}, "rows": {"3"}, "color": {"blue"}})
+	postForm(t, client, srv.URL+"/spaces/"+space+"/settings", url.Values{"csrf": {csrf}, "title": {"Heim"},
+		"description": {"Alles hier"}, "nav": {"Wiki | https://wiki.example\nBad | javascript:alert(1)"}, "footer": {"Privat"}})
+
+	page := string(mustGet(t, srv, client, "/boards/"+board))
+	for _, want := range []string{`href="https://git.example/admin"`, `#code`, `data-color="green"`, `data-span="2"`, `data-rows="3"`,
+		`data-color="blue"`, `id="ctx-menu"`, `>Heim</h1>`, `Alles hier`, `href="https://wiki.example"`, `class="page-foot">Privat`} {
+		if !strings.Contains(page, want) {
+			t.Fatalf("board missing %q:\n%s", want, page)
+		}
+	}
+	if strings.Contains(page, "javascript:") {
+		t.Fatal("unsafe nav link rendered")
+	}
+	if strings.Contains(string(mustGet(t, srv, client, "/widgets/"+widget+"/edit")), "secret-token") {
+		t.Fatal("stored header shown in the form")
+	}
+}

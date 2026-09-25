@@ -744,10 +744,10 @@ Jede Quelle liefert einen gecachten Datensatz (`<dienst>.data`), Regeln, eine In
 
 Auswahl vom 25.09.2026 (Checkliste „Dashy-Abgleich“). Abgelehnt: Overlay, Arbeitsbereich- und Minimal-Ansicht, Unterseiten per URL, Bangs, Suchmaschinen-Liste, URL direkt öffnen, Ausblenden-aber-findbar, Suchziel, Prüfintervall je Link, Öffnen-Ziele beim Import melden. Offen gelassen: Schreib-API, Cloud-Sicherung, weitere Sprachen, erzeugte Icons, Healthchecks, ntfy, Synology, Linkding, Drone CI, CVE-Feed, Sport.
 
-- [ ] Import/Startseite: Tags an Links (Suche), Seitentitel/Beschreibung/Navigationslinks/Fußzeile anzeigen, mehrere Links in einer Kachel (Sub-Items), Pfeiltasten durch die Treffer
-- [ ] Rechtsklick-Menü je Kachel (neuer Tab, selber Tab, Adresse kopieren)
-- [ ] Layout: Abschnitte über mehrere Zeilen, eigene Farbe je Abschnitt und Link (aus Theme-Farben)
-- [ ] Status-Checks mit eigenen HTTP-Headern
+- [x] Import/Startseite: Tags an Links (Suche), Seitentitel/Beschreibung/Navigationslinks/Fußzeile anzeigen, mehrere Links in einer Kachel (Sub-Items), Pfeiltasten durch die Treffer *(Seitentexte in den Bereichseinstellungen, `spaces/page.go`)*
+- [x] Rechtsklick-Menü je Kachel (neuer Tab, selber Tab, Adresse kopieren; Umschalt + Rechtsklick öffnet das Browser-Menü)
+- [x] Layout: Abschnitte über mehrere Zeilen, eigene Farbe je Abschnitt und Link (aus Theme-Farben) *(Abschnitte zusätzlich in Vierteln der Breite; Farbe nur als Linie, Text bleibt kontrastgeprüft)*
+- [x] Status-Checks mit eigenen HTTP-Headern *(verschlüsselt in der Widget-Konfiguration, nie im Formular oder Export)*
 - [ ] Icons: Material Design Icons, selfh.st, Emoji, Font Awesome
 - [ ] Themes: Auswahl der Dashy-Themes nachbauen; Dashy-Farben beim Import als Theme übernehmen
 - [ ] Widgets ohne eigenen Dienst: Kalender (iCal), Custom API, eigene Liste, Feiertage, xkcd, NASA-Bild des Tages, Witze, Krypto, Aktien, Flüge, Nahverkehr

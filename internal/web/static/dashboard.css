@@ -205,6 +205,16 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
 .board.has-side { grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem); }
 .board-col { display: flex; flex-direction: column; gap: 1.6rem; min-width: 0; }
+/* Sections share the main column in quarters (data-span) and may run
+   over several rows (data-rows); without either they fill the width. */
+.board-main { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: row dense; align-items: start; }
+.board-main > .dsec { grid-column: 1 / -1; }
+.board-main > .dsec[data-span="1"] { grid-column: span 1; }
+.board-main > .dsec[data-span="2"] { grid-column: span 2; }
+.board-main > .dsec[data-span="3"] { grid-column: span 3; }
+.board-main > .dsec[data-rows="2"] { grid-row: span 2; }
+.board-main > .dsec[data-rows="3"] { grid-row: span 3; }
+.board-main > .dsec[data-rows="4"] { grid-row: span 4; }
 /* Compact view: only link tiles. */
 .board.is-compact .tile-slot:not(.w-link), .board.is-compact .dsec:not(:has(.w-link)) { display: none; }
 
@@ -261,11 +271,38 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .launch-hints { display: inline-grid; place-items: center; min-width: 1.3rem; height: 1.3rem; padding: 0 .3rem; background: var(--blue); color: var(--bg-void); font-weight: 500; }
 .launch-hints[data-level="20"] { background: var(--yellow); }
 .launch-hints[data-level="30"] { background: var(--red); }
+/* Accent per tile or section: data-color names a theme token. */
+[data-color="yellow"] { --tint: var(--yellow); } [data-color="green"] { --tint: var(--green); }
+[data-color="red"] { --tint: var(--red); } [data-color="blue"] { --tint: var(--blue); }
+[data-color="purple"] { --tint: var(--purple); } [data-color="aqua"] { --tint: var(--aqua); }
+[data-color="orange"] { --tint: var(--orange); }
+.launch[data-color] { border-left-color: var(--tint); }
+.dsec[data-color] .dsec-head { border-bottom: 2px solid var(--tint); padding-bottom: .3rem; }
+.dsec[data-color] .fold-mark { border-color: var(--tint); }
+.launch-tags { display: flex; flex-wrap: wrap; gap: .1rem .5rem; font-family: var(--font-mono); font-size: .65rem; color: var(--fg3); }
+.size-small .launch-tags { display: none; }
+.tile-slot:has(.launch-items) .launch { height: auto; }
+.launch-items { list-style: none; margin: 0; padding: .3rem .8rem .5rem; display: flex; flex-wrap: wrap; gap: .2rem .9rem;
+  background: var(--bg-panel); border: 1px solid var(--bg1); border-top: 0; font-family: var(--font-mono); font-size: .72rem; }
+.launch-items a { color: var(--fg2); text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; }
+.launch-items a:hover { color: var(--fg0); }
+.launch-items img { width: .9rem; height: .9rem; object-fit: contain; }
+
+/* ── context menu (right click on a link tile) ── */
+.ctx-menu { position: fixed; z-index: 50; min-width: 12rem; background: var(--bg-hard); border: 1px solid var(--bg2); padding: .3rem 0; margin: 0; list-style: none; font-family: var(--font-mono); font-size: .78rem; }
+.ctx-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--fg1); padding: .4rem .9rem; margin: 0; cursor: pointer; font: inherit; }
+.ctx-menu button:hover, .ctx-menu button:focus-visible { background: var(--bg1); color: var(--fg0); outline: none; }
+
+/* ── page info from the space settings ── */
+.page-desc { color: var(--fg3); margin: -.8rem 0 1rem; }
+.page-links { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-family: var(--font-mono); font-size: .78rem; }
+.page-links a { color: var(--fg2); }
+.page-foot { margin-top: 2.4rem; padding-top: .8rem; border-top: 1px solid var(--bg1); color: var(--fg3); font-size: .78rem; }
 
 /* ── data widget card ── */
 .card-title { font-family: var(--font-mono); font-weight: 400; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg3); margin: 0 0 .6rem; }
 .card-body { min-width: 0; }
-@media (max-width: 900px) { .board.has-side { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .board.has-side { grid-template-columns: minmax(0, 1fr); } .board-main > .dsec[data-span] { grid-column: 1 / -1; } }
 @media (max-width: 640px) { .board-tools { margin-left: 0; } .dsec-body { --tile: 100%; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 

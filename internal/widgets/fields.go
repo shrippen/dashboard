@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,14 @@ const (
 	InputList    Input = "list"    // comma separated strings
 	InputNumbers Input = "numbers" // comma separated integers
 	InputConn    Input = "connection"
+	InputLinks   Input = "links"   // one "title | url | icon" per line
+	InputHeaders Input = "headers" // one "Name: value" per line
+)
+
+const (
+	linkSep      = "|"
+	headerSep    = ":"
+	headersClear = "-" // matches util.HeadersClear: drop stored headers
 )
 
 // FormPrefix marks config fields in a form ("cfg.url").
@@ -56,6 +65,10 @@ var fieldsByType = map[string][]Field{
 		{Key: "insecure", Input: InputCheck},
 		{Key: "hotkey", Input: InputText},
 		{Key: "info.connection", Input: InputConn},
+		{Key: "tags", Input: InputList},
+		{Key: "items", Input: InputLinks},
+		sel("color", "none", "none", "yellow", "green", "red", "blue", "purple", "aqua", "orange"),
+		{Key: "headers", Input: InputHeaders},
 	},
 	"rss":       {{Key: "url", Input: InputText, Required: true}, {Key: "limit", Input: InputNumber, Default: 8}, {Key: "summary", Input: InputCheck}},
 	"clock":     {{Key: "timezones", Input: InputList, Default: []any{defaultTimezone}}, {Key: "seconds", Input: InputCheck}, {Key: "date", Input: InputCheck, Default: true}},
@@ -155,7 +168,14 @@ func FormValues(key string, config map[string]any) []FormValue {
 			label = label[:i]
 		}
 		on, _ := v.(bool)
-		out = append(out, FormValue{Field: f, Name: FormPrefix + f.Key, Label: label, Text: textOf(v), On: on})
+		text := textOf(v)
+		switch f.Input {
+		case InputLinks:
+			text = linksText(v)
+		case InputHeaders:
+			text = headersText(v)
+		}
+		out = append(out, FormValue{Field: f, Name: FormPrefix + f.Key, Label: label, Text: text, On: on})
 	}
 	return out
 }
@@ -211,6 +231,14 @@ func ParseForm(key string, get func(name string) string) map[string]any {
 				}
 			}
 			set(config, f.Key, list)
+		case InputLinks:
+			set(config, f.Key, parseLinks(raw))
+		case InputHeaders:
+			if raw == headersClear {
+				set(config, f.Key, raw)
+				continue
+			}
+			set(config, f.Key, parseHeaders(raw))
 		default:
 			if raw != "" || f.Required {
 				set(config, f.Key, raw)
@@ -218,4 +246,68 @@ func ParseForm(key string, get func(name string) string) map[string]any {
 		}
 	}
 	return config
+}
+
+// linksText: [{title: Admin, url: https://x/admin}] → "Admin | https://x/admin".
+func linksText(v any) string {
+	var lines []string
+	for _, l := range subLinks(v) {
+		line := l.Title + " " + linkSep + " " + l.URL
+		if l.Icon != "" {
+			line += " " + linkSep + " " + l.Icon
+		}
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func parseLinks(raw string) []any {
+	out := []any{}
+	for _, line := range strings.Split(raw, "\n") {
+		parts := strings.Split(line, linkSep)
+		for i := range parts {
+			parts[i] = strings.TrimSpace(parts[i])
+		}
+
+		// A bare URL is allowed: "https://x/admin".
+		if len(parts) == 1 {
+			parts = []string{"", parts[0]}
+		}
+		if parts[1] == "" {
+			continue
+		}
+		item := map[string]any{"title": parts[0], "url": parts[1]}
+		if len(parts) > 2 && parts[2] != "" {
+			item["icon"] = parts[2]
+		}
+		out = append(out, item)
+	}
+	return out
+}
+
+// headersText: {X-Api: a} → "X-Api: a", sorted for a stable form.
+func headersText(v any) string {
+	m := stringMap(v)
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	lines := make([]string, 0, len(keys))
+	for _, k := range keys {
+		lines = append(lines, k+headerSep+" "+m[k])
+	}
+	return strings.Join(lines, "\n")
+}
+
+func parseHeaders(raw string) map[string]any {
+	out := map[string]any{}
+	for _, line := range strings.Split(raw, "\n") {
+		name, value, ok := strings.Cut(line, headerSep)
+		if name = strings.TrimSpace(name); !ok || name == "" {
+			continue
+		}
+		out[name] = strings.TrimSpace(value)
+	}
+	return out
 }

@@ -136,6 +136,9 @@ func dashySection(sec map[string]any, refs []any) map[string]any {
 	if n, err := strconv.Atoi(str(display, "cols")); err == nil && n > 0 {
 		out["cols"] = n
 	}
+	if n, err := strconv.Atoi(fmt.Sprint(display["rows"])); err == nil && n > 1 {
+		out["rows"] = n
+	}
 	switch size := enums.TileSize(str(display, "itemSize")); size {
 	case enums.TileSmall, enums.TileMedium, enums.TileLarge:
 		out["size"] = string(size)
@@ -223,6 +226,19 @@ func dashyItem(entry map[string]any, defaultStatus bool, report *Report) map[str
 		"status": statusMode, "status_url": str(entry, "statusCheckUrl"),
 		"accept": codes(str(entry, "statusCheckAcceptCodes")), "insecure": truthy(entry["statusCheckAllowInsecure"]),
 		"hotkey": str(entry, "hotkey"),
+	}
+	if tags := stringsOf(entry["tags"]); len(tags) > 0 {
+		config["tags"] = tags
+	}
+	if items := dashySubItems(entry, report); len(items) > 0 {
+		config["items"] = items
+	}
+	if headers := mapOf(entry["statusCheckHeaders"]); len(headers) > 0 {
+		config["headers"] = headers
+		report.Notes = append(report.Notes, title+": statusCheckHeaders stored in the widget config, not encrypted")
+	}
+	if entry["color"] != nil || entry["backgroundColor"] != nil {
+		report.Notes = append(report.Notes, title+": color → pick a theme color in the editor")
 	}
 	return map[string]any{"type": "link", "title": title, "config": config}
 }
@@ -325,4 +341,33 @@ func ImportDashy(d *sql.DB, who *access.Principal, spaceID int64, text string) (
 	report.Skipped = append(pre.Skipped, report.Skipped...)
 	report.Notes = append(pre.Notes, report.Notes...)
 	return report, nil
+}
+
+func stringsOf(v any) []any {
+	raw, _ := v.([]any)
+	var out []any
+	for _, item := range raw {
+		if s, ok := item.(string); ok && s != "" {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// dashySubItems keeps the web links of an item's subItems.
+func dashySubItems(entry map[string]any, report *Report) []any {
+	var out []any
+	for _, sub := range list(entry, "subItems") {
+		url := str(sub, "url")
+		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+			report.Skipped = append(report.Skipped, fmt.Sprintf("sub-item %s: url %q", str(sub, "title"), url))
+			continue
+		}
+		item := map[string]any{"title": str(sub, "title"), "url": url}
+		if icon := dashyIcon(str(sub, "icon")); icon != "" {
+			item["icon"] = icon
+		}
+		out = append(out, item)
+	}
+	return out
 }
