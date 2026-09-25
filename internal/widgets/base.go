@@ -60,8 +60,8 @@ type ViewCtx struct {
 // Query is one data request a widget type needs; the widgets service runs
 // it and passes the result back keyed by Name.
 type Query struct {
-	Name   string
-	Source string
+	Name    string
+	Source  string
 	Params  map[string]any
 	Conn    ConnUse
 	Service enums.ServiceType // ConnPeer only
