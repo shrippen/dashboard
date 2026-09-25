@@ -513,7 +513,7 @@ func scanBoardRow(row interface{ Scan(...any) error }) (*model.Board, error) {
 // loadSections fills Board.Sections (with Placements and Widget) for a board.
 func loadSections(q db.Queryer, board *model.Board) error {
 	rows, err := q.Query(
-		"SELECT id, board_id, title, position, cols, size, sort, collapsed, area, span, row_span, color FROM sections WHERE board_id = ? ORDER BY position",
+		"SELECT id, board_id, title, position, cols, size, sort, collapsed, area, span, row_span, color, mobile FROM sections WHERE board_id = ? ORDER BY position",
 		board.ID,
 	)
 	if err != nil {
@@ -526,7 +526,7 @@ func loadSections(q db.Queryer, board *model.Board) error {
 		var sec model.Section
 		var cols sql.NullInt64
 		if err := rows.Scan(&sec.ID, &sec.BoardID, &sec.Title, &sec.Position, &cols,
-			&sec.Size, &sec.Sort, &sec.Collapsed, &sec.Area, &sec.Span, &sec.Rows, &sec.Color); err != nil {
+			&sec.Size, &sec.Sort, &sec.Collapsed, &sec.Area, &sec.Span, &sec.Rows, &sec.Color, &sec.Mobile); err != nil {
 			return err
 		}
 		if cols.Valid {
@@ -707,10 +707,10 @@ func Section(q db.Queryer, sectionID int64) (*model.Section, error) {
 	var sec model.Section
 	var cols sql.NullInt64
 	err := q.QueryRow(
-		"SELECT id, board_id, title, position, cols, size, sort, collapsed, area, span, row_span, color FROM sections WHERE id = ?",
+		"SELECT id, board_id, title, position, cols, size, sort, collapsed, area, span, row_span, color, mobile FROM sections WHERE id = ?",
 		sectionID,
 	).Scan(&sec.ID, &sec.BoardID, &sec.Title, &sec.Position, &cols, &sec.Size, &sec.Sort,
-		&sec.Collapsed, &sec.Area, &sec.Span, &sec.Rows, &sec.Color)
+		&sec.Collapsed, &sec.Area, &sec.Span, &sec.Rows, &sec.Color, &sec.Mobile)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -727,8 +727,8 @@ func Section(q db.Queryer, sectionID int64) (*model.Section, error) {
 // AddSection inserts a new section.
 func AddSection(q db.Queryer, sec *model.Section) error {
 	res, err := q.Exec(
-		"INSERT INTO sections (board_id, title, position, cols, size, sort, collapsed, area, span, row_span, color) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-		sec.BoardID, sec.Title, sec.Position, sec.Cols, sec.Size, sec.Sort, sec.Collapsed, sec.Area, sec.Span, sec.Rows, sec.Color,
+		"INSERT INTO sections (board_id, title, position, cols, size, sort, collapsed, area, span, row_span, color, mobile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+		sec.BoardID, sec.Title, sec.Position, sec.Cols, sec.Size, sec.Sort, sec.Collapsed, sec.Area, sec.Span, sec.Rows, sec.Color, sec.Mobile,
 	)
 	if err != nil {
 		return err
@@ -744,8 +744,8 @@ func AddSection(q db.Queryer, sec *model.Section) error {
 // UpdateSection writes back a section's own fields.
 func UpdateSection(q db.Queryer, sec *model.Section) error {
 	_, err := q.Exec(
-		"UPDATE sections SET title=?, position=?, cols=?, size=?, sort=?, collapsed=?, area=?, span=?, row_span=?, color=? WHERE id=?",
-		sec.Title, sec.Position, sec.Cols, sec.Size, sec.Sort, sec.Collapsed, sec.Area, sec.Span, sec.Rows, sec.Color, sec.ID,
+		"UPDATE sections SET title=?, position=?, cols=?, size=?, sort=?, collapsed=?, area=?, span=?, row_span=?, color=?, mobile=? WHERE id=?",
+		sec.Title, sec.Position, sec.Cols, sec.Size, sec.Sort, sec.Collapsed, sec.Area, sec.Span, sec.Rows, sec.Color, sec.Mobile, sec.ID,
 	)
 	return err
 }

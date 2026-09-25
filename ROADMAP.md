@@ -792,9 +792,9 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Verfügbarkeit auf der Kachel (30 Tage, Antwortzeit)
 
 **Anzeigen und Geräte**
-- [ ] Wandanzeige (Vollbild, Boards wechseln, nachts gedimmt)
-- [ ] Offline-Ansicht (letzter Stand)
-- [ ] Eigenes Handy-Layout je Board
+- [x] Wandanzeige (Vollbild, Boards wechseln, nachts gedimmt) *(`?kiosk&every=60&dim=22-7`)*
+- [x] Offline-Ansicht (letzter Stand) *(Service Worker, Netz zuerst; Abmelden löscht die Kopien)*
+- [x] Eigenes Handy-Layout je Board *(je Abschnitt: oben anzeigen oder ausblenden)*
 
 **Verbindungen**
 - [ ] Verbindungs-Assistent

@@ -402,8 +402,62 @@
     });
   }
 
+  // ── Wall display: fullscreen on first tap, rotate boards, dim at night ──
+  var KIOSK_DIM_CHECK_MS = 60000;
+
+  function inDim(spec, hour) {
+    var parts = spec.split("-");
+    var from = +parts[0], to = +parts[1];
+    return from <= to ? hour >= from && hour < to : hour >= from || hour < to;
+  }
+
+  function setupKiosk() {
+    var body = d.body;
+    if (!body.classList.contains("is-kiosk")) {
+      return;
+    }
+    d.addEventListener("click", function () {
+      if (!d.fullscreenElement && d.documentElement.requestFullscreen) {
+        d.documentElement.requestFullscreen().catch(function () {});
+      }
+    }, { once: true });
+
+    var next = body.dataset.kioskNext, every = +body.dataset.kioskEvery;
+    if (next && every > 0) {
+      window.setTimeout(function () { window.location.href = next; }, every * 1000);
+    }
+
+    var dim = body.dataset.kioskDim;
+    if (!dim) {
+      return;
+    }
+    var check = function () { body.classList.toggle("is-dim", inDim(dim, new Date().getHours())); };
+    check();
+    window.setInterval(check, KIOSK_DIM_CHECK_MS);
+  }
+
+  // ── Offline view: service worker keeps the last state, banner says so ──
+  function setupOffline() {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    }
+    var meta = d.querySelector('meta[name="offline-note"]');
+    if (!meta) {
+      return;
+    }
+    var note = d.createElement("p");
+    note.className = "offline-note";
+    note.textContent = meta.content;
+    note.hidden = navigator.onLine;
+    d.body.prepend(note);
+    window.addEventListener("online", function () { note.hidden = true; });
+    window.addEventListener("offline", function () { note.hidden = false; });
+  }
+
   d.addEventListener("DOMContentLoaded", function () {
     setupAutosubmit();
+    setupKiosk();
+    setupOffline();
     setupSearch();
     setupHotkeys();
     setupFolding();

@@ -199,14 +199,14 @@ func TestLinkExtrasAndPage(t *testing.T) {
 
 	version = regexp.MustCompile(`data-version="(\d+)"`).FindStringSubmatch(string(mustGet(t, srv, client, "/boards/"+board)))[1]
 	postForm(t, client, srv.URL+"/sections/"+section+"/edit", url.Values{"csrf": {csrf}, "board_id": {board}, "version": {version},
-		"title": {"Code"}, "size": {"medium"}, "sort": {"manual"}, "area": {"main"}, "span": {"2"}, "rows": {"3"}, "color": {"blue"}})
+		"title": {"Code"}, "size": {"medium"}, "sort": {"manual"}, "area": {"main"}, "span": {"2"}, "rows": {"3"}, "color": {"blue"}, "mobile": {"first"}})
 	// Page texts belong to the board's space, which may differ from the widget's.
 	boardSpace := string(regexp.MustCompile(`/spaces/(\d+)/settings`).FindSubmatch(mustGet(t, srv, client, "/boards/"+board+"?edit"))[1])
 	postForm(t, client, srv.URL+"/spaces/"+boardSpace+"/settings", url.Values{"csrf": {csrf}, "title": {"Heim"},
 		"description": {"Alles hier"}, "nav": {"Wiki | https://wiki.example\nBad | javascript:alert(1)"}, "footer": {"Privat"}})
 
 	page := string(mustGet(t, srv, client, "/boards/"+board))
-	for _, want := range []string{`href="https://git.example/admin"`, `#code`, `data-color="green"`, `data-span="2"`, `data-rows="3"`,
+	for _, want := range []string{`href="https://git.example/admin"`, `#code`, `data-color="green"`, `data-span="2"`, `data-rows="3"`, `data-mobile="first"`,
 		`data-color="blue"`, `id="ctx-menu"`, `>Heim</h1>`, `Alles hier`, `href="https://wiki.example"`, `class="page-foot">Privat`} {
 		if !strings.Contains(page, want) {
 			t.Fatalf("board missing %q:\n%s", want, page)
@@ -268,5 +268,54 @@ func TestQuickLinkClicksPaletteUndo(t *testing.T) {
 	postForm(t, client, srv.URL+"/boards/"+board+"/undo", url.Values{"csrf": {csrf}})
 	if strings.Contains(string(mustGet(t, srv, client, "/boards/"+board)), "Jellyfin</b>") {
 		t.Fatal("undo kept the tile")
+	}
+}
+
+// TestKioskRotatesBoards: the wall display hides the app nav and points
+// at the next visible board, keeping its settings.
+func TestKioskRotatesBoards(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	form := string(mustGet(t, srv, client, "/boards/new"))
+	space := regexp.MustCompile(`name="space_id"><option value="(\d+)"`).FindStringSubmatch(form)[1]
+	postForm(t, client, srv.URL+"/boards/new", url.Values{"csrf": {csrf}, "name": {"Zwei"}, "space_id": {space}})
+
+	resp := getFollowingRedirect(t, srv, client, "/")
+	resp.Body.Close()
+	page := string(mustGet(t, srv, client, resp.Request.URL.Path+"?kiosk&every=5&dim=22-7"))
+	if strings.Contains(page, `class="app-nav"`) || !strings.Contains(page, `class="is-kiosk"`) {
+		t.Fatalf("kiosk chrome:\n%s", page)
+	}
+	next := regexp.MustCompile(`data-kiosk-next="(/boards/\d+\?kiosk&amp;dim=22-7&amp;every=10)"`).FindStringSubmatch(page)
+	if next == nil || strings.Contains(next[1], resp.Request.URL.Path+"?") {
+		t.Fatalf("next board: %v", next)
+	}
+}
+
+// TestOfflineWorker: the service worker is served from the root, and
+// logout drops what it stored.
+func TestOfflineWorker(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	resp, err := client.Get(srv.URL + "/sw.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK || !strings.HasPrefix(resp.Header.Get("Content-Type"), "text/javascript") {
+		t.Fatalf("sw.js: %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
+	}
+
+	noFollow := *client
+	noFollow.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	resp = postForm(t, &noFollow, srv.URL+"/logout", url.Values{"csrf": {csrf}})
+	if !strings.Contains(resp.Header.Get("Clear-Site-Data"), `"cache"`) {
+		t.Fatalf("logout keeps offline copies: %v", resp.Header)
 	}
 }

@@ -85,6 +85,7 @@ type SectionView struct {
 	Span      int
 	Rows      int
 	Color     string
+	Mobile    enums.MobileMode
 	Tiles     []Tile
 }
 
@@ -338,7 +339,7 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 	}
 
 	view := SectionView{ID: section.ID, Title: section.Title, Cols: section.Cols, Size: size, Sort: section.Sort,
-		Collapsed: collapsed, Area: area, Span: section.Span, Rows: section.Rows, Color: section.Color}
+		Collapsed: collapsed, Area: area, Span: section.Span, Rows: section.Rows, Color: section.Color, Mobile: section.Mobile}
 
 	hidden := map[int64]bool{}
 	if hiddenList, ok := layer["hidden"].([]any); ok {
@@ -610,6 +611,7 @@ type SectionChanges struct {
 	Span      *int
 	Rows      *int
 	Color     *string
+	Mobile    *enums.MobileMode
 }
 
 // EditSection applies changes to one section.
@@ -655,6 +657,9 @@ func EditSection(d *sql.DB, who *access.Principal, sectionID int64, version int,
 		}
 		if changes.Color != nil {
 			section.Color = sectionColor(*changes.Color)
+		}
+		if changes.Mobile != nil {
+			section.Mobile = mobileMode(*changes.Mobile)
 		}
 		if err := content.UpdateSection(tx, section); err != nil {
 			return err
@@ -969,6 +974,7 @@ type snapshotSection struct {
 	Span      int     `json:"span,omitempty"`
 	Rows      int     `json:"rows,omitempty"`
 	Color     string  `json:"color,omitempty"`
+	Mobile    string  `json:"mobile,omitempty"`
 	Widgets   []int64 `json:"widgets"`
 }
 
@@ -986,7 +992,7 @@ func snapshot(q db.Queryer, who *access.Principal, board *model.Board) error {
 	for _, sec := range fresh.Sections {
 		row := snapshotSection{
 			Title: sec.Title, Cols: sec.Cols, Size: string(sec.Size), Sort: string(sec.Sort),
-			Collapsed: sec.Collapsed, Area: sec.Area, Span: sec.Span, Rows: sec.Rows, Color: sec.Color,
+			Collapsed: sec.Collapsed, Area: sec.Area, Span: sec.Span, Rows: sec.Rows, Color: sec.Color, Mobile: string(sec.Mobile),
 		}
 		for _, p := range sec.Placements {
 			row.Widgets = append(row.Widgets, p.WidgetID)
@@ -1097,6 +1103,7 @@ func Restore(d *sql.DB, who *access.Principal, boardID, revisionID int64) error 
 				BoardID: board.ID, Title: sec.Title, Position: index, Cols: sec.Cols,
 				Size: size, Sort: sortOrder, Collapsed: sec.Collapsed, Area: area,
 				Span: clampLayout(sec.Span, MaxSpan), Rows: clampLayout(sec.Rows, MaxRows), Color: sectionColor(sec.Color),
+				Mobile: mobileMode(enums.MobileMode(sec.Mobile)),
 			}
 			if err := content.AddSection(tx, newSection); err != nil {
 				return err
@@ -1154,6 +1161,14 @@ func clampLayout(v, max int) int {
 		return 0
 	}
 	return v
+}
+
+// mobileMode accepts only known modes; anything else shows normally.
+func mobileMode(raw enums.MobileMode) enums.MobileMode {
+	if raw == enums.MobileFirst || raw == enums.MobileHide {
+		return raw
+	}
+	return enums.MobileNormal
 }
 
 // sectionColor accepts only theme color names.

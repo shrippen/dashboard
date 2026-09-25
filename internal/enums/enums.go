@@ -256,6 +256,15 @@ const (
 	SortAlphabetical SortOrder = "alphabetical"
 )
 
+// MobileMode: how a section shows on narrow screens.
+type MobileMode string
+
+const (
+	MobileNormal MobileMode = ""
+	MobileFirst  MobileMode = "first"
+	MobileHide   MobileMode = "hide"
+)
+
 // LinkTarget: where a link widget opens.
 type LinkTarget string
 

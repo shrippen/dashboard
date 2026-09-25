@@ -18,8 +18,8 @@
   <script src="/static/editor.js" defer></script>
   {{end}}
 </head>
-<body>
-  {{if not .Embed}}{{template "header" .}}{{end}}
+<body{{if .Kiosk.On}} class="is-kiosk" data-kiosk-next="{{.Kiosk.Next}}" data-kiosk-every="{{.Kiosk.Every}}" data-kiosk-dim="{{.Kiosk.Dim}}"{{end}}>
+  {{if not (or .Embed .Kiosk.On)}}{{template "header" .}}{{end}}
   <main class="board-page">
   {{if not .Embed}}
   <nav class="board-nav" aria-label="Boards">
@@ -42,6 +42,7 @@
       {{end}}
       {{if .LayerEdit}}<a class="link-btn" href="/boards/{{.Board.ID}}">{{t "edit.done"}}</a>
       {{else if not .Edit}}<a class="link-btn" href="/boards/{{.Board.ID}}?layout">{{t "edit.my_layout"}}</a>{{end}}
+      <a class="link-btn" href="/boards/{{.Board.ID}}?kiosk&amp;every=60&amp;dim=22-7" title="{{t "board.kiosk_hint"}}">{{t "board.kiosk"}}</a>
       <a class="link-btn" href="/boards/{{.Board.ID}}{{if not .Compact}}?view=compact{{end}}">{{if .Compact}}{{t "board.full"}}{{else}}{{t "board.compact"}}{{end}}</a>
       {{if .Board.HasOverlay}}
       <form method="post" action="/boards/{{.Board.ID}}/overlay/reset" class="inline-form">
@@ -134,7 +135,7 @@
      since {{template}} takes a single argument. */}}
 {{define "section"}}
 {{$b := .B}}{{with .S}}
-<section class="dsec{{if .Collapsed}} is-collapsed{{end}}" data-section="{{.ID}}"{{with .Span}} data-span="{{.}}"{{end}}{{with .Rows}} data-rows="{{.}}"{{end}}{{with .Color}} data-color="{{.}}"{{end}}>
+<section class="dsec{{if .Collapsed}} is-collapsed{{end}}" data-section="{{.ID}}"{{with .Span}} data-span="{{.}}"{{end}}{{with .Rows}} data-rows="{{.}}"{{end}}{{with .Color}} data-color="{{.}}"{{end}}{{with .Mobile}} data-mobile="{{.}}"{{end}}>
   <header class="dsec-head">
     <button class="fold-btn" type="button" aria-expanded="{{if .Collapsed}}false{{else}}true{{end}}"
             data-fold="/boards/{{$b.Board.ID}}/fold/{{.ID}}">
@@ -157,6 +158,7 @@
         <label>{{t "field.span"}}<select name="span">{{$span := .Span}}{{range $b.Spans}}<option value="{{.}}"{{if eq . $span}} selected{{end}}>{{t (print "span." .)}}</option>{{end}}</select></label>
         <label>{{t "field.rows"}}<select name="rows">{{$rows := .Rows}}{{if eq $rows 0}}{{$rows = 1}}{{end}}{{range $b.RowSpans}}<option value="{{.}}"{{if eq . $rows}} selected{{end}}>{{.}}</option>{{end}}</select></label>
         <label>{{t "field.color"}}<select name="color">{{$color := .Color}}<option value="">{{t "opt.none"}}</option>{{range $b.Colors}}<option value="{{.}}"{{if eq (print .) $color}} selected{{end}}>{{t (print "opt." .)}}</option>{{end}}</select></label>
+        <label>{{t "field.mobile"}}<select name="mobile">{{$mobile := .Mobile}}{{range $b.Mobiles}}<option value="{{.}}"{{if eq . $mobile}} selected{{end}}>{{t (print "mobile." (or (print .) "normal"))}}</option>{{end}}</select></label>
         <label class="check"><input type="checkbox" name="collapsed"{{if .Collapsed}} checked{{end}}> {{t "field.collapsed"}}</label>
         <button type="submit">{{t "action.save"}}</button>
       </form>

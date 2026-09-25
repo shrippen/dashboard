@@ -1,5 +1,6 @@
 saved: Gespeichert.
 nav:
+  offline: Offline – letzter bekannter Stand.
   billing: Abrechnung
   home: Zur Startseite
   hints: Hinweise
@@ -115,6 +116,8 @@ oidc:
   sub_taken: Dieses authentik-Konto ist bereits mit einem anderen Benutzer verknüpft.
   unreachable: Identity Provider nicht erreichbar.
 board:
+  kiosk: Wandanzeige
+  kiosk_hint: Vollbild, wechselt jede Minute das Board, 22–7 Uhr gedimmt. Parameter every und dim in der Adresse anpassbar.
   from_template: Aus Vorlage
   template_hint: Legt Board und Widgets im gewählten Bereich an; Widgets mit Verbindung zeigen danach, was noch fehlt.
   bulk_invalid: Nichts ausgewählt oder unbekannte Aktion.
@@ -166,6 +169,7 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  mobile: Auf dem Handy
   max_hours: Höchstalter (Stunden)
   points: Messpunkte
   ical_url: iCal-Adresse
@@ -1734,3 +1738,7 @@ template:
   freelancer: Selbstständig (Stunden, Geld, Fristen)
   homelab: Homelab (Updates, Backups, Hinweise)
   unknown: Unbekannte Vorlage.
+mobile:
+  normal: Normal
+  first: Oben anzeigen
+  hide: Ausblenden

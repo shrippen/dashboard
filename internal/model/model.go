@@ -125,6 +125,7 @@ type Section struct {
 	Span      int    // quarters of the main column, 0 = full width
 	Rows      int    // grid rows, 0 = one
 	Color     string // theme color token, "" = none
+	Mobile    enums.MobileMode
 
 	Placements []Placement // populated by repos.Board
 }

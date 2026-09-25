@@ -116,6 +116,9 @@ func boardDoc(b *model.Board, spaces map[int64]*model.Space) map[string]any {
 		if sec.Color != "" {
 			item["color"] = sec.Color
 		}
+		if sec.Mobile != enums.MobileNormal {
+			item["mobile"] = string(sec.Mobile)
+		}
 		sections = append(sections, item)
 	}
 	return map[string]any{"name": b.Name, "slug": b.Slug, "sections": sections}
@@ -542,6 +545,7 @@ func importBoard(q db.Queryer, who *access.Principal, spaceID int64, item map[st
 		sec.Span, _ = intOf(raw["span"])
 		sec.Rows, _ = intOf(raw["rows"])
 		sec.Color = str(raw, "color")
+		sec.Mobile = enums.MobileMode(str(raw, "mobile"))
 		if err := content.AddSection(q, sec); err != nil {
 			return err
 		}

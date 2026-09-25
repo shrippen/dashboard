@@ -1,5 +1,6 @@
 saved: Saved.
 nav:
+  offline: Offline – last known state.
   billing: Billing
   home: Go to start page
   hints: Hints
@@ -115,6 +116,8 @@ oidc:
   sub_taken: This authentik account is already linked to another user.
   unreachable: Identity provider unreachable.
 board:
+  kiosk: Wall display
+  kiosk_hint: Fullscreen, next board every minute, dimmed 22–7. Adjust every and dim in the address.
   from_template: From template
   template_hint: Creates the board and widgets in the chosen space; widgets needing a connection then show what is missing.
   bulk_invalid: Nothing selected or unknown action.
@@ -166,6 +169,7 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  mobile: On phones
   max_hours: Maximum age (hours)
   points: Data points
   ical_url: iCal address
@@ -1733,3 +1737,7 @@ template:
   freelancer: Freelance (hours, money, deadlines)
   homelab: Homelab (updates, backups, hints)
   unknown: Unknown template.
+mobile:
+  normal: Normal
+  first: Show first
+  hide: Hide

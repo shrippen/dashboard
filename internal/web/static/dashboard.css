@@ -316,6 +316,11 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .card-body { min-width: 0; }
 @media (max-width: 900px) { .board.has-side { grid-template-columns: minmax(0, 1fr); } .board-main > .dsec[data-span] { grid-column: 1 / -1; } }
 @media (max-width: 640px) { .board-tools { margin-left: 0; } .dsec-body { --tile: 100%; } }
+/* Phone layout per section: pinned to the top or left out. */
+@media (max-width: 640px) {
+  .board-main > .dsec[data-mobile="first"] { order: -1; }
+  .board[data-mode=""] .dsec[data-mobile="hide"] { display: none; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
 .loading { color: var(--fg3); font-family: var(--font-mono); font-size: .78rem; }
@@ -585,3 +590,11 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 .rule-params { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
 .rule-params label { display: flex; align-items: center; gap: .4rem; }
 .rule-params input[type=number] { width: 6rem; }
+
+/* Wall display: board only, dimmed at night. */
+.is-kiosk .board-nav, .is-kiosk .board-tools, .is-kiosk .search, .is-kiosk .editbar { display: none; }
+.is-kiosk .board-page { padding-top: 1rem; }
+.is-kiosk.is-dim { filter: brightness(.35); }
+
+/* Offline view: last stored state, marked as such. */
+.offline-note { margin: 0; padding: .4rem 1rem; background: var(--bg2); color: var(--fg1); border-bottom: 1px solid var(--yellow); text-align: center; }
