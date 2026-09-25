@@ -1,0 +1,11 @@
+{% from "partials/slot.html" import state with context %}
+{{ state(frag.slots.get('data')) }}
+<div class="meters">
+{% for item in frag.view['items'] or [] %}
+  <div class="progress">
+    <div class="progress-head"><span>{{ t(item.label_key) if item.label_key else item.label }}</span><span>{{ pct(item.pct) }}</span></div>
+    <div class="progress-bar"><i style="--p:{{ [item.pct * 100, 100] | min }}%" data-tier="{{ 'red' if item.pct >= 1 else ('yellow' if item.pct >= 0.8 else 'green') }}"></i></div>
+    {% if item.goal %}<small class="muted">{{ money(item.value) }} / {{ money(item.goal) }}</small>{% endif %}
+  </div>
+{% else %}{% if frag.view %}<p class="muted">{{ t('widget.empty') }}</p>{% endif %}{% endfor %}
+</div>

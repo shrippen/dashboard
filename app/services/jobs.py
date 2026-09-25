@@ -1,7 +1,9 @@
 """Job registrations. Imported once by the scheduler."""
 
-from app.services import audit, auth, data, hints, icons
-from app.services.scheduler import DAY, HOUR, every
+from app.services import analysis, audit, auth, data, hints, icons
+from app.services.scheduler import DAY, HOUR, MINUTE, every
+
+ANALYSIS_EVERY = 5 * MINUTE
 
 
 @every("housekeeping", HOUR)
@@ -15,3 +17,8 @@ def housekeeping() -> None:
 @every("icons", DAY)
 def retry_icons() -> None:
     icons.forget_misses()
+
+
+@every("analysis", ANALYSIS_EVERY)
+def analyse() -> None:
+    analysis.run_all()

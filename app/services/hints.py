@@ -7,15 +7,16 @@
         open hints of reachable spaces − acknowledged − snoozed(until > now)
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
 
 from app.db.base import session_scope, utcnow
 from app.db.models import Hint, HintMark
-from app.enums import HintAckMode, HintState, Locale, Right, Severity, SpaceKind
+from app.enums import HintAckMode, HintState, Right, Severity, SpaceKind
 from app.repos import content
 from app.repos import data as repo
+from app.rules.base import Finding
 from app.services import access, i18n
 from app.services.access import AccessDenied, Principal
 from app.services.i18n import t
@@ -23,21 +24,6 @@ from app.services.util import NotFound
 
 RESOLVED_RETENTION = timedelta(days=90)
 ACK_MODE = "hint_ack"
-
-
-@dataclass
-class Finding:
-    """One problem found by a rule, e.g. an overdue invoice."""
-
-    fingerprint: str
-    rule: str
-    severity: Severity
-    message: str
-    params: dict = field(default_factory=dict)
-    action_url: str | None = None
-    action_label: str | None = None
-    due: str | None = None
-    sources: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -71,32 +57,35 @@ def sync(
     conn_id: int | None,
     rules: list[str],
     findings: list[Finding],
-) -> list[int]:
-    """Apply one rule run. Returns ids of hints that are new or reopened."""
+) -> int:
+    """Apply one rule run. Returns the number of hints that are new or reopened."""
     now = utcnow()
     fresh: list[int] = []
     with session_scope() as s:
         seen = set()
         for item in findings:
-            seen.add(item.fingerprint)
-            hint = repo.hint_by_print(s, space_id, user_id, item.fingerprint)
+            # Two connections of one service in a space must not share fingerprints.
+            fingerprint = f"{conn_id}:{item.fingerprint}" if conn_id else item.fingerprint
+            seen.add(fingerprint)
+            hint = repo.hint_by_print(s, space_id, user_id, fingerprint)
             if hint is None:
-                hint = repo.add(s, Hint(space_id=space_id, user_id=user_id,
-                                        fingerprint=item.fingerprint, first_seen=now))
-                fresh.append(hint.id)
-            elif hint.resolved_at is not None:
+                hint = Hint(space_id=space_id, user_id=user_id, fingerprint=fingerprint, first_seen=now)
+                _fill(hint, item, conn_id, now)
+                fresh.append(repo.add(s, hint).id)
+                continue
+
+            if hint.resolved_at is not None:
                 hint.resolved_at = None
                 hint.first_seen = now
                 repo.drop_marks(s, hint.id)
                 fresh.append(hint.id)
-
             _fill(hint, item, conn_id, now)
 
         for hint in repo.hints_of_scope(s, space_id, user_id, rules, conn_id):
             if hint.fingerprint not in seen:
                 hint.resolved_at = now
 
-    return fresh
+    return len(fresh)
 
 
 def _fill(hint: Hint, item: Finding, conn_id: int | None, now: datetime) -> None:
@@ -160,7 +149,7 @@ def active(
 
 def _view(hint: Hint, who: Principal) -> HintView:
     locale = who.locale
-    params = {k: _fmt(v, locale) for k, v in (hint.params or {}).items()}
+    params = i18n.typed(hint.params or {}, locale)
     space = who.spaces.get(hint.space_id)
     return HintView(
         id=hint.id,
@@ -176,17 +165,6 @@ def _view(hint: Hint, who: Principal) -> HintView:
         first_seen=_aware(hint.first_seen),
         connection_id=hint.connection_id,
     )
-
-
-def _fmt(value, locale: Locale):
-    """Parameters may carry typed values: {"$money": 12.5} or {"$day": "2026-10-10"}."""
-    if isinstance(value, dict) and "$money" in value:
-        return i18n.money(value["$money"], locale, value.get("currency", i18n.DEFAULT_CURRENCY))
-    if isinstance(value, dict) and "$day" in value:
-        return i18n.day(value["$day"], locale)
-    if isinstance(value, dict) and "$num" in value:
-        return i18n.num(value["$num"], locale, value.get("digits", 0))
-    return value
 
 
 def count_for(who: Principal, conn_id: int) -> tuple[int, int]:

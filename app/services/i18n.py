@@ -54,6 +54,31 @@ def t(key: str, locale: Locale = DEFAULT_LOCALE, **params) -> str:
     return text.format_map(_Safe(params))
 
 
+def typed(params: dict, locale: Locale) -> dict:
+    """Format typed parameters: {"$money": 12.5} → "12,50 €", {"$day": …}, {"$num": …}.
+
+    The key "key" is dropped: it names the text, it is not a parameter.
+    """
+    result = {}
+    for name, value in (params or {}).items():
+        if name == "key":
+            continue
+        result[name] = _typed(value, locale)
+    return result
+
+
+def _typed(value, locale: Locale):
+    if not isinstance(value, dict):
+        return value
+    if "$money" in value:
+        return money(value["$money"], locale, value.get("currency", DEFAULT_CURRENCY))
+    if "$day" in value:
+        return day(value["$day"], locale)
+    if "$num" in value:
+        return num(value["$num"], locale, value.get("digits", 0))
+    return value
+
+
 def pick(accept_language: str | None) -> Locale:
     """First supported language of an Accept-Language header."""
     for part in (accept_language or "").split(","):

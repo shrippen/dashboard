@@ -1,0 +1,7 @@
+{% if not frag.view.configured %}<p class="slot-note">{{ t('deadlines.setup') }} <a href="/spaces/settings">{{ t('nav.space_settings') }}</a></p>{% endif %}
+<ol class="timeline">
+  {% for item in frag.view['items'] or [] %}
+  <li class="{{ 'soon' if item.left <= 3 else '' }}"><time datetime="{{ item.due }}">{{ day(item.due) }}</time>
+    <span>{{ t('deadline.' ~ item.kind, period=item.period, year=item.year) }}{% if item.amount %} · {{ money(item.amount) }}{% endif %}</span></li>
+  {% else %}{% if frag.view.configured %}<li class="muted">{{ t('widget.empty') }}</li>{% endif %}{% endfor %}
+</ol>

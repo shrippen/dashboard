@@ -14,6 +14,12 @@
     <button class="btn btn-outline" type="button" hx-post="/connections/{{ conn.id }}/test" hx-target="#test-result">{{ t('conn.test') }}</button>
     <span id="test-result"></span></div>
 </form>
+<h2 class="sub-head">{{ t('conn.options') }}</h2>
+<form method="post" action="/connections/{{ conn.id }}/options" class="panel stack">{{ csrf_input }}
+  <textarea class="input code-area short" name="options" rows="8" spellcheck="false">{{ options_text or '' }}</textarea>
+  <p class="field-hint">{{ t('conn.options_hint_' ~ conn.service.value) }}</p>
+  <div class="row-actions"><button class="btn btn-outline" type="submit">{{ t('action.save') }}</button></div>
+</form>
 <form method="post" action="/connections/{{ conn.id }}/delete" class="panel" data-confirm="{{ t('edit.confirm_delete') }}">{{ csrf_input }}
   <button class="btn btn-outline danger" type="submit">{{ t('conn.delete') }}</button></form>
 {% endblock %}

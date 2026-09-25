@@ -16,6 +16,18 @@ from app.web.deps import CSRF_FIELD, CSRF_HEADER, Ctx
 TEMPLATES = Path(__file__).resolve().parent / "templates"
 SEVERITY_TIER = {Severity.INFO: "blue", Severity.WARN: "yellow", Severity.CRITICAL: "red"}
 
+# Table widget columns: (label key, row field, format).
+TABLE_COLS = {
+    "open_invoices": [("number", "a", "text"), ("client", "b", "text"), ("due", "due", "day"),
+                      ("late", "late", "late"), ("amount", "money", "money")],
+    "client_shares": [("client", "a", "text"), ("amount", "money", "money"), ("share", "pct", "pct")],
+    "unbilled": [("customer", "a", "text"), ("hours", "hours", "hours"), ("amount", "money", "money"),
+                 ("oldest", "due", "day")],
+    "budgets": [("project", "a", "text"), ("used", "pct", "bar")],
+    "asset_dates": [("name", "a", "text"), ("kind", "b", "upcoming"), ("due", "due", "day")],
+    "trips": [("area", "a", "text"), ("day", "due", "day"), ("km", "km", "km"), ("away", "hours", "hours")],
+}
+
 templates = Jinja2Templates(directory=str(TEMPLATES))
 env = templates.env
 env.trim_blocks = True
@@ -68,6 +80,7 @@ env.globals.update(
     monogram=_monogram,
     icon_url=icons.url_for,
     weather_kind=_weather_kind,
+    TABLE_COLS=TABLE_COLS,
 )
 env.filters["iso"] = _iso
 env.filters["is_hex"] = lambda v: bool(HEX.match(str(v or "")))
@@ -93,6 +106,7 @@ def page(request: Request, ctx: Ctx, template: str, /, status: int = 200, **valu
         "moment": lambda v: i18n.moment(v, locale),
         "ago": lambda v: i18n.ago(v, locale),
         "weekday": lambda v: i18n.weekday(v, locale),
+        "fmt": lambda params: i18n.typed(params, locale),
         "csrf_input": Markup(f'<input type="hidden" name="{CSRF_FIELD}" value="{ctx.csrf}">'),
         "base_url": get_settings().base_url,
     }

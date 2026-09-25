@@ -12,7 +12,8 @@ from app.tools import stylecheck
 from tests.conftest import make_user, who
 
 TEMPLATES = Path(__file__).resolve().parent.parent / "app" / "web" / "templates"
-STATIC_KEY = re.compile(r"(?<![\w.])t\('([a-z_][a-z_.0-9]*[a-z0-9_])'")
+# Static keys only: t('a.b') but not t('a.' ~ name).
+STATIC_KEY = re.compile(r"(?<![\w.])t\('([a-z_][a-z_.0-9]*[a-z0-9_])'(?!\s*~)")
 
 
 def test_catalogs_have_same_keys():

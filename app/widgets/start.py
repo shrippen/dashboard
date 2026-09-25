@@ -5,7 +5,8 @@ from enum import StrEnum
 from pydantic import BaseModel, Field, field_validator
 
 from app.enums import LinkTarget, ServiceType
-from app.widgets.base import ConnUse, Query, WidgetType, register
+from app.metrics.info import parts as info_parts
+from app.widgets.base import ConnUse, Query, ViewCtx, WidgetType, register
 
 WEB_SCHEMES = ("http://", "https://")
 DEFAULT_TIMEZONE = "Europe/Berlin"
@@ -25,7 +26,6 @@ def _web_url(value: str) -> str:
 
 class InfoRef(BaseModel):
     connection: str
-    metric: str = "summary"
 
 
 class LinkConfig(BaseModel):
@@ -43,13 +43,20 @@ class LinkConfig(BaseModel):
     _check_url = field_validator("url", "status_url")(_web_url)
 
 
+def _link_view(cfg: LinkConfig, data: dict, ctx: ViewCtx) -> dict:
+    info = data.get("info")
+    if not info or not ctx.service:
+        return {}
+    return {"info": info_parts(ctx.service, info, ctx.today)}
+
+
 def _link_queries(cfg: LinkConfig) -> list[Query]:
     found = []
     if cfg.status == StatusMode.HTTP:
         params = {"url": cfg.status_url or cfg.url, "accept": cfg.accept, "insecure": cfg.insecure}
         found.append(Query("status", "http_status", params))
     if cfg.info:
-        found.append(Query("info", "info", {"metric": cfg.info.metric}, ConnUse.INFO))
+        found.append(Query("info", "data", {}, ConnUse.INFO))
     return found
 
 
@@ -88,7 +95,8 @@ class NoteConfig(BaseModel):
     text: str = ""
 
 
-register(WidgetType("link", LinkConfig, "widgets/link.html", inline=True, queries=_link_queries))
+register(WidgetType("link", LinkConfig, "widgets/link.html", inline=True, queries=_link_queries,
+                    view=_link_view))
 register(
     WidgetType(
         "rss",

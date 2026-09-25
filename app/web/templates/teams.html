@@ -26,7 +26,8 @@
     <select class="select" name="theme_id"><option value="">–</option>{% for th in theme_list %}<option value="{{ th.id }}"{% if st.get('theme_id') == th.id %} selected{% endif %}>{{ th.name }}</option>{% endfor %}</select>
     <button class="btn btn-outline btn-sm" type="submit">{{ t('action.save') }}</button></form>
   {% endif %}
-  <p class="row-actions"><a href="/spaces/{{ tm.space_id }}/code">{{ t('edit.code') }}</a></p>
+  <p class="row-actions"><a href="/spaces/{{ tm.space_id }}/code">{{ t('edit.code') }}</a>
+    <a href="/spaces/{{ tm.space_id }}/settings">{{ t('nav.space_settings') }}</a></p>
   {% if who.is_admin %}<form method="post" action="/teams/{{ tm.id }}/delete" data-confirm="{{ t('teams.confirm_delete') }}">{{ csrf_input }}<button class="link-btn danger" type="submit">{{ t('teams.delete') }}</button></form>{% endif %}
 </section>
 {% else %}<p class="muted">{{ t('teams.none') }}</p>{% endfor %}

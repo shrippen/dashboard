@@ -156,6 +156,17 @@ def update(who: Principal, conn_id: int, name: str, url: str, mode: CredentialMo
         audit.log(s, who.user_id, "connection.updated", target=conn.name)
 
 
+def set_options(who: Principal, conn_id: int, options: dict) -> None:
+    """Service specific options, e.g. Dawarich area → Kimai customer mapping."""
+    with session_scope() as s:
+        conn = content.connection(s, conn_id)
+        if conn is None:
+            raise NotFound("connection")
+        access.need(_right(s, who, conn), Right.MANAGE)
+        conn.options = options
+        audit.log(s, who.user_id, "connection.options", target=conn.name)
+
+
 def delete(who: Principal, conn_id: int) -> None:
     with session_scope() as s:
         conn = content.connection(s, conn_id)

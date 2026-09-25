@@ -6,7 +6,7 @@ from pathlib import Path
 from app.db.base import session_scope
 from app.enums import InstanceRole, Locale
 from app.repos import content, users
-from app.services import access, accounts, porting
+from app.services import access, accounts, analysis, porting
 from app.services.porting import ImportMode
 
 log = logging.getLogger(__name__)
@@ -61,4 +61,5 @@ def demo() -> None:
 
     porting.import_space(admin_who, instance_id, DEMO_FILE.read_text(), ImportMode.MERGE)
     porting.import_space(user_who, personal_id, DEMO_PERSONAL.read_text(), ImportMode.MERGE)
+    analysis.run_all()
     log.warning("DEMO MODE: %s / %s and %s / %s", DEMO_ADMIN, DEMO_PASSWORD, DEMO_USER, DEMO_PASSWORD)

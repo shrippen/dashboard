@@ -173,6 +173,10 @@ def export_board(who: Principal, board_id: int) -> str:
 # ── Import ──
 
 
+def dump_yaml(value: dict) -> str:
+    return yaml.safe_dump(value, allow_unicode=True, sort_keys=False)
+
+
 def load_yaml(text: str) -> dict:
     if len(text.encode()) > MAX_IMPORT_BYTES:
         raise PortError("import.too_large")

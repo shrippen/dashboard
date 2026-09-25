@@ -13,7 +13,7 @@ from app.enums import (
     TeamRole,
     TileSize,
 )
-from app.services import access, boards, connections, icons, porting, shares, themes, widgets
+from app.services import access, boards, connections, icons, porting, shares, spaces, themes, widgets
 from app.services.access import SpaceRef
 from app.services.connections import ConnError, Tls
 from app.services.porting import ImportMode, PortError
@@ -319,8 +319,9 @@ def connection_create(
 
 @router.get("/connections/{conn_id}")
 def connection_edit(request: Request, conn_id: int, ctx: Ctx = Depends(deps.require)):
-    return page(request, ctx, "editor/connection_edit.html", conn=connections.get(ctx.who, conn_id),
-                modes=list(CredentialMode), result=None)
+    conn = connections.get(ctx.who, conn_id)
+    return page(request, ctx, "editor/connection_edit.html", conn=conn, modes=list(CredentialMode),
+                result=None, options_text=porting.dump_yaml(conn.options) if conn.options else "")
 
 
 @router.post("/connections/{conn_id}")
@@ -430,3 +431,78 @@ def share_grant(request: Request, kind: ResourceKind, resource_id: int, grantee:
 def share_revoke(share_id: int, back: str = Form("/"), ctx: Ctx = Depends(deps.require)):
     shares.revoke(ctx.who, share_id)
     return deps.redirect(back if back.startswith("/") and not back.startswith("//") else "/")
+
+
+# ── Space settings: goals, tax, rules ──
+
+VAT_METHODS = ("ist", "soll")
+VAT_INTERVALS = ("monthly", "quarterly")
+
+
+@router.get("/spaces/settings")
+def my_space_settings(ctx: Ctx = Depends(deps.require)):
+    return deps.redirect(f"/spaces/{access.personal(ctx.who).id}/settings")
+
+
+@router.get("/spaces/{space_id}/settings")
+def space_settings(request: Request, space_id: int, ctx: Ctx = Depends(deps.require)):
+    settings = spaces.settings(ctx.who, space_id)
+    return page(request, ctx, "editor/space_settings.html", space_id=space_id, settings=settings,
+                rules=spaces.rule_views(settings), methods=VAT_METHODS, intervals=VAT_INTERVALS,
+                saved=request.query_params.get("saved"))
+
+
+def _number(raw, fallback):
+    try:
+        return float(raw) if "." in str(raw) or isinstance(fallback, float) else int(raw)
+    except (TypeError, ValueError):
+        return fallback
+
+
+@router.post("/spaces/{space_id}/settings")
+async def space_settings_save(request: Request, space_id: int, ctx: Ctx = Depends(deps.require)):
+    form = await request.form()
+    rules_cfg: dict = {}
+    for rule_id, defaults in spaces.rule_defaults().items():
+        values = {}
+        for key, default in defaults.items():
+            name = f"rule.{rule_id}.{key}"
+            if isinstance(default, bool):
+                values[key] = form.get(name) is not None
+            elif isinstance(default, list):
+                values[key] = [p.strip() for p in str(form.get(name, "")).split(",") if p.strip()]
+            else:
+                values[key] = _number(form.get(name), default)
+        rules_cfg[rule_id] = values
+
+    changes = {
+        "goals": {
+            "revenue_year": _number(form.get("revenue_year") or 0, 0.0),
+            "hours_per_day": _number(form.get("hours_per_day") or 8, 8.0),
+        },
+        "tax": {
+            "vat": {"method": form.get("vat_method") if form.get("vat_method") in VAT_METHODS else "ist",
+                    "return_interval": form.get("vat_interval") if form.get("vat_interval") in VAT_INTERVALS
+                    else "monthly",
+                    "extension": form.get("vat_extension") is not None},
+            "prepayments": {"amount": _number(form.get("prepayment") or 0, 0.0)},
+            "annual_due": str(form.get("annual_due") or "07-31"),
+            "income_tax_rate": _number(form.get("income_tax_rate") or 0.3, 0.3),
+        },
+        "rules": rules_cfg,
+    }
+    spaces.update_settings(ctx.who, space_id, changes)
+    return deps.redirect(f"/spaces/{space_id}/settings?saved=1")
+
+
+@router.post("/connections/{conn_id}/options")
+def connection_options(request: Request, conn_id: int, options: str = Form(""),
+                       ctx: Ctx = Depends(deps.require)):
+    try:
+        parsed = porting.load_yaml(options) if options.strip() else {}
+        connections.set_options(ctx.who, conn_id, parsed)
+    except PortError as exc:
+        return page(request, ctx, "editor/connection_edit.html", status=400, error=str(exc),
+                    conn=connections.get(ctx.who, conn_id), modes=list(CredentialMode), result=None,
+                    options_text=options)
+    return deps.redirect(f"/connections/{conn_id}")

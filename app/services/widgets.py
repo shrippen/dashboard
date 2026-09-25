@@ -6,20 +6,23 @@
 """
 
 from dataclasses import dataclass, field
+from datetime import date
 
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
 from app.db.base import session_scope
 from app.db.models import Connection, Revision, Widget
-from app.enums import ResourceKind, RevisionKind, Right, ServiceType, TeamRole
+from app.enums import ResourceKind, RevisionKind, Right, ServiceType, Severity, TeamRole
 from app.repos import content, misc
 from app.services import access, data, hints, porting
 from app.services.access import AccessDenied, Principal, SpaceRef
 from app.services.data import Freshness
 from app.services.util import Conflict, NotFound, slug, unique
 from app.widgets import base as types
-from app.widgets.base import ConnUse
+from app.widgets.base import ConnUse, Extra, Query, ViewCtx
+
+GENERIC_SOURCES = ("data", "test")
 
 
 class WidgetError(ValueError):
@@ -61,6 +64,7 @@ class Fragment:
     slots: dict[str, Slot] = field(default_factory=dict)
     hint_count: int = 0
     hint_level: int = 0
+    view: dict = field(default_factory=dict)
 
 
 # ── Library ──
@@ -259,23 +263,36 @@ def load(who: Principal, widget: Widget, fresh: Freshness = Freshness.CACHED) ->
         conn = content.connection(s, widget.connection_id) if widget.connection_id else None
         info_key = getattr(getattr(config, "info", None), "connection", None)
         info_conn = _info_connection(s, who, widget, info_key) if info_key else None
+        space = content.space(s, widget.space_id)
+        settings = dict(space.settings or {}) if space else {}
 
     for query in kind.queries(config):
-        target = conn if query.conn == ConnUse.WIDGET else info_conn
-        if query.conn == ConnUse.NONE:
-            target = None
+        target = {ConnUse.WIDGET: conn, ConnUse.INFO: info_conn}.get(query.conn)
         if query.conn != ConnUse.NONE and target is None:
             result.slots[query.name] = Slot(error="connection.missing")
             continue
 
-        source = f"{target.service}.info" if query.conn == ConnUse.INFO else query.source
-        result.slots[query.name] = _run(source, query.params, target, who.user_id, fresh)
+        result.slots[query.name] = _run(_source(query, target), query.params, target, who.user_id, fresh)
 
-    hint_conn = info_conn or conn
-    if hint_conn is not None:
-        result.hint_count, result.hint_level = hints.count_for(who, hint_conn.id)
+    service_conn = info_conn or conn
+    if service_conn is not None:
+        result.hint_count, result.hint_level = hints.count_for(who, service_conn.id)
+
+    if kind.view is not None:
+        ctx = ViewCtx(date.today(), settings, dict(service_conn.options or {}) if service_conn else {},
+                      service_conn.service if service_conn else None)
+        result.view = kind.view(config, {k: v.data for k, v in result.slots.items() if v.data}, ctx)
+    if kind.extra == Extra.HINTS:
+        result.view = {"hints": hints.active(who, Severity(config.min_severity), config.sources, config.limit)}
 
     return result
+
+
+def _source(query: Query, target: Connection | None) -> str:
+    """Generic "data"/"test" queries resolve to the service of the connection."""
+    if target is not None and query.source in GENERIC_SOURCES:
+        return f"{target.service}.{query.source}"
+    return query.source
 
 
 def _run(source: str, params: dict, conn, user_id: int, fresh: Freshness) -> Slot:

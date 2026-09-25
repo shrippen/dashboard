@@ -1,0 +1,19 @@
+{% from "partials/slot.html" import state with context %}
+{{ state(frag.slots.get('data')) }}
+{% set bars = frag.view.bars %}
+{% if bars is none and frag.view %}<p class="slot-note">{{ t('widget.unsupported') }}</p>
+{% elif bars %}
+{% set top = [bars | map(attribute='value') | max, bars | map(attribute='prev') | max, 1] | max %}
+{% set w = 1000 %}{% set h = 200 %}{% set pad = 10 %}{% set step = (w - pad) / bars | length %}
+<svg class="chart" viewBox="0 0 {{ w }} {{ h + 20 }}" role="img" aria-label="{{ t('chart.' ~ frag.config.chart.value) }}">
+  <line class="axis" x1="{{ pad }}" y1="{{ h }}" x2="{{ w }}" y2="{{ h }}"/>
+  {% for b in bars %}
+  {% set x = pad + loop.index0 * step %}
+  {% set hp = (b.prev / top) * (h - 10) %}{% set hv = (b.value / top) * (h - 10) %}
+  <rect class="bar prev" x="{{ x + step * 0.1 }}" y="{{ h - hp }}" width="{{ step * 0.35 }}" height="{{ hp }}"><title>{{ b.label }} ({{ t('chart.prev') }}): {{ money(b.prev) if bars and frag.view.unit == 'money' else num(b.prev, 1) }}</title></rect>
+  <rect class="bar" x="{{ x + step * 0.47 }}" y="{{ h - hv }}" width="{{ step * 0.4 }}" height="{{ hv }}"><title>{{ b.label }}: {{ money(b.value) if frag.view.unit == 'money' else num(b.value, 1) }}</title></rect>
+  {% if loop.index0 % 2 == 0 %}<text x="{{ x + step / 2 }}" y="{{ h + 14 }}" text-anchor="middle">{{ b.label[5:] }}/{{ b.label[2:4] }}</text>{% endif %}
+  {% endfor %}
+</svg>
+<p class="legend"><span><i></i>{{ t('chart.this') }}</span><span><i class="prev"></i>{{ t('chart.prev') }}</span></p>
+{% endif %}

@@ -24,6 +24,23 @@ class ConnUse(StrEnum):
     INFO = "info"
 
 
+class Extra(StrEnum):
+    """Additional data the widget service supplies besides the queries."""
+
+    NONE = "none"
+    HINTS = "hints"
+
+
+@dataclass(frozen=True)
+class ViewCtx:
+    """What a view function may use: no I/O, only values."""
+
+    today: object
+    settings: dict
+    options: dict
+    service: str | None
+
+
 class Category(StrEnum):
     START = "start"
     INSIGHT = "insight"
@@ -52,6 +69,9 @@ class WidgetType:
     # Inline widgets render with the page (search needs link tiles in the HTML).
     inline: bool = False
     queries: Callable[[BaseModel], list[Query]] = no_queries
+    # Shapes query results for the template: view(config, {slot: data}, ViewCtx) -> dict
+    view: Callable[[BaseModel, dict, ViewCtx], dict] | None = None
+    extra: Extra = Extra.NONE
 
 
 _registry: dict[str, WidgetType] = {}
