@@ -165,3 +165,34 @@ func TestLinkTilesReachCrossRules(t *testing.T) {
 		t.Fatalf("expected one kuma.unmonitored hint, got %d", count)
 	}
 }
+
+// Two connections failing on one host give one outage hint instead of two
+// connector hints.
+func TestRunAllBundlesOutage(t *testing.T) {
+	d := openTestDB(t)
+	sid := addSpace(t, d)
+	for _, svc := range []string{"kimai", "gitea"} {
+		conn := &model.Connection{
+			SpaceID: sid, Key: svc, Name: svc, Service: svc, URL: "http://127.0.0.1:1",
+			CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC(),
+			SecretEnc: encryptedSecret(t, "tok"),
+		}
+		if err := content.AddConnection(d, conn); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := analysis.RunAll(context.Background(), d, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+
+	count := func(rule string) int {
+		var n int
+		if err := d.QueryRow("SELECT COUNT(*) FROM hints WHERE rule = ? AND resolved_at IS NULL", rule).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	if count("system.outage") != 1 || count("system.connector_down") != 0 {
+		t.Fatalf("outage %d, connector %d", count("system.outage"), count("system.connector_down"))
+	}
+}

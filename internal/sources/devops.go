@@ -245,6 +245,7 @@ func latestFailedRun(ctx context.Context, api services.GiteaApi, repo string) st
 type BorgClient struct {
 	Name, Status string // online, offline, error, setup
 	LastSeen     time.Time
+	LastBackup   time.Time // zero when the server does not report it
 }
 
 type BorgDataset struct {
@@ -308,7 +309,8 @@ func parseBorg(base string, dash, clients any) *BorgDataset {
 	}
 	for _, raw := range asList(asMap(clients)["clients"]) {
 		c := asMap(raw)
-		data.Clients = append(data.Clients, BorgClient{Name: asStr(c["name"]), Status: asStr(c["status"]), LastSeen: borgTime(c["last_heartbeat"])})
+		data.Clients = append(data.Clients, BorgClient{Name: asStr(c["name"]), Status: asStr(c["status"]), LastSeen: borgTime(c["last_heartbeat"]),
+			LastBackup: borgTime(c["last_backup_at"])})
 	}
 	return data
 }

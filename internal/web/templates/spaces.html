@@ -54,6 +54,24 @@
         <p class="small muted">{{t "settings.tax_hint"}}</p>
       </div>
 
+      <h2>{{t "settings.custom"}}</h2>
+      <p class="small muted">{{t "settings.custom_hint"}}</p>
+      <input type="hidden" name="cr_count" value="{{len .Custom}}">
+      <div class="table-wrap"><table class="table custom-rules">
+        <tr><th>{{t "field.title"}}</th><th>{{t "settings.custom_source"}}</th><th>{{t "settings.custom_path"}}</th><th>{{t "settings.custom_if"}}</th><th>{{t "settings.custom_level"}}</th><th></th></tr>
+        {{range $i, $r := .Custom}}
+        <tr>
+          <td><input type="hidden" name="cr.{{$i}}.id" value="{{$r.ID}}"><input name="cr.{{$i}}.title" value="{{$r.Title}}" aria-label="{{t "field.title"}}"></td>
+          <td><select name="cr.{{$i}}.service" aria-label="{{t "settings.custom_source"}}"><option value="">–</option>{{range $.Services}}<option value="{{.}}"{{if eq (print .) $r.Service}} selected{{end}}>{{t (print "service." .)}}</option>{{end}}</select></td>
+          <td><input name="cr.{{$i}}.path" value="{{$r.Path}}" placeholder="Slots" aria-label="{{t "settings.custom_path"}}"></td>
+          <td class="custom-if"><select name="cr.{{$i}}.op" aria-label="{{t "settings.custom_if"}}">{{range $.Ops}}<option{{if eq . $r.Op}} selected{{end}}>{{.}}</option>{{end}}</select>
+            <input name="cr.{{$i}}.value" value="{{if $r.ID}}{{$r.Value}}{{end}}" inputmode="decimal" aria-label="{{t "settings.custom_value"}}"></td>
+          <td><select name="cr.{{$i}}.severity" aria-label="{{t "settings.custom_level"}}">{{range $.Levels}}<option value="{{.}}"{{if eq . $r.Severity}} selected{{end}}>{{if eq . 30}}{{t "severity.critical"}}{{else if eq . 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</option>{{end}}</select></td>
+          <td>{{if $r.ID}}<label class="check"><input type="checkbox" name="cr.{{$i}}.delete"> {{t "action.delete"}}</label>{{else}}<span class="muted small">{{t "settings.custom_new"}}</span>{{end}}</td>
+        </tr>
+        {{end}}
+      </table></div>
+
       <h2>{{t "settings.rules"}}</h2>
       <div class="table-wrap"><table class="table">
         <tr><th>{{t "settings.rule"}}</th><th>{{t "settings.params"}}</th></tr>

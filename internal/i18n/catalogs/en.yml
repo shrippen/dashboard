@@ -18,6 +18,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_jsonapi: Open API
   open_in_pihole: Open in Pi-hole
   open_in_adguard: Open in AdGuard Home
   open_in_nextcloud: Open in Nextcloud
@@ -149,6 +150,7 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  max_hours: Maximum age (hours)
   points: Data points
   ical_url: iCal address
   fields: Fields
@@ -309,6 +311,12 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  updates:
+    name: Update center
+    desc: Every available update of the connected services in one place.
+  backups:
+    name: Backup overview
+    desc: Last backup per Borg client, PG Back Web database and TrueNAS snapshot, problems first.
   glances_chart:
     name: Glances history
     desc: History of one metric (CPU, RAM, load, swap) from a Glances connection.
@@ -486,6 +494,7 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_jsonapi: 'URL of a JSON response. Options: header: X-Api-Key (else Authorization: Bearer <token>). Token optional. Check fields with custom rules, e.g. stats.users.'
   options_hint_pihole: No options. Token = app password (Pi-hole v6) or API token (v5).
   options_hint_adguard: No options. Token = user:password.
   options_hint_nextcloud: 'No options. Token = serverinfo token (occ config:app:set serverinfo token --value …) or admin:app-password.'
@@ -513,7 +522,7 @@ conn:
   options_hint_uptimekuma: No options needed. Token = API key from Uptime Kuma (Settings → API Keys).
   options_hint_proxmox: 'No options needed. Token = user@pam!name=uuid, role PVEAuditor, Sys.Audit for updates.'
   options_hint_paperless: 'Token from Paperless (profile → API auth token). Optional invoice_types: [Invoice] – document types compared with Invoice Ninja expenses; amount from a monetary field.'
-  options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – checks the URL host and these hosts. No token needed.'
+  options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – checks the URL host and these hosts. With auto: true also every https tile and Pangolin resource. No token needed.'
   lead: Connections to services. Tokens are stored encrypted and never shown again.
   new: New connection
   credentials: Credentials
@@ -541,6 +550,9 @@ mode:
   dark: Dark
   light: Light
 service:
+  jsonapi: Custom API (JSON)
+  backups: Backups
+  system: System
   pihole: Pi-hole
   adguard: AdGuard Home
   nextcloud: Nextcloud
@@ -812,6 +824,18 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  backups:
+    gap:
+      title: '{count} services without a visible backup'
+      why: '{names}. No backup entry (Borg client, PG Back Web backup, snapshot) carries their name.'
+  discovery:
+    no_tile:
+      title: '{count} services from {service} without a tile'
+      why: '{names}. Add a link tile or ignore on purpose.'
+  custom:
+    rule:
+      title: '{title}'
+      why: '{path} is {value} ({op} {threshold}).'
   dnsfilter:
     disabled:
       title: 'Ad blocking in {service} switched off'
@@ -856,6 +880,9 @@ hint:
       title: Blacklist lookup refused
       why: '{zones} does not answer public DNS resolvers. Use an own resolver.'
   truenas:
+    snapshot_failed:
+      title: 'Snapshot task for {dataset} failed'
+      why: Check the data protection tasks in TrueNAS; without snapshots there is no fallback.
     pool_unhealthy:
       title: 'Pool {pool} is {status}'
       why: Check disks and scrub result in TrueNAS, back up data.
@@ -1193,6 +1220,9 @@ hint:
       title: Tax returns {year} due {day}
       why: Profit statement, income tax and VAT return.
   system:
+    outage:
+      title: '{host} unreachable'
+      why: '{count} services affected: {names}. Their single hints are held back.'
     connector_down:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
@@ -1281,6 +1311,10 @@ kpi:
   of_goal: goal {goal}
   cash_30: open + recurring, 30 days
 col:
+  item: Item
+  tool: Tool
+  last: Last
+  state: State
   app: Application
   logins: Logins
   users: Users
@@ -1325,6 +1359,11 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  truenas.snapshot_failed: Snapshot failed
+  backups.gap: Services without backup
+  system.outage: Host outage
+  discovery.no_tile: Services without a tile
+  custom.rules: Custom rules
   pihole.disabled: Pi-hole switched off
   pihole.lists_old: Pi-hole lists outdated
   adguard.disabled: AdGuard switched off
@@ -1464,6 +1503,14 @@ param:
   date_window: Date window (days)
   notice_days: Notice (days)
 settings:
+  custom: Custom rules
+  custom_hint: 'Threshold on a dataset field, e.g. SABnzbd "Slots" > 10 or Custom API "stats.users" < 1. Count lists with "#": "Failures#" >= 1. The connection test shows field names.'
+  custom_source: Source
+  custom_path: Field
+  custom_if: If
+  custom_value: Value
+  custom_level: Level
+  custom_new: new
   page: Page
   page_title: Title
   page_description: Description
@@ -1570,3 +1617,11 @@ joke:
   reveal: Punchline
 stocks:
   source: Data from stooq, delayed.
+topic:
+  updates_none: Everything up to date.
+backup:
+  ok: current
+  old: outdated
+  failed: failed
+  unknown: unknown
+  none: No backup tools connected.

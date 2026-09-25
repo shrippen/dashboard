@@ -341,8 +341,8 @@ func DemoBorg(now time.Time) *BorgDataset {
 	return &BorgDataset{URL: "https://borg.demo", Failed24h: 1, Completed24h: 5, UsedBytes: 3.1e12, TotalBytes: 4e12,
 		LastBackup: now.UTC().Add(-7 * time.Hour), AgentsOutdated: 1,
 		Clients: []BorgClient{
-			{Name: "nas", Status: "online", LastSeen: now.UTC().Add(-time.Minute)},
-			{Name: "laptop", Status: "offline", LastSeen: now.UTC().AddDate(0, 0, -6)},
+			{Name: "nas", Status: "online", LastSeen: now.UTC().Add(-time.Minute), LastBackup: now.UTC().Add(-7 * time.Hour)},
+			{Name: "laptop", Status: "offline", LastSeen: now.UTC().AddDate(0, 0, -6), LastBackup: now.UTC().AddDate(0, 0, -6)},
 		}}
 }
 
@@ -426,6 +426,10 @@ func DemoTrueNAS() *TrueNASDataset {
 		},
 		Alerts: []TNAlert{{ID: "a1", Level: "WARNING", Text: "Device /dev/sdc is causing slow I/O on pool fast."}},
 		Apps:   []TNApp{{Name: "jellyfin", State: "RUNNING", Update: true}, {Name: "syncthing", State: "RUNNING"}},
+		Snapshots: []SnapTask{
+			{Dataset: "tank/photos", State: "FINISHED", Enabled: true, Last: time.Now().UTC().Add(-2 * time.Hour)},
+			{Dataset: "fast/vms", State: "ERROR", Enabled: true, Last: time.Now().UTC().Add(-26 * time.Hour)},
+		},
 	}
 }
 

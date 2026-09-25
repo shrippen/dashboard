@@ -36,6 +36,7 @@ type TrueNASApi struct {
 // restPaths maps JSON-RPC methods to the REST v2.0 fallback.
 var restPaths = map[string]string{
 	"system.info": "system/info", "pool.query": "pool", "alert.list": "alert/list", "app.query": "app",
+	"pool.snapshottask.query": "pool/snapshottask",
 }
 
 // Session runs several calls on one connection.

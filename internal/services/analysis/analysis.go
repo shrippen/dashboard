@@ -89,37 +89,134 @@ func RunAll(ctx context.Context, d *sql.DB, today time.Time) (int, error) {
 
 	fresh := 0
 	for _, sp := range spaces {
-		settings := sp.Settings
-		if settings == nil {
-			settings = map[string]any{}
-		}
-		mine := connectionsOf(conns, sp.ID)
-
-		links, err := spaceLinks(d, sp.ID)
+		n, err := runSpace(ctx, d, sp, connectionsOf(conns, sp.ID), owners, today)
 		if err != nil {
-			slog.Error("analysis: links failed", "space", sp.ID, "err", err)
+			slog.Error("analysis: space failed", "space", sp.ID, "err", err)
 		}
+		fresh += n
+	}
+	return fresh, nil
+}
 
-		scopes := map[ownerKey]*scope{{nil}: newScope(sp.ID, nil, settings)}
-		for _, conn := range mine {
-			n, err := runConnection(ctx, d, conn, owners[conn.ID], scopes, settings, today)
+// run is one fetched connection for one credential owner.
+type run struct {
+	conn   *model.Connection
+	owner  *int64
+	result svcdata.Result
+}
+
+// runSpace fetches every connection first, then evaluates: rules see all
+// datasets and failures of the space, so one outage becomes one hint.
+func runSpace(ctx context.Context, d *sql.DB, sp *model.Space, mine []*model.Connection, owners map[int64][]int64, today time.Time) (int, error) {
+	settings := sp.Settings
+	if settings == nil {
+		settings = map[string]any{}
+	}
+	links, err := spaceLinks(d, sp.ID)
+	if err != nil {
+		slog.Error("analysis: links failed", "space", sp.ID, "err", err)
+	}
+
+	scopes := map[ownerKey]*scope{{nil}: newScope(sp.ID, nil, settings)}
+	scopeOf := func(owner *int64) *scope {
+		key := ownerKey{owner}
+		if _, ok := scopes[key]; !ok {
+			scopes[key] = newScope(sp.ID, owner, settings)
+		}
+		return scopes[key]
+	}
+
+	// Certificate checks go last: they may pick up hosts found by others.
+	var runs []run
+	for _, conn := range certsLast(mine) {
+		for _, owner := range owningUsers(conn, owners[conn.ID]) {
+			sc := scopeOf(owner)
+			target := conn
+			if conn.Service == string(enums.ServiceCerts) {
+				target = withAutoHosts(conn, links, sc.datasets)
+			}
+			result, err := svcdata.Get(ctx, d, sources.DataKey(enums.ServiceType(conn.Service)), nil, target, owner, svcdata.Cached)
+			if errors.Is(err, svcdata.ErrMissingCredential) {
+				continue
+			}
 			if err != nil {
 				slog.Error("analysis: connection failed", "connection", conn.Name, "err", err)
 				continue
 			}
-			fresh += n
-		}
-		for _, sc := range scopes {
-			sc.datasets[rules.LinksDataset] = links
-			n, err := runScope(d, sc, today)
-			if err != nil {
-				slog.Error("analysis: cross/deadline rules failed", "space", sp.ID, "err", err)
-				continue
+			runs = append(runs, run{conn: conn, owner: owner, result: result})
+			if result.Data != nil {
+				sc.datasets[conn.Service] = result.Data
+				sc.options[conn.Service] = conn.Options
 			}
-			fresh += n
+			if !result.Ok() {
+				failed, _ := sc.datasets[rules.FailedDataset].([]rules.Failed)
+				sc.datasets[rules.FailedDataset] = append(failed, rules.Failed{Service: conn.Service, Name: conn.Name, Host: rules.HostOf(conn.URL)})
+			}
 		}
 	}
+	for _, sc := range scopes {
+		sc.datasets[rules.LinksDataset] = links
+	}
+
+	fresh := 0
+	for _, r := range runs {
+		n, err := evaluate(d, r, scopeOf(r.owner), settings, today)
+		if err != nil {
+			return fresh, err
+		}
+		fresh += n
+	}
+	for _, sc := range scopes {
+		n, err := runScope(d, sc, today)
+		if err != nil {
+			return fresh, err
+		}
+		fresh += n
+	}
 	return fresh, nil
+}
+
+// certsLast orders certificate connections after all others.
+func certsLast(conns []*model.Connection) []*model.Connection {
+	out := make([]*model.Connection, 0, len(conns))
+	var certs []*model.Connection
+	for _, c := range conns {
+		if c.Service == string(enums.ServiceCerts) {
+			certs = append(certs, c)
+			continue
+		}
+		out = append(out, c)
+	}
+	return append(out, certs...)
+}
+
+// evaluate turns one fetched connection into hints.
+func evaluate(d *sql.DB, r run, sc *scope, settings map[string]any, today time.Time) (int, error) {
+	env := rules.Env{Today: today, Settings: settings, Datasets: sc.datasets, Options: sc.options}
+	outages := rules.Outages(env)
+
+	// A connection on a host that is down as a whole is part of the outage hint.
+	var down []rules.Finding
+	if _, inOutage := outages[rules.HostOf(r.conn.URL)]; !r.result.Ok() && !inOutage {
+		down = []rules.Finding{downFinding(r.conn, r.result.Error)}
+	}
+	fresh, err := syncHints(d, r.conn.SpaceID, r.owner, &r.conn.ID, []string{connectorRule}, down)
+	if err != nil || r.result.Data == nil {
+		return fresh, err
+	}
+
+	if err := snapshot(d, r.conn, r.owner, r.result.Data, today); err != nil {
+		slog.Error("analysis: snapshot failed", "connection", r.conn.Name, "err", err)
+	}
+	findings, ids := apply(rules.ForScope(r.conn.Service), r.result.Data, env)
+	kept := findings[:0]
+	for _, f := range findings {
+		if !rules.Suppressed(f, env, outages) {
+			kept = append(kept, f)
+		}
+	}
+	n, err := syncHints(d, r.conn.SpaceID, r.owner, &r.conn.ID, ids, kept)
+	return fresh + n, err
 }
 
 // spaceLinks returns the space's link tiles, for rules that compare them
@@ -162,54 +259,6 @@ func owningUsers(conn *model.Connection, users []int64) []*int64 {
 		out[i] = &users[i]
 	}
 	return out
-}
-
-func runConnection(ctx context.Context, d *sql.DB, conn *model.Connection, users []int64, scopes map[ownerKey]*scope, settings map[string]any, today time.Time) (int, error) {
-	fresh := 0
-	for _, owner := range owningUsers(conn, users) {
-		key := ownerKey{owner}
-		sc, ok := scopes[key]
-		if !ok {
-			sc = newScope(conn.SpaceID, owner, settings)
-			scopes[key] = sc
-		}
-
-		sourceKey := sources.DataKey(enums.ServiceType(conn.Service))
-		result, err := svcdata.Get(ctx, d, sourceKey, nil, conn, owner, svcdata.Cached)
-		if err != nil {
-			if errors.Is(err, svcdata.ErrMissingCredential) {
-				continue
-			}
-			return fresh, err
-		}
-
-		var down []rules.Finding
-		if !result.Ok() {
-			down = []rules.Finding{downFinding(conn, result.Error)}
-		}
-		n, err := syncHints(d, conn.SpaceID, owner, &conn.ID, []string{connectorRule}, down)
-		if err != nil {
-			return fresh, err
-		}
-		fresh += n
-		if result.Data == nil {
-			continue
-		}
-
-		sc.datasets[conn.Service] = result.Data
-		sc.options[conn.Service] = conn.Options
-		if err := snapshot(d, conn, owner, result.Data, today); err != nil {
-			slog.Error("analysis: snapshot failed", "connection", conn.Name, "err", err)
-		}
-		env := rules.Env{Today: today, Settings: settings, Datasets: sc.datasets, Options: sc.options}
-		findings, ids := apply(rules.ForScope(conn.Service), result.Data, env)
-		n, err = syncHints(d, conn.SpaceID, owner, &conn.ID, ids, findings)
-		if err != nil {
-			return fresh, err
-		}
-		fresh += n
-	}
-	return fresh, nil
 }
 
 // snapshot stores one value per metric and day, for the trend widget.

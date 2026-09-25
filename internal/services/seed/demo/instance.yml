@@ -45,6 +45,8 @@ widgets:
   - {id: gluetun-link, type: link, title: Gluetun, config: {url: "https://github.com/qdm12/gluetun", icon: "hl-gluetun", description: VPN, status: "off", info: {connection: gluetun}}}
   - {id: domains-link, type: link, title: Domains, config: {url: "https://rdap.org", icon: "mdi-web", description: Registrierung, status: "off", info: {connection: domains}}}
   - {id: blacklist-link, type: link, title: Blacklist, config: {url: "https://www.spamhaus.org", icon: "mdi-email-alert", description: Mailserver, status: "off", info: {connection: blacklist}}}
+  - {id: updates, type: updates, title: Updates, config: {}}
+  - {id: backups, type: backups, title: Backups, config: {}}
   - {id: authentik-apps, type: table, title: Anmeldungen je Anwendung, connection: authentik, config: {table: app_usage, limit: 5}}
   - {id: hass-panel, type: hass, title: Zuhause, connection: hass, config: {entities: [light.buero, switch.kaffeemaschine, sensor.wohnzimmer_temperatur, sensor.fenster_bad_batterie]}}
   - {id: monitors, type: monitors, title: Monitore, connection: kuma, config: {}}
@@ -65,4 +67,4 @@ boards:
       - {title: Netz, cols: 4, span: 2, color: blue, widgets: [pihole-link, nextcloud-link, sabnzbd-link, gluetun-link, domains-link, blacklist-link]}
       - {title: News, area: side, widgets: [news]}
       - {title: Info, area: side, widgets: [clock, note]}
-      - {title: Status, area: side, widgets: [monitors, hass-panel, authentik-apps]}
+      - {title: Status, area: side, widgets: [monitors, hass-panel, authentik-apps, updates, backups]}

@@ -436,6 +436,13 @@ table.table th {
 table.table td { padding: .55rem .7rem; border-bottom: 1px solid var(--bg2); color: var(--fg1); }
 table.table tr:last-child td { border-bottom: 0; }
 .late { color: var(--danger-text); }
+.custom-rules input, .custom-rules select { margin: 0; min-width: 6rem; }
+.custom-if { display: flex; gap: .3rem; }
+.topic-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; font-size: .86rem; }
+.topic-list li { display: flex; flex-direction: column; border-left: 3px solid var(--blue); padding-left: .5rem; }
+.topic-list li[data-tier="yellow"] { border-left-color: var(--yellow); }
+.topic-list li[data-tier="red"] { border-left-color: var(--red); }
+.topic-list a { color: var(--fg1); }
 /* ── widgets without a service (widgets_more.html) ── */
 .agenda, .plain-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; font-size: .86rem; }
 .agenda time { font-family: var(--font-mono); font-size: .72rem; color: var(--fg2); margin-right: .3rem; }

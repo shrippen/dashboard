@@ -1,6 +1,8 @@
 package web
 
 import (
+	"dashboard/internal/enums"
+	"dashboard/internal/rules"
 	"net/http"
 	"strconv"
 	"strings"
@@ -65,6 +67,7 @@ func (d Deps) handleSpaceSettings(w http.ResponseWriter, r *http.Request) {
 		"Costs": asMap(settings["costs"]),
 		"Rules": spaces.RuleViews(settings), "Methods": vatMethods, "Intervals": vatIntervals,
 		"Saved": r.URL.Query().Has("saved"), "Page": spaces.PageOf(settings), "NavText": spaces.NavText(spaces.PageOf(settings)),
+		"Custom": spaces.CustomRows(settings), "Ops": rules.CustomOps, "Services": enums.Services, "Levels": severityLevels,
 	})
 }
 
@@ -129,6 +132,7 @@ func (d Deps) handleSpaceSettingsSave(w http.ResponseWriter, r *http.Request) {
 	for k, v := range spaces.ParsePage(r.FormValue) {
 		changes[k] = v
 	}
+	changes[rules.CustomKey] = spaces.ParseCustomRules(r.FormValue)
 	if err := spaces.Update(d.DB, ctx.Who, id, changes, ClientIP(r)); err != nil {
 		d.handleBoardError(w, r, err)
 		return

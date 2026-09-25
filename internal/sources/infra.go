@@ -39,11 +39,19 @@ type TNApp struct {
 	Update      bool
 }
 
+// SnapTask is a periodic snapshot task and its last run.
+type SnapTask struct {
+	Dataset, State string // State: FINISHED, RUNNING, ERROR, PENDING
+	Enabled        bool
+	Last           time.Time
+}
+
 type TrueNASDataset struct {
 	URL, Host, Version string
 	Pools              []Pool
 	Alerts             []TNAlert // not dismissed
 	Apps               []TNApp
+	Snapshots          []SnapTask
 }
 
 type TrueNASData struct{}
@@ -88,6 +96,14 @@ func (TrueNASData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 				continue
 			}
 			data.Alerts = append(data.Alerts, TNAlert{ID: asStr(a["uuid"]), Level: asStr(a["level"]), Text: strings.TrimSpace(asStr(a["formatted"]))})
+		}
+	}
+	if tasks, err := session.Call(ctx, "pool.snapshottask.query"); err == nil {
+		for _, raw := range asList(tasks) {
+			t := asMap(raw)
+			state := asMap(t["state"])
+			data.Snapshots = append(data.Snapshots, SnapTask{Dataset: asStr(t["dataset"]), Enabled: asBool(t["enabled"]),
+				State: asStr(state["state"]), Last: time.UnixMilli(asInt64(asMap(state["datetime"])["$date"])).UTC()})
 		}
 	}
 	// Apps exist on SCALE only.

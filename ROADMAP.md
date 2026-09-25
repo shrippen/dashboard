@@ -760,13 +760,13 @@ Auswahl vom 25.09.2026 (Checkliste „Dashy-Abgleich“). Abgelehnt: Overlay, Ar
 Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell/dunkel nach Uhrzeit, öffentliche Statusseite, Proxmox Backup Server, Frigate, Fragen an die eigenen Daten, Prometheus-Metriken.
 
 **Hinweise und Analyse**
-- [ ] Update-Zentrale: alle verfügbaren Updates in einem Widget
-- [ ] Backup-Übersicht: Dienst × letzte Sicherung (Borg, PG Back Web, TrueNAS-Snapshots), Dienste ohne Backup melden
-- [ ] Ausfälle bündeln: ein Hinweis mit Ursache statt vieler Folgehinweise
-- [ ] Dienste ohne Kachel finden (Komodo, Pangolin, Kuma)
-- [ ] Zertifikate automatisch aus Link-Kacheln und Pangolin-Ressourcen prüfen
+- [x] Update-Zentrale: alle verfügbaren Updates in einem Widget *(Widget `updates`: Hinweise der Update-Regeln, `rules/topics.go`)*
+- [x] Backup-Übersicht: Dienst × letzte Sicherung (Borg, PG Back Web, TrueNAS-Snapshots), Dienste ohne Backup melden *(Widget `backups`; Regel `backups.gap` vergleicht Namen von Komodo-Stacks und TrueNAS-Apps mit den Backup-Einträgen)*
+- [x] Ausfälle bündeln: ein Hinweis mit Ursache statt vieler Folgehinweise *(≥ 2 Fehler auf einem Host – Verbindungen und Kuma-Monitore – werden zu `system.outage`; der Analyse-Lauf ruft erst alles ab und wertet dann aus)*
+- [x] Dienste ohne Kachel finden (Komodo, Pangolin, Kuma)
+- [x] Zertifikate automatisch aus Link-Kacheln und Pangolin-Ressourcen prüfen *(Option `auto: true` der Zertifikats-Verbindung)*
 - [x] Verlauf je Hinweis, flatternde Hinweise dämpfen *(3× wieder aufgetreten in 7 Tagen = flattert, keine Wiederholungs-Pushes)*
-- [ ] Eigene Regeln ohne Code (Schwellwert auf Kennzahl oder API-Feld)
+- [x] Eigene Regeln ohne Code (Schwellwert auf Kennzahl oder API-Feld) *(Bereichseinstellungen; neue Verbindung „Eigene API (JSON)“ für beliebige JSON-Endpunkte)*
 - [x] Notiz beim Quittieren
 - [x] Hinweis zuweisen (offen/in Arbeit/erledigt)
 

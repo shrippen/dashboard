@@ -23,6 +23,7 @@ import (
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
 	data "dashboard/internal/repos/data"
+	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/hints"
 	"dashboard/internal/services/svcdata"
@@ -485,7 +486,8 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	}
 	if kind.Extra == widgets.ExtraHints {
 		hcfg := cfg.(widgets.HintsConfig)
-		views, err := hints.Active(d, who, enums.Severity(hcfg.MinSeverity), hcfg.Sources, hcfg.Limit)
+		filter := hints.Filter{MinSeverity: enums.Severity(hcfg.MinSeverity), Sources: hcfg.Sources, Rules: rules.RulesOf(hcfg.Topic)}
+		views, err := hints.Filtered(d, who, filter, hcfg.Limit)
 		if err != nil {
 			return nil, err
 		}

@@ -191,6 +191,18 @@ func visible(q db.Queryer, who *access.Principal) ([]*model.Hint, error) {
 // (if given) at least one matching source, most severe / soonest due /
 // oldest first, capped at limit if positive.
 func Active(d *sql.DB, who *access.Principal, minSeverity enums.Severity, sourcesFilter []string, limit int) ([]View, error) {
+	return Filtered(d, who, Filter{MinSeverity: minSeverity, Sources: sourcesFilter}, limit)
+}
+
+// Filter narrows the visible hints; empty lists match everything.
+type Filter struct {
+	MinSeverity enums.Severity
+	Sources     []string
+	Rules       []string
+}
+
+// Filtered is Active with a rule filter too (topic widgets).
+func Filtered(d *sql.DB, who *access.Principal, f Filter, limit int) ([]View, error) {
 	var views []View
 	err := db.WithTx(d, func(tx *sql.Tx) error {
 		found, err := visible(tx, who)
@@ -200,10 +212,13 @@ func Active(d *sql.DB, who *access.Principal, minSeverity enums.Severity, source
 
 		rows := found[:0]
 		for _, h := range found {
-			if h.Severity < minSeverity {
+			if h.Severity < f.MinSeverity {
 				continue
 			}
-			if len(sourcesFilter) > 0 && !anyMatch(h.Sources, sourcesFilter) {
+			if len(f.Sources) > 0 && !anyMatch(h.Sources, f.Sources) {
+				continue
+			}
+			if len(f.Rules) > 0 && !anyMatch([]string{h.Rule}, f.Rules) {
 				continue
 			}
 			rows = append(rows, h)

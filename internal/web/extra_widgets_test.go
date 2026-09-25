@@ -72,3 +72,31 @@ func TestCustomAPIWidgetUsesSealedHeader(t *testing.T) {
 		t.Fatal("header shown in the form")
 	}
 }
+
+// Topic and backup widgets render without connections; custom rules
+// survive the settings form.
+func TestOverviewWidgetsAndCustomRules(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	space := string(regexp.MustCompile(`space=(\d+)`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))[1])
+	for _, w := range []struct{ kind, title, want string }{{"updates", "Updates", "Alles aktuell"}, {"backups", "Backups", "Keine Backup-Werkzeuge"}} {
+		postForm(t, client, srv.URL+"/widgets", url.Values{"csrf": {csrf}, "space_id": {space}, "type": {w.kind}, "title": {w.title}})
+		boardURL, section, version, widget := placeTarget(t, srv, client, w.title)
+		postForm(t, client, srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+section+"/place", url.Values{"csrf": {csrf}, "widget_id": {widget}, "version": {version}})
+		placements := regexp.MustCompile(`/placements/(\d+)/unplace`).FindAllSubmatch(mustGet(t, srv, client, boardURL+"?edit"), -1)
+		frag := string(awaitFragment(t, srv, client, string(placements[len(placements)-1][1]), w.want))
+		if !strings.Contains(frag, w.want) {
+			t.Fatalf("%s fragment:\n%s", w.kind, frag)
+		}
+	}
+
+	postForm(t, client, srv.URL+"/spaces/"+space+"/settings", url.Values{"csrf": {csrf}, "cr_count": {"1"},
+		"cr.0.title": {"Queue"}, "cr.0.service": {"sabnzbd"}, "cr.0.path": {"Slots"}, "cr.0.op": {">"}, "cr.0.value": {"10"}, "cr.0.severity": {"30"}})
+	page := string(mustGet(t, srv, client, "/spaces/"+space+"/settings"))
+	if !strings.Contains(page, `name="cr.0.title" value="Queue"`) || !strings.Contains(page, `name="cr.0.value" value="10"`) {
+		t.Fatalf("custom rule not saved:\n%s", page)
+	}
+}

@@ -11,6 +11,7 @@ import (
 
 	"dashboard/internal/enums"
 	"dashboard/internal/metrics"
+	"dashboard/internal/rules"
 	"dashboard/internal/sources"
 )
 
@@ -131,6 +132,15 @@ type HintsConfig struct {
 	Sources     []string
 	MinSeverity int
 	Limit       int
+	Topic       rules.Topic // updates/backups widgets
+}
+
+// decodeTopic builds the decoder of a topic widget: a hints list limited
+// to one topic's rules.
+func decodeTopic(topic rules.Topic) DecodeFunc {
+	return func(raw map[string]any) any {
+		return HintsConfig{MinSeverity: int(enums.SeverityInfo), Limit: clampInt(asInt(raw["limit"], 20), 1, 50), Topic: topic}
+	}
 }
 
 func decodeHints(raw map[string]any) any {
@@ -775,6 +785,8 @@ func init() {
 		RefreshS: 3600, View: deadlinesView})
 	Register(WidgetType{Key: "trend", Decode: decodeTrend, Template: "widgets/trend", Category: CategoryInsight,
 		RefreshS: 3600, View: trendView, Extra: ExtraPoints})
+	Register(WidgetType{Key: "updates", Decode: decodeTopic(rules.TopicUpdates), Template: "widgets/topic", Category: CategoryInsight,
+		RefreshS: 600, Extra: ExtraHints})
 	Register(WidgetType{Key: "hints", Decode: decodeHints, Template: "widgets/hints", Category: CategoryInsight,
 		RefreshS: 300, Extra: ExtraHints})
 }

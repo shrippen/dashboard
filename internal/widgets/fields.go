@@ -92,6 +92,8 @@ var fieldsByType = map[string][]Field{
 	"progress":  {{Key: "goal", Input: InputCheck}},
 	"deadlines": {{Key: "days", Input: InputNumber, Default: 45}},
 	"trend":     {sel("metric", "revenue_ytd", "revenue_ytd", "open_amount", "month_min"), {Key: "days", Input: InputNumber, Default: 90}},
+	"updates":   {{Key: "limit", Input: InputNumber, Default: 20}},
+	"backups":   {{Key: "max_hours", Input: InputNumber, Default: defaultBackupHours}},
 	"hints":     {{Key: "sources", Input: InputList}, {Key: "min_severity", Input: InputNumber, Default: 10}, {Key: "limit", Input: InputNumber, Default: 8}},
 	"calendar": {{Key: "ical_url", Input: InputSecret}, {Key: "days", Input: InputNumber, Default: defaultCalDays},
 		{Key: "limit", Input: InputNumber, Default: defaultListLimit}},

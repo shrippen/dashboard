@@ -141,3 +141,28 @@
 </ul>
 <p class="small"><a href="/hints">{{t "hints.all"}}</a></p>
 {{end}}
+
+{{/* Topic widgets (updates): open hints of one rule group, compact. */}}
+{{define "widgets/topic"}}
+<ul class="topic-list">
+{{range .Frag.View.Hints}}
+  <li data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}">
+    <span class="muted small">{{range $i, $s := .Sources}}{{if $i}}, {{end}}{{t (print "service." $s)}}{{end}}</span>
+    {{if .ActionURL}}<a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{.Title}}</a>{{else}}{{.Title}}{{end}}
+  </li>
+{{else}}<li class="muted">{{t (print "topic." $.Frag.Type "_none")}}</li>{{end}}
+</ul>
+{{end}}
+
+{{define "widgets/backups"}}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{t "col.item"}}</th><th>{{t "col.tool"}}</th><th>{{t "col.last"}}</th><th>{{t "col.state"}}</th></tr></thead>
+  <tbody>
+  {{range .Frag.View.Rows}}
+  <tr><td>{{.Item}}</td><td class="muted">{{t (print "service." .Tool)}}</td>
+    <td>{{if .Last.IsZero}}–{{else}}{{ago .Last}}{{end}}</td>
+    <td><span class="pill" data-state="{{if eq (print .State) "ok"}}ok{{else if eq (print .State) "failed"}}fail{{else}}warn{{end}}">{{t (print "backup." .State)}}</span></td></tr>
+  {{else}}<tr><td colspan="4" class="muted">{{t "backup.none"}}</td></tr>{{end}}
+  </tbody>
+</table></div>
+{{end}}
