@@ -6,7 +6,10 @@ import (
 	"dashboard/internal/sources"
 )
 
-const hoursPerDay = 24
+const (
+	hoursPerDay  = 24
+	percentScale = 100
+)
 
 // KumaInfo: "3/4 online".
 func KumaInfo(data *sources.KumaDataset) []InfoPart {
@@ -135,4 +138,45 @@ func LinkwardenInfo(data *sources.LinkwardenDataset) []InfoPart {
 // MailInfo: invoices found in the mailbox window.
 func MailInfo(data *sources.MailDataset) []InfoPart {
 	return []InfoPart{part("mail.invoices", map[string]any{"count": len(data.Invoices)})}
+}
+
+// TrueNASInfo: "2 pools · 88 % used" (fullest pool).
+func TrueNASInfo(data *sources.TrueNASDataset) []InfoPart {
+	fullest := 0.0
+	for _, p := range data.Pools {
+		if p.Size > 0 {
+			fullest = max(fullest, p.Allocated/p.Size)
+		}
+	}
+	return []InfoPart{part("truenas.pools", map[string]any{"count": len(data.Pools), "percent": int(fullest*percentScale + 0.5)})}
+}
+
+// KomodoInfo: "5/6 stacks running".
+func KomodoInfo(data *sources.KomodoDataset) []InfoPart {
+	running := 0
+	for _, s := range data.Stacks {
+		if s.State == "running" {
+			running++
+		}
+	}
+	return []InfoPart{part("komodo.stacks", map[string]any{"running": running, "count": len(data.Stacks)})}
+}
+
+// PangolinInfo: "1/2 sites online".
+func PangolinInfo(data *sources.PangolinDataset) []InfoPart {
+	online := 0
+	for _, s := range data.Sites {
+		if s.Online == nil || *s.Online {
+			online++
+		}
+	}
+	return []InfoPart{part("pangolin.sites", map[string]any{"online": online, "count": len(data.Sites)})}
+}
+
+// AuthentikInfo: "214 logins (7 d) · 4 users".
+func AuthentikInfo(data *sources.AuthentikDataset) []InfoPart {
+	return []InfoPart{
+		part("authentik.logins", map[string]any{"count": data.Logins7d}),
+		part("authentik.users", map[string]any{"count": len(data.Users)}),
+	}
 }

@@ -106,6 +106,10 @@ const (
 	ServiceLinkwarden    ServiceType = "linkwarden"
 	ServicePGBackWeb     ServiceType = "pgbackweb"
 	ServiceMail          ServiceType = "mail"
+	ServiceTrueNAS       ServiceType = "truenas"
+	ServiceKomodo        ServiceType = "komodo"
+	ServicePangolin      ServiceType = "pangolin"
+	ServiceAuthentik     ServiceType = "authentik"
 )
 
 // Services lists every connectable service, in form order.
@@ -114,6 +118,7 @@ var Services = []ServiceType{
 	ServiceUptimeKuma, ServiceProxmox, ServicePaperless, ServiceCerts,
 	ServiceScrutiny, ServiceImmich, ServiceUmami, ServiceFreshRSS, ServiceGitea, ServiceBorgBackup,
 	ServiceHomeAssistant, ServiceSure, ServiceLinkwarden, ServicePGBackWeb, ServiceMail,
+	ServiceTrueNAS, ServiceKomodo, ServicePangolin, ServiceAuthentik,
 }
 
 // Known reports whether s is a connectable service.

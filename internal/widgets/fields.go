@@ -71,7 +71,7 @@ var fieldsByType = map[string][]Field{
 	"kpi": {sel("metric", "hours_today", "hours_today", "hours_week", "hours_month", "utilization", "unbilled",
 		"revenue_ytd", "revenue_month", "open_amount", "overdue_amount", "vat_liability", "tax_reserve",
 		"asset_value", "assets_ready", "revenue_forecast", "cash_30", "liquidity_30", "effective_rate", "net_worth", "cash")},
-	"table": {sel("table", "open_invoices", "open_invoices", "unbilled", "budgets", "client_shares", "asset_dates", "trips", "effective_rates"),
+	"table": {sel("table", "open_invoices", "open_invoices", "unbilled", "budgets", "client_shares", "asset_dates", "trips", "effective_rates", "app_usage"),
 		{Key: "limit", Input: InputNumber, Default: 8}},
 	"chart":     {sel("chart", "revenue", "revenue", "hours", "seasonal"), {Key: "months", Input: InputNumber, Default: 12}},
 	"progress":  {{Key: "goal", Input: InputCheck}},

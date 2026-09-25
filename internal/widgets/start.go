@@ -178,6 +178,14 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.LinkwardenInfo(data)
 	case *sources.MailDataset:
 		parts = metrics.MailInfo(data)
+	case *sources.TrueNASDataset:
+		parts = metrics.TrueNASInfo(data)
+	case *sources.KomodoDataset:
+		parts = metrics.KomodoInfo(data)
+	case *sources.PangolinDataset:
+		parts = metrics.PangolinInfo(data)
+	case *sources.AuthentikDataset:
+		parts = metrics.AuthentikInfo(data)
 	}
 	return map[string]any{"Info": parts}
 }

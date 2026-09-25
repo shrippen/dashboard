@@ -416,3 +416,52 @@ func DemoMail(now time.Time) *MailDataset {
 			Subject: "Invoice for your order", Amount: 289, Attachments: []string{"invoice.pdf"}},
 	}}
 }
+
+// DemoTrueNAS is the demo TrueNAS dataset.
+func DemoTrueNAS() *TrueNASDataset {
+	return &TrueNASDataset{URL: "https://nas.demo", Host: "truenas", Version: "25.04.2",
+		Pools: []Pool{
+			{Name: "tank", Status: "ONLINE", Healthy: true, Size: 16e12, Allocated: 14.1e12},
+			{Name: "fast", Status: "DEGRADED", Healthy: false, Size: 2e12, Allocated: 0.6e12},
+		},
+		Alerts: []TNAlert{{ID: "a1", Level: "WARNING", Text: "Device /dev/sdc is causing slow I/O on pool fast."}},
+		Apps:   []TNApp{{Name: "jellyfin", State: "RUNNING", Update: true}, {Name: "syncthing", State: "RUNNING"}},
+	}
+}
+
+// DemoKomodo is the demo Komodo dataset.
+func DemoKomodo(now time.Time) *KomodoDataset {
+	return &KomodoDataset{URL: "https://komodo.demo", ServersTotal: 3, ServersHealthy: 2, ServersProblem: 1,
+		Stacks: []KStack{
+			{Name: "immich", State: "running", Updates: []string{"immich-server", "immich-machine-learning"}},
+			{Name: "paperless", State: "unhealthy"},
+			{Name: "gitea", State: "running"},
+		},
+		Alerts: []KAlert{{Level: "CRITICAL", Kind: "ServerUnreachable", Name: "pi-backup", At: now.UTC().Add(-3 * time.Hour)}},
+	}
+}
+
+// DemoPangolin is the demo Pangolin dataset.
+func DemoPangolin() *PangolinDataset {
+	on, off := true, false
+	return &PangolinDataset{URL: "https://pangolin.demo/v1", Org: "home",
+		Sites: []PSite{
+			{Name: "homelab", Type: "newt", Online: &on, MBIn: 18400, MBOut: 92100, Update: true},
+			{Name: "eltern", Type: "newt", Online: &off, MBIn: 120, MBOut: 340},
+		},
+		Resources: []PResource{
+			{Name: "Immich", Domain: "photos.example.org", Enabled: true, Health: "healthy"},
+			{Name: "Vaultwarden", Domain: "vault.example.org", Enabled: true, Health: "unhealthy"},
+		},
+	}
+}
+
+// DemoAuthentik is the demo authentik dataset.
+func DemoAuthentik(now time.Time) *AuthentikDataset {
+	ago := func(d int) time.Time { return now.UTC().AddDate(0, 0, -d) }
+	return &AuthentikDataset{URL: "https://auth.demo", Version: "2025.6.3", Latest: "2025.8.1", Outdated: true,
+		Logins7d: 214, Failed7d: 61, Failed24h: 38,
+		Apps:  []AKApp{{Name: "Immich", Events: 96, Users: 4}, {Name: "Gitea", Events: 41, Users: 2}, {Name: "Dashboard", Events: 30, Users: 3}},
+		Users: []AKUser{{Name: "alex", LastLogin: ago(0)}, {Name: "sam", LastLogin: ago(2)}, {Name: "kim", LastLogin: ago(240)}, {Name: "test", LastLogin: time.Time{}}},
+	}
+}

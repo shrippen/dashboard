@@ -55,6 +55,7 @@ const (
 	TableAssetDates   TableKind = "asset_dates"
 	TableTrips        TableKind = "trips"
 	TableRates        TableKind = "effective_rates"
+	TableAppUsage     TableKind = "app_usage"
 )
 
 // ChartKind selects a "chart" widget's series.
@@ -379,6 +380,8 @@ func colsFor(kind TableKind) []Col {
 		return []Col{{"area", "text"}, {"day", "day"}, {"km", "km"}, {"away", "hours"}}
 	case TableRates:
 		return []Col{{"customer", "text"}, {"hours", "hours"}, {"amount", "money"}, {"rate", "money"}}
+	case TableAppUsage:
+		return []Col{{"app", "text"}, {"logins", "text"}, {"users", "text"}}
 	}
 	return nil
 }
@@ -436,6 +439,13 @@ func tableRows(kind TableKind, results map[string]any, ctx ViewCtx) ([]Row, bool
 		var rows []Row
 		for _, r := range rates {
 			rows = append(rows, Row{[]any{r.Customer, r.Hours, r.Net, r.Rate}})
+		}
+		return rows, true
+
+	case kind == TableAppUsage && service == enums.ServiceAuthentik:
+		var rows []Row
+		for _, a := range data.(*sources.AuthentikDataset).Apps {
+			rows = append(rows, Row{[]any{a.Name, a.Events, a.Users}})
 		}
 		return rows, true
 

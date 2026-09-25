@@ -221,6 +221,14 @@ func Client(timeout time.Duration) *http.Client {
 	return &http.Client{Timeout: timeout, Transport: guardedTransport{http.DefaultTransport}}
 }
 
+// ClientTLS is Client with TLS verification switchable per connection
+// (self-signed homelab certificates).
+func ClientTLS(timeout time.Duration, skipVerify bool) *http.Client {
+	base := http.DefaultTransport.(*http.Transport).Clone()
+	base.TLSClientConfig = &tls.Config{InsecureSkipVerify: skipVerify} //nolint:gosec // opt-in per connection
+	return &http.Client{Timeout: timeout, Transport: guardedTransport{base}}
+}
+
 // CheckHost applies the egress guard to a non-HTTP connection (IMAP).
 func CheckHost(host string) error {
 	return checkGuard("https://" + host)

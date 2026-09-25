@@ -18,6 +18,10 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_truenas: Open in TrueNAS
+  open_in_komodo: Open in Komodo
+  open_in_pangolin: Open in Pangolin
+  open_in_authentik: Open in authentik
   open_in_pgbackweb: Open in PG Back Web
   open_in_linkwarden: Open in Linkwarden
   open_in_sure: Open in Sure
@@ -195,6 +199,7 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  app_usage: Usage per application
   data_auto: Automatic (type default)
   data_live: Live on view
   data_stored: From the background check
@@ -363,6 +368,10 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_truenas: No options. Token = API key (user → API keys). Uses the WebSocket API, older versions REST.
+  options_hint_komodo: No options. Token = key:secret of a Komodo API key (read-only suffices).
+  options_hint_pangolin: 'Integration API URL including /v1 (e.g. https://api.pangolin.example.org/v1). Options: org: <organisation id>. Token = integration API key.'
+  options_hint_authentik: No options. Token = API token of an account allowed to read events and users.
   options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, token user:app-password. Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only, attachments are not downloaded.'
   options_hint_pgbackweb: No options, no token. PG Back Web reports by webhook, see below.
   hook: Webhook
@@ -407,6 +416,10 @@ mode:
   dark: Dark
   light: Light
 service:
+  truenas: TrueNAS
+  komodo: Komodo
+  pangolin: Pangolin
+  authentik: authentik
   mail: Email (IMAP)
   pgbackweb: PG Back Web
   linkwarden: Linkwarden
@@ -664,6 +677,52 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  truenas:
+    pool_unhealthy:
+      title: 'Pool {pool} is {status}'
+      why: Check disks and scrub result in TrueNAS, back up data.
+    pool_full:
+      title: 'Pool {pool} {percent} % full'
+      why: ZFS slows down above 80 %. Prune snapshots or expand.
+    alert:
+      title: TrueNAS alert
+      why: '{text}'
+    app_updates:
+      title: '{count} app updates in TrueNAS'
+      why: '{apps}'
+  komodo:
+    alert:
+      title: 'Komodo: {kind} on {name}'
+      why: Open alert in Komodo.
+    stack_down:
+      title: 'Stack {stack} is {state}'
+      why: Check the stack's logs in Komodo.
+    updates:
+      title: 'Image updates for {count} stacks'
+      why: '{stacks}'
+  pangolin:
+    site_offline:
+      title: 'Pangolin site {site} offline'
+      why: Check the Newt client on site; services behind it are unreachable.
+    unhealthy:
+      title: '{name} unhealthy'
+      why: 'Health check for {domain} fails.'
+    newt_update:
+      title: Newt update available
+      why: 'Sites: {sites}'
+  authentik:
+    update:
+      title: 'authentik {version} available'
+      why: 'Installed: {current}. Read the release notes.'
+    outposts:
+      title: authentik outposts outdated
+      why: Bring outposts to the server version, or logins break.
+    failed_logins:
+      title: '{count} failed logins (24 h)'
+      why: Check the event log – guessing or a client with an old password.
+    stale_users:
+      title: '{count} accounts without login for {days} days'
+      why: '{users}. Deactivating reduces attack surface.'
   mail:
     unrecorded:
       title: 'Invoice from {sender} not in Invoice Ninja'
@@ -960,6 +1019,15 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  truenas:
+    pools: '{count} pools · {percent} % used'
+  komodo:
+    stacks: '{running}/{count} stacks running'
+  pangolin:
+    sites: '{online}/{count} sites online'
+  authentik:
+    logins: '{count} logins (7 d)'
+    users: '{count} accounts'
   mail:
     invoices: '{count} invoices found'
   linkwarden:
@@ -1018,6 +1086,9 @@ kpi:
   of_goal: goal {goal}
   cash_30: open + recurring, 30 days
 col:
+  app: Application
+  logins: Logins
+  users: Users
   rate: Rate
   number: No.
   client: Client
@@ -1059,6 +1130,19 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  truenas.pool_unhealthy: Pool health
+  truenas.pool_full: Pool usage
+  truenas.alerts: TrueNAS alerts
+  truenas.app_updates: TrueNAS app updates
+  komodo.alerts: Komodo alerts
+  komodo.stack_down: Stack stopped
+  komodo.updates: Image updates
+  pangolin.site_offline: Site offline
+  pangolin.unhealthy: Resource unhealthy
+  pangolin.newt_update: Newt update
+  authentik.update: authentik update
+  authentik.failed_logins: Failed logins
+  authentik.stale_users: Unused accounts
   mail.invoice_unrecorded: Mailed invoice not recorded
   paperless.invoice_unrecorded: Paperless invoice not recorded
   pgbackweb.failed: Backup failed (Postgres)

@@ -14,6 +14,10 @@ connections:
   - {id: linkwarden, type: linkwarden, name: Linkwarden, url: "demo://linkwarden", credentials: shared}
   - {id: pgback, type: pgbackweb, name: PG Back Web, url: "demo://pgbackweb", credentials: shared}
   - {id: hass, type: homeassistant, name: Home Assistant, url: "demo://homeassistant", credentials: shared}
+  - {id: truenas, type: truenas, name: TrueNAS, url: "demo://truenas", credentials: shared}
+  - {id: komodo, type: komodo, name: Komodo, url: "demo://komodo", credentials: shared}
+  - {id: pangolin, type: pangolin, name: Pangolin, url: "demo://pangolin", credentials: shared}
+  - {id: authentik, type: authentik, name: authentik, url: "demo://authentik", credentials: shared}
 widgets:
   - {id: kuma-link, type: link, title: Uptime Kuma, config: {url: "https://uptime.kuma.pet", icon: "hl-uptime-kuma", description: Monitoring, status: "off", info: {connection: kuma}}}
   - {id: pve-link, type: link, title: Proxmox, config: {url: "https://www.proxmox.com", icon: "hl-proxmox", description: Virtualisierung, status: "off", info: {connection: pve}}}
@@ -25,6 +29,11 @@ widgets:
   - {id: gitea-link, type: link, title: Gitea, config: {url: "https://about.gitea.com", icon: "hl-gitea", description: Code, status: "off", info: {connection: gitea}}}
   - {id: borg-link, type: link, title: Borg Backup, config: {url: "https://www.borgbackup.org", icon: "hl-borg", description: Backups, status: "off", info: {connection: borg}}}
   - {id: hass-link, type: link, title: Home Assistant, config: {url: "https://www.home-assistant.io", icon: "hl-home-assistant", description: Haus, status: "off", info: {connection: hass}}}
+  - {id: truenas-link, type: link, title: TrueNAS, config: {url: "https://www.truenas.com", icon: "hl-truenas", description: Speicher, status: "off", info: {connection: truenas}}}
+  - {id: komodo-link, type: link, title: Komodo, config: {url: "https://komo.do", icon: "hl-komodo", description: Container, status: "off", info: {connection: komodo}}}
+  - {id: pangolin-link, type: link, title: Pangolin, config: {url: "https://pangolin.net", icon: "hl-pangolin", description: Tunnel, status: "off", info: {connection: pangolin}}}
+  - {id: authentik-link, type: link, title: authentik, config: {url: "https://goauthentik.io", icon: "hl-authentik", description: Anmeldung, status: "off", info: {connection: authentik}}}
+  - {id: authentik-apps, type: table, title: Anmeldungen je Anwendung, connection: authentik, config: {table: app_usage, limit: 5}}
   - {id: hass-panel, type: hass, title: Zuhause, connection: hass, config: {entities: [light.buero, switch.kaffeemaschine, sensor.wohnzimmer_temperatur, sensor.fenster_bad_batterie]}}
   - {id: monitors, type: monitors, title: Monitore, connection: kuma, config: {}}
   - {id: certs-link, type: link, title: Zertifikate, config: {url: "https://letsencrypt.org", icon: "hl-letsencrypt", description: TLS, status: "off", info: {connection: certs}}}
@@ -40,7 +49,7 @@ boards:
     slug: homelab
     sections:
       - {title: Dienste, cols: 4, widgets: [kimai, invoiceninja, snipeit, dawarich]}
-      - {title: Betrieb, cols: 4, widgets: [kuma-link, pve-link, paperless-link, certs-link, scrutiny-link, immich-link, umami-link, freshrss-link, gitea-link, borg-link, hass-link]}
+      - {title: Betrieb, cols: 4, widgets: [kuma-link, pve-link, paperless-link, certs-link, scrutiny-link, immich-link, umami-link, freshrss-link, gitea-link, borg-link, hass-link, truenas-link, komodo-link, pangolin-link, authentik-link]}
       - {title: News, area: side, widgets: [news]}
       - {title: Info, area: side, widgets: [clock, note]}
-      - {title: Status, area: side, widgets: [monitors, hass-panel]}
+      - {title: Status, area: side, widgets: [monitors, hass-panel, authentik-apps]}
