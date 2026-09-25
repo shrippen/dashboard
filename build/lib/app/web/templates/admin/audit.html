@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('nav.audit')) }}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ t('history.when') }}</th><th>{{ t('audit.who') }}</th><th>{{ t('audit.action') }}</th><th>{{ t('audit.target') }}</th><th>IP</th></tr></thead>
+  <tbody>{% for e in entries %}
+  <tr><td>{{ moment(e.at) }}</td><td>{{ names.get(e.user_id, '–') }}</td><td><code>{{ e.action }}</code></td><td>{{ e.target }}{% if e.detail %} <small class="muted">{{ e.detail }}</small>{% endif %}</td><td><code>{{ e.ip }}</code></td></tr>
+  {% endfor %}</tbody></table></div>
+{% endblock %}

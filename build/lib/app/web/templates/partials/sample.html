@@ -1,0 +1,17 @@
+<div class="sample">
+  <div class="kpi-row">
+    <div class="kpi"><span class="kpi-label">{{ t('sample.revenue') }}</span><b class="kpi-value">{{ money(48250) }}</b><span class="kpi-delta" data-trend="up">+12 %</span></div>
+    <div class="kpi"><span class="kpi-label">{{ t('sample.open') }}</span><b class="kpi-value">{{ money(4180) }}</b><span class="kpi-delta" data-trend="down">−3 %</span></div>
+  </div>
+  <div class="dsec-body size-medium">
+    <div class="tile-slot w-link"><a class="launch" href="#sample"><span class="launch-icon"><span class="mono">KI</span></span><span class="launch-body"><b class="launch-title">Kimai</b><small class="launch-desc">{{ t('sample.tracking') }}</small><span class="launch-live"><span class="dot" data-up="yes">{{ t('status.up') }}</span><span class="launch-info">3,5 h</span></span></span></a></div>
+    <div class="tile-slot w-link"><a class="launch" href="#sample"><span class="launch-icon"><span class="mono">SN</span></span><span class="launch-body"><b class="launch-title">Snipe-IT</b><small class="launch-desc">Assets</small><span class="launch-live"><span class="dot" data-up="no">{{ t('status.down') }}</span></span></span></a></div>
+  </div>
+  <ul class="hints">
+    <li class="hint" data-tier="red"><span class="hint-level">{{ t('severity.critical') }}</span><div class="hint-main"><b>{{ t('sample.hint1') }}</b></div></li>
+    <li class="hint" data-tier="yellow"><span class="hint-level">{{ t('severity.warn') }}</span><div class="hint-main"><b>{{ t('sample.hint2') }}</b></div></li>
+  </ul>
+  <div class="progress"><div class="progress-head"><span>{{ t('sample.budget') }}</span><span>72 %</span></div><div class="progress-bar"><i style="--p:72%" data-tier="yellow"></i></div></div>
+  <p><button class="btn btn-accent btn-sm" type="button">{{ t('action.save') }}</button> <button class="btn btn-outline btn-sm" type="button">{{ t('action.cancel') }}</button> <a href="#sample">Link</a></p>
+  <div class="field"><label>{{ t('field.name') }}</label><input class="input" value="Input"></div>
+</div>

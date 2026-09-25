@@ -1,0 +1,4 @@
+{% set ok = result.ok if result.ok is defined else result['ok'] %}
+{% set msg = result.message if result.message is defined else result['message'] %}
+<span class="pill" data-state="{{ 'applied' if ok else 'failed' }}">{{ t('test.ok') if ok else t('test.failed') }}</span>
+<code>{{ msg }}{% if result.version %} · {{ result.version }}{% endif %}</code>

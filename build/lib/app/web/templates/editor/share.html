@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('share.title'), info.title) }}
+{% if error %}<div class="callout callout-danger">{{ t(error) }}</div>{% endif %}
+{% if info.warn_shared_data %}<div class="callout callout-warn">{{ t('conn.shared_warning') }}</div>{% endif %}
+<div class="panel">
+  <h2 class="sub-head">{{ t('share.via_space', space=info.audience.space_name) }}</h2>
+  <p class="muted">{{ t('space.' ~ info.audience.space_kind.value) }}: {% for name, role in info.audience.members %}{{ name }} ({{ t('role.' ~ role) }}){% if not loop.last %}, {% endif %}{% else %}{{ t('share.all_users') }}{% endfor %}</p>
+</div>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ t('share.grantee') }}</th><th>{{ t('share.right') }}</th><th></th></tr></thead>
+  <tbody>
+  {% for sh in info.shares %}
+  <tr><td>{{ t('grantee.' ~ sh.grantee_kind.value) }}: {{ sh.grantee_name }}</td><td>{{ t('right.' ~ sh.right.name.lower()) }}</td>
+    <td><form method="post" action="/share/revoke/{{ sh.id }}">{{ csrf_input }}<input type="hidden" name="back" value="/share/{{ info.kind.value }}/{{ info.resource_id }}"><button class="link-btn danger" type="submit">{{ t('share.revoke') }}</button></form></td></tr>
+  {% else %}<tr><td colspan="3">{{ t('share.none') }}</td></tr>{% endfor %}
+  </tbody></table></div>
+<form method="post" action="/share/{{ info.kind.value }}/{{ info.resource_id }}" class="panel panel-grid">{{ csrf_input }}
+  <div class="field"><label>{{ t('share.grantee') }}</label><select class="select" name="grantee">
+    <optgroup label="{{ t('grantee.team') }}">{% for id, name in info.teams %}<option value="team:{{ id }}">{{ name }}</option>{% endfor %}</optgroup>
+    <optgroup label="{{ t('grantee.user') }}">{% for id, name in info.users %}<option value="user:{{ id }}">{{ name }}</option>{% endfor %}</optgroup></select></div>
+  <div class="field"><label>{{ t('share.right') }}</label><select class="select" name="right">{% for r in rights %}<option value="{{ r.value }}">{{ t('right.' ~ r.name.lower()) }}</option>{% endfor %}</select></div>
+  <div class="wide row-actions"><button class="btn btn-accent" type="submit">{{ t('share.grant') }}</button></div>
+</form>
+{% endblock %}

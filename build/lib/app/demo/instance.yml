@@ -1,0 +1,17 @@
+settings:
+  title: Homelab
+widgets:
+  - {id: clock, type: clock, title: Zeit, config: {timezones: [Europe/Berlin]}}
+  - {id: kimai, type: link, title: Kimai, config: {url: "https://www.kimai.org", icon: "hl-kimai", description: Zeiterfassung}}
+  - {id: invoiceninja, type: link, title: Invoice Ninja, config: {url: "https://invoiceninja.com", icon: "hl-invoice-ninja", description: Rechnungen}}
+  - {id: snipeit, type: link, title: Snipe-IT, config: {url: "https://snipeitapp.com", icon: "hl-snipe-it", description: Assets}}
+  - {id: dawarich, type: link, title: Dawarich, config: {url: "https://dawarich.app", icon: "hl-dawarich", description: Standortverlauf}}
+  - {id: news, type: rss, title: heise online, config: {url: "https://www.heise.de/rss/heise-atom.xml", limit: 6}}
+  - {id: note, type: note, title: Hinweis, config: {text: "Demo-Instanz mit erfundenen Daten."}}
+boards:
+  - name: Homelab
+    slug: homelab
+    sections:
+      - {title: Dienste, cols: 4, widgets: [kimai, invoiceninja, snipeit, dawarich]}
+      - {title: News, area: side, widgets: [news]}
+      - {title: Info, area: side, widgets: [clock, note]}

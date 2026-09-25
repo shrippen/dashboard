@@ -1,0 +1,40 @@
+<section class="dsec{% if section.collapsed %} is-collapsed{% endif %}" data-section="{{ section.id }}">
+  <header class="dsec-head">
+    <button class="fold-btn" type="button" aria-expanded="{{ 'false' if section.collapsed else 'true' }}"
+            data-fold="/b/{{ board.id }}/fold/{{ section.id }}">
+      <span class="fold-mark" aria-hidden="true"></span>
+      <h2>{{ section.title or t('board.untitled') }}</h2>
+      <span class="dsec-count">{{ section.tiles | rejectattr("hidden") | list | length }}</span>
+    </button>
+    {% if edit %}
+    <details class="section-tools">
+      <summary class="btn btn-outline btn-sm">{{ t('edit.section') }}</summary>
+      <form method="post" action="/sections/{{ section.id }}" class="panel-grid">{{ csrf_input }}
+        <input type="hidden" name="board_id" value="{{ board.id }}"><input type="hidden" name="version" value="{{ board.version }}">
+        <div class="field"><label>{{ t('field.title') }}</label><input class="input" name="title" value="{{ section.title }}"></div>
+        <div class="field"><label>{{ t('field.cols') }}</label><input class="input" name="cols" type="number" min="1" max="12" value="{{ section.cols or '' }}"></div>
+        <div class="field"><label>{{ t('field.size') }}</label><select class="select" name="size">{% for s in ["small","medium","large"] %}<option value="{{ s }}"{% if section.size.value == s %} selected{% endif %}>{{ t('size.' ~ s) }}</option>{% endfor %}</select></div>
+        <div class="field"><label>{{ t('field.sort') }}</label><select class="select" name="sort">{% for s in ["manual","alphabetical"] %}<option value="{{ s }}"{% if section.sort.value == s %} selected{% endif %}>{{ t('sort.' ~ s) }}</option>{% endfor %}</select></div>
+        <div class="field"><label>{{ t('field.area') }}</label><select class="select" name="area">{% for s in ["main","side"] %}<option value="{{ s }}"{% if section.area == s %} selected{% endif %}>{{ t('area.' ~ s) }}</option>{% endfor %}</select></div>
+        <label class="check"><input type="checkbox" name="collapsed"{% if section.collapsed %} checked{% endif %}> {{ t('field.collapsed') }}</label>
+        <div class="wide row-actions"><button class="btn btn-accent btn-sm" type="submit">{{ t('action.save') }}</button></div>
+      </form>
+      <form method="post" action="/sections/{{ section.id }}/delete" data-confirm="{{ t('edit.confirm_delete') }}">{{ csrf_input }}
+        <input type="hidden" name="board_id" value="{{ board.id }}"><input type="hidden" name="version" value="{{ board.version }}">
+        <button class="btn btn-outline btn-sm danger" type="submit">{{ t('edit.delete_section') }}</button>
+      </form>
+    </details>
+    {% endif %}
+  </header>
+  <div class="dsec-body size-{{ section.size.value }}"{% if section.cols %} style="--cols:{{ section.cols }}"{% endif %} data-sortable="{{ section.id }}">
+    {% for tile in section.tiles %}
+      {% if not tile.hidden or layer_edit %}{% include "partials/tile.html" %}{% endif %}
+    {% endfor %}
+    {% if edit %}
+    <div class="add-tile" data-static>
+      <a class="btn btn-outline btn-sm" href="/widgets/new?space={{ board.space.id }}&section={{ section.id }}&board={{ board.id }}&version={{ board.version }}">+ {{ t('edit.new_widget') }}</a>
+      <a class="btn btn-outline btn-sm" href="/sections/{{ section.id }}/pick?board_id={{ board.id }}&version={{ board.version }}">{{ t('edit.from_library') }}</a>
+    </div>
+    {% endif %}
+  </div>
+</section>

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import head %}
+{% block content %}
+{{ head(t('edit.history'), board.name) }}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>v</th><th>{{ t('history.when') }}</th><th>{{ t('history.sections') }}</th><th></th></tr></thead>
+  <tbody>
+  {% for r in revisions %}
+  <tr><td>{{ r.version }}</td><td>{{ moment(r.at) }}</td>
+    <td>{% for s in r.data.sections %}{{ s.title or '–' }} ({{ s.widgets | length }}){% if not loop.last %}, {% endif %}{% endfor %}</td>
+    <td>{% if not loop.first %}<form method="post" action="/b/{{ board.id }}/restore/{{ r.id }}">{{ csrf_input }}<button class="btn btn-outline btn-sm" type="submit">{{ t('history.restore') }}</button></form>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+{% endblock %}

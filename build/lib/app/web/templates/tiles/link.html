@@ -1,0 +1,17 @@
+{% set c = frag.config %}
+{% set icon = icon_url(c.icon, c.url) %}
+<a class="launch" href="{{ c.url }}"{% if c.target.value == 'newtab' %} target="_blank" rel="noopener noreferrer"{% endif %}
+   data-search="{{ frag.title }} {{ c.description }} {{ c.url }}"{% if c.hotkey %} data-hotkey="{{ c.hotkey }}"{% endif %}>
+  <span class="launch-icon">{% if icon %}<img src="{{ icon }}" alt="" loading="lazy">{% else %}<span class="mono">{{ monogram(frag.title) }}</span>{% endif %}</span>
+  <span class="launch-body">
+    <b class="launch-title">{{ frag.title }}</b>
+    {% if c.description %}<small class="launch-desc">{{ c.description }}</small>{% endif %}
+    {% if c.status.value != 'off' or c.info %}
+    <span class="launch-live" hx-get="/w/{{ placement_id }}{{ '?token=' ~ token if token else '' }}" hx-trigger="load, every 300s" hx-swap="innerHTML">
+      {% set st = frag.slots.get('status') %}
+      {% if st and st.data %}<span class="dot" data-up="{{ 'yes' if st.data.up else 'no' }}">{{ t('status.up') if st.data.up else t('status.down') }}</span>{% endif %}
+    </span>
+    {% endif %}
+  </span>
+  {% if c.hotkey %}<kbd class="launch-key">{{ c.hotkey }}</kbd>{% endif %}
+</a>

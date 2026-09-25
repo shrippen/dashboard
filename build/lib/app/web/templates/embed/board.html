@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block main_class %} embed{% endblock %}
+{% block content %}
+<div class="board" data-board="{{ board.id }}">
+  <div class="board-col board-main">
+  {% for section in board.sections %}
+  <section class="dsec"><header class="dsec-head"><h2>{{ section.title }}</h2></header>
+    <div class="dsec-body size-{{ section.size.value }}">
+    {% for tile in section.tiles if not tile.hidden %}
+    <div class="tile-slot w-{{ tile.type }}">
+      {% if tile.inline %}{% with frag=tile.fragment, placement_id=tile.placement_id %}{% include "tiles/" ~ tile.type ~ ".html" %}{% endwith %}
+      {% else %}<article class="card">{% if tile.title %}<h3 class="card-title">{{ tile.title }}</h3>{% endif %}
+        <div class="card-body" hx-get="/w/{{ tile.placement_id }}?token={{ token }}" hx-trigger="load" hx-swap="innerHTML"></div></article>{% endif %}
+    </div>
+    {% endfor %}
+    </div></section>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "auth/_frame.html" %}
+{% block box %}
+<h1>{{ t('reset.title') }}</h1>
+{% if sent %}<div class="callout callout-ok">{{ t('reset.sent') }}</div>
+{% else %}
+<form method="post" action="/reset" class="stack">
+  <div class="field"><label for="email">{{ t('field.email') }}</label><input class="input" id="email" name="email" type="email" required></div>
+  <button class="btn btn-accent wide-btn" type="submit">{{ t('reset.request') }}</button>
+</form>{% endif %}
+<p class="muted small"><a href="/login">{{ t('login.back') }}</a></p>
+{% endblock %}

@@ -1,0 +1,5 @@
+<article class="card">
+  {% if frag.title %}<h3 class="card-title">{{ frag.title }}</h3>{% endif %}
+  <iframe class="frame" src="{{ frag.config.url }}" height="{{ frag.config.height }}" loading="lazy" referrerpolicy="no-referrer"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups" title="{{ frag.title }}"></iframe>
+</article>

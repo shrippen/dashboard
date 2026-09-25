@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="{{ ctx.locale.value }}"{% if color_mode %} data-theme="{{ color_mode }}"{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}dashboard{% endblock %}</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "allowScriptTags": false, "selfRequestsOnly": true}'>
+<link rel="stylesheet" href="{{ theme_url }}">
+<link rel="stylesheet" href="/static/vendor/shrippen/shrippen-components.css">
+<link rel="stylesheet" href="/static/dashboard.css">
+<script src="/static/vendor/htmx/htmx.min.js" defer></script>
+<script src="/static/dashboard.js" defer></script>
+{% block head %}{% endblock %}
+</head>
+<body data-csrf="{{ ctx.csrf }}" hx-headers='{"{{ CSRF_HEADER }}": "{{ ctx.csrf }}"}'>
+{% if who and not embed %}{% include "partials/nav.html" %}{% endif %}
+<main class="page{% block main_class %}{% endblock %}">
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
