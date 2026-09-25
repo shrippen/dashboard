@@ -7,7 +7,6 @@ import (
 
 	"dashboard/internal/services/boards"
 	"dashboard/internal/services/svcdata"
-	"dashboard/internal/services/themes"
 	"dashboard/internal/services/util"
 	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
@@ -59,21 +58,11 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var boardTheme *int64
-	if view.ThemeID != nil {
-		boardTheme = view.ThemeID
-	}
-	themeID, err := themes.Active(d.DB, ctx.Who, boardTheme, &view.Space.ID)
+	themeURL, err := d.themeURL(ctx.Who, view.ThemeID, &view.Space.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, themeVersion, err := themes.Stylesheet(d.DB, themeID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	themeURL := "/theme/" + strconv.FormatInt(themeID, 10) + ".css?v=" + strconv.Itoa(themeVersion)
 
 	var library []widgetlib.Ref
 	if view.CanEdit {
@@ -84,7 +73,7 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_ = Page(w, ctx, "board", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "board", http.StatusOK, map[string]any{
 		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL, "Library": library,
 	})
 }
@@ -119,7 +108,9 @@ func (d Deps) handleWidgetFragment(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	_ = Page(w, ctx, kind.Template, http.StatusOK, map[string]any{"Frag": frag})
+	// ThemeURL is irrelevant to a fragment (no <head> here) and would
+	// otherwise cost a DB round trip on every htmx refresh.
+	_ = d.Page(w, ctx, kind.Template, http.StatusOK, map[string]any{"Frag": frag, "ThemeURL": ""})
 }
 
 func (d Deps) handleBoardError(w http.ResponseWriter, r *http.Request, err error) {

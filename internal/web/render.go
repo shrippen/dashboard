@@ -2,12 +2,16 @@ package web
 
 import (
 	"embed"
+	"errors"
 	"html/template"
 	"net/http"
+	"strconv"
 	"time"
 
 	"dashboard/internal/enums"
 	"dashboard/internal/i18n"
+	"dashboard/internal/services/access"
+	"dashboard/internal/services/themes"
 )
 
 //go:embed templates/*.html
@@ -38,6 +42,7 @@ func mustParse() *template.Template {
 		"eqID":        func(a *int64, b int64) bool { return a != nil && *a == b },
 		"weatherKind": weatherKind,
 		"clockNow":    clockNow,
+		"dict":        dict,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }
@@ -109,8 +114,10 @@ func clockDate(tz string, locale enums.Locale) string {
 }
 
 // Page renders a full page with the common translation/formatting helpers
-// bound to ctx.Locale.
-func Page(w http.ResponseWriter, ctx Ctx, name string, status int, values map[string]any) error {
+// bound to ctx.Locale, and the active shrippen theme's stylesheet (unless
+// the caller already set "ThemeURL" itself — the board page picks its own
+// board/space-scoped theme).
+func (d Deps) Page(w http.ResponseWriter, ctx Ctx, name string, status int, values map[string]any) error {
 	locale := ctx.Locale
 	funcs := template.FuncMap{
 		"t": func(key string, kv ...any) string { return i18n.T(key, locale, pairs(kv)) },
@@ -132,6 +139,13 @@ func Page(w http.ResponseWriter, ctx Ctx, name string, status int, values map[st
 	for k, v := range values {
 		data[k] = v
 	}
+	if _, ok := data["ThemeURL"]; !ok {
+		url, err := d.themeURL(ctx.Who, nil, nil)
+		if err != nil {
+			return err
+		}
+		data["ThemeURL"] = url
+	}
 
 	page, err := templates.Clone()
 	if err != nil {
@@ -141,6 +155,39 @@ func Page(w http.ResponseWriter, ctx Ctx, name string, status int, values map[st
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	return page.ExecuteTemplate(w, name, data)
+}
+
+// themeURL resolves the CSS URL of the theme active for who (nil for an
+// anonymous page — login, setup — which gets the instance default),
+// optionally narrowed to a board's or space's own theme choice.
+func (d Deps) themeURL(who *access.Principal, boardTheme, spaceID *int64) (string, error) {
+	themeID, err := themes.Active(d.DB, who, boardTheme, spaceID)
+	if err != nil {
+		return "", err
+	}
+	_, version, err := themes.Stylesheet(d.DB, themeID)
+	if err != nil {
+		return "", err
+	}
+	return "/theme/" + strconv.FormatInt(themeID, 10) + ".css?v=" + strconv.Itoa(version), nil
+}
+
+// dict packs key/value pairs into a map, so a sub-template invoked with
+// {{template "name" dict "A" .X "B" $}} can take more than the single
+// pipeline argument {{template}} otherwise allows.
+func dict(kv ...any) (map[string]any, error) {
+	if len(kv)%2 != 0 {
+		return nil, errors.New("dict: odd number of arguments")
+	}
+	out := make(map[string]any, len(kv)/2)
+	for i := 0; i < len(kv); i += 2 {
+		key, ok := kv[i].(string)
+		if !ok {
+			return nil, errors.New("dict: keys must be strings")
+		}
+		out[key] = kv[i+1]
+	}
+	return out, nil
 }
 
 func firstOr[T any](vals []T, def T) T {

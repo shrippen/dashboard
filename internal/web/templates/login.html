@@ -9,19 +9,19 @@
 </head>
 <body>
   {{template "header" .}}
-  <main>
-    <div class="card" style="max-width: 24rem; margin: 3rem auto;">
-      <h1>Anmelden</h1>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand"><span class="mark"></span><b>dashboard</b></div>
       {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
       <form method="post" action="/login">
-        <label for="email">E-Mail</label>
+        <label for="email">{{t "field.email"}}</label>
         <input id="email" name="email" type="email" required autofocus>
-        <label for="password">Passwort</label>
+        <label for="password">{{t "field.password"}}</label>
         <input id="password" name="password" type="password" required>
-        <button type="submit">{{t "action.save"}}</button>
+        <button class="login-btn" type="submit">{{t "action.save"}}</button>
       </form>
     </div>
-  </main>
+  </div>
 </body>
 </html>
 {{end}}
@@ -37,18 +37,19 @@
 </head>
 <body>
   {{template "header" .}}
-  <main>
-    <div class="card" style="max-width: 24rem; margin: 3rem auto;">
-      <h1>Bestätigungscode</h1>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand"><span class="mark"></span><b>dashboard</b></div>
+      <h1 style="font-size:1.1rem;margin-bottom:1rem">Bestätigungscode</h1>
       {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
       <form method="post" action="/login/totp">
         <input type="hidden" name="token" value="{{.Token}}">
         <label for="code">Code</label>
         <input id="code" name="code" required autofocus autocomplete="one-time-code">
-        <button type="submit">{{t "action.save"}}</button>
+        <button class="login-btn" type="submit">{{t "action.save"}}</button>
       </form>
     </div>
-  </main>
+  </div>
 </body>
 </html>
 {{end}}
@@ -64,24 +65,24 @@
 </head>
 <body>
   {{template "header" .}}
-  <main>
-    <div class="card" style="max-width: 28rem; margin: 3rem auto;">
-      <h1>Ersteinrichtung</h1>
-      <p>Der Einrichtungscode steht im Container-Log.</p>
+  <div class="login-wrap">
+    <div class="login-card" style="max-width:26rem">
+      <div class="login-brand"><span class="mark"></span><b>dashboard</b></div>
+      <p class="small muted">Der Einrichtungscode steht im Container-Log.</p>
       {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
       <form method="post" action="/setup">
         <label for="code">Einrichtungscode</label>
         <input id="code" name="code" required>
-        <label for="email">E-Mail</label>
+        <label for="email">{{t "field.email"}}</label>
         <input id="email" name="email" type="email" required>
-        <label for="name">Name</label>
+        <label for="name">{{t "field.name"}}</label>
         <input id="name" name="name" required>
-        <label for="password">Passwort (mind. 12 Zeichen)</label>
+        <label for="password">{{t "field.password"}} (mind. 12 Zeichen)</label>
         <input id="password" name="password" type="password" required minlength="12">
-        <button type="submit">Admin anlegen</button>
+        <button class="login-btn" type="submit">Admin anlegen</button>
       </form>
     </div>
-  </main>
+  </div>
 </body>
 </html>
 {{end}}

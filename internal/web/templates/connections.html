@@ -6,29 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "nav.connections"}} · dashboard</title>
   {{template "style" .}}
-  <style>
-    table { width: 100%; border-collapse: collapse; }
-    td, th { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #8884; }
-    .btn { display: inline-block; padding: .3rem .7rem; border: 1px solid #8884; border-radius: .3rem;
-           text-decoration: none; color: inherit; font-size: .85rem; }
-  </style>
 </head>
 <body>
   {{template "header" .}}
   <main>
     <h1>{{t "nav.connections"}}</h1>
-    <p><a class="btn" href="/connections/new">+ {{t "action.create"}}</a></p>
-    <table>
+    <p><a class="link-btn" href="/connections/new">+ {{t "action.create"}}</a></p>
+    <div class="table-wrap"><table class="table">
       <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th></th></tr>
       {{range .Connections}}
       <tr>
         <td>{{.Name}}</td>
         <td>{{.Service}}</td>
         <td>{{.URL}}</td>
-        <td><a class="btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a></td>
+        <td><a class="link-btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a></td>
       </tr>
       {{end}}
-    </table>
+    </table></div>
   </main>
 </body>
 </html>

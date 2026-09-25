@@ -598,16 +598,16 @@ Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
 `.progress` …) existieren nirgends im Code. Entwürfe für vier Bildschirme
 (Start, Übersicht, Editor, Anmeldung): <https://claude.ai/artifact/K1SEJhy4Pm4wyn4zDJ9vLH>.
 
-- [ ] `dashboard.css` in `internal/web/static/` anlegen: nur Tokens (`var(--…)`), keine Hex-Werte außerhalb `themes/`
-- [ ] `base.html`: `system-ui`-Fallback-Styles durch echte Komponenten ersetzen (Nav, Fuß, Formulare)
-- [ ] `.launch` / `.launch-grid`: Link-Kachel mit Icon, Status-Punkt, Infozeile, Hinweis-Zähler (Start-Board, `widgets_start.html`)
-- [ ] `.kpi` / `.kpi-row`: Kennzahl-Kacheln für die Übersicht (`widgets_insight.html`)
-- [ ] `.hint`: Hinweis-Karte mit Stufe (Farbe **und** Text/Icon), Quelle, aufklappbarem „Warum?“, Aktionen (öffnen/pausieren/quittieren)
-- [ ] `.pill` mit `data-state`: Connector-Status (Start-Fuß, Übersicht-Fußleiste)
-- [ ] `.progress` mit `data-tier`: Budget- und Auslastungsbalken
-- [ ] `.editbar`, `.dropzone`: Bearbeitungsmodus im Board-Editor (`editor.html`) statt separater Formularseite
-- [ ] `.login`: eigene Anmeldeseite (`login.html`) statt ungestyltem Formular
-- [ ] Kontrastprüfung dunkel/hell (WCAG AA) für alle neuen Komponenten, bevor sie in den Theme-Editor übernommen werden
+- [x] `dashboard.css` in `internal/web/static/` angelegt: nur Tokens (`var(--…)`), keine Hex-Werte außerhalb `themes/`
+- [x] `base.html`: `system-ui`-Fallback durch `.app-nav`/`.app-links`/`.app-side` und echte Formularstile ersetzt; jede Seite lädt jetzt ihr aktives Theme (`Deps.Page` setzt `ThemeURL`, vorher nur die Board-Seite)
+- [ ] `.launch` / `.launch-grid`: Link-Kachel — Grid und Kachel-Rahmen stehen (`boards.html`), aber noch ohne Icon-Quadrat, Status-Punkt und Hinweis-Zähler-Badge aus dem Entwurf
+- [x] `.kpi` / `.kpi-row`: Kennzahl-Kacheln (`widgets_insight.html`, bereits vor diesem Abschnitt vorhanden, jetzt mit den echten Tokens statt Fallback-Werten)
+- [x] `.hint`: Hinweis-Karte mit Stufe, Quelle, aufklappbarem „Warum?“, Aktion — bestehende Struktur, jetzt mit Tokens gestylt
+- [x] `.pill` mit `data-state`: Connector-/Link-Status
+- [x] `.progress` mit `data-tier`: Budget- und Auslastungsbalken
+- [ ] `.editbar`, `.dropzone`: Bearbeitungsmodus im Board-Editor — nur als CSS vorbereitet, Board-Bearbeitung läuft weiterhin über separate Formularseiten statt Inline-Editbar
+- [x] `.login`: eigene Anmeldeseite (`login.html`, `totp`, `setup`)
+- [ ] Kontrastprüfung dunkel/hell (WCAG AA) für die neuen Komponenten — nicht durchgeführt
 
 ---
 

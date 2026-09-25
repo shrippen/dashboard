@@ -36,29 +36,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "nav.library"}} · dashboard</title>
   {{template "style" .}}
-  <style>
-    table { width: 100%; border-collapse: collapse; }
-    td, th { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #8884; }
-    .btn { display: inline-block; padding: .3rem .7rem; border: 1px solid #8884; border-radius: .3rem;
-           text-decoration: none; color: inherit; font-size: .85rem; }
-  </style>
 </head>
 <body>
   {{template "header" .}}
   <main>
     <h1>{{t "nav.library"}}</h1>
-    <p><a class="btn" href="/widgets/new">+ {{t "action.create"}}</a></p>
-    <table>
+    <p><a class="link-btn" href="/widgets/new">+ {{t "action.create"}}</a></p>
+    <div class="table-wrap"><table class="table">
       <tr><th>{{t "field.title"}}</th><th>{{t "field.type"}}</th><th>{{t "field.space"}}</th><th></th></tr>
       {{range .Widgets}}
       <tr>
         <td>{{.Title}}</td>
         <td>{{.Type}}</td>
         <td>{{.Space.Name}}</td>
-        <td>{{if .CanEdit}}<a class="btn" href="/widgets/{{.ID}}/edit">{{t "action.edit"}}</a>{{end}}</td>
+        <td>{{if .CanEdit}}<a class="link-btn" href="/widgets/{{.ID}}/edit">{{t "action.edit"}}</a>{{end}}</td>
       </tr>
       {{end}}
-    </table>
+    </table></div>
   </main>
 </body>
 </html>
@@ -72,7 +66,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "nav.library"}} · dashboard</title>
   {{template "style" .}}
-  <style>textarea { width: 100%; min-height: 8rem; font-family: var(--font-mono, monospace); box-sizing: border-box; }</style>
 </head>
 <body>
   {{template "header" .}}

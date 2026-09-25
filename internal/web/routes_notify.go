@@ -35,7 +35,7 @@ func (d Deps) notifyPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status
 	for k, v := range extra {
 		values[k] = v
 	}
-	_ = Page(w, ctx, "notify", status, values)
+	_ = d.Page(w, ctx, "notify", status, values)
 }
 
 func (d Deps) handleNotifyPage(w http.ResponseWriter, r *http.Request) {

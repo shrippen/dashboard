@@ -279,6 +279,47 @@ func TestThemeCSSRoute(t *testing.T) {
 	}
 }
 
+// TestAnonymousPageLoadsThemeAndStyles guards Deps.Page's ThemeURL
+// default: even a pre-login page (no principal yet) must link the active
+// theme and dashboard.css, not just the board page.
+func TestAnonymousPageLoadsThemeAndStyles(t *testing.T) {
+	srv, client, _ := newTestServer(t)
+
+	resp, err := client.Get(srv.URL + "/login")
+	if err != nil {
+		t.Fatalf("get login: %v", err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	if !strings.Contains(string(body), "/static/dashboard.css") {
+		t.Fatalf("expected dashboard.css linked on the login page:\n%s", body)
+	}
+	m := regexp.MustCompile(`href="(/theme/[^"]+\.css[^"]*)"`).FindSubmatch(body)
+	if m == nil {
+		t.Fatalf("expected a theme stylesheet link on the login page:\n%s", body)
+	}
+
+	cssResp, err := client.Get(srv.URL + string(m[1]))
+	if err != nil {
+		t.Fatalf("get theme css: %v", err)
+	}
+	defer cssResp.Body.Close()
+	css, _ := io.ReadAll(cssResp.Body)
+	if cssResp.StatusCode != http.StatusOK || !strings.Contains(string(css), "--bg-void") {
+		t.Fatalf("expected shrippen tokens in theme css, got %d:\n%s", cssResp.StatusCode, css)
+	}
+
+	dashboardCSS, err := client.Get(srv.URL + "/static/dashboard.css")
+	if err != nil {
+		t.Fatalf("get dashboard.css: %v", err)
+	}
+	defer dashboardCSS.Body.Close()
+	if dashboardCSS.StatusCode != http.StatusOK {
+		t.Fatalf("expected dashboard.css to be served, got %d", dashboardCSS.StatusCode)
+	}
+}
+
 // TestConnectionsCreateEditDelete drives the full connections editor flow
 // through real HTTP requests: create, see it listed, edit, delete.
 func TestConnectionsCreateEditDelete(t *testing.T) {

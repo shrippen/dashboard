@@ -31,7 +31,7 @@ func (d Deps) handleConnectionsList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = Page(w, ctx, "connections", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "connections", http.StatusOK, map[string]any{
 		"Connections": list, "Services": serviceOptions,
 	})
 }
@@ -47,7 +47,7 @@ func (d Deps) handleConnectionNewForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	spaces := access.EditableSpaces(ctx.Who)
-	_ = Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
 		"Spaces": spaces, "Services": serviceOptions, "IsNew": true,
 	})
 }
@@ -75,7 +75,7 @@ func (d Deps) handleConnectionCreate(w http.ResponseWriter, r *http.Request) {
 	id, err := connections.Create(d.DB, ctx.Who, spaceID, enums.ServiceType(r.FormValue("service")),
 		r.FormValue("name"), r.FormValue("url"), mode, r.FormValue("secret"), tls, nil)
 	if err != nil {
-		_ = Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
+		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
 			"Spaces": access.EditableSpaces(ctx.Who), "Services": serviceOptions, "IsNew": true, "Error": err.Error(),
 		})
 		return
@@ -99,7 +99,7 @@ func (d Deps) handleConnectionEditForm(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
-	_ = Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
 		"Conn": conn, "Services": serviceOptions, "IsNew": false,
 	})
 }
@@ -134,7 +134,7 @@ func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {
 
 	if err := connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil); err != nil {
 		conn, _ := connections.Get(d.DB, ctx.Who, id)
-		_ = Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
+		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
 			"Conn": conn, "Services": serviceOptions, "IsNew": false, "Error": err.Error(),
 		})
 		return
@@ -177,7 +177,7 @@ func (d Deps) handleConnectionTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	conn, _ := connections.Get(d.DB, ctx.Who, id)
-	_ = Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
 		"Conn": conn, "Services": serviceOptions, "IsNew": false, "TestResult": result,
 	})
 }

@@ -11,91 +11,89 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Board.Name}} · dashboard</title>
-  <link rel="stylesheet" href="{{.ThemeURL}}">
-  {{template "htmx" .}}
   {{template "style" .}}
-  <style>
-    body { background: var(--bg0, Canvas); color: var(--fg1, CanvasText); }
-    header { background: var(--nav-bg, transparent); border-bottom-color: var(--bg2, #8884); }
-    .board-nav { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
-    .board-nav a { padding: .25rem .6rem; border: 1px solid var(--bg2, #8884); border-radius: var(--radius, .4rem);
-                   color: var(--fg2, inherit); }
-    .section { margin-bottom: 1.5rem; }
-    .section-head { display: flex; align-items: baseline; gap: .5rem; }
-    .section h2 { font-size: 1rem; opacity: .8; margin: 0 0 .5rem; color: var(--fg2, inherit); }
-    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .75rem; }
-    .tile { border: 1px solid var(--bg2, #8884); border-radius: var(--radius, .5rem); padding: .75rem;
-            background: var(--bg1, transparent); box-shadow: 0 1px 3px var(--shadow, transparent); position: relative; }
-    .tile .kind { font-size: .75rem; opacity: .6; text-transform: uppercase; color: var(--fg3, inherit); }
-    .tile form { display: inline; margin: 0; }
-    .tile button { margin: 0; padding: 0 .3rem; font-size: .75rem; float: right; }
-    .inline-form { display: inline-flex; gap: .3rem; align-items: center; margin: 0; }
-    .inline-form select, .inline-form input { width: auto; padding: .2rem; }
-  </style>
+  {{template "htmx" .}}
 </head>
 <body>
   {{template "header" .}}
-  <main>
-    <nav class="board-nav">
-      {{range .NavBoards}}<a href="/boards/{{.ID}}">{{.Name}}</a>{{end}}
-      {{if .Board.CanEdit}}<a href="/boards/{{.Board.ID}}/settings">{{t "edit.board_settings"}}</a>{{end}}
-    </nav>
-    <h1>{{.Board.Name}}</h1>
+  <nav class="board-nav" style="padding:.6rem 1.2rem 0">
+    {{range .NavBoards}}<a href="/boards/{{.ID}}">{{.Name}}</a>{{end}}
+    {{if .Board.CanEdit}}<a href="/boards/{{.Board.ID}}/settings">{{t "edit.board_settings"}}</a>{{end}}
+  </nav>
 
-    {{range .Board.Sections}}
-      <div class="section">
-        <div class="section-head">
-          {{if .Title}}<h2>{{.Title}}</h2>{{end}}
-          {{if $.Board.CanEdit}}
-            <form class="inline-form" method="post" action="/sections/{{.ID}}/delete"
-                  onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
-              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-              <input type="hidden" name="version" value="{{$.Board.Version}}">
-              <input type="hidden" name="board_id" value="{{$.Board.ID}}">
-              <button type="submit">{{t "edit.delete_section"}}</button>
-            </form>
-          {{end}}
-        </div>
-        <div class="tiles">
-          {{range .Tiles}}
-            <div class="tile">
-              {{if $.Board.CanEdit}}
-                <form method="post" action="/placements/{{.PlacementID}}/unplace">
-                  <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-                  <input type="hidden" name="version" value="{{$.Board.Version}}">
-                  <input type="hidden" name="board_id" value="{{$.Board.ID}}">
-                  <button type="submit" title="{{t "edit.remove"}}">×</button>
-                </form>
-              {{end}}
-              {{if .Title}}<h3 class="tile-title">{{.Title}}</h3>{{end}}
-              <div hx-get="/widget-fragments/{{.PlacementID}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
-                <span class="loading">{{t "widget.loading"}}</span>
-              </div>
-            </div>
-          {{end}}
-        </div>
-        {{if $.Board.CanEdit}}
-          <form class="inline-form" method="post" action="/boards/{{$.Board.ID}}/sections/{{.ID}}/place">
-            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-            <input type="hidden" name="version" value="{{$.Board.Version}}">
-            <select name="widget_id">
-              {{range $.Library}}<option value="{{.ID}}">{{.Title}} ({{.Type}})</option>{{end}}
-            </select>
-            <button type="submit">{{t "edit.place"}}</button>
-          </form>
-        {{end}}
-      </div>
+  {{$hasSide := false}}
+  {{range .Board.Sections}}{{if eq .Area "side"}}{{$hasSide = true}}{{end}}{{end}}
+  <div class="body-cols{{if not $hasSide}} single{{end}}">
+    <div class="col">
+      {{range .Board.Sections}}{{if ne .Area "side"}}{{template "section" dict "S" . "B" $}}{{end}}{{end}}
+    </div>
+    {{if $hasSide}}
+    <div class="col">
+      {{range .Board.Sections}}{{if eq .Area "side"}}{{template "section" dict "S" . "B" $}}{{end}}{{end}}
+    </div>
     {{end}}
+  </div>
 
-    {{if .Board.CanEdit}}
+  {{if .Board.CanEdit}}
+    <div style="padding:0 1.2rem 1.4rem">
       <form class="inline-form" method="post" action="/boards/{{.Board.ID}}/sections">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <input type="hidden" name="version" value="{{.Board.Version}}">
         <input name="title" placeholder="{{t "edit.section_title"}}">
         <button type="submit">{{t "edit.add_section"}}</button>
       </form>
-    {{end}}
-  </main>
+    </div>
+  {{end}}
 </body>
 </html>
+{{end}}
+
+{{/* "dict" (a small render.go func) packs the section plus the root
+     context (for $.CSRFField, $.Board.CanEdit, ...) into one map, since
+     {{template}} only takes a single pipeline argument. */}}
+{{define "section"}}
+{{$b := .B}}{{with .S}}
+  <div class="fold">
+    {{if .Title}}<b>{{.Title}}</b>{{end}}<span>({{len .Tiles}})</span>
+    {{if $b.Board.CanEdit}}
+      <form class="inline-form sp" method="post" action="/sections/{{.ID}}/delete"
+            onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
+        <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+        <input type="hidden" name="version" value="{{$b.Board.Version}}">
+        <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
+        <button type="submit" class="ghost">{{t "edit.delete_section"}}</button>
+      </form>
+    {{end}}
+  </div>
+
+  <div class="launch-grid">
+    {{range .Tiles}}
+      <div class="launch">
+        {{if $b.Board.CanEdit}}
+          <form method="post" action="/placements/{{.PlacementID}}/unplace">
+            <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+            <input type="hidden" name="version" value="{{$b.Board.Version}}">
+            <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
+            <button type="submit" class="launch-remove" title="{{t "edit.remove"}}">×</button>
+          </form>
+        {{end}}
+        {{if .Title}}<div class="launch-top"><b>{{.Title}}</b></div>{{end}}
+        <div class="launch-body" hx-get="/widget-fragments/{{.PlacementID}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
+          <span class="loading">{{t "widget.loading"}}</span>
+        </div>
+      </div>
+    {{end}}
+  </div>
+
+  {{if $b.Board.CanEdit}}
+    <form class="inline-form" method="post" action="/boards/{{$b.Board.ID}}/sections/{{.ID}}/place" style="margin-bottom:1.4rem">
+      <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+      <input type="hidden" name="version" value="{{$b.Board.Version}}">
+      <select name="widget_id">
+        {{range $b.Library}}<option value="{{.ID}}">{{.Title}} ({{.Type}})</option>{{end}}
+      </select>
+      <button type="submit" class="ghost">{{t "edit.place"}}</button>
+    </form>
+  {{end}}
+{{end}}
 {{end}}

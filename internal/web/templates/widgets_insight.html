@@ -129,7 +129,7 @@
         <p class="muted">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}</p></details>
     </div>
     {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
-    {{if .ActionURL}}<div class="hint-actions"><a class="btn btn-outline btn-sm" href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a></div>{{end}}
+    {{if .ActionURL}}<div class="hint-actions"><a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a></div>{{end}}
   </li>
 {{else}}<li class="hint-empty">{{t "hints.none"}}</li>
 {{end}}

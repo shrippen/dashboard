@@ -55,6 +55,7 @@ type Tile struct {
 	Type        string
 	Title       string
 	Template    string
+	Category    widgets.Category
 	Inline      bool
 	RefreshS    int
 	Config      any
@@ -363,7 +364,7 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 		cfg, _ := widgets.Decode(w.Type, w.Config)
 		view.Tiles = append(view.Tiles, Tile{
 			PlacementID: placement.ID, WidgetID: w.ID, Type: w.Type, Title: w.Title, Template: kind.Template,
-			Inline: kind.Inline, RefreshS: kind.RefreshS, Config: cfg, Hidden: hidden[placement.ID],
+			Category: kind.Category, Inline: kind.Inline, RefreshS: kind.RefreshS, Config: cfg, Hidden: hidden[placement.ID],
 		})
 	}
 

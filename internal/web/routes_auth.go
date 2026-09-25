@@ -29,7 +29,7 @@ func (d Deps) handleSetupForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx, _ := d.Context(r)
-	_ = Page(w, ctx, "setup", http.StatusOK, nil)
+	_ = d.Page(w, ctx, "setup", http.StatusOK, nil)
 }
 
 func (d Deps) handleSetupSubmit(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +41,7 @@ func (d Deps) handleSetupSubmit(w http.ResponseWriter, r *http.Request) {
 	err := auth.CreateAdmin(d.DB, r.FormValue("code"), r.FormValue("email"), r.FormValue("name"),
 		r.FormValue("password"), ctx.Locale)
 	if err != nil {
-		_ = Page(w, ctx, "setup", http.StatusUnauthorized, map[string]any{"Error": err.Error()})
+		_ = d.Page(w, ctx, "setup", http.StatusUnauthorized, map[string]any{"Error": err.Error()})
 		return
 	}
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -53,7 +53,7 @@ func (d Deps) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	_ = Page(w, ctx, "login", http.StatusOK, nil)
+	_ = d.Page(w, ctx, "login", http.StatusOK, nil)
 }
 
 func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, auth.ErrThrottled) {
 			status = http.StatusTooManyRequests
 		}
-		_ = Page(w, ctx, "login", status, map[string]any{"Error": "Anmeldung fehlgeschlagen."})
+		_ = d.Page(w, ctx, "login", status, map[string]any{"Error": "Anmeldung fehlgeschlagen."})
 		return
 	}
 
@@ -89,7 +89,7 @@ func (d Deps) handleTOTPForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx, _ := d.Context(r)
-	_ = Page(w, ctx, "totp", http.StatusOK, map[string]any{"Token": cookie.Value})
+	_ = d.Page(w, ctx, "totp", http.StatusOK, map[string]any{"Token": cookie.Value})
 }
 
 func (d Deps) handleTOTPSubmit(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +106,7 @@ func (d Deps) handleTOTPSubmit(w http.ResponseWriter, r *http.Request) {
 	err = auth.TOTPVerify(d.DB, cookie.Value, r.FormValue("code"), ClientIP(r), Agent(r))
 	if err != nil {
 		ctx, _ := d.Context(r)
-		_ = Page(w, ctx, "totp", http.StatusUnauthorized,
+		_ = d.Page(w, ctx, "totp", http.StatusUnauthorized,
 			map[string]any{"Token": cookie.Value, "Error": "Code ungültig."})
 		return
 	}

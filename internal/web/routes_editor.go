@@ -49,7 +49,7 @@ func (d Deps) handleBoardSettingsForm(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
-	_ = Page(w, ctx, "board_settings", http.StatusOK, map[string]any{"Board": view})
+	_ = d.Page(w, ctx, "board_settings", http.StatusOK, map[string]any{"Board": view})
 }
 
 func (d Deps) handleBoardRename(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +236,7 @@ func (d Deps) handleWidgetLibrary(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = Page(w, ctx, "widgets", http.StatusOK, map[string]any{"Widgets": lib})
+	_ = d.Page(w, ctx, "widgets", http.StatusOK, map[string]any{"Widgets": lib})
 }
 
 func (d Deps) handleWidgetNewForm(w http.ResponseWriter, r *http.Request) {
@@ -250,7 +250,7 @@ func (d Deps) handleWidgetNewForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = Page(w, ctx, "widget_form", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "widget_form", http.StatusOK, map[string]any{
 		"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "Connections": conns, "IsNew": true,
 	})
 }
@@ -300,7 +300,7 @@ func (d Deps) widgetFormError(w http.ResponseWriter, ctx Ctx, isNew bool, widget
 		http.Error(w, connErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = Page(w, ctx, "widget_form", http.StatusBadRequest, map[string]any{
+	_ = d.Page(w, ctx, "widget_form", http.StatusBadRequest, map[string]any{
 		"Spaces": access.EditableSpaces(ctx.Who), "Types": widgets.AllTypes(), "Connections": conns,
 		"Widget": widget, "ConfigJSON": configJSON, "IsNew": isNew, "Error": err.Error(),
 	})
@@ -339,7 +339,7 @@ func (d Deps) handleWidgetEditForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	configJSON, _ := json.MarshalIndent(widget.Config, "", "  ")
-	_ = Page(w, ctx, "widget_form", http.StatusOK, map[string]any{
+	_ = d.Page(w, ctx, "widget_form", http.StatusOK, map[string]any{
 		"Widget": widget, "ConfigJSON": string(configJSON), "Types": widgets.AllTypes(),
 		"Connections": conns, "IsNew": false,
 	})
