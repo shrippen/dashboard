@@ -715,6 +715,36 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Weitere Quellen über dieselbe Schnittstelle: z. B. Uptime Kuma (Dienste down), Proxmox/Docker (Updates, Speicher), Backup-Status, Paperless-ngx (unbearbeitete Belege), Zertifikatsablauf *(Uptime Kuma, Proxmox VE mit Updates/Speicher/vzdump-Backups, Paperless-ngx, TLS-Zertifikate; Docker nicht umgesetzt)*
 - [x] Optionale Wochenzusammenfassung in Fließtext per LLM (abschaltbar je Benutzer, nur Aggregate, keine Standortdaten) *(Claude über `ANTHROPIC_API_KEY`/Secret `anthropic_api_key`; nur Hinweis-Anzahlen je Regel, `geo.*` ausgenommen)*
 
+### Phase 10: Homelab-Dienste
+
+Jede Quelle liefert einen gecachten Datensatz (`<dienst>.data`), Regeln, eine Infozeile auf der Link-Kachel und Demodaten. Der Quell-Cache hält Ergebnisse jetzt für die TTL der Quelle im Speicher (vorher jeder Aufruf live).
+
+- [x] FreshRSS (Google-Reader-API): Leserückstand mit den größten Quellen, verstummte Feeds
+- [x] Gitea: wartende Reviews, fällige Issues, ruhende PRs, fehlgeschlagene Actions, veraltete Spiegel
+- [x] E-Mail (IMAP, nur lesend): Eingangsrechnungen erkennen (Betreff/Anhangsname, Betrag aus dem Text) und mit Invoice-Ninja-Ausgaben abgleichen (Betrag ± 1 ct im Datumsfenster, sonst Lieferantenname ~ Absender)
+- [x] Sure: Kontostand/Vermögen, ausgebliebene wiederkehrende Zahlungen, niedriger Kontostand, Bank-Sync, ungewöhnliche Ausgaben, ohne Kategorie; mit Invoice Ninja: Zahlungseingang zu offener Rechnung, Geschäftsausgabe nicht erfasst; Liquidität nutzt Sures Fixkosten
+- [x] Paperless-ngx: zusätzlich Rechnungsdokumente gegen Invoice-Ninja-Ausgaben
+- [x] Immich: Speicher, fehlgeschlagene Jobs, Updates
+- [x] Linkwarden: Lesezeichen einer Sammlung ohne Kachel, Kacheln ohne Lesezeichen
+- [x] Home Assistant: Alarmsensoren, Batterien, nicht erreichbare Entitäten (ein Hinweis), Updates; Widget mit Schaltern (nur gelistete Entitäten, nur mit Recht „nutzen“ an der Verbindung)
+- [x] Uptime Kuma: zusätzlich Kacheln ohne Monitor
+- [x] Umami: Besuchereinbruch gegenüber Vorwoche, keine Aufrufe mehr
+- [x] Scrutiny: SMART-Fehler, Temperatur, schweigender Collector
+- [x] Borg Backup Server: Clients offline/Fehler, fehlgeschlagene Jobs, Alter des letzten Backups, Speicher, Updates
+- [x] PG Back Web (keine Lese-API): signierte Webhook-URL je Verbindung; fehlgeschlagene/veraltete Backups, nicht erreichbare Datenbanken/Ziele, ausbleibende Webhooks
+- [ ] Obsidian (Vorschlag unten, noch nicht umgesetzt)
+- [ ] Docker
+
+**Obsidian – Vorschlag.** Obsidian hat keinen Server; der Vault ist ein Ordner mit Markdown. Drei Wege, ihn zu lesen:
+
+| Weg | Voraussetzung | Bewertung |
+|---|---|---|
+| Vault per Obsidian-Git-Plugin in ein Gitea-Repo | Plugin, privates Repo | **Empfohlen.** Gitea-Verbindung existiert schon; Lesen über die Contents-API, versioniert, kein offener Port am Rechner. |
+| Vault per Syncthing auf den Server, schreibgeschützt ins Dashboard gemountet | Syncthing | Einfach, wenn Syncthing schon läuft; kein API-Token nötig. |
+| Plugin „Local REST API“ | Obsidian-Desktop läuft | Nur solange der Rechner an ist – für Hinweise ungeeignet. |
+
+Mögliche Auswertungen: offene Aufgaben `- [ ]` mit Fälligkeit (Tasks-Plugin `📅 2026-10-01`) als Hinweise und in den Fristen; Notizen mit `wiedervorlage:` im Frontmatter; fehlende Tagesnotiz; wachsender Eingangsordner; Kundennotizen, deren letzte Änderung lange zurückliegt, während in Kimai für diesen Kunden gebucht wird.
+
 ---
 
 ## 11. Betrieb und Sicherheit
