@@ -244,6 +244,18 @@ func EditableSpaces(who *Principal) []SpaceRef {
 	return out
 }
 
+// GrantedResourceIDs returns the ids of every resource of kind the
+// principal has an explicit share on (regardless of space membership).
+func GrantedResourceIDs(who *Principal, kind enums.ResourceKind) []int64 {
+	var out []int64
+	for key := range who.Grants {
+		if key.kind == kind {
+			out = append(out, key.id)
+		}
+	}
+	return out
+}
+
 // Personal returns the principal's own personal space, or nil.
 func Personal(who *Principal) *SpaceRef {
 	for _, sp := range who.Spaces {

@@ -192,27 +192,35 @@ func Delete(q db.Queryer, userID int64) error {
 	return err
 }
 
+func scanTeam(row interface{ Scan(...any) error }) (*model.Team, error) {
+	var t model.Team
+	var createdAt string
+	if err := row.Scan(&t.ID, &t.Name, &createdAt); err != nil {
+		return nil, err
+	}
+	var err error
+	t.CreatedAt, err = db.ParseTime(createdAt)
+	return &t, err
+}
+
 // Team returns a team by id, or nil if none exists.
 func Team(q db.Queryer, teamID int64) (*model.Team, error) {
-	var t model.Team
-	err := q.QueryRow("SELECT id, name, created_at FROM teams WHERE id = ?", teamID).
-		Scan(&t.ID, &t.Name, &t.CreatedAt)
+	row := q.QueryRow("SELECT id, name, created_at FROM teams WHERE id = ?", teamID)
+	t, err := scanTeam(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
-	return &t, err
+	return t, err
 }
 
 // TeamByName looks up a team case-insensitively by name.
 func TeamByName(q db.Queryer, name string) (*model.Team, error) {
-	var t model.Team
-	err := q.QueryRow(
-		"SELECT id, name, created_at FROM teams WHERE lower(name) = ?", strings.ToLower(name),
-	).Scan(&t.ID, &t.Name, &t.CreatedAt)
+	row := q.QueryRow("SELECT id, name, created_at FROM teams WHERE lower(name) = ?", strings.ToLower(name))
+	t, err := scanTeam(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
-	return &t, err
+	return t, err
 }
 
 // Teams returns every team, ordered by name.
@@ -225,11 +233,11 @@ func Teams(q db.Queryer) ([]*model.Team, error) {
 
 	var out []*model.Team
 	for rows.Next() {
-		var t model.Team
-		if err := rows.Scan(&t.ID, &t.Name, &t.CreatedAt); err != nil {
+		t, err := scanTeam(rows)
+		if err != nil {
 			return nil, err
 		}
-		out = append(out, &t)
+		out = append(out, t)
 	}
 	return out, rows.Err()
 }

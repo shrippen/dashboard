@@ -126,6 +126,19 @@ func TestTeamMembershipLifecycle(t *testing.T) {
 		t.Fatalf("add team: %v", err)
 	}
 
+	// Reading a team back exercises the same TEXT->time.Time scan path
+	// that Add/scanUser already covers for users; catch regressions there too.
+	got, err := users.Team(q, team.ID)
+	if err != nil || got == nil || got.Name != "Ops" {
+		t.Fatalf("expected to read team back, got %+v err=%v", got, err)
+	}
+	if byName, err := users.TeamByName(q, "ops"); err != nil || byName == nil || byName.ID != team.ID {
+		t.Fatalf("expected case-insensitive lookup, got %+v err=%v", byName, err)
+	}
+	if all, err := users.Teams(q); err != nil || len(all) != 1 {
+		t.Fatalf("expected 1 team listed, got %+v err=%v", all, err)
+	}
+
 	if err := users.SetMember(q, u.ID, team.ID, enums.TeamEditor); err != nil {
 		t.Fatalf("set member: %v", err)
 	}

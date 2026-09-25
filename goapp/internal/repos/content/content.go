@@ -144,6 +144,18 @@ func UpdateSpaceSettings(q db.Queryer, spaceID int64, settings map[string]any, v
 	return err
 }
 
+// RenameSpace updates a space's display name (e.g. to follow a team rename).
+func RenameSpace(q db.Queryer, spaceID int64, name string) error {
+	_, err := q.Exec("UPDATE spaces SET name = ? WHERE id = ?", name, spaceID)
+	return err
+}
+
+// RemoveSpace deletes a space (cascades to its connections/widgets/boards).
+func RemoveSpace(q db.Queryer, spaceID int64) error {
+	_, err := q.Exec("DELETE FROM spaces WHERE id = ?", spaceID)
+	return err
+}
+
 // ── Connections ──
 
 const connCols = `id, space_id, key, name, service, url, credential_mode, secret_enc,
