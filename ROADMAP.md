@@ -755,6 +755,73 @@ Auswahl vom 25.09.2026 (Checkliste „Dashy-Abgleich“). Abgelehnt: Overlay, Ar
 - [x] Widgets/Quellen fürs Homelab: Pi-hole/AdGuard, Nextcloud, Sabnzbd, Gluetun/Mullvad, Glances im Detail, Domain-Ablauf, Blacklist-Check *(`sources/netops.go`, `rules/netops.go`; Gluetun erkennt Lecks am Vergleich der Ausgangs-IP mit der eigenen und prüft das erwartete Land – eine Mullvad-eigene Abfrage entfällt, weil das Dashboard selbst nicht im Tunnel läuft; Widget `glances_chart` für den Verlauf; Domain-Ablauf über RDAP, .de ohne Datum)*
 - [x] Integrationen: TrueNAS, Komodo, Pangolin, authentik (Nutzungsstatistik) *(Go: `sources/infra.go`, `rules/infra.go`; TrueNAS über JSON-RPC per WebSocket mit REST-Fallback; Tabelle `app_usage` für Anmeldungen je Anwendung)*
 
+### Phase 12: Ausbau
+
+Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell/dunkel nach Uhrzeit, öffentliche Statusseite, Proxmox Backup Server, Frigate, Fragen an die eigenen Daten, Prometheus-Metriken.
+
+**Hinweise und Analyse**
+- [ ] Update-Zentrale: alle verfügbaren Updates in einem Widget
+- [ ] Backup-Übersicht: Dienst × letzte Sicherung (Borg, PG Back Web, TrueNAS-Snapshots), Dienste ohne Backup melden
+- [ ] Ausfälle bündeln: ein Hinweis mit Ursache statt vieler Folgehinweise
+- [ ] Dienste ohne Kachel finden (Komodo, Pangolin, Kuma)
+- [ ] Zertifikate automatisch aus Link-Kacheln und Pangolin-Ressourcen prüfen
+- [ ] Verlauf je Hinweis, flatternde Hinweise dämpfen
+- [ ] Eigene Regeln ohne Code (Schwellwert auf Kennzahl oder API-Feld)
+- [ ] Notiz beim Quittieren
+- [ ] Hinweis zuweisen (offen/in Arbeit/erledigt)
+
+**Selbstständigkeit**
+- [ ] Rechnungsentwurf aus unabgerechneten Kimai-Stunden in Invoice Ninja (Vorschau, Bestätigung)
+- [ ] Kimai-Timer starten/stoppen (mit der leichten Kimai-Quelle aus Phase 10)
+- [ ] Liquiditätsverlauf 90 Tage
+- [ ] Zahlungsmoral je Kunde
+- [ ] Verträge und Kündigungsfristen aus Paperless
+- [ ] Rechnungsmail an Paperless übergeben
+- [ ] Jahrespaket für die Steuer (CSV/ZIP)
+- [ ] Stunden-Heatmap
+
+**Startseite und Bedienung**
+- [ ] Befehlspalette (Strg+K)
+- [ ] Link per URL hinzufügen (Titel und Icon automatisch)
+- [ ] Häufig genutzte Links
+- [ ] Tote Links melden
+- [ ] Rückgängig im Editor
+- [ ] Mehrere Kacheln gleichzeitig bearbeiten
+- [ ] Board duplizieren und Vorlagen
+- [ ] Tastenkürzel-Übersicht („?“)
+- [ ] Verfügbarkeit auf der Kachel (30 Tage, Antwortzeit)
+
+**Anzeigen und Geräte**
+- [ ] Wandanzeige (Vollbild, Boards wechseln, nachts gedimmt)
+- [ ] Offline-Ansicht (letzter Stand)
+- [ ] Eigenes Handy-Layout je Board
+
+**Verbindungen**
+- [ ] Verbindungs-Assistent
+- [ ] Zustand je Verbindung (letzter Erfolg, Fehlerquote, Antwortzeit)
+- [ ] Token-Hygiene (Alter, Ablauf)
+- [ ] Eigene Integration per YAML
+- [ ] Abruf-Budget für begrenzte APIs
+
+**Integrationen**
+- [ ] Tailscale / Headscale
+- [ ] OPNsense / pfSense / UniFi
+- [ ] Jellyfin / Plex
+- [ ] Sonarr / Radarr
+- [ ] Vaultwarden
+- [ ] Speedtest Tracker
+- [ ] Grocy
+- [ ] DWD-Unwetterwarnungen
+- [ ] GitHub
+- [ ] Energie und Kosten (Home Assistant, Tibber)
+
+**KI und Betrieb**
+- [ ] „Was tun?“ je Hinweis
+- [ ] Rechnungen in Mails per KI lesen
+- [ ] Automatische Sicherung des Dashboards mit Test-Wiederherstellung
+- [ ] Hinweise abonnieren (je Person nach Quelle und Stufe)
+- [ ] Ruhezeiten für Benachrichtigungen
+
 **Obsidian – Vorschlag.** Obsidian hat keinen Server; der Vault ist ein Ordner mit Markdown. Drei Wege, ihn zu lesen:
 
 | Weg | Voraussetzung | Bewertung |
