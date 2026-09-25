@@ -444,3 +444,6 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 .type-card:hover { border-left-color: var(--yellow); background: var(--bg1); }
 .type-card b { font-family: var(--font-heading); color: var(--fg0); }
 .type-card small { color: var(--fg3); }
+.rule-params { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+.rule-params label { display: flex; align-items: center; gap: .4rem; }
+.rule-params input[type=number] { width: 6rem; }
