@@ -177,9 +177,9 @@ func uploaded(r *http.Request) ([]byte, error) {
 
 // tokenRow is one token line in the editor: value per mode, hex for pickers.
 type tokenRow struct {
-	Name, Dark, Light       string
-	DarkColor, LightColor   string
-	DarkIsHex, LightIsHex   bool
+	Name, Dark, Light     string
+	DarkColor, LightColor string
+	DarkIsHex, LightIsHex bool
 }
 
 // hex6 expands "#abc" to "#aabbcc" (the colour input needs six digits).
