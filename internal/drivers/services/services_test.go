@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"dashboard/internal/drivers/services"
@@ -68,6 +69,25 @@ func TestNinjaPagesFollowsMetaPagination(t *testing.T) {
 	}
 	if len(items) != 2 {
 		t.Fatalf("expected 2 items, got %d", len(items))
+	}
+}
+
+func TestPaperlessGetOmitsAPIVersion(t *testing.T) {
+	// paperless-ngx returns 406 for a pinned version it no longer accepts;
+	// the driver must not force one.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if accept := r.Header.Get("Accept"); strings.Contains(accept, "version=") {
+			w.WriteHeader(http.StatusNotAcceptable)
+			return
+		}
+		w.Write([]byte(`{}`))
+	}))
+	defer srv.Close()
+
+	api := services.PaperlessApi{URL: srv.URL, Token: "tok", Verify: true}
+	_, err := api.Get(context.Background(), "documents/", nil)
+	if err != nil {
+		t.Fatalf("get: %v", err)
 	}
 }
 

@@ -323,18 +323,18 @@ func (a ProxmoxApi) Get(ctx context.Context, path string, params url.Values) (an
 
 // ── Paperless-ngx ──
 
-const paperlessAPIVersion = "5"
-
 type PaperlessApi struct {
 	URL    string
 	Token  string
 	Verify bool
 }
 
-// Get performs one GET against /api/<path>.
+// Get performs one GET against /api/<path>. A pinned Accept version gets
+// rejected with 406 once a paperless-ngx instance drops support for it, so
+// this asks for whatever version the server currently serves.
 func (a PaperlessApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
 	return fetchJSON(ctx, strings.TrimRight(a.URL, "/")+"/api/"+path, map[string]string{
-		"Authorization": "Token " + a.Token, "Accept": "application/json; version=" + paperlessAPIVersion,
+		"Authorization": "Token " + a.Token, "Accept": "application/json",
 	}, params, !a.Verify)
 }
 
