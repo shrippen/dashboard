@@ -69,6 +69,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterSecurityRoutes(mux)
 	deps.RegisterTeamRoutes(mux)
 	deps.RegisterShareRoutes(mux)
+	deps.RegisterAdminRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(mux)
@@ -808,6 +809,29 @@ func TestHintsPageListsAndAcks(t *testing.T) {
 	body := mustGet(t, srv, client, "/hints")
 	if !strings.Contains(string(body), "hints") {
 		t.Fatalf("expected the hints page to render, got:\n%s", body)
+	}
+}
+
+// TestAdminUsersListsAndGuardsLastAdmin checks the admin user list renders
+// and that the sole admin cannot demote or deactivate themselves — the
+// template hides those controls for the caller's own row, and the service
+// would refuse it as the last admin regardless.
+func TestAdminUsersListsAndGuardsLastAdmin(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	body := mustGet(t, srv, client, "/admin/users")
+	if !strings.Contains(string(body), "admin@x.de") {
+		t.Fatalf("expected the admin listed:\n%s", body)
+	}
+	if !strings.Contains(string(body), "eigene Konto") {
+		t.Fatalf("expected the self-account note instead of role/delete controls:\n%s", body)
+	}
+
+	body = mustGet(t, srv, client, "/admin/audit")
+	if !strings.Contains(string(body), "user.created") && !strings.Contains(string(body), "Audit") {
+		t.Fatalf("expected the audit page to render:\n%s", body)
 	}
 }
 

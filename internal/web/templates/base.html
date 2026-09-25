@@ -27,6 +27,10 @@
       <a href="/connections">{{t "nav.connections"}}</a>
       <a href="/hints">{{t "nav.hints"}}</a>
       <a href="/teams">{{t "nav.teams"}}</a>
+      {{if .Who.IsAdmin}}
+      <a href="/admin/users">{{t "nav.admin_users"}}</a>
+      <a href="/admin/audit">{{t "nav.audit"}}</a>
+      {{end}}
       <a href="/me/notify">{{t "nav.notify"}}</a>
     </nav>
     <div class="app-side">

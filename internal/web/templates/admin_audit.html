@@ -1,0 +1,28 @@
+{{define "admin_audit"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.audit"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.audit"}}</h1>
+    <div class="table-wrap"><table class="table">
+      <tr><th>{{t "audit.who"}}</th><th>{{t "audit.action"}}</th><th>{{t "audit.target"}}</th><th></th></tr>
+      {{range .Entries}}
+      <tr>
+        <td class="small">{{if .UserID}}#{{.UserID}}{{else}}—{{end}}</td>
+        <td>{{.Action}}</td>
+        <td>{{.Target}}</td>
+        <td class="small muted">{{ago .At}}</td>
+      </tr>
+      {{end}}
+    </table></div>
+  </main>
+</body>
+</html>
+{{end}}

@@ -657,7 +657,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
 - [x] Verbindungen mit persönlichen Zugangsdaten
 - [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`)*
-- [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: Service `internal/services/audit` fertig, keine Admin-Route/UI)*
+- [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: `/admin/users` und `/admin/audit` — Rolle/Aktivieren/Löschen mit Schutz des letzten Admins; Einladung/Reset-Link fehlen noch, siehe Phase 2)*
 
 ### Phase 3: Themes (v0.4)
 

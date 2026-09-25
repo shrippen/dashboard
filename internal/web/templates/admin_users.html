@@ -1,0 +1,57 @@
+{{define "admin_users"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.admin_users"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.admin_users"}}</h1>
+    <p class="muted">{{t "admin.users_lead"}}</p>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+
+    <div class="table-wrap"><table class="table">
+      <tr><th>{{t "field.name"}}</th><th>{{t "field.email"}}</th><th>{{t "field.role"}}</th><th>{{t "admin.login"}}</th><th></th><th></th><th></th></tr>
+      {{range .Users}}
+      <tr>
+        <td>{{.Name}}</td>
+        <td>{{.Email}}</td>
+        <td>{{t (print "irole." .Role)}}</td>
+        <td>{{ago .LastLoginAt}}</td>
+        {{if eq .ID $.Who.UserID}}
+        <td class="small muted" colspan="3">{{t "admin.self"}}</td>
+        {{else}}
+        <td>
+          <form method="post" action="/admin/users/{{.ID}}/role">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <select name="role" onchange="this.form.submit()">
+              <option value="user" {{if eq (print .Role) "user"}}selected{{end}}>{{t "irole.user"}}</option>
+              <option value="admin" {{if eq (print .Role) "admin"}}selected{{end}}>{{t "irole.admin"}}</option>
+            </select>
+          </form>
+        </td>
+        <td>
+          <form method="post" action="/admin/users/{{.ID}}/active">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <input type="hidden" name="active" value="{{if .IsActive}}0{{else}}1{{end}}">
+            <button type="submit" class="link-btn">{{if .IsActive}}{{t "admin.deactivate"}}{{else}}{{t "admin.activate"}}{{end}}</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" action="/admin/users/{{.ID}}/delete" onsubmit="return confirm('{{t "admin.confirm_delete"}}')">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <button type="submit" class="link-btn">{{t "action.delete"}}</button>
+          </form>
+        </td>
+        {{end}}
+      </tr>
+      {{end}}
+    </table></div>
+  </main>
+</body>
+</html>
+{{end}}
