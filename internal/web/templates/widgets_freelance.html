@@ -29,3 +29,30 @@
 </ul>
 {{end}}{{end}}
 {{end}}
+
+{{define "widgets/heatmap"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{if $v.Cells}}
+<p class="small muted">{{t "heatmap.total" "hours" $v.Total}}</p>
+<div class="heatmap-wrap">
+<svg class="heatmap" viewBox="0 0 {{$v.W}} {{$v.H}}" role="img" aria-label="{{t "wtype.heatmap.name"}}">
+  {{range $v.Cells}}<rect x="{{.X}}" y="{{.Y}}" width="10" height="10" data-level="{{.Level}}"><title>{{day .Day}} · {{.Hours}} h</title></rect>{{end}}
+</svg>
+</div>
+<p class="legend heat-legend"><span>{{t "heatmap.less"}}</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>{{t "heatmap.more"}}</span></p>
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/cashflow"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{if $v.Path}}
+<p class="kpi"><span class="kpi-label">{{if $v.Relative}}{{t "cashflow.change"}}{{else}}{{t "cashflow.end"}}{{end}}</span>
+  <b class="kpi-value">{{money $v.End $v.Currency}}</b></p>
+<svg class="chart spark-lg" viewBox="0 0 {{$v.W}} {{$v.H}}" preserveAspectRatio="none" role="img" aria-label="{{t "wtype.cashflow.name"}}">
+  <path class="trend-line" d="{{$v.Path}}"/>
+</svg>
+<p class="small{{if lt $v.Low 0.0}} late{{else}} muted{{end}}">{{t "cashflow.low" "amount" (money $v.Low $v.Currency) "day" (day $v.LowDay)}}</p>
+{{with $v.Events}}<ul class="cash-events">{{range .}}<li><time>{{day .Day}}</time> <span>{{if eq .Label "fixed"}}{{t "cashflow.fixed"}}{{else if eq .Label "prepayment"}}{{t "cashflow.prepayment"}}{{else}}{{.Label}}{{end}}</span> <b class="{{if lt .Amount 0.0}}late{{end}}">{{money .Amount $v.Currency}}</b></li>{{end}}</ul>{{end}}
+{{if $v.Relative}}<p class="small muted">{{t "cashflow.relative_hint"}}</p>{{end}}
+{{end}}{{end}}
+{{end}}

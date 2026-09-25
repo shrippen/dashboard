@@ -57,6 +57,7 @@
       {{else if eq $col.Format "hours"}}{{num $v 1}} h
       {{else if eq $col.Format "km"}}{{num $v 0}} km
       {{else if eq $col.Format "day"}}{{if $v}}{{day $v}}{{else}}–{{end}}
+      {{else if eq $col.Format "daycount"}}{{t "col.days" "days" $v}}
       {{else if eq $col.Format "late"}}{{if gt $v 0}}<span class="late">{{t "col.days" "days" $v}}</span>{{else}}–{{end}}
       {{else if eq $col.Format "upcoming"}}{{t (printf "upcoming.%s" $v)}}
       {{else}}{{if $v}}{{$v}}{{else}}–{{end}}{{end}}

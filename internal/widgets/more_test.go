@@ -55,3 +55,18 @@ func TestGlancesChartView(t *testing.T) {
 		t.Fatalf("view: %+v", view)
 	}
 }
+
+func TestHeatmapLevels(t *testing.T) {
+	data := &sources.KimaiDataset{Timesheets: []sources.KimaiSheet{{Begin: "2026-09-24T09:00:00+0200", Minutes: 400}}}
+	view := heatmapView(nil, map[string]any{"data": data}, ViewCtx{Today: "2026-09-25"})
+	cells := view["Cells"].([]HeatCell)
+	var found bool
+	for _, c := range cells {
+		if c.Day == "2026-09-24" {
+			found = c.Level == 4 && c.Hours == "6:40"
+		}
+	}
+	if !found || cells[len(cells)-1].Day != "2026-09-25" || view["Total"] != 6 {
+		t.Fatalf("heatmap: last %+v total %v", cells[len(cells)-1], view["Total"])
+	}
+}

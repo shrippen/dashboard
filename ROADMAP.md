@@ -773,12 +773,12 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 **Selbstständigkeit**
 - [ ] Rechnungsentwurf aus unabgerechneten Kimai-Stunden in Invoice Ninja (Vorschau, Bestätigung)
 - [x] Kimai-Timer starten/stoppen (mit der leichten Kimai-Quelle aus Phase 10) *(Widget `kimai_timer`; Schreibzugriffe nur über `outbound`, mit Nutzungsrecht auf die Verbindung)*
-- [ ] Liquiditätsverlauf 90 Tage
-- [ ] Zahlungsmoral je Kunde
+- [x] Liquiditätsverlauf 90 Tage *(Widget `cashflow`: Sure-Kontostand, offene Rechnungen nach Zahlungsgewohnheit des Kunden, feste Kosten, USt und Vorauszahlungen)*
+- [x] Zahlungsmoral je Kunde *(Tabelle `payment_morale`, Regel `in.payment_worse`)*
 - [ ] Verträge und Kündigungsfristen aus Paperless
 - [ ] Rechnungsmail an Paperless übergeben
 - [ ] Jahrespaket für die Steuer (CSV/ZIP)
-- [ ] Stunden-Heatmap
+- [x] Stunden-Heatmap
 
 **Startseite und Bedienung**
 - [ ] Befehlspalette (Strg+K)

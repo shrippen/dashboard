@@ -45,6 +45,9 @@ const (
 	MetricCash            Metric = "cash"
 )
 
+// moraleSlower: recent payments this many days slower than usual count as worse.
+const moraleSlower = 10
+
 // TableKind selects a "table" widget's row source.
 type TableKind string
 
@@ -57,6 +60,7 @@ const (
 	TableTrips        TableKind = "trips"
 	TableRates        TableKind = "effective_rates"
 	TableAppUsage     TableKind = "app_usage"
+	TableMorale       TableKind = "payment_morale"
 )
 
 // ChartKind selects a "chart" widget's series.
@@ -392,6 +396,8 @@ func colsFor(kind TableKind) []Col {
 		return []Col{{"customer", "text"}, {"hours", "hours"}, {"amount", "money"}, {"rate", "money"}}
 	case TableAppUsage:
 		return []Col{{"app", "text"}, {"logins", "text"}, {"users", "text"}}
+	case TableMorale:
+		return []Col{{"client", "text"}, {"avg_days", "daycount"}, {"recent_days", "daycount"}, {"invoices", "text"}}
 	}
 	return nil
 }
@@ -449,6 +455,13 @@ func tableRows(kind TableKind, results map[string]any, ctx ViewCtx) ([]Row, bool
 		var rows []Row
 		for _, r := range rates {
 			rows = append(rows, Row{[]any{r.Customer, r.Hours, r.Net, r.Rate}})
+		}
+		return rows, true
+
+	case kind == TableMorale && service == enums.ServiceInvoiceNinja:
+		var rows []Row
+		for _, m := range metrics.PaymentMorale(data.(*sources.NinjaDataset), moraleSlower) {
+			rows = append(rows, Row{[]any{m.Client, m.AvgDays, m.RecentDays, m.Count}})
 		}
 		return rows, true
 

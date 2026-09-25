@@ -238,6 +238,7 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  payment_morale: Zahlungsmoral je Kunde
   cpu: CPU
   mem: RAM
   load: Last
@@ -311,6 +312,12 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  heatmap:
+    name: Stunden-Heatmap
+    desc: Gearbeitete Stunden je Tag über das letzte Jahr (Kimai).
+  cashflow:
+    name: Liquiditätsverlauf
+    desc: Erwarteter Kontostand der nächsten Tage aus Sure, offenen Rechnungen, festen Kosten und Steuerterminen.
   kimai_timer:
     name: Kimai-Timer
     desc: Laufende Zeiterfassung stoppen, letzte Tätigkeiten mit einem Klick starten, Stunden heute.
@@ -1126,6 +1133,9 @@ hint:
       title: 'Monatsabschluss {month}: {hours} h offen'
       why: Abrechenbare Einträge des Vormonats sind noch nicht exportiert.
   in:
+    payment_worse:
+      title: '{client} zahlt langsamer'
+      why: 'Zuletzt nach {recent} Tagen, sonst nach {avg}. Zahlungsziel ansprechen oder Abschläge vereinbaren.'
     overdue:
       title: Rechnung {number} seit {days} Tagen überfällig
       why: '{client}, offen: {amount}.'
@@ -1315,6 +1325,9 @@ kpi:
   of_goal: Ziel {goal}
   cash_30: offen + wiederkehrend, 30 Tage
 col:
+  avg_days: Sonst
+  recent_days: Zuletzt
+  invoices: Rechnungen
   item: Eintrag
   tool: Werkzeug
   last: Zuletzt
@@ -1363,6 +1376,7 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  in.payment_worse: Kunde zahlt langsamer
   truenas.snapshot_failed: Snapshot fehlgeschlagen
   backups.gap: Dienste ohne Backup
   system.outage: Ausfall eines Hosts
@@ -1633,3 +1647,14 @@ timer:
   today: Heute
   start: Starten
   stop: Stoppen
+heatmap:
+  total: '{hours} Stunden im letzten Jahr'
+  less: weniger
+  more: mehr
+cashflow:
+  end: Erwarteter Stand am Ende
+  change: Erwartete Veränderung
+  low: 'Tiefster Stand {amount} am {day}'
+  fixed: Feste Kosten
+  prepayment: Steuervorauszahlung
+  relative_hint: Ohne Sure-Verbindung ab 0 gerechnet – die Kurve zeigt die Veränderung, nicht den Kontostand.

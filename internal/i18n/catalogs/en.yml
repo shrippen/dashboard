@@ -238,6 +238,7 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  payment_morale: Payment morale per client
   cpu: CPU
   mem: RAM
   load: Load
@@ -311,6 +312,12 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  heatmap:
+    name: Hours heatmap
+    desc: Hours worked per day over the last year (Kimai).
+  cashflow:
+    name: Cash flow
+    desc: Expected balance for the coming days from Sure, open invoices, fixed costs and tax deadlines.
   kimai_timer:
     name: Kimai timer
     desc: Stop the running timer, start recent activities with one click, hours today.
@@ -1126,6 +1133,9 @@ hint:
       title: 'Month end {month}: {hours} h open'
       why: Billable entries of last month are not exported yet.
   in:
+    payment_worse:
+      title: '{client} pays slower'
+      why: 'Recently after {recent} days, usually after {avg}. Talk about payment terms or agree on instalments.'
     overdue:
       title: Invoice {number} overdue for {days} days
       why: '{client}, open: {amount}.'
@@ -1314,6 +1324,9 @@ kpi:
   of_goal: goal {goal}
   cash_30: open + recurring, 30 days
 col:
+  avg_days: Usually
+  recent_days: Recently
+  invoices: Invoices
   item: Item
   tool: Tool
   last: Last
@@ -1362,6 +1375,7 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  in.payment_worse: Client pays slower
   truenas.snapshot_failed: Snapshot failed
   backups.gap: Services without backup
   system.outage: Host outage
@@ -1632,3 +1646,14 @@ timer:
   today: Today
   start: Start
   stop: Stop
+heatmap:
+  total: '{hours} hours in the last year'
+  less: less
+  more: more
+cashflow:
+  end: Expected balance at the end
+  change: Expected change
+  low: 'Lowest {amount} on {day}'
+  fixed: Fixed costs
+  prepayment: Tax prepayment
+  relative_hint: Without a Sure connection it starts at 0 – the curve shows the change, not the balance.
