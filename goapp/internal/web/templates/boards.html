@@ -1,0 +1,28 @@
+{{/* Board list only, for now: widget rendering needs the boards/widgets
+     service (Task "Go: Widgets, Editor, Themes, Notify"). */}}
+{{define "boards"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.home"}}</h1>
+    {{if not .Boards}}
+      <p>Noch keine Boards.</p>
+    {{end}}
+    {{range .Boards}}
+      <div class="card">
+        <strong>{{.Name}}</strong>
+        <div style="opacity:.7; font-size:.85rem">{{.SpaceName}}</div>
+      </div>
+    {{end}}
+  </main>
+</body>
+</html>
+{{end}}
