@@ -298,6 +298,7 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .image-tile { display: block; max-width: 100%; object-fit: contain; margin: 0 auto; }
 .hass-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; font-size: .88rem; }
 .hass-list li { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+.hass-list form { margin: 0; }
 .hass-value { font-family: var(--font-mono); color: var(--fg0); font-weight: 500; }
 .seg-toggle { padding: .2rem .7rem; font-size: .75rem; background: var(--bg-hard); color: var(--fg2); border: 1px solid var(--bg2); }
 .seg-toggle[aria-pressed="true"] { background: var(--orange); color: var(--bg-void); border-color: var(--orange); }
