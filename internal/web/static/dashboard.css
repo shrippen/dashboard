@@ -601,3 +601,8 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 
 /* "Was tun?" answer: the model's line breaks carry the steps. */
 .advice { white-space: pre-line; }
+
+/* Timeline: time, kind, subject on one line. */
+.timeline { list-style: none; padding: 0; margin: 0; display: grid; gap: .45rem; }
+.timeline li { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+.timeline time { font-variant-numeric: tabular-nums; color: var(--fg2); min-width: 9rem; }

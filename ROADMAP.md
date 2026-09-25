@@ -855,18 +855,18 @@ Analysen, die erst aus mehreren Diensten zusammen entstehen. Grundlage ist ein K
 - [x] Arbeitslast und Erholung *(Regel `kimai.workload`; späte Commits fehlen: Gitea/GitHub liefern keine Commit-Zeiten)*
 
 **Homelab: Ursache und Wirkung**
-- [ ] Ereignis-Zeitleiste mit Vorgeschichte
-- [ ] Langsamer seit dem Update
-- [ ] Speicher- und Plattenprognose
-- [ ] Was seit dem letzten Backup neu ist
-- [ ] Gutes Fenster für Updates
-- [ ] Angriffsfläche je öffentlichem Dienst
-- [ ] Verdächtige Anmeldungen (authentik, Standort)
-- [ ] Auffällige Geräte im Netz (DNS-Filter, Router, Tailscale)
-- [ ] Nachweis für den Internetanbieter (§ 57 TKG)
-- [ ] Vorbereitung auf Unwetter
-- [ ] Downloads ohne VPN
-- [ ] Domain-Kette auf einen Blick
+- [x] Ereignis-Zeitleiste mit Vorgeschichte *(Seite /timeline; im Hinweis „Kurz davor“: Ereignisse der 2 Stunden vor dem Auftreten)*
+- [x] Langsamer seit dem Update *(Regel `system.slower_since_update`: Kuma-Antwortzeit 7 Tage vor gegen nach dem Versionswechsel)*
+- [x] Speicher- und Plattenprognose *(Regel `system.storage_forecast`, Widget „Speicherprognose“; Pools, Proxmox-Speicher, Borg, Immich; Garantie aus Snipe-IT fehlt noch: Platten sind dort nicht eindeutig zuzuordnen)*
+- [x] Was seit dem letzten Backup neu ist *(Regel `backups.unsaved`: Fotos, Dokumente, Dateien seit der jüngsten Sicherung)*
+- [x] Gutes Fenster für Updates *(Widget „Update-Fenster“)*
+- [x] Angriffsfläche je öffentlichem Dienst *(Regel `pangolin.exposure`, Tabelle `exposure`; Pangolin-Anmeldung, Zertifikat, offene Updates)*
+- [x] Verdächtige Anmeldungen (authentik, Standort) *(Regel `authentik.login_anomaly`: neues Land oder > 500 km vom Dawarich-Besuch)*
+- [x] Auffällige Geräte im Netz (DNS-Filter, Router, Tailscale) *(Regeln `dns.device_spike`, `dns.new_device` aus Pi-hole/AdGuard; Abgleich mit Router- und Tailscale-Namen fehlt: dort gibt es keine IP-Adressen)*
+- [x] Nachweis für den Internetanbieter (§ 57 TKG) *(Seite /reports/isp mit CSV, Regel `speedtest.contract`)*
+- [x] Vorbereitung auf Unwetter *(Regel `dwd.storm_prep` mit USV-Stand aus Home Assistant)*
+- [x] Downloads ohne VPN *(Regel `gluetun.downloads_exposed`)*
+- [x] Domain-Kette auf einen Blick *(Tabelle `domain_chain`; `domains.expiring` nennt, was an der Domain hängt)*
 
 **Kosten und Nutzen**
 - [ ] Dienste, die niemand nutzt

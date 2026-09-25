@@ -62,6 +62,8 @@
       {{else if eq $col.Format "late"}}{{if gt $v 0}}<span class="late">{{t "col.days" "days" $v}}</span>{{else}}–{{end}}
       {{else if eq $col.Format "upcoming"}}{{t (printf "upcoming.%s" $v)}}
       {{else if eq $col.Format "match"}}{{t (printf "match.%s" $v)}}
+      {{else if eq $col.Format "yesno"}}{{if $v}}✓{{else}}<span class="late">✗</span>{{end}}
+      {{else if eq $col.Format "risk"}}<span class="pill" data-state="{{if ge $v 2}}fail{{else if eq $v 1}}warn{{else}}ok{{end}}">{{t (printf "risk.%v" $v)}}</span>
       {{else}}{{if $v}}{{$v}}{{else}}–{{end}}{{end}}
     </td>{{end}}</tr>
   {{else}}<tr><td colspan="{{len $cols}}" class="muted">{{t "widget.empty"}}</td></tr>

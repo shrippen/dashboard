@@ -88,3 +88,26 @@
 {{if $v.Days}}<p class="small muted">{{t "energy.cost" "days" $v.Days "cost" (money $v.Cost .Currency)}} · {{num $v.KWh 0}} kWh</p>{{end}}
 {{end}}{{end}}
 {{end}}
+
+{{define "widgets/update_window"}}
+{{with $v := .Frag.View}}{{with $w := $v.Window}}
+{{if not $w.Updates}}<p class="muted">{{t "window.no_updates"}}</p>
+{{else}}
+<p><span class="pill" data-state="{{if $v.Good}}ok{{else}}warn{{end}}">{{if $v.Good}}{{t "window.good"}}{{else}}{{t "window.wait"}}{{end}}</span>
+  <small class="muted">{{t "window.count" "count" (len $w.Updates)}}{{if $w.BackupAge}} · {{t "window.backup" "hours" $v.BackupHours}}{{end}}</small></p>
+{{with $w.Blockers}}<ul class="plain-list small">{{range .}}<li>{{t (print "window." .)}}</li>{{end}}</ul>{{end}}
+<ul class="plain-list small">{{range $w.Updates}}<li><b>{{.Service}}</b> {{.What}}</li>{{end}}</ul>
+{{end}}
+{{end}}{{end}}
+{{end}}
+
+{{define "widgets/storage_forecast"}}
+{{with .Frag.View.Rows}}
+<div class="table-wrap"><table class="table compact">
+  <thead><tr><th>{{t "col.storage"}}</th><th>{{t "col.used"}}</th><th>{{t "col.full_in"}}</th></tr></thead>
+  <tbody>{{range .}}<tr><td>{{.Label}}</td>
+    <td><div class="progress-bar"><i style="--p:{{barPct .Used}}%" data-tier="{{tier .Used}}"></i></div><small>{{pct .Used}}</small></td>
+    <td>{{if lt .FullIn 0}}<span class="muted">{{t "forecast.stable"}}</span>{{else}}<span{{if lt .FullIn 30}} class="late"{{end}}>{{t "col.days" "days" .FullIn}}</span>{{end}}</td></tr>{{end}}</tbody>
+</table></div>
+{{else}}<p class="small muted">{{t "forecast.none"}}</p>{{end}}
+{{end}}

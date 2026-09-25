@@ -245,9 +245,9 @@ func DemoDawarich(now time.Time) *DawarichDataset {
 // DemoKuma is the demo Uptime Kuma dataset.
 func DemoKuma() *KumaDataset {
 	return &KumaDataset{URL: "https://status.demo", Monitors: []KumaMonitor{
-		{Name: "Kimai", Type: "http", Target: "https://zeit.demo", Status: KumaUp, CertDays: 54},
+		{Name: "Kimai", Type: "http", Target: "https://zeit.demo", Status: KumaUp, CertDays: 54, MS: 180},
 		{Name: "NAS", Type: "ping", Status: KumaDown, CertDays: -1},
-		{Name: "Shop", Type: "http", Target: "https://shop.demo", Status: KumaUp, CertDays: 9},
+		{Name: "Shop", Type: "http", Target: "https://shop.demo", Status: KumaUp, CertDays: 9, MS: 420},
 	}}
 }
 
@@ -270,7 +270,7 @@ func DemoProxmox(now time.Time) *ProxmoxDataset {
 // DemoPaperless is the demo Paperless-ngx dataset.
 func DemoPaperless(now time.Time) *PaperlessDataset {
 	today := demoDay(now)
-	return &PaperlessDataset{URL: "https://docs.demo", Inbox: 7, OldestTitle: "Rechnung Telekom",
+	return &PaperlessDataset{URL: "https://docs.demo", Total: 1843, Inbox: 7, OldestTitle: "Rechnung Telekom",
 		OldestAdded: iso(today.AddDate(0, 0, -23)),
 		Invoices: []PaperlessDoc{{ID: 311, Title: "Rechnung 09/2026", Correspondent: "Telekom Deutschland GmbH",
 			Created: iso(today.AddDate(0, 0, -23)), Amount: 39.95}},
@@ -456,7 +456,7 @@ func DemoPangolin() *PangolinDataset {
 			{Name: "eltern", Type: "newt", Online: &off, MBIn: 120, MBOut: 340},
 		},
 		Resources: []PResource{
-			{Name: "Immich", Domain: "photos.example.org", Enabled: true, Health: "healthy"},
+			{Name: "Immich", Domain: "photos.example.org", Enabled: true, Health: "healthy", SSO: true},
 			{Name: "Vaultwarden", Domain: "vault.example.org", Enabled: true, Health: "unhealthy"},
 		},
 	}
@@ -467,15 +467,17 @@ func DemoAuthentik(now time.Time) *AuthentikDataset {
 	ago := func(d int) time.Time { return now.UTC().AddDate(0, 0, -d) }
 	return &AuthentikDataset{URL: "https://auth.demo", Version: "2025.6.3", Latest: "2025.8.1", Outdated: true,
 		Logins7d: 214, Failed7d: 61, Failed24h: 38,
-		Apps:  []AKApp{{Name: "Immich", Events: 96, Users: 4}, {Name: "Gitea", Events: 41, Users: 2}, {Name: "Dashboard", Events: 30, Users: 3}},
-		Users: []AKUser{{Name: "alex", LastLogin: ago(0)}, {Name: "sam", LastLogin: ago(2)}, {Name: "kim", LastLogin: ago(240)}, {Name: "test", LastLogin: time.Time{}}},
+		Apps:   []AKApp{{Name: "Immich", Events: 96, Users: 4}, {Name: "Gitea", Events: 41, Users: 2}, {Name: "Dashboard", Events: 30, Users: 3}},
+		Users:  []AKUser{{Name: "alex", LastLogin: ago(0)}, {Name: "sam", LastLogin: ago(2)}, {Name: "kim", LastLogin: ago(240)}, {Name: "test", LastLogin: time.Time{}}},
+		Logins: []AKLogin{{User: "alex", IP: "203.0.113.7", Country: "DE", City: "Berlin", Lat: 52.52, Lon: 13.40, At: now.UTC().Add(-time.Hour)}},
 	}
 }
 
 // DemoPihole is the demo Pi-hole dataset: blocking switched off.
 func DemoPihole(now time.Time) *DNSFilterDataset {
 	return &DNSFilterDataset{URL: "https://pihole.demo", Queries: 48210, Blocked: 9120, Percent: 18.9,
-		Enabled: false, ListsUpdated: now.UTC().AddDate(0, 0, -21), Clients: 14}
+		Enabled: false, ListsUpdated: now.UTC().AddDate(0, 0, -21), Clients: 14,
+		TopClients: []DNSClient{{IP: "192.168.1.20", Name: "laptop", Queries: 9120, Blocked: 1400}, {IP: "192.168.1.87", Queries: 14200, Blocked: 8700}}}
 }
 
 // DemoAdGuard is the demo AdGuard Home dataset.

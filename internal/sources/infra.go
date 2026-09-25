@@ -198,6 +198,7 @@ type PSite struct {
 type PResource struct {
 	Name, Domain, Health string
 	Enabled              bool
+	SSO                  bool // behind Pangolin's login (or an identity provider)
 }
 
 type PangolinDataset struct {
@@ -254,7 +255,7 @@ func (PangolinData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 			health = asStr(r["health"])
 		}
 		data.Resources = append(data.Resources, PResource{Name: asStr(r["name"]), Domain: asStr(r["fullDomain"]),
-			Enabled: asBool(r["enabled"]), Health: health})
+			Enabled: asBool(r["enabled"]), Health: health, SSO: asBool(r["sso"])})
 	}
 	return data, nil
 }
@@ -265,6 +266,13 @@ func (PangolinData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 type AKApp struct {
 	Name          string
 	Events, Users int
+}
+
+// AKLogin is one successful login with the place authentik resolved.
+type AKLogin struct {
+	User, IP, Country, City string
+	Lat, Lon                float64 // 0, 0 when unknown
+	At                      time.Time
 }
 
 type AKUser struct {
@@ -278,7 +286,8 @@ type AuthentikDataset struct {
 	Logins7d, Failed7d   int
 	Failed24h            int
 	Apps                 []AKApp
-	Users                []AKUser // active human accounts
+	Users                []AKUser  // active human accounts
+	Logins               []AKLogin // latest logins, newest first
 }
 
 type AuthentikData struct{}
@@ -329,6 +338,17 @@ func loadAuthentik(ctx context.Context, api services.AuthentikApi, base string, 
 			if now.Sub(at) <= 24*time.Hour {
 				data.Failed24h += n
 			}
+		}
+	}
+
+	// Latest logins with their place (authentik adds GeoIP to events).
+	if events, err := api.Get(ctx, "events/events/", url.Values{"action": {"login"}, "ordering": {"-created"}, "page_size": {strconv.Itoa(authentikPage)}}); err == nil {
+		for _, raw := range asList(asMap(events)["results"]) {
+			e := asMap(raw)
+			geo := asMap(asMap(e["context"])["geo"])
+			at, _ := time.Parse(time.RFC3339, asStr(e["created"]))
+			data.Logins = append(data.Logins, AKLogin{User: asStr(asMap(e["user"])["username"]), IP: asStr(e["client_ip"]),
+				Country: asStr(geo["country"]), City: asStr(geo["city"]), Lat: asFloat(geo["lat"]), Lon: asFloat(geo["long"]), At: at.UTC()})
 		}
 	}
 

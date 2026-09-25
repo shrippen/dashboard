@@ -54,7 +54,17 @@ type DNSFilterDataset struct {
 	Enabled          bool
 	ListsUpdated     time.Time // Pi-hole gravity; zero if unknown
 	Clients          int
+	TopClients       []DNSClient // busiest clients (Pi-hole v6, AdGuard)
 }
+
+// DNSClient is one device's queries of the last 24 hours.
+type DNSClient struct {
+	IP, Name         string
+	Queries, Blocked int
+}
+
+// topClientCount is how many busy clients are read.
+const topClientCount = "25"
 
 type PiholeData struct{}
 
@@ -92,9 +102,11 @@ func (PiholeData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return nil, fetchError(err)
 	}
 	q, g := asMap(asMap(summary)["queries"]), asMap(asMap(summary)["gravity"])
-	return &DNSFilterDataset{URL: sctx.URL, Queries: int(asFloat(q["total"])), Blocked: int(asFloat(q["blocked"])),
+	data := &DNSFilterDataset{URL: sctx.URL, Queries: int(asFloat(q["total"])), Blocked: int(asFloat(q["blocked"])),
 		Percent: asFloat(q["percent_blocked"]), Enabled: asStr(asMap(blocking)["blocking"]) == pihole5Enabled,
-		ListsUpdated: time.Unix(asInt64(g["last_update"]), 0).UTC(), Clients: int(asFloat(asMap(asMap(summary)["clients"])["active"]))}, nil
+		ListsUpdated: time.Unix(asInt64(g["last_update"]), 0).UTC(), Clients: int(asFloat(asMap(asMap(summary)["clients"])["active"]))}
+	data.TopClients = piholeClients(ctx, session)
+	return data, nil
 }
 
 type AdGuardData struct{}
@@ -122,7 +134,38 @@ func (AdGuardData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if data.Queries > 0 {
 		data.Percent = float64(data.Blocked) / float64(data.Queries) * percentOf
 	}
+	// top_clients: [{"192.168.1.5": 1234}, …]
+	for _, raw := range asList(s["top_clients"]) {
+		for ip, n := range asMap(raw) {
+			data.TopClients = append(data.TopClients, DNSClient{IP: ip, Queries: int(asFloat(n))})
+		}
+	}
 	return data, nil
+}
+
+// piholeClients reads the busiest clients and their blocked counts;
+// nil when the API does not offer them.
+func piholeClients(ctx context.Context, session *services.PiholeSession) []DNSClient {
+	top, err := session.Get(ctx, "stats/top_clients?count="+topClientCount)
+	if err != nil {
+		return nil
+	}
+	var out []DNSClient
+	index := map[string]int{}
+	for _, raw := range asList(asMap(top)["clients"]) {
+		c := asMap(raw)
+		index[asStr(c["ip"])] = len(out)
+		out = append(out, DNSClient{IP: asStr(c["ip"]), Name: asStr(c["name"]), Queries: int(asFloat(c["count"]))})
+	}
+	if blocked, err := session.Get(ctx, "stats/top_clients?blocked=true&count="+topClientCount); err == nil {
+		for _, raw := range asList(asMap(blocked)["clients"]) {
+			c := asMap(raw)
+			if i, ok := index[asStr(c["ip"])]; ok {
+				out[i].Blocked = int(asFloat(c["count"]))
+			}
+		}
+	}
+	return out
 }
 
 // ── nextcloud ──

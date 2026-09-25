@@ -54,6 +54,7 @@ type KumaMonitor struct {
 	Target   string
 	Status   int
 	CertDays int
+	MS       float64 // last response time, 0 if unknown
 }
 
 // KumaDataset is every monitor of one Uptime Kuma instance.
@@ -67,13 +68,14 @@ type KumaDataset struct {
 var metricLine = regexp.MustCompile(`^(\w+)\{(.*)\}\s+(\S+)$`)
 var metricLabel = regexp.MustCompile(`(\w+)="((?:[^"\\]|\\.)*)"`)
 
-// parseKuma reads monitor_status and monitor_cert_days_remaining.
+// parseKuma reads monitor_status, monitor_cert_days_remaining and
+// monitor_response_time.
 func parseKuma(text string) []KumaMonitor {
 	byName := map[string]*KumaMonitor{}
 	var order []string
 	for _, line := range strings.Split(text, "\n") {
 		m := metricLine.FindStringSubmatch(strings.TrimSpace(line))
-		if m == nil || (m[1] != "monitor_status" && m[1] != "monitor_cert_days_remaining") {
+		if m == nil || (m[1] != "monitor_status" && m[1] != "monitor_cert_days_remaining" && m[1] != "monitor_response_time") {
 			continue
 		}
 		labels := map[string]string{}
@@ -88,9 +90,12 @@ func parseKuma(text string) []KumaMonitor {
 			order = append(order, name)
 		}
 		value, _ := strconv.ParseFloat(m[3], 64)
-		if m[1] == "monitor_status" {
+		switch m[1] {
+		case "monitor_status":
 			mon.Status = int(value)
-		} else {
+		case "monitor_response_time":
+			mon.MS = value
+		default:
 			mon.CertDays = int(value)
 		}
 	}
@@ -300,6 +305,7 @@ func (ProxmoxTest) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 // recent documents typed as invoices.
 type PaperlessDataset struct {
 	URL         string
+	Total       int // all documents, -1 if unknown
 	Inbox       int
 	OldestTitle string
 	OldestAdded string // "2026-09-01"
@@ -342,6 +348,10 @@ func (PaperlessData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	data, err := loadPaperless(ctx, api, sctx)
 	if err != nil {
 		return nil, fetchError(err)
+	}
+	data.Total = -1
+	if all, err := api.Get(ctx, "documents/", url.Values{"page_size": {"1"}}); err == nil {
+		data.Total = int(asFloat(asMap(all)["count"]))
 	}
 	data.Invoices = loadPaperlessInvoices(ctx, api, sctx.Options)
 	data.Contracts = loadContracts(ctx, api, sctx.Options, time.Now().UTC())

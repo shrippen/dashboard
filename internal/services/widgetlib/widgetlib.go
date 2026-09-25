@@ -26,6 +26,7 @@ import (
 	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/hints"
+	"dashboard/internal/services/history"
 	"dashboard/internal/services/linkstatus"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
@@ -474,6 +475,14 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 			return nil, err
 		}
 		frag.Slots["points"] = Slot{Data: points}
+	}
+
+	if kind.Extra == widgets.ExtraHistory {
+		h, err := history.Load(d, widget.SpaceID, 0, time.Now().UTC())
+		if err != nil {
+			return nil, err
+		}
+		frag.Slots[widgets.HistorySlot] = Slot{Data: h}
 	}
 
 	if kind.View != nil {

@@ -93,6 +93,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterPasskeyRoutes(mux)
 	deps.RegisterHookRoutes(mux)
 	deps.RegisterBillingRoutes(mux)
+	deps.RegisterInsightRoutes(mux)
 	deps.RegisterStartPageRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 

@@ -157,6 +157,27 @@ func Samples(datasets map[string]any) map[string]float64 {
 			}
 		case *sources.SureDataset:
 			out[key("sure", "cash")] = SureCash(d)
+		case *sources.KumaDataset:
+			for _, m := range d.Monitors {
+				if m.MS > 0 {
+					out[key("kuma", "ms", m.Name)] = m.MS
+				}
+			}
+		case *sources.DNSFilterDataset:
+			for _, c := range d.TopClients {
+				out[key("dns", "q", c.IP)] = float64(c.Queries)
+			}
+		case *sources.PaperlessDataset:
+			if d.Total >= 0 {
+				out[key("paperless", "docs")] = float64(d.Total)
+			}
+		case *sources.AuthentikDataset:
+			// One marker per user and country a login came from.
+			for _, l := range d.Logins {
+				if l.Country != "" {
+					out[key("authentik", "country", l.User, l.Country)] = 1
+				}
+			}
 		}
 	}
 	return out

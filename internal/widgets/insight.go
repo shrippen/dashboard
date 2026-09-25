@@ -407,7 +407,10 @@ func colsFor(kind TableKind) []Col {
 	case TableMorale:
 		return []Col{{"client", "text"}, {"avg_days", "daycount"}, {"recent_days", "daycount"}, {"invoices", "text"}}
 	}
-	return crossCols(kind)
+	if cols := crossCols(kind); cols != nil {
+		return cols
+	}
+	return homelabCols(kind)
 }
 
 func tableRows(kind TableKind, results map[string]any, ctx ViewCtx) ([]Row, bool) {
@@ -416,6 +419,9 @@ func tableRows(kind TableKind, results map[string]any, ctx ViewCtx) ([]Row, bool
 		return nil, false
 	}
 	if rows, ok := crossRows(kind, data, results, ctx); ok {
+		return rows, true
+	}
+	if rows, ok := homelabRows(kind, data, results, ctx); ok {
 		return rows, true
 	}
 	today := parseToday(ctx.Today)
@@ -793,7 +799,8 @@ func tableQueries(cfg any) []Query {
 	if cfg.(TableConfig).Table == TableRates {
 		return append(dataQuery(nil), kimaiPeer)
 	}
-	return append(dataQuery(nil), crossQueries(cfg.(TableConfig).Table)...)
+	kind := cfg.(TableConfig).Table
+	return append(append(dataQuery(nil), crossQueries(kind)...), homelabQueries(kind)...)
 }
 
 func init() {

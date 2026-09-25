@@ -84,6 +84,9 @@
       <small class="muted">{{t "assist.privacy"}}</small>
     </form>
   </div>{{end}}
+  {{with .Before}}<div class="hint-before"><b class="small">{{t "hints.before"}}</b>
+    <ul class="plain-list small">{{range .}}<li><time>{{.At.Local.Format "15:04"}}</time> {{t (print "timeline." .Kind)}} {{.Subject}}{{with .Detail}} <span class="muted">{{.}}</span>{{end}}</li>{{end}}</ul>
+  </div>{{end}}
   <ol class="hint-history">
     {{range .History}}<li><time>{{ago .At}}</time> {{t (print "hints.event_" .Kind)}}{{with .Actor}} · {{.}}{{end}}{{with .Note}} – <q>{{.}}</q>{{end}}</li>
     {{else}}<li class="muted">{{t "hints.no_history"}}</li>{{end}}

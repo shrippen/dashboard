@@ -1,5 +1,6 @@
 saved: Saved.
 nav:
+  timeline: 'Timeline'
   offline: Offline – last known state.
   billing: Billing
   home: Go to start page
@@ -20,6 +21,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  isp_report: 'Open report'
   book_payment: 'Book payment'
   open_in_tailscale: 'Open in Tailscale / Headscale'
   open_in_gateway: 'Open in Router (OPNsense, pfSense, UniFi)'
@@ -269,6 +271,8 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  exposure: 'Exposure'
+  domain_chain: 'Domain chain'
   full_rates: 'Full-cost rate per client'
   unbilled_aging: 'Unbilled by age'
   payment_matches: 'Incomes to invoices'
@@ -351,6 +355,12 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  update_window:
+    name: 'Update window'
+    desc: 'Pending updates against backup, streams, Kimai timer, appointments and power price: update now or wait?'
+  storage_forecast:
+    name: 'Storage forecast'
+    desc: 'Usage of every storage and when it is full at the current pace.'
   tailscale:
     name: 'Tailnet'
     desc: 'Devices with online state and key expiry.'
@@ -527,6 +537,7 @@ sys:
   swap: Swap
   load: Load (5 min)
 hints:
+  before: 'Shortly before'
   note: Note
   note_optional: Note (optional)
   add_note: Save note
@@ -989,6 +1000,13 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  dns:
+    device_spike:
+      title: '{device} queries unusually much'
+      why: '{queries} DNS queries today, usually about {usual}; {blocked} blocked.'
+    new_device:
+      title: 'New device on the network: {ip}'
+      why: 'No name, never seen before; {queries} queries, {blocked} blocked.'
   calendar:
     unbooked:
       title: 'Appointment without booking: {title}'
@@ -1026,6 +1044,9 @@ hint:
       title: '{count} vaults without two-factor'
       why: '{names}. A password alone protects the vault poorly.'
   speedtest:
+    contract:
+      title: 'Internet too slow on {below} days'
+      why: 'On {below} of {measured} measured days below {share} % of the booked {expect} Mbit/s, {outages} WAN outages. In Germany this may justify a reduction (§ 57 TKG).'
     slow:
       title: 'Internet slower than booked'
       why: 'Measured ↓ {down} ↑ {up} Mbit/s, booked ↓ {expect_down} ↑ {expect_up}.'
@@ -1040,6 +1061,12 @@ hint:
       title: '{count} chores overdue'
       why: '{names}'
   dwd:
+    storm_prep:
+      title: 'Storm from {from}: backup is old'
+      why: '{event}. Last backup ({tool}) on {day}. Back up now, shut down sensitive devices. UPS: {ups}'
+    storm_prep_nobackup:
+      title: 'Storm from {from}: no backup known'
+      why: '{event}. No backup tool reports a successful backup. UPS: {ups}'
     warning:
       title: '{event}'
       why: '{place}, until {until}.'
@@ -1060,6 +1087,9 @@ hint:
       title: '{count} tiles unreachable for {days} days'
       why: '{names}. Check the address or remove the tile.'
   backups:
+    unsaved:
+      title: 'New since the last backup'
+      why: 'Last successful backup ({tool}) on {day}. New since: {items}.'
     gap:
       title: '{count} services without a visible backup'
       why: '{names}. No backup entry (Borg client, PG Back Web backup, snapshot) carries their name.'
@@ -1094,6 +1124,9 @@ hint:
       title: 'SABnzbd: only {gb} GB free'
       why: A full disk pauses every download.
   gluetun:
+    downloads_exposed:
+      title: 'Downloads run without VPN'
+      why: 'SABnzbd is downloading ({queue} queued) while Gluetun reports “{status}” or does not route through the VPN.'
     down:
       title: 'VPN tunnel not running ({status})'
       why: Containers behind Gluetun have no connection or leave unprotected.
@@ -1104,6 +1137,9 @@ hint:
       title: 'VPN exit in {country} instead of {expected}'
       why: Check the server selection in Gluetun.
   domains:
+    expiring_deps:
+      title: '{domain} expires in {days} days'
+      why: 'Expires on {day}. {deps} depend on it: {names}.'
     expiring:
       title: 'Domain {domain} expires on {day}'
       why: '{days} days left. Check the renewal at the registrar.'
@@ -1141,6 +1177,9 @@ hint:
       title: 'Image updates for {count} stacks'
       why: '{stacks}'
   pangolin:
+    exposure:
+      title: '{name} public without login'
+      why: '{domain} is reachable without Pangolin login and has open updates ({updates}) or a certificate expiring soon ({cert} days).'
     site_offline:
       title: 'Pangolin site {site} offline'
       why: Check the Newt client on site; services behind it are unreachable.
@@ -1151,6 +1190,12 @@ hint:
       title: Newt update available
       why: 'Sites: {sites}'
   authentik:
+    new_country:
+      title: 'Login of {user} from {country}'
+      why: 'No earlier login of {user} from this country. {city} · {ip}.'
+    far_login:
+      title: 'Login of {user} far from location'
+      why: 'The login came from {city} ({country}); your location history puts you about {km} km away. {ip}.'
     update:
       title: 'authentik {version} available'
       why: 'Installed: {current}. Read the release notes.'
@@ -1497,6 +1542,12 @@ hint:
       title: Tax returns {year} due {day}
       why: Profit statement, income tax and VAT return.
   system:
+    storage_forecast:
+      title: '{name} full in {days} days'
+      why: 'Now {percent} % used; at the last 30 days pace full on {day}.'
+    slower_since_update:
+      title: '{monitor} slower since update'
+      why: '{subject} was updated on {day}; response time before {before} ms, since {now} ms.'
     token_expires:
       title: '{name}: token expires'
       why: 'Valid until {day}. Create a new token and store it in the connection.'
@@ -1625,6 +1676,16 @@ kpi:
   of_goal: goal {goal}
   cash_30: open + recurring, 30 days
 col:
+  storage: 'Storage'
+  full_in: 'Full in'
+  login: 'Login'
+  cert_days: 'Certificate (days)'
+  updates: 'Updates'
+  risk: 'Risk'
+  expires: 'Expires'
+  resources: 'Resources'
+  monitors: 'Monitors'
+  domain: 'Domain'
   billable_hours: 'Billable'
   other_hours: 'Internal'
   travel_hours: 'Travel'
@@ -1696,6 +1757,16 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  system.storage_forecast: 'Storage filling up'
+  backups.unsaved: 'Unsaved new data'
+  system.slower_since_update: 'Slower since update'
+  pangolin.exposure: 'Public without protection'
+  authentik.login_anomaly: 'Suspicious login'
+  dns.device_spike: 'Device with many queries'
+  dns.new_device: 'New device'
+  speedtest.contract: 'Internet below contract'
+  dwd.storm_prep: 'Storm preparation'
+  gluetun.downloads_exposed: 'Downloads without VPN'
   cross.payment_unmatched: 'Payment without invoice'
   in.rate_below: 'Full-cost rate low'
   sure.subscription_unused: 'Unused subscription'
@@ -1834,6 +1905,8 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  min_queries: 'From queries'
+  backup_hours: 'Backup older than hours'
   ratio: 'Below share of last year'
   min_hours: 'From hours'
   min_gap_days: 'At least days before project end'
@@ -2134,3 +2207,39 @@ assist:
 match:
   number: 'Invoice number'
   amount: 'Amount'
+risk:
+  0: 'low'
+  1: 'medium'
+  2: 'high'
+window:
+  no_updates: 'No updates pending.'
+  good: 'Good time'
+  wait: 'Better wait'
+  count: '{count} updates pending'
+  backup: 'backup {hours} h ago'
+  no_backup: 'No backup in the last 24 hours'
+  streaming: 'A stream is playing'
+  working: 'A Kimai timer is running'
+  meeting: 'Appointment within the hour'
+  expensive: 'Power is expensive right now'
+forecast:
+  stable: 'not growing'
+  none: 'Not enough history yet: forecasts appear after a week.'
+timeline:
+  title: 'Timeline'
+  lead: 'Updates and hints of the last {days} days, newest first.'
+  update: 'Update'
+  opened: 'New'
+  resolved: 'Resolved'
+  reopened: 'Back'
+  empty: 'Nothing recorded yet.'
+isp:
+  title: 'Internet against contract'
+  lead: 'Daily measurements of the last {days} days (Speedtest Tracker) and WAN outages (router). A day counts as too slow below {share} % of the booked download.'
+  summary: 'Below contract on {below} of {days} days ({expect} Mbit/s booked), {outages} WAN outages.'
+  below: 'too slow'
+  outages: 'WAN outages'
+  ongoing: 'ongoing'
+  none: 'No Speedtest Tracker connection with a booked speed (option expect_down).'
+  csv: 'Download as CSV'
+  legal: 'For a reduction under German § 57 TKG the Federal Network Agency requires measurements with its broadband measurement app on several days. This report shows whether that is worth it and documents the history.'

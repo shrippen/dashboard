@@ -8,6 +8,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/assist"
 	"dashboard/internal/services/hints"
+	historysvc "dashboard/internal/services/history"
 )
 
 // RegisterHintRoutes wires the hints overview page, snooze/ack/reopen
@@ -107,8 +108,13 @@ func (d Deps) handleHintDetail(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
+	before, err := historysvc.Before(d.DB, ctx.Who, id)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
 	_ = d.Page(w, ctx, "hint_detail", http.StatusOK, map[string]any{"ID": id, "History": history, "People": people, "States": workStates,
-		"Assist": assist.Enabled()})
+		"Assist": assist.Enabled(), "Before": before})
 }
 
 // handleHintAdvice answers "Was tun?" for one hint (htmx fragment).

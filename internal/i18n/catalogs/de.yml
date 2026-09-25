@@ -1,5 +1,6 @@
 saved: Gespeichert.
 nav:
+  timeline: 'Zeitleiste'
   offline: Offline – letzter bekannter Stand.
   billing: Abrechnung
   home: Zur Startseite
@@ -20,6 +21,7 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  isp_report: 'Bericht öffnen'
   book_payment: 'Zahlung buchen'
   open_in_tailscale: 'In Tailscale / Headscale öffnen'
   open_in_gateway: 'In Router (OPNsense, pfSense, UniFi) öffnen'
@@ -269,6 +271,8 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  exposure: 'Angriffsfläche'
+  domain_chain: 'Domain-Kette'
   full_rates: 'Vollkosten-Stundensatz je Kunde'
   unbilled_aging: 'Unfakturiert nach Alter'
   payment_matches: 'Zahlungseingänge zu Rechnungen'
@@ -351,6 +355,12 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  update_window:
+    name: 'Update-Fenster'
+    desc: 'Offene Updates gegen Sicherung, Streams, Kimai-Timer, Termine und Strompreis: jetzt updaten oder warten?'
+  storage_forecast:
+    name: 'Speicherprognose'
+    desc: 'Belegung aller Speicher und wann sie beim aktuellen Tempo voll sind.'
   tailscale:
     name: 'Tailnet'
     desc: 'Geräte mit Online-Status und Schlüsselablauf.'
@@ -527,6 +537,7 @@ sys:
   swap: Swap
   load: Last (5 min)
 hints:
+  before: 'Kurz davor'
   note: Notiz
   note_optional: Notiz (optional)
   add_note: Notiz speichern
@@ -989,6 +1000,13 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  dns:
+    device_spike:
+      title: '{device} fragt ungewöhnlich viel'
+      why: '{queries} DNS-Anfragen heute, üblich sind etwa {usual}; {blocked} davon geblockt.'
+    new_device:
+      title: 'Neues Gerät im Netz: {ip}'
+      why: 'Ohne Namen, bisher nie gesehen; {queries} Anfragen, {blocked} geblockt.'
   calendar:
     unbooked:
       title: 'Termin ohne Zeitbuchung: {title}'
@@ -1026,6 +1044,9 @@ hint:
       title: '{count} Tresore ohne Zwei-Faktor'
       why: '{names}. Ein Passwort allein schützt den Tresor schlecht.'
   speedtest:
+    contract:
+      title: 'Internet an {below} Tagen zu langsam'
+      why: 'An {below} von {measured} Messtagen unter {share} % der gebuchten {expect} Mbit/s, {outages} WAN-Ausfälle. Das kann eine Minderung nach § 57 TKG begründen.'
     slow:
       title: 'Internet langsamer als gebucht'
       why: 'Gemessen ↓ {down} ↑ {up} Mbit/s, gebucht ↓ {expect_down} ↑ {expect_up}.'
@@ -1040,6 +1061,12 @@ hint:
       title: '{count} Hausarbeiten überfällig'
       why: '{names}'
   dwd:
+    storm_prep:
+      title: 'Unwetter ab {from}: Sicherung ist alt'
+      why: '{event}. Letzte Sicherung ({tool}) am {day}. Jetzt sichern, empfindliche Geräte herunterfahren. USV: {ups}'
+    storm_prep_nobackup:
+      title: 'Unwetter ab {from}: keine Sicherung bekannt'
+      why: '{event}. Kein Backup-Werkzeug meldet eine erfolgreiche Sicherung. USV: {ups}'
     warning:
       title: '{event}'
       why: '{place}, bis {until}.'
@@ -1060,6 +1087,9 @@ hint:
       title: '{count} Kacheln seit {days} Tagen nicht erreichbar'
       why: '{names}. Adresse prüfen oder die Kachel entfernen.'
   backups:
+    unsaved:
+      title: 'Neu seit der letzten Sicherung'
+      why: 'Letzte erfolgreiche Sicherung ({tool}) am {day}. Seitdem neu: {items}.'
     gap:
       title: '{count} Dienste ohne erkennbares Backup'
       why: '{names}. Kein Backup-Eintrag (Borg-Client, PG-Back-Web-Sicherung, Snapshot) trägt ihren Namen.'
@@ -1094,6 +1124,9 @@ hint:
       title: 'SABnzbd: nur noch {gb} GB frei'
       why: Bei vollem Datenträger pausieren alle Downloads.
   gluetun:
+    downloads_exposed:
+      title: 'Downloads laufen ohne VPN'
+      why: 'SABnzbd lädt ({queue} in der Warteschlange), Gluetun meldet „{status}“ oder leitet nicht über das VPN.'
     down:
       title: 'VPN-Tunnel nicht aktiv ({status})'
       why: Container hinter Gluetun haben keine Verbindung oder gehen ungeschützt raus.
@@ -1104,6 +1137,9 @@ hint:
       title: 'VPN-Ausgang in {country} statt {expected}'
       why: Server-Auswahl in Gluetun prüfen.
   domains:
+    expiring_deps:
+      title: '{domain} läuft in {days} Tagen ab'
+      why: 'Ablauf am {day}. Daran hängen {deps}: {names}.'
     expiring:
       title: 'Domain {domain} läuft am {day} ab'
       why: 'Noch {days} Tage. Verlängerung beim Registrar prüfen.'
@@ -1141,6 +1177,9 @@ hint:
       title: 'Image-Updates für {count} Stacks'
       why: '{stacks}'
   pangolin:
+    exposure:
+      title: '{name} öffentlich ohne Anmeldung'
+      why: '{domain} ist ohne Pangolin-Anmeldung erreichbar und hat offene Updates ({updates}) oder ein Zertifikat, das bald abläuft ({cert} Tage).'
     site_offline:
       title: 'Pangolin-Site {site} offline'
       why: Newt-Client am Standort prüfen; dahinterliegende Dienste sind nicht erreichbar.
@@ -1151,6 +1190,12 @@ hint:
       title: Newt-Update verfügbar
       why: 'Sites: {sites}'
   authentik:
+    new_country:
+      title: 'Anmeldung von {user} aus {country}'
+      why: 'Aus diesem Land gab es für {user} bisher keine Anmeldung. {city} · {ip}.'
+    far_login:
+      title: 'Anmeldung von {user} weit vom Standort'
+      why: 'Die Anmeldung kam aus {city} ({country}), laut Standortverlauf warst du rund {km} km entfernt. {ip}.'
     update:
       title: 'authentik {version} verfügbar'
       why: 'Installiert: {current}. Release-Notes lesen.'
@@ -1498,6 +1543,12 @@ hint:
       title: Steuererklärungen {year} bis {day}
       why: EÜR, Einkommen- und Umsatzsteuererklärung.
   system:
+    storage_forecast:
+      title: '{name} voll in {days} Tagen'
+      why: 'Jetzt {percent} % belegt; beim Tempo der letzten 30 Tage voll am {day}.'
+    slower_since_update:
+      title: '{monitor} langsamer seit Update'
+      why: '{subject} wurde am {day} aktualisiert; Antwortzeit vorher {before} ms, seitdem {now} ms.'
     token_expires:
       title: '{name}: Token läuft ab'
       why: 'Gültig bis {day}. Neues Token erzeugen und in der Verbindung hinterlegen.'
@@ -1626,6 +1677,16 @@ kpi:
   of_goal: Ziel {goal}
   cash_30: offen + wiederkehrend, 30 Tage
 col:
+  storage: 'Speicher'
+  full_in: 'Voll in'
+  login: 'Anmeldung'
+  cert_days: 'Zertifikat (Tage)'
+  updates: 'Updates'
+  risk: 'Risiko'
+  expires: 'Läuft ab'
+  resources: 'Ressourcen'
+  monitors: 'Monitore'
+  domain: 'Domain'
   billable_hours: 'Abrechenbar'
   other_hours: 'Intern'
   travel_hours: 'Fahrt'
@@ -1697,6 +1758,16 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  system.storage_forecast: 'Speicher läuft voll'
+  backups.unsaved: 'Ungesicherte neue Daten'
+  system.slower_since_update: 'Langsamer seit Update'
+  pangolin.exposure: 'Öffentlich ohne Schutz'
+  authentik.login_anomaly: 'Verdächtige Anmeldung'
+  dns.device_spike: 'Gerät mit vielen Anfragen'
+  dns.new_device: 'Neues Gerät'
+  speedtest.contract: 'Internet unter Vertrag'
+  dwd.storm_prep: 'Unwetter-Vorbereitung'
+  gluetun.downloads_exposed: 'Downloads ohne VPN'
   cross.payment_unmatched: 'Zahlung ohne Rechnung'
   in.rate_below: 'Vollkosten-Stundensatz niedrig'
   sure.subscription_unused: 'Abo ohne Nutzung'
@@ -1835,6 +1906,8 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  min_queries: 'Ab Anfragen'
+  backup_hours: 'Sicherung älter als Stunden'
   ratio: 'Unter Anteil vom Vorjahr'
   min_hours: 'Ab Stunden'
   min_gap_days: 'Mindestens Tage vor Projektende'
@@ -2135,3 +2208,39 @@ assist:
 match:
   number: 'Rechnungsnummer'
   amount: 'Betrag'
+risk:
+  0: 'gering'
+  1: 'mittel'
+  2: 'hoch'
+window:
+  no_updates: 'Keine Updates offen.'
+  good: 'Guter Zeitpunkt'
+  wait: 'Lieber warten'
+  count: '{count} Updates offen'
+  backup: 'Sicherung vor {hours} h'
+  no_backup: 'Keine Sicherung in den letzten 24 Stunden'
+  streaming: 'Gerade läuft ein Stream'
+  working: 'Ein Kimai-Timer läuft'
+  meeting: 'Termin in der nächsten Stunde'
+  expensive: 'Strom ist gerade teuer'
+forecast:
+  stable: 'wächst nicht'
+  none: 'Noch zu wenig Verlauf: nach einer Woche erscheinen Prognosen.'
+timeline:
+  title: 'Zeitleiste'
+  lead: 'Updates und Hinweise der letzten {days} Tage, neueste zuerst.'
+  update: 'Update'
+  opened: 'Neu'
+  resolved: 'Erledigt'
+  reopened: 'Wieder da'
+  empty: 'Noch nichts aufgezeichnet.'
+isp:
+  title: 'Internet gegen Vertrag'
+  lead: 'Tägliche Messungen der letzten {days} Tage (Speedtest Tracker) und WAN-Ausfälle (Router). Ein Tag zählt als zu langsam unter {share} % des gebuchten Downloads.'
+  summary: 'An {below} von {days} Tagen unter Vertrag ({expect} Mbit/s gebucht), {outages} WAN-Ausfälle.'
+  below: 'zu langsam'
+  outages: 'WAN-Ausfälle'
+  ongoing: 'andauernd'
+  none: 'Keine Speedtest-Tracker-Verbindung mit gebuchter Geschwindigkeit (Option expect_down).'
+  csv: 'Als CSV herunterladen'
+  legal: 'Für eine Minderung nach § 57 TKG verlangt die Bundesnetzagentur Messungen mit ihrer Breitbandmessung-App an mehreren Tagen. Dieser Bericht zeigt, ob sich das lohnt, und belegt den Verlauf.'

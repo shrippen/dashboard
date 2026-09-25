@@ -5,7 +5,7 @@ package analysis
 //
 //	datasets → metrics.Samples  → samples (one value per key and day)
 //	datasets → metrics.Versions → versions; a change → events ("update")
-//	samples (historyDays) + events (eventDays) → Datasets["history"]
+//	samples (history.SeriesDays) + events (eventDays) → Datasets["history"]
 
 import (
 	"database/sql"
@@ -14,11 +14,7 @@ import (
 	"dashboard/internal/db"
 	"dashboard/internal/metrics"
 	data "dashboard/internal/repos/data"
-)
-
-const (
-	historyDays = 400 // a year back for seasonal comparisons
-	eventDays   = 30
+	"dashboard/internal/services/history"
 )
 
 func ownerID(owner *int64) int64 {
@@ -58,39 +54,13 @@ func recordHistory(d *sql.DB, sc *scope, now time.Time) (*metrics.History, error
 	if err != nil {
 		return nil, err
 	}
-	return loadHistory(d, sc.spaceID, owner, now)
+	return history.Load(d, sc.spaceID, owner, now)
 }
 
-func loadHistory(d *sql.DB, spaceID, owner int64, now time.Time) (*metrics.History, error) {
-	raw, err := data.SamplesSince(d, spaceID, owner, now.AddDate(0, 0, -historyDays).Format(time.DateOnly))
-	if err != nil {
-		return nil, err
-	}
-	h := &metrics.History{Series: map[string][]metrics.Point{}}
-	for k, points := range raw {
-		for _, p := range points {
-			if day, err := time.Parse(time.DateOnly, p.Day); err == nil {
-				h.Series[k] = append(h.Series[k], metrics.Point{Day: day, Value: p.Value})
-			}
-		}
-	}
-	events, err := data.EventsSince(d, []int64{spaceID}, owner, now.AddDate(0, 0, -eventDays), eventLimit)
-	if err != nil {
-		return nil, err
-	}
-	for _, e := range events {
-		h.Events = append(h.Events, metrics.Event{At: e.At, Kind: e.Kind, Subject: e.Subject, Detail: e.Detail})
-	}
-	return h, nil
-}
-
-// eventLimit caps the events handed to rules.
-const eventLimit = 500
-
-// PruneHistory drops samples older than historyDays and events older
+// PruneHistory drops samples older than history.SeriesDays and events older
 // than a year.
 func PruneHistory(d *sql.DB, now time.Time) error {
 	return db.WithTx(d, func(tx *sql.Tx) error {
-		return data.PruneHistory(tx, now.AddDate(0, 0, -historyDays).Format(time.DateOnly), now.AddDate(-1, 0, 0))
+		return data.PruneHistory(tx, now.AddDate(0, 0, -history.SeriesDays).Format(time.DateOnly), now.AddDate(-1, 0, 0))
 	})
 }

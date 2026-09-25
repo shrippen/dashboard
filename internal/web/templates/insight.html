@@ -1,0 +1,59 @@
+{{/* Timeline and provider report: what the analysis recorded over time. */}}
+{{define "timeline"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "timeline.title"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "timeline.title"}}</h1>
+    <p class="muted">{{t "timeline.lead" "days" .Days}}</p>
+    <ol class="timeline">
+      {{range .Entries}}
+      <li data-kind="{{.Kind}}"><time>{{day .At}} {{.At.Local.Format "15:04"}}</time>
+        <span class="pill" data-state="{{if eq .Kind "resolved"}}ok{{else if eq .Kind "update"}}reviewing{{else}}warn{{end}}">{{t (print "timeline." .Kind)}}</span>
+        {{if .HintID}}<a href="/hints#hint-{{.HintID}}">{{.Subject}}</a>{{else}}<b>{{.Subject}}</b>{{end}}
+        {{with .Detail}}<small class="muted">{{.}}</small>{{end}}{{with .Space}}<small class="muted"> · {{.}}</small>{{end}}</li>
+      {{else}}<li class="muted">{{t "timeline.empty"}}</li>{{end}}
+    </ol>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "isp_report"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "isp.title"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "isp.title"}}</h1>
+    <p class="muted">{{t "isp.lead" "days" .Days "share" .Share}}</p>
+    {{range .Reports}}
+    <section class="card">
+      <h2>{{.Space}}</h2>
+      <p>{{t "isp.summary" "below" .BelowDays "days" (len .Days) "expect" (num .ExpectDown 0) "outages" (len .Outages)}}</p>
+      <div class="table-wrap"><table class="table compact">
+        <tr><th>{{t "col.day"}}</th><th class="num">↓ Mbit/s</th><th class="num">↑ Mbit/s</th><th></th></tr>
+        {{range .Days}}<tr><td>{{day .Day}}</td><td class="num">{{num .Down 0}}</td><td class="num">{{num .Up 0}}</td><td>{{if .Below}}<span class="late">{{t "isp.below"}}</span>{{end}}</td></tr>{{end}}
+      </table></div>
+      {{with .Outages}}<h3>{{t "isp.outages"}}</h3><ul class="plain-list">{{range .}}<li>{{.Gateway}}: {{day .Start}} {{.Start.Local.Format "15:04"}} – {{if .End.IsZero}}{{t "isp.ongoing"}}{{else}}{{.End.Local.Format "15:04"}}{{end}}</li>{{end}}</ul>{{end}}
+    </section>
+    {{else}}<p class="muted">{{t "isp.none"}}</p>{{end}}
+    {{if .Reports}}<p><a class="link-btn" href="/reports/isp.csv">{{t "isp.csv"}}</a></p>{{end}}
+    <p class="small muted">{{t "isp.legal"}}</p>
+  </main>
+</body>
+</html>
+{{end}}

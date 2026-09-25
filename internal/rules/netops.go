@@ -151,6 +151,12 @@ func registerDomains() {
 				}
 				f := svcFinding(svc, "domains.expiring", "domain:"+d.Name, "domains.expiring", level, "",
 					map[string]any{"domain": d.Name, "day": Day(d.Expires), "days": daysLeft})
+				// Name what breaks with the domain: resources, monitors, tiles.
+				if chain, ok := chainOf(env, data, d.Name); ok && chain.Dependents() > 0 {
+					f.Message = "domains.expiring_deps"
+					f.Params["deps"] = chain.Dependents()
+					f.Params["names"] = shortList(append(append(append([]string(nil), chain.Resources...), chain.Monitors...), chain.Tiles...))
+				}
 				f.Due = d.Expires.Format("2006-01-02")
 				found = append(found, f)
 			}

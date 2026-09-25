@@ -39,6 +39,9 @@ const (
 	ExtraNone   Extra = "none"
 	ExtraHints  Extra = "hints"
 	ExtraPoints Extra = "points"
+	// ExtraHistory hands the space's recorded history to the view as
+	// results["history"] (*metrics.History).
+	ExtraHistory Extra = "history"
 )
 
 // Category groups widget types for the library UI.

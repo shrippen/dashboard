@@ -148,3 +148,48 @@ func TouchSent(q db.Queryer, userID, hintID int64) error {
 		userID, hintID, db.TimeStr(time.Now().UTC()))
 	return err
 }
+
+// SpaceHintEvent is a hint event with what the hint was about.
+type SpaceHintEvent struct {
+	HintID            int64
+	Rule, Fingerprint string
+	Owner             int64 // hint's user, 0 for shared hints
+	Kind              string
+	At                time.Time
+}
+
+// HintEventsSince returns the state changes of a space's hints, newest first.
+func HintEventsSince(q db.Queryer, spaceIDs []int64, kinds []string, since time.Time, limit int) ([]SpaceHintEvent, error) {
+	if len(spaceIDs) == 0 || len(kinds) == 0 {
+		return nil, nil
+	}
+	args := make([]any, 0, len(spaceIDs)+len(kinds)+2)
+	for _, id := range spaceIDs {
+		args = append(args, id)
+	}
+	for _, k := range kinds {
+		args = append(args, k)
+	}
+	args = append(args, db.TimeStr(since), limit)
+	rows, err := q.Query(`SELECT e.hint_id, h.rule, h.fingerprint, COALESCE(h.user_id, 0), e.kind, e.at
+		FROM hint_events e JOIN hints h ON h.id = e.hint_id
+		WHERE h.space_id IN (`+placeholders(len(spaceIDs))+`) AND e.kind IN (`+placeholders(len(kinds))+`) AND e.at >= ?
+		ORDER BY e.at DESC LIMIT ?`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []SpaceHintEvent
+	for rows.Next() {
+		var e SpaceHintEvent
+		var at string
+		if err := rows.Scan(&e.HintID, &e.Rule, &e.Fingerprint, &e.Owner, &e.Kind, &at); err != nil {
+			return nil, err
+		}
+		if e.At, err = db.ParseTime(at); err != nil {
+			return nil, err
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
+}
