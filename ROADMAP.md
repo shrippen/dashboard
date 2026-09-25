@@ -618,7 +618,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 ### Phase 0: Fundament (v0.1)
 
 - [x] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit *(Stylecheck-Skript statt Stylelint, kein pre-commit)*
-- [x] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften
+- [x] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften *(seither auf Go umgestellt: `net/http`, `html/template`, siehe Abschnitt 9)*
 - [x] Übersetzung von Anfang an: alle Texte über gettext (DE/EN), Formatierung mit Babel, Sprache aus Profil bzw. `Accept-Language` beim ersten Besuch; CI prüft, dass keine Übersetzung fehlt *(YAML-Kataloge mit Schlüsseln statt gettext)*
 - [x] Datenbank mit SQLAlchemy + Alembic (SQLite im WAL-Modus)
 - [x] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
@@ -629,18 +629,18 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Hinweis-Engine: Fingerprint, Zustände je Benutzer/Team, Snooze/Ack
 - [x] Dockerfile (multi-stage, non-root, `HEALTHCHECK`), `docker-compose.example.yml`
 - [x] GitHub Actions: Tests, Image-Build `linux/amd64` + `linux/arm64`, Push nach GHCR
-- [x] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots)
+- [ ] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots) *(nur Python; Go hat den `Demo`-Schalter in `settings.go`, aber keinen Fixture-Generator)*
 
 ### Phase 1: Startseite, Editor und Dashy-Migration (v0.2)
 
-- [x] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache
+- [ ] Widget `link` mit Icons (`favicon`, `si-*`, `hl-*`, URL, Upload, Monogramm) und Icon-Cache *(nur Python; kein Icons-Service in Go)*
 - [x] Quelle `http_status` und Statuspunkt auf den Kacheln
 - [x] Boards, einklappbare Abschnitte, `cols`, Kachelgrößen, Sortierung
 - [x] Suche mit Filter, `Enter`, Hotkeys, Websuche als Rückfall
 - [x] Widgets `rss`, `clock`, `weather` (Open-Meteo)
-- [x] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
-- [x] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen
-- [x] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml`
+- [ ] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest *(Widgets ja; kompakte Ansicht und Manifest fehlen in Go)*
+- [ ] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen *(Bibliothek/Verbindungstest/Revisionen ja; Board-Bearbeitung läuft in Go über separate Formularseiten statt Inline-Editbar/Drag & Drop — `.editbar`/`.dropzone` nur als CSS vorbereitet)*
+- [ ] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(nur Python `porting.py`; in Go nicht portiert, CLI `import` gibt nur einen Hinweis aus)*
 - [x] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
 - [x] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten
 - [ ] Parallelbetrieb, dann Umstieg nach Checkliste (Abschnitt 7.4)
@@ -649,24 +649,24 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 2: Mehrbenutzer und Teams (v0.3)
 
-- [x] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen
-- [x] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang
-- [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste
-- [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche
-- [x] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“
-- [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie)*
+- [ ] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen *(nur Python; Go hat weder SMTP-Outbound noch Routen für Einladung/Reset — Repo-Primitive `model.Invite`/`model.ResetToken` bestehen, kein Service/Route)*
+- [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang *(nur Python; Go hat keine OIDC-Login-Route)*
+- [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste *(Go: `/me/security`)*
+- [ ] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: Service `internal/services/teams` fertig, keine Route/UI)*
+- [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: Service `internal/services/shares` fertig, kein Dialog)*
+- [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
 - [x] Verbindungen mit persönlichen Zugangsdaten
-- [x] Persönliche API- und Embed-Tokens
-- [x] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche)
+- [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`)*
+- [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: Service `internal/services/audit` fertig, keine Admin-Route/UI)*
 
 ### Phase 3: Themes (v0.4)
 
 - [x] Theme-Vertrag (Token-Liste, Version, Standardwerte) und Laden der Themes je Bereich
 - [x] shrippen als einziges mitgeliefertes, schreibgeschütztes Theme (dunkel + Leinen)
-- [x] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA
-- [ ] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins *(eigenes CSS ja, Schrift-Upload fehlt)*
+- [ ] Theme-Editor mit Live-Vorschau, dunkel/hell nebeneinander, Kontrastprüfung WCAG AA *(Go: Service `internal/services/themes` mit voller CRUD inkl. ZIP-Export/-Import fertig, keine Editor-Route/UI)*
+- [ ] Import/Export als ZIP; eigenes CSS und Schriften nur für Instanz-Admins *(eigenes CSS ja, Schrift-Upload fehlt; Go-Service kann ZIP, ohne UI unerreichbar)*
 - [x] Auswahlreihenfolge persönlich → Team → Instanz, optional erzwungenes Theme je Board
-- [x] Seite `/styleguide` mit allen Komponenten im aktuellen Theme
+- [ ] Seite `/styleguide` mit allen Komponenten im aktuellen Theme *(nur Python; in Go nicht portiert)*
 
 ### Phase 4: Freelance-Kern: Kimai + Invoice Ninja (v0.5, MVP der Auswertung)
 
@@ -694,11 +694,11 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 7: Erinnerungen und Benachrichtigungen (v0.8)
 
-- [x] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token)
-- [x] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten; E-Mail-Benachrichtigungen nutzen den vorhandenen SMTP-Server
+- [ ] Fristen-Kalender (Abschnitt 8.5), Board „Fristen“, iCal-Feed je Benutzer (mit Token) *(Fristen-Kennzahlen/Board ja, iCal-Feed nur Python)*
+- [x] Benachrichtigungen über Apprise: jeder Benutzer hinterlegt eigene Apprise-URLs (verschlüsselt gespeichert, mit Testknopf) und wählt Mindeststufe und Ruhezeiten *(Go ruft eine externe Apprise-API statt sie einzubinden; E-Mail-Kanal fehlt mangels SMTP)*
 - [x] Texte der Benachrichtigungen in der Sprache des Empfängers
-- [x] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers
-- [x] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint)
+- [ ] Digest als HTML-E-Mail im Design System (mit Textversion), in der Sprache des Empfängers *(nur Python; Go hat kein SMTP-Outbound)*
+- [x] Morgen-Digest und Wochenrückblick; Ruhezeiten; keine Doppelmeldungen (Fingerprint) *(als Push, nicht als E-Mail)*
 - [x] Monatsabschluss-Checkliste (Kimai-Export → Rechnung → Fahrtkosten)
 
 ### Phase 8: Trends und Prognosen (v0.9)
