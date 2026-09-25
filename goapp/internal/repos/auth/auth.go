@@ -226,6 +226,12 @@ func AddToken(q db.Queryer, t *model.ApiToken) error {
 	return nil
 }
 
+// TouchToken records that an API token was just used.
+func TouchToken(q db.Queryer, tokenID int64, at time.Time) error {
+	_, err := q.Exec("UPDATE api_tokens SET last_used_at = ? WHERE id = ?", db.TimeStr(at), tokenID)
+	return err
+}
+
 // RemoveToken deletes one API token.
 func RemoveToken(q db.Queryer, tokenID int64) error {
 	_, err := q.Exec("DELETE FROM api_tokens WHERE id = ?", tokenID)
