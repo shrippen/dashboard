@@ -40,6 +40,8 @@ const (
 	MetricCash30          Metric = "cash_30"
 	MetricEffectiveRate   Metric = "effective_rate"
 	MetricLiquidity30     Metric = "liquidity_30"
+	MetricNetWorth        Metric = "net_worth"
+	MetricCash            Metric = "cash"
 )
 
 // TableKind selects a "table" widget's row source.
@@ -236,7 +238,7 @@ func kpiKimai(metric Metric, data *sources.KimaiDataset, ctx ViewCtx) *KpiResult
 	return nil
 }
 
-func kpiNinja(metric Metric, data *sources.NinjaDataset, peer any, ctx ViewCtx) *KpiResult {
+func kpiNinja(metric Metric, data *sources.NinjaDataset, peers map[string]any, ctx ViewCtx) *KpiResult {
 	tax := settingsMap(ctx.Settings, "tax")
 	interval := metrics.TaxVATInterval(ctx.Settings)
 	method := metrics.TaxVATMethod(ctx.Settings)
@@ -277,13 +279,17 @@ func kpiNinja(metric Metric, data *sources.NinjaDataset, peer any, ctx ViewCtx) 
 		return &KpiResult{Kind: "money", Value: metrics.NinjaCashExpected(data, today, 30), Currency: stats.Currency,
 			SubKey: "kpi.cash_30"}
 	case MetricLiquidity30:
-		// 30 days ≈ one month of fixed costs.
+		// 30 days ≈ one month of fixed costs; Sure's recurring payments
+		// replace the manual figure when a Sure connection exists.
 		income := metrics.NinjaCashExpected(data, today, 30)
 		fixed := settingsFloat(settingsMap(ctx.Settings, "costs"), "fixed_monthly", 0)
+		if sure, ok := peers[peerSure].(*sources.SureDataset); ok {
+			fixed = metrics.SureDue(sure, today, 30)
+		}
 		return &KpiResult{Kind: "money", Value: income - fixed, Currency: stats.Currency,
 			SubKey: "kpi.liquidity", SubIn: income, SubOut: fixed}
 	case MetricEffectiveRate:
-		kimai, ok := peer.(*sources.KimaiDataset)
+		kimai, ok := peers[peerKimai].(*sources.KimaiDataset)
 		if !ok {
 			return nil
 		}
@@ -303,6 +309,16 @@ func kpiNinja(metric Metric, data *sources.NinjaDataset, peer any, ctx ViewCtx) 
 		}
 		return &KpiResult{Kind: "money", Value: stats.VAT.Liability + surplus*rate, Currency: stats.Currency,
 			SubKey: "kpi.reserve", SubRate: int(rate*100 + 0.5)}
+	}
+	return nil
+}
+
+func kpiSure(metric Metric, data *sources.SureDataset) *KpiResult {
+	switch metric {
+	case MetricNetWorth:
+		return &KpiResult{Kind: "money", Value: data.NetWorth, Currency: data.Currency}
+	case MetricCash:
+		return &KpiResult{Kind: "money", Value: metrics.SureCash(data), Currency: data.Currency}
 	}
 	return nil
 }
@@ -329,7 +345,9 @@ func kpiView(cfgAny any, results map[string]any, ctx ViewCtx) map[string]any {
 	case enums.ServiceKimai:
 		kpi = kpiKimai(cfg.Metric, data.(*sources.KimaiDataset), ctx)
 	case enums.ServiceInvoiceNinja:
-		kpi = kpiNinja(cfg.Metric, data.(*sources.NinjaDataset), results[peerKimai], ctx)
+		kpi = kpiNinja(cfg.Metric, data.(*sources.NinjaDataset), results, ctx)
+	case enums.ServiceSure:
+		kpi = kpiSure(cfg.Metric, data.(*sources.SureDataset))
 	case enums.ServiceSnipeIT:
 		kpi = kpiSnipe(cfg.Metric, data.(*sources.SnipeDataset), ctx)
 	}
@@ -712,9 +730,17 @@ const peerKimai = "kimai"
 
 var kimaiPeer = Query{Name: peerKimai, Source: "data", Conn: ConnPeer, Service: enums.ServiceKimai}
 
+// peerSure names the space's Sure dataset (recurring costs).
+const peerSure = "sure"
+
+var surePeer = Query{Name: peerSure, Source: "data", Conn: ConnPeer, Service: enums.ServiceSure}
+
 func kpiQueries(cfg any) []Query {
-	if cfg.(KpiConfig).Metric == MetricEffectiveRate {
+	switch cfg.(KpiConfig).Metric {
+	case MetricEffectiveRate:
 		return append(dataQuery(nil), kimaiPeer)
+	case MetricLiquidity30:
+		return append(dataQuery(nil), surePeer)
 	}
 	return dataQuery(nil)
 }

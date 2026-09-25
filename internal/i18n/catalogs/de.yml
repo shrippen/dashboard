@@ -18,6 +18,7 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_sure: In Sure öffnen
   open_in_homeassistant: In Home Assistant öffnen
   open_in_freshrss: In FreshRSS öffnen
   open_in_gitea: In Gitea öffnen
@@ -191,6 +192,8 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  net_worth: Vermögen
+  cash: Kontostand
   liquidity_30: Liquidität 30 Tage
   seasonal: Saisonverlauf Umsatz
   effective_rate: Effektiver Stundensatz
@@ -353,6 +356,7 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_sure: Keine Optionen nötig. Token = API-Schlüssel mit Leserecht (Einstellungen → API-Schlüssel).
   options_hint_homeassistant: Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.
   options_hint_freshrss: 'Keine Optionen nötig. Token = benutzer:api-passwort (FreshRSS → Profil → API-Passwort; API-Zugriff muss erlaubt sein).'
   options_hint_gitea: Keine Optionen nötig. Token = Zugriffstoken mit Leserechten (read:user, read:issue, read:repository, read:notification).
@@ -391,6 +395,7 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  sure: Sure (Finanzen)
   homeassistant: Home Assistant
   freshrss: FreshRSS
   gitea: Gitea
@@ -639,6 +644,29 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  sure:
+    missed:
+      title: 'Erwartete Zahlung „{name}“ ausgeblieben'
+      why: '{amount} waren für den {day} erwartet. Abbuchung fehlgeschlagen oder Vertrag geändert?'
+    low:
+      title: '{account}: nur {amount}'
+      why: Kontostand unter der Schwelle. Umbuchen, bevor Lastschriften platzen.
+    sync:
+      title: 'Bank-Sync fehlgeschlagen: {name}'
+      why: Zugang bei der Bank erneuern, sonst fehlen Buchungen.
+    uncategorized:
+      title: '{count} Buchungen ohne Kategorie'
+      why: Ohne Kategorie stimmen Budgets und Auswertungen nicht.
+    unusual:
+      title: 'Hohe Ausgabe: {name} ({amount})'
+      why: 'Am {day}, deutlich über dem Üblichen. Doppelbuchung oder Preiserhöhung?'
+  cross:
+    invoice_paid:
+      title: 'Rechnung {number} vermutlich bezahlt'
+      why: '{amount} von {client} am {day} auf {account} eingegangen, in Invoice Ninja noch offen. Zahlung erfassen.'
+    expense_unrecorded:
+      title: 'Ausgabe fehlt in Invoice Ninja: {name}'
+      why: '{amount} am {day} vom {account}. Als Ausgabe erfassen, wenn geschäftlich.'
   hass:
     alarm:
       title: '{entity} meldet Alarm'
@@ -883,6 +911,8 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  sure:
+    cash: '{amount} auf Konten'
   hass:
     'on': '{count} an'
   freshrss:
@@ -976,6 +1006,13 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  sure.recurring_missed: Ausgebliebene Zahlung
+  sure.low_balance: Niedriger Kontostand
+  sure.sync_failed: Bank-Sync
+  sure.uncategorized: Ohne Kategorie
+  sure.unusual_expense: Ungewöhnliche Ausgabe
+  cross.invoice_paid: Rechnung bezahlt, nicht erfasst
+  cross.expense_unrecorded: Geschäftsausgabe nicht erfasst
   hass.alarm: Alarmsensoren
   hass.battery_low: Batteriestand
   hass.unavailable: Nicht erreichbare Entitäten
@@ -1040,6 +1077,8 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  factor: Faktor zum Üblichen
+  accounts: Geschäftskonten (Namen)
   warn_hours: Warnung ab Stunden
   critical_hours: Kritisch ab Stunden
   drop: Rückgang ab (Anteil)

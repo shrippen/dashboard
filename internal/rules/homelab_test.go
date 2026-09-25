@@ -128,3 +128,49 @@ func TestHassRules(t *testing.T) {
 		t.Fatalf("ignored prefix reported: %+v", got)
 	}
 }
+
+func TestSureRules(t *testing.T) {
+	data := sources.DemoSure(time.Now())
+	env := todayEnv(nil)
+	if got := run(t, "sure.recurring_missed", data, env); len(got) != 1 || got[0].Params["name"] != "Krankenversicherung" {
+		t.Fatalf("missed: %+v", got)
+	}
+	if got := run(t, "sure.low_balance", data, env); len(got) != 1 || got[0].Params["account"] != "Tagesgeld" {
+		t.Fatalf("low: %+v", got)
+	}
+	if got := run(t, "sure.unusual_expense", data, env); len(got) != 1 || got[0].Params["name"] != "Amazon" {
+		t.Fatalf("unusual: %+v", got)
+	}
+}
+
+func TestSureNinjaCross(t *testing.T) {
+	sure := sources.DemoSure(time.Now())
+	today := todayEnv(nil).Today
+	ninja := &sources.NinjaDataset{URL: "https://in.demo", Currency: "EUR",
+		Clients: []sources.NinjaClient{{ID: 1, Name: "Muster GmbH"}},
+		Invoices: []sources.NinjaInvoice{
+			{ID: 17, Number: "RE-2026-017", ClientID: 1, Status: "sent", Date: today.AddDate(0, 0, -20).Format("2006-01-02"), Amount: 2380, Balance: 2380},
+			{ID: 18, Number: "RE-2026-018", ClientID: 1, Status: "sent", Date: today.AddDate(0, 0, -2).Format("2006-01-02"), Amount: 500, Balance: 500},
+		},
+		Expenses: []sources.NinjaExpense{{Date: today.AddDate(0, 0, -5).Format("2006-01-02"), Amount: 41.65}},
+	}
+	env := todayEnv(nil)
+	env.Datasets = map[string]any{"sure": sure, "invoiceninja": ninja}
+
+	if got := run(t, "cross.invoice_paid", nil, env); len(got) != 1 || got[0].Params["number"] != "RE-2026-017" {
+		t.Fatalf("paid: %+v", got)
+	}
+	if got := run(t, "cross.expense_unrecorded", nil, env); len(got) != 0 {
+		t.Fatalf("reported without business accounts: %+v", got)
+	}
+	env.Settings = map[string]any{"rules": map[string]any{"cross.expense_unrecorded": map[string]any{"accounts": []any{"Geschäftskonto"}}}}
+	got := run(t, "cross.expense_unrecorded", nil, env)
+	if len(got) != 2 {
+		t.Fatalf("unrecorded: %+v", got)
+	}
+	for _, f := range got {
+		if f.Params["name"] == "Hetzner Online" && f.Params["day"] != nil && f.Fingerprint == "expense:t2" {
+			t.Fatalf("recorded Hetzner expense reported: %+v", f)
+		}
+	}
+}

@@ -202,3 +202,16 @@ func (a HassApi) Call(ctx context.Context, domain, service, entityID string) err
 	_, err := postJSON(ctx, joinURL(a.URL, path), a.headers(), map[string]string{"entity_id": entityID}, !a.Verify)
 	return err
 }
+
+// ── Sure (personal finance, successor of Maybe) ──
+
+type SureApi struct {
+	URL    string
+	Key    string
+	Verify bool
+}
+
+// Get performs one GET against /api/v1/<path>.
+func (a SureApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
+	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"X-Api-Key": a.Key, "Accept": "application/json"}, params, !a.Verify)
+}

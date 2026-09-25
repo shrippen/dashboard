@@ -18,6 +18,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_sure: Open in Sure
   open_in_homeassistant: Open in Home Assistant
   open_in_freshrss: Open in FreshRSS
   open_in_gitea: Open in Gitea
@@ -191,6 +192,8 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  net_worth: Net worth
+  cash: Cash balance
   liquidity_30: Liquidity 30 days
   seasonal: Seasonal revenue
   effective_rate: Effective hourly rate
@@ -353,6 +356,7 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_sure: No options needed. Token = API key with read scope (settings → API keys).
   options_hint_homeassistant: No options needed. Token = long-lived access token (profile → security). Only users with the “use” right on this connection may switch.
   options_hint_freshrss: 'No options needed. Token = user:api-password (FreshRSS → profile → API password; API access must be enabled).'
   options_hint_gitea: No options needed. Token = access token with read scopes (read:user, read:issue, read:repository, read:notification).
@@ -391,6 +395,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  sure: Sure (finance)
   homeassistant: Home Assistant
   freshrss: FreshRSS
   gitea: Gitea
@@ -639,6 +644,29 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  sure:
+    missed:
+      title: 'Expected payment “{name}” missing'
+      why: '{amount} was expected on {day}. Failed debit or changed contract?'
+    low:
+      title: '{account}: only {amount}'
+      why: Balance below threshold. Move money before debits bounce.
+    sync:
+      title: 'Bank sync failed: {name}'
+      why: Renew the bank connection or transactions will be missing.
+    uncategorized:
+      title: '{count} transactions without category'
+      why: Budgets and reports are off without categories.
+    unusual:
+      title: 'Large expense: {name} ({amount})'
+      why: 'On {day}, well above the usual. Double charge or price increase?'
+  cross:
+    invoice_paid:
+      title: 'Invoice {number} probably paid'
+      why: '{amount} from {client} arrived on {day} in {account}, still open in Invoice Ninja. Record the payment.'
+    expense_unrecorded:
+      title: 'Expense missing in Invoice Ninja: {name}'
+      why: '{amount} on {day} from {account}. Record it if it is a business expense.'
   hass:
     alarm:
       title: '{entity} reports an alarm'
@@ -882,6 +910,8 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  sure:
+    cash: '{amount} in accounts'
   hass:
     'on': '{count} on'
   freshrss:
@@ -975,6 +1005,13 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  sure.recurring_missed: Missed payment
+  sure.low_balance: Low balance
+  sure.sync_failed: Bank sync
+  sure.uncategorized: Uncategorised
+  sure.unusual_expense: Unusual expense
+  cross.invoice_paid: Invoice paid, not recorded
+  cross.expense_unrecorded: Business expense not recorded
   hass.alarm: Alarm sensors
   hass.battery_low: Battery level
   hass.unavailable: Unavailable entities
@@ -1039,6 +1076,8 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  factor: Factor to usual
+  accounts: Business accounts (names)
   warn_hours: Warn from hours
   critical_hours: Critical from hours
   drop: Drop from (share)

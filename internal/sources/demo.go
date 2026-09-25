@@ -356,3 +356,28 @@ func DemoHass(now time.Time) *HassDataset {
 		{ID: "update.home_assistant_core_update", Name: "Home Assistant Core", Domain: "update", State: HassOn, Changed: ago(20)},
 	}}
 }
+
+// DemoSure is the demo Sure dataset; one income matches the open demo
+// invoice, one expected payment is overdue.
+func DemoSure(now time.Time) *SureDataset {
+	today := demoDay(now)
+	day := func(n int) string { return iso(today.AddDate(0, 0, n)) }
+	return &SureDataset{URL: "https://money.demo", Currency: "EUR", NetWorth: 48210,
+		Accounts: []SureAccount{
+			{ID: "a1", Name: "Geschäftskonto", Type: "depository", Classification: "asset", Balance: 6120, Currency: "EUR"},
+			{ID: "a2", Name: "Tagesgeld", Type: "depository", Classification: "asset", Balance: 150, Currency: "EUR"},
+		},
+		Transactions: []SureTxn{
+			{ID: "t1", Date: day(-3), Name: "Muster GmbH RE-2026-017", Amount: 2380, Category: "Einnahmen", Account: "Geschäftskonto"},
+			{ID: "t2", Date: day(-5), Name: "Hetzner Online", Amount: -41.65, Category: "Hosting", Merchant: "Hetzner", Account: "Geschäftskonto"},
+			{ID: "t3", Date: day(-8), Name: "Amazon", Amount: -899, Account: "Geschäftskonto"},
+			{ID: "t4", Date: day(-12), Name: "Bäckerei", Amount: -6.4, Account: "Tagesgeld"},
+			{ID: "t5", Date: day(-40), Name: "Hetzner Online", Amount: -41.65, Category: "Hosting", Merchant: "Hetzner", Account: "Geschäftskonto"},
+		},
+		Recurring: []SureRecurring{
+			{Name: "Hetzner Online", Status: "active", Amount: 41.65, Expense: true, Next: day(25), Last: day(-5)},
+			{Name: "Krankenversicherung", Status: "active", Amount: 612, Expense: true, Next: day(-9), Last: day(-39)},
+			{Name: "Miete Büro", Status: "active", Amount: 450, Expense: true, Next: day(6), Last: day(-24)},
+		},
+	}
+}

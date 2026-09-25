@@ -151,3 +151,22 @@ func TestKpiLiquiditySubtractsFixedCosts(t *testing.T) {
 		t.Fatalf("unexpected: %+v", kpi)
 	}
 }
+
+func TestKpiLiquidityUsesSureRecurring(t *testing.T) {
+	kind, _ := widgets.Get("kpi")
+	cfg, _ := widgets.Decode("kpi", map[string]any{"metric": "liquidity_30"})
+	ninja := &sources.NinjaDataset{Invoices: []sources.NinjaInvoice{
+		{Status: "sent", Date: "2026-09-01", DueDate: "2026-10-01", Balance: 1000, Net: 840},
+	}}
+	sure := &sources.SureDataset{Recurring: []sources.SureRecurring{
+		{Name: "Miete", Status: "active", Amount: 450, Expense: true, Next: "2026-10-01"},
+		{Name: "Gehalt", Status: "active", Amount: 3000, Next: "2026-10-01"},
+		{Name: "Jahresbeitrag", Status: "active", Amount: 99, Expense: true, Next: "2027-01-01"},
+	}}
+	settings := map[string]any{"costs": map[string]any{"fixed_monthly": 300.0}}
+
+	view := kind.View(cfg, map[string]any{"data": ninja, "sure": sure}, ctxFor(enums.ServiceInvoiceNinja, settings))
+	if kpi := view["KPI"].(*widgets.KpiResult); kpi.Value != 550 || kpi.SubOut != 450 {
+		t.Fatalf("kpi: %+v", kpi)
+	}
+}

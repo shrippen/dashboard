@@ -172,6 +172,8 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.BorgInfo(data, time.Now().UTC())
 	case *sources.HassDataset:
 		parts = metrics.HassInfo(data)
+	case *sources.SureDataset:
+		parts = metrics.SureInfo(data)
 	}
 	return map[string]any{"Info": parts}
 }

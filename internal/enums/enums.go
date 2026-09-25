@@ -102,6 +102,7 @@ const (
 	ServiceGitea         ServiceType = "gitea"
 	ServiceBorgBackup    ServiceType = "borgbackup"
 	ServiceHomeAssistant ServiceType = "homeassistant"
+	ServiceSure          ServiceType = "sure"
 )
 
 // Services lists every connectable service, in form order.
@@ -109,7 +110,7 @@ var Services = []ServiceType{
 	ServiceKimai, ServiceInvoiceNinja, ServiceSnipeIT, ServiceDawarich, ServiceGlances,
 	ServiceUptimeKuma, ServiceProxmox, ServicePaperless, ServiceCerts,
 	ServiceScrutiny, ServiceImmich, ServiceUmami, ServiceFreshRSS, ServiceGitea, ServiceBorgBackup,
-	ServiceHomeAssistant,
+	ServiceHomeAssistant, ServiceSure,
 }
 
 // Known reports whether s is a connectable service.

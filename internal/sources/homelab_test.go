@@ -177,3 +177,25 @@ func TestBorgDashboardAndClients(t *testing.T) {
 		t.Fatalf("data: %+v", d)
 	}
 }
+
+func TestSureReadsAccountsTransactionsRecurring(t *testing.T) {
+	srv := jsonServer(t, map[string]any{
+		"/api/v1/balance_sheet": map[string]any{"currency": "EUR", "net_worth": map[string]any{"amount": "1234.5", "currency": "EUR"}},
+		"/api/v1/accounts":      map[string]any{"accounts": []any{map[string]any{"id": "a", "name": "Giro", "account_type": "depository", "balance_cents": 12345}}},
+		"/api/v1/transactions": map[string]any{"transactions": []any{map[string]any{"id": "t", "date": "2026-09-20", "name": "Kunde",
+			"signed_amount_cents": 50000, "account": map[string]any{"name": "Giro"}, "category": nil}}},
+		"/api/v1/recurring_transactions": map[string]any{"recurring_transactions": []any{map[string]any{"name": "Miete", "status": "active",
+			"amount_cents": 45000, "next_expected_date": "2026-10-01"}}},
+		"/api/v1/syncs/latest": map[string]any{"data": map[string]any{"status": "failed", "syncable": map[string]any{"name": "Sparkasse"}}},
+	}, func(r *http.Request) bool { return r.Header.Get("X-Api-Key") == "k" })
+
+	out, err := sources.SureData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "k", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := out.(*sources.SureDataset)
+	if d.NetWorth != 1234.5 || d.Accounts[0].Balance != 123.45 || d.Transactions[0].Amount != 500 ||
+		!d.Recurring[0].Expense || d.Recurring[0].Amount != 450 || d.SyncError != "Sparkasse" {
+		t.Fatalf("data: %+v", d)
+	}
+}

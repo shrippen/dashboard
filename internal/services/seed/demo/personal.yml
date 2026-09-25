@@ -9,6 +9,7 @@ connections:
   - {id: kimai, type: kimai, name: Kimai, url: "demo://kimai", credentials: shared}
   - {id: invoiceninja, type: invoiceninja, name: Invoice Ninja, url: "demo://invoiceninja", credentials: shared}
   - {id: snipeit, type: snipeit, name: Snipe-IT, url: "demo://snipeit", credentials: shared}
+  - {id: sure, type: sure, name: Sure, url: "demo://sure", credentials: shared}
   - id: dawarich
     type: dawarich
     name: Dawarich
@@ -23,6 +24,8 @@ widgets:
   - {id: in-link, type: link, title: Invoice Ninja, config: {url: "https://invoiceninja.com", icon: "hl-invoice-ninja", description: Rechnungen, status: "off", info: {connection: invoiceninja}, hotkey: "i"}}
   - {id: snipe-link, type: link, title: Snipe-IT, config: {url: "https://snipeitapp.com", icon: "hl-snipe-it", description: Assets, status: "off", info: {connection: snipeit}}}
   - {id: dawarich-link, type: link, title: Dawarich, config: {url: "https://dawarich.app", icon: "hl-dawarich", description: Standortverlauf, status: "off", info: {connection: dawarich}}}
+  - {id: sure-link, type: link, title: Sure, config: {url: "https://github.com/we-promise/sure", icon: "hl-maybe", description: Finanzen, status: "off", info: {connection: sure}}}
+  - {id: kpi-cash, type: kpi, title: "", connection: sure, config: {metric: cash}}
   - {id: kpi-revenue, type: kpi, title: "", connection: invoiceninja, config: {metric: revenue_ytd}}
   - {id: kpi-open, type: kpi, title: "", connection: invoiceninja, config: {metric: open_amount}}
   - {id: kpi-hours, type: kpi, title: "", connection: kimai, config: {metric: hours_month}}
@@ -46,8 +49,8 @@ boards:
   - name: Übersicht
     slug: start
     sections:
-      - {title: Dienste, cols: 4, widgets: [kimai-link, in-link, snipe-link, dawarich-link]}
-      - {title: Kennzahlen, widgets: [kpi-revenue, kpi-open, kpi-hours, kpi-util, kpi-vat, kpi-reserve]}
+      - {title: Dienste, cols: 4, widgets: [kimai-link, in-link, snipe-link, dawarich-link, sure-link]}
+      - {title: Kennzahlen, widgets: [kpi-revenue, kpi-open, kpi-hours, kpi-util, kpi-vat, kpi-reserve, kpi-cash]}
       - {title: Hinweise, widgets: [hints]}
       - {title: Fristen, area: side, widgets: [deadlines]}
       - {title: Ziele, area: side, widgets: [goal, budgets]}
