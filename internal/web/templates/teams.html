@@ -12,7 +12,7 @@
   <main>
     <h1>{{t "nav.teams"}}</h1>
     <p class="muted">{{t "teams.lead"}}</p>
-    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
 
     {{if .Who.IsAdmin}}
     <div class="card">
@@ -71,7 +71,7 @@
       </form>
 
       {{if $.Who.IsAdmin}}
-      <form method="post" action="/teams/{{.ID}}/delete" onsubmit="return confirm('{{t "teams.confirm_delete"}}')">
+      <form method="post" action="/teams/{{.ID}}/delete" data-confirm="{{t "teams.confirm_delete"}}">
         <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
         <button type="submit" class="ghost">{{t "teams.delete"}}</button>
       </form>

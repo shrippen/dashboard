@@ -415,6 +415,9 @@ func Active(d *sql.DB, who *access.Principal, boardTheme *int64, spaceID *int64)
 	return id, err
 }
 
+// DefaultID returns the instance default theme id, or nil for shrippen.
+func DefaultID(q db.Queryer) (*int64, error) { return defaultThemeID(q) }
+
 func defaultThemeID(q db.Queryer) (*int64, error) {
 	setting, err := misc.Setting(q, defaultSetting)
 	if err != nil {

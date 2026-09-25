@@ -19,6 +19,7 @@ import (
 	"dashboard/internal/outbound"
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/mail"
+	"dashboard/internal/services/system"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
 	"dashboard/internal/web"
@@ -51,6 +52,9 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 		t.Fatalf("open db: %v", err)
 	}
 	t.Cleanup(func() { database.Close() })
+	if err := system.Start(database); err != nil {
+		t.Fatalf("system start: %v", err)
+	}
 	if _, err := themes.EnsureBuiltin(database); err != nil {
 		t.Fatalf("ensure builtin theme: %v", err)
 	}
@@ -77,9 +81,11 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterAdminRoutes(mux)
 	deps.RegisterAccountRoutes(mux)
 	deps.RegisterAPIRoutes(mux)
+	deps.RegisterSettingsRoutes(mux)
+	deps.RegisterOIDCRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
-	srv := httptest.NewServer(mux)
+	srv := httptest.NewServer(deps.Secure(mux))
 	t.Cleanup(srv.Close)
 
 	jar, err := cookiejar.New(nil)

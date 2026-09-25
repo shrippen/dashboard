@@ -15,6 +15,7 @@ import (
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/mail"
 	"dashboard/internal/services/scheduler"
+	"dashboard/internal/services/system"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/settings"
 	"dashboard/internal/web"
@@ -56,6 +57,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := system.Start(database); err != nil {
+		slog.Error("start", "err", err)
+		os.Exit(1)
+	}
 	mail.Init(cfg)
 	schedulerCtx, stopScheduler := context.WithCancel(context.Background())
 	defer stopScheduler()
@@ -80,9 +85,11 @@ func main() {
 	deps.RegisterAdminRoutes(mux)
 	deps.RegisterAccountRoutes(mux)
 	deps.RegisterAPIRoutes(mux)
+	deps.RegisterSettingsRoutes(mux)
+	deps.RegisterOIDCRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
-	server := &http.Server{Addr: ":8080", Handler: mux}
+	server := &http.Server{Addr: ":8080", Handler: deps.Secure(mux)}
 
 	go func() {
 		slog.Info("listening", "addr", server.Addr)

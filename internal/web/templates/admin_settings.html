@@ -1,0 +1,122 @@
+{{define "admin_settings"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "nav.admin_settings"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "nav.admin_settings"}}</h1>
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+
+    <h2>{{t "admin.general"}}</h2>
+    <div class="card">
+      <form method="post" action="/admin/settings/general">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="iframe">{{t "admin.iframe"}}</label>
+        <input id="iframe" name="iframe" value="{{.Iframe}}" placeholder="https://grafana.example.lan">
+        <p class="small muted">{{t "admin.iframe_hint"}}</p>
+        <label for="default_theme">{{t "admin.default_theme"}}</label>
+        <select id="default_theme" name="default_theme">
+          <option value="">shrippen</option>
+          {{range .ThemeList}}{{if not .Builtin}}<option value="{{.ID}}"{{if eq .ID $.DefaultTheme}} selected{{end}}>{{.Name}}</option>{{end}}{{end}}
+        </select>
+        <label class="check"><input type="checkbox" name="force_admin_totp"{{if .ForceTOTP}} checked{{end}}> {{t "admin.force_totp"}}</label>
+        <label class="check"><input type="checkbox" name="registration"{{if .Registration}} checked{{end}}> {{t "admin.registration"}}</label>
+        <label class="check"><input type="checkbox" name="location_shared"{{if .Location}} checked{{end}}> {{t "admin.location_shared"}}</label>
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+    </div>
+
+    <h2>{{t "admin.network"}}</h2>
+    <div class="card">
+      <form method="post" action="/admin/settings/network">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label for="mode">{{t "admin.net_mode"}}</label>
+        <select id="mode" name="mode">
+          {{range .NetModes}}<option value="{{.}}"{{if eq . $.Net.Mode}} selected{{end}}>{{t (print "net." .)}}</option>{{end}}
+        </select>
+        <label class="check"><input type="checkbox" name="public"{{if .Net.Public}} checked{{end}}> {{t "admin.net_public"}}</label>
+        <label for="networks">{{t "admin.net_networks"}}</label>
+        <textarea id="networks" name="networks" rows="3" placeholder="192.168.10.0/24">{{.Networks}}</textarea>
+        <label for="hosts">{{t "admin.net_hosts"}}</label>
+        <textarea id="hosts" name="hosts" rows="2" placeholder="kimai.example.lan">{{.Hosts}}</textarea>
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
+    </div>
+
+    <h2>{{t "admin.oidc"}}</h2>
+    <div class="card">
+      {{if .OIDCTest}}<p class="pill" data-state="{{if .OIDCTestOK}}ok{{else}}fail{{end}}">{{.OIDCTest}}</p>{{end}}
+      <form method="post" action="/admin/settings/oidc">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <label class="check"><input type="checkbox" name="enabled"{{if .OIDC.Enabled}} checked{{end}}> {{t "admin.oidc_enabled"}}</label>
+        <label for="label">{{t "admin.oidc_label"}}</label>
+        <input id="label" name="label" value="{{.OIDC.Label}}">
+        <label for="issuer">{{t "admin.oidc_issuer"}}</label>
+        <input id="issuer" name="issuer" value="{{.OIDC.Issuer}}" placeholder="https://auth.example.lan/application/o/dashboard/">
+        <label for="client_id">Client-ID</label>
+        <input id="client_id" name="client_id" value="{{.OIDC.ClientID}}">
+        <label for="secret">Client-Secret</label>
+        <input id="secret" name="secret" type="password" autocomplete="off" placeholder="{{if .OIDC.HasSecret}}{{t "conn.secret_keep"}}{{end}}">
+        <p class="small muted">{{t "admin.oidc_redirect"}} <code>{{.CallbackURL}}</code></p>
+        <label class="check"><input type="checkbox" name="auto_create"{{if .OIDC.AutoCreate}} checked{{end}}> {{t "admin.oidc_auto"}}</label>
+        <label class="check"><input type="checkbox" name="email_link"{{if .OIDC.EmailLink}} checked{{end}}> {{t "admin.oidc_email_link"}}</label>
+        <label class="check"><input type="checkbox" name="only"{{if .OIDC.Only}} checked{{end}}> {{t "admin.oidc_only"}}</label>
+
+        <p><b>{{t "admin.oidc_rules"}}</b></p>
+        <p class="small muted">{{t "admin.oidc_rules_hint"}}</p>
+        <div class="table-wrap"><table class="table">
+          <tr><th>{{t "admin.group"}}</th><th>{{t "field.role"}}</th><th>{{t "admin.team"}}</th><th>{{t "field.team_role"}}</th></tr>
+          {{range .Rules}}
+          <tr>
+            <td><input name="rule_group" value="{{.Group}}" aria-label="{{t "admin.group"}}"></td>
+            <td><select name="rule_role" aria-label="{{t "field.role"}}"><option value="">–</option>
+              {{$r := .Role}}{{range $.InstanceRoles}}<option value="{{.}}"{{if eq . $r}} selected{{end}}>{{t (print "irole." .)}}</option>{{end}}</select></td>
+            <td><input name="rule_team" value="{{.Team}}" aria-label="{{t "admin.team"}}"></td>
+            <td><select name="rule_team_role" aria-label="{{t "field.team_role"}}">
+              {{$tr := .TeamRole}}{{range $.TeamRoles}}<option value="{{.}}"{{if eq . $tr}} selected{{end}}>{{t (print "role." .)}}</option>{{end}}</select></td>
+          </tr>
+          {{end}}
+        </table></div>
+        <button type="submit">{{t "action.save"}}</button>
+        <button type="submit" class="ghost" formaction="/admin/settings/oidc/test">{{t "conn.test"}}</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "admin_reapply"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "admin.reapply"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "admin.reapply"}}</h1>
+    <p class="muted">{{t "admin.reapply_lead"}}</p>
+    <div class="card">
+      <p>{{t "admin.groups"}}: {{range .Plan.Groups}}<code>{{.}}</code> {{else}}–{{end}}</p>
+      <p>{{t "field.role"}}: <b>{{t (print "irole." .Plan.Role)}}</b></p>
+      <p>{{t "nav.teams"}}: {{range $i, $m := .Plan.Teams}}{{if $i}}, {{end}}{{$m.Team}} ({{t (print "role." $m.Role)}}){{else}}–{{end}}</p>
+      <form method="post" action="/admin/users/{{.UserID}}/reapply">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "admin.reapply_do"}}</button>
+        <a class="link-btn" href="/admin/users">{{t "action.cancel"}}</a>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}

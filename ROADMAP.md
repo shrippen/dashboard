@@ -618,7 +618,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 ### Phase 0: Fundament (v0.1)
 
 - [x] Repo-Struktur, `pyproject.toml`, Ruff, Stylelint, Pytest, pre-commit *(Stylecheck-Skript statt Stylelint, kein pre-commit)*
-- [x] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften *(seither auf Go umgestellt: `net/http`, `html/template`, siehe Abschnitt 9)*
+- [x] FastAPI-Grundgerüst, Jinja-Layout mit `shrippen.css`, lokale Schriften *(seither Go: `net/http`, `html/template`; Schriften unter `static/vendor/shrippen/fonts`, CSP wie in Python)*
 - [x] Übersetzung von Anfang an: alle Texte über gettext (DE/EN), Formatierung mit Babel, Sprache aus Profil bzw. `Accept-Language` beim ersten Besuch; CI prüft, dass keine Übersetzung fehlt *(YAML-Kataloge mit Schlüsseln statt gettext)*
 - [x] Datenbank mit SQLAlchemy + Alembic (SQLite im WAL-Modus)
 - [x] Datenmodell: Benutzer, Teams, Bereiche, Verbindungen, Widgets, Boards, Platzierungen, Freigaben, Revisionen
@@ -649,15 +649,15 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 
 ### Phase 2: Mehrbenutzer und Teams (v0.3)
 
-- [x] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen *(Go: `drivers/smtp`, `outbound/mail.go`, `services/mail`, `services/invites`; Schalter für Selbstregistrierung kommt mit den Instanz-Einstellungen)*
-- [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang *(nur Python; Go hat keine OIDC-Login-Route)*
+- [x] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen
+- [x] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang *(Go: `services/oidc`, `sources/oidc.go`, PKCE + ID-Token-Prüfung mit go-jose; Einstellungen unter `/admin/settings`)*
 - [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste *(Go: `/me/security`)*
 - [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: `/teams`)*
 - [x] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: `/shares/{kind}/{id}`, bisher nur von der Verbindungsliste verlinkt)*
 - [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
 - [x] Verbindungen mit persönlichen Zugangsdaten
 - [x] Persönliche API- und Embed-Tokens *(Go: `/me/security`; `/api/summary`, `/api/hints`, `/embed/hints`, `/embed/b/{id}`)*
-- [ ] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: `/admin/users` und `/admin/audit` — Rolle/Aktivieren/Löschen mit Schutz des letzten Admins; Einladung/Reset-Link fehlen noch, siehe Phase 2)*
+- [x] Audit-Log; Admin-Ansicht für Benutzer und Teams (ohne Einblick in persönliche Bereiche) *(Go: `/admin/users`, `/admin/audit`, `/admin/settings`)*
 
 ### Phase 3: Themes (v0.4)
 

@@ -59,7 +59,7 @@
     {{if .Title}}<b>{{.Title}}</b>{{end}}<span>({{len .Tiles}})</span>
     {{if $b.Board.CanEdit}}
       <form class="inline-form sp" method="post" action="/sections/{{.ID}}/delete"
-            onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
+            data-confirm="{{t "edit.confirm_delete"}}">
         <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
         <input type="hidden" name="version" value="{{$b.Board.Version}}">
         <input type="hidden" name="board_id" value="{{$b.Board.ID}}">

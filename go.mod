@@ -3,6 +3,7 @@ module dashboard
 go 1.26.0
 
 require (
+	github.com/go-jose/go-jose/v4 v4.1.5
 	github.com/pquerna/otp v1.5.0
 	golang.org/x/crypto v0.57.0
 	gopkg.in/yaml.v3 v3.0.1

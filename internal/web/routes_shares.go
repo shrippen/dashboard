@@ -98,18 +98,18 @@ func (d Deps) handleShareGrant(w http.ResponseWriter, r *http.Request) {
 
 	granteeID, err := strconv.ParseInt(r.FormValue("grantee_id"), 10, 64)
 	if err != nil {
-		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	right, err := parseRight(r.FormValue("right"))
 	if err != nil {
-		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	granteeKind := enums.GranteeKind(r.FormValue("grantee_kind"))
 
 	if err := shares.Grant(d.DB, ctx.Who, kind, resourceID, granteeKind, granteeID, right); err != nil {
-		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/shares/"+string(kind)+"/"+r.PathValue("id"), http.StatusSeeOther)
@@ -137,7 +137,7 @@ func (d Deps) handleShareRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := shares.Revoke(d.DB, ctx.Who, shareID); err != nil {
-		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.sharesPage(w, ctx, kind, resourceID, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/shares/"+string(kind)+"/"+r.PathValue("id"), http.StatusSeeOther)

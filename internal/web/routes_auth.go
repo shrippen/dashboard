@@ -6,6 +6,7 @@ import (
 
 	"dashboard/internal/services/admin"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/oidc"
 )
 
 // RegisterAuthRoutes wires the login/logout/TOTP/setup endpoints.
@@ -64,6 +65,7 @@ func (d Deps) loginExtras(values map[string]any) map[string]any {
 	}
 	open, err := admin.RegistrationOpen(d.DB)
 	values["RegistrationOpen"] = err == nil && open
+	values["OIDCLabel"] = oidc.Button(d.DB, d.Settings)
 	return values
 }
 
@@ -78,8 +80,11 @@ func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		ClientIP(r), Agent(r))
 	if err != nil {
 		status, key := http.StatusUnauthorized, "login.failed"
-		if errors.Is(err, auth.ErrThrottled) {
+		switch {
+		case errors.Is(err, auth.ErrThrottled):
 			status, key = http.StatusTooManyRequests, "login.throttled"
+		case errors.Is(err, auth.ErrOIDCOnly):
+			key = "login.oidc_only"
 		}
 		_ = d.Page(w, ctx, "login", status, d.loginExtras(map[string]any{"Error": key, "Email": r.FormValue("email")}))
 		return
@@ -139,10 +144,16 @@ func (d Deps) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	target := "/login"
 	cookie, err := r.Cookie(CookieName)
 	if err == nil {
-		_, _ = auth.Logout(d.DB, cookie.Value)
+		idToken, _ := auth.Logout(d.DB, cookie.Value)
+		if idToken != "" {
+			if end := oidc.LogoutURL(r.Context(), d.DB, d.Settings, idToken); end != "" {
+				target = end
+			}
+		}
 	}
 	ClearSessionCookie(w, d.Settings.SecureCookies())
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	http.Redirect(w, r, target, http.StatusSeeOther)
 }

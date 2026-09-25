@@ -58,7 +58,7 @@ func (d Deps) handleTeamCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := teams.Create(d.DB, ctx.Who, r.FormValue("name"), ClientIP(r)); err != nil {
-		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/teams", http.StatusSeeOther)
@@ -84,7 +84,7 @@ func (d Deps) handleTeamRename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := teams.Rename(d.DB, ctx.Who, id, r.FormValue("name")); err != nil {
-		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/teams", http.StatusSeeOther)
@@ -107,12 +107,12 @@ func (d Deps) handleTeamMemberSet(w http.ResponseWriter, r *http.Request) {
 	}
 	userID, err := strconv.ParseInt(r.FormValue("user_id"), 10, 64)
 	if err != nil {
-		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	role := enums.TeamRole(r.FormValue("role"))
 	if err := teams.SetMember(d.DB, ctx.Who, id, userID, role, ClientIP(r)); err != nil {
-		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/teams", http.StatusSeeOther)
@@ -135,7 +135,7 @@ func (d Deps) handleTeamMemberRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := teams.RemoveMember(d.DB, ctx.Who, id, userID, ClientIP(r)); err != nil {
-		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/teams", http.StatusSeeOther)
@@ -153,7 +153,7 @@ func (d Deps) handleTeamDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := teams.Delete(d.DB, ctx.Who, id, ClientIP(r)); err != nil {
-		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.teamsPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/teams", http.StatusSeeOther)

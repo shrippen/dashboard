@@ -1,3 +1,10 @@
+/* Local fonts (CSP: font-src 'self'; no third-party requests). */
+@font-face { font-family: "Rajdhani"; font-weight: 500; font-display: swap; src: url(/static/vendor/shrippen/fonts/Rajdhani-500.ttf) format("truetype"); }
+@font-face { font-family: "Rajdhani"; font-weight: 600; font-display: swap; src: url(/static/vendor/shrippen/fonts/Rajdhani-600.ttf) format("truetype"); }
+@font-face { font-family: "Rajdhani"; font-weight: 700; font-display: swap; src: url(/static/vendor/shrippen/fonts/Rajdhani-700.ttf) format("truetype"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url(/static/vendor/shrippen/fonts/JetBrainsMono-400.ttf) format("truetype"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; font-display: swap; src: url(/static/vendor/shrippen/fonts/JetBrainsMono-500.ttf) format("truetype"); }
+
 /*
  * dashboard.css — app components on shrippen tokens only (var(--…)).
  * No hex values here; the active theme's stylesheet (linked before this

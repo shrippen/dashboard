@@ -5,10 +5,10 @@
      set never clash over a shared block name. */}}
 {{define "style"}}
 <link rel="stylesheet" href="{{.ThemeURL}}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/dashboard.css">
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<meta name="csrf" content="{{.Ctx.CSRF}}">
+<script src="/static/dashboard.js" defer></script>
 {{end}}
 
 {{/* Loaded only by pages with hx-get tiles (the board page), not every
@@ -29,6 +29,7 @@
       <a href="/teams">{{t "nav.teams"}}</a>
       {{if .Who.IsAdmin}}
       <a href="/admin/users">{{t "nav.admin_users"}}</a>
+      <a href="/admin/settings">{{t "nav.admin_settings"}}</a>
       <a href="/admin/audit">{{t "nav.audit"}}</a>
       {{end}}
       <a href="/me/notify">{{t "nav.notify"}}</a>

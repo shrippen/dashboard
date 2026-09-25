@@ -7,6 +7,7 @@ import (
 	"dashboard/internal/services/admin"
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/invites"
+	"dashboard/internal/services/oidc"
 )
 
 // RegisterAccountRoutes wires the public account flows: accept an
@@ -45,7 +46,7 @@ func (d Deps) handleInviteForm(w http.ResponseWriter, r *http.Request) {
 		_ = d.Page(w, ctx, "account_message", http.StatusNotFound, map[string]any{"Message": "invite.invalid"})
 		return
 	}
-	_ = d.Page(w, ctx, "invite", http.StatusOK, map[string]any{"Invite": found, "Token": token})
+	_ = d.Page(w, ctx, "invite", http.StatusOK, map[string]any{"Invite": found, "Token": token, "OIDCLabel": oidc.Button(d.DB, d.Settings)})
 }
 
 func (d Deps) handleInviteSubmit(w http.ResponseWriter, r *http.Request) {

@@ -11,7 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.security"}}</h1>
-    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
 
     <div class="card">
       <h2>{{t "security.password"}}</h2>
@@ -57,6 +57,20 @@
         </form>
       {{end}}
     </div>
+
+    {{if .OIDCLabel}}
+    <div class="card">
+      <h2>{{.OIDCLabel}}</h2>
+      {{if .Profile.OIDCLinked}}
+      <p class="pill" data-state="ok">{{t "security.oidc_linked"}}</p>
+      {{else}}
+      <form method="post" action="/me/oidc/link">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit">{{t "security.oidc_link" "provider" .OIDCLabel}}</button>
+      </form>
+      {{end}}
+    </div>
+    {{end}}
 
     <div class="card">
       <h2>{{t "security.sessions"}}</h2>

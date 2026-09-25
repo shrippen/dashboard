@@ -93,7 +93,7 @@
         <button type="submit">{{t "conn.test"}}</button>
       </form>
       <form method="post" action="/connections/{{.Conn.ID}}/delete" style="display:inline"
-            onsubmit="return confirm('{{t "action.delete"}}?')">
+            data-confirm="{{t "action.delete"}}?">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "conn.delete"}}</button>
       </form>

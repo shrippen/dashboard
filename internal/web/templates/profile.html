@@ -11,7 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.profile"}}</h1>
-    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
     <div class="card">
       <form method="post" action="/me/profile">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">

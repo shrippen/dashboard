@@ -56,7 +56,7 @@
             <button type="submit" class="link-btn">{{t "admin.reset"}}</button>
           </form>
           {{if .OIDCSub}}<a class="link-btn" href="/admin/users/{{.ID}}/reapply">{{t "admin.reapply"}}</a>{{end}}
-          <form method="post" action="/admin/users/{{.ID}}/delete" onsubmit="return confirm('{{t "admin.confirm_delete"}}')">
+          <form method="post" action="/admin/users/{{.ID}}/delete" data-confirm="{{t "admin.confirm_delete"}}">
             <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
             <button type="submit" class="link-btn">{{t "action.delete"}}</button>
           </form>

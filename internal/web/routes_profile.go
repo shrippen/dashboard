@@ -70,7 +70,7 @@ func (d Deps) handleProfileSave(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := accounts.UpdateProfile(d.DB, ctx.Who, changes); err != nil {
-		d.profilePage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.profilePage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/me/profile", http.StatusSeeOther)

@@ -19,7 +19,7 @@
       <button type="submit">{{t "action.save"}}</button>
     </form>
     <form method="post" action="/boards/{{.Board.ID}}/delete" style="margin-top:1rem"
-          onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
+          data-confirm="{{t "edit.confirm_delete"}}">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
       <button type="submit">{{t "board.delete"}}</button>
     </form>
@@ -107,7 +107,7 @@
 
     {{if not .IsNew}}
       <form method="post" action="/widgets/{{.Widget.ID}}/delete" style="display:inline"
-            onsubmit="return confirm('{{t "edit.confirm_delete"}}')">
+            data-confirm="{{t "edit.confirm_delete"}}">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "action.delete"}}</button>
       </form>

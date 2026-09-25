@@ -7,6 +7,7 @@ import (
 	"dashboard/internal/enums"
 	"dashboard/internal/services/accounts"
 	"dashboard/internal/services/auth"
+	"dashboard/internal/services/oidc"
 )
 
 // RegisterSecurityRoutes wires /me/security: password, TOTP, sessions, API tokens.
@@ -37,7 +38,9 @@ func (d Deps) securityPage(w http.ResponseWriter, ctx Ctx, status int, extra map
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	values := map[string]any{"Profile": profile, "Sessions": sessions, "Tokens": tokens}
+	values := map[string]any{
+		"Profile": profile, "Sessions": sessions, "Tokens": tokens, "OIDCLabel": oidc.Button(d.DB, d.Settings),
+	}
 	for k, v := range extra {
 		values[k] = v
 	}
@@ -65,7 +68,7 @@ func (d Deps) handlePasswordChange(w http.ResponseWriter, r *http.Request) {
 	}
 	err = accounts.ChangePassword(d.DB, ctx.Who, r.FormValue("current"), r.FormValue("new"), ClientIP(r))
 	if err != nil {
-		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/me/security", http.StatusSeeOther)
@@ -79,7 +82,7 @@ func (d Deps) handleTOTPBeginForm(w http.ResponseWriter, r *http.Request) {
 	}
 	secret, uri, err := auth.TOTPBegin(d.DB, ctx.Who)
 	if err != nil {
-		d.securityPage(w, ctx, http.StatusInternalServerError, map[string]any{"Error": err.Error()})
+		d.securityPage(w, ctx, http.StatusInternalServerError, map[string]any{"Error": errKey(err)})
 		return
 	}
 	d.securityPage(w, ctx, http.StatusOK, map[string]any{"TOTPSecret": secret, "TOTPURI": uri})
@@ -97,7 +100,7 @@ func (d Deps) handleTOTPConfirmForm(w http.ResponseWriter, r *http.Request) {
 	}
 	codes, err := auth.TOTPConfirm(d.DB, ctx.Who, r.FormValue("code"), ClientIP(r))
 	if err != nil {
-		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	d.securityPage(w, ctx, http.StatusOK, map[string]any{"RecoveryCodes": codes})
@@ -114,7 +117,7 @@ func (d Deps) handleTOTPDisableForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := auth.TOTPDisable(d.DB, ctx.Who, r.FormValue("code"), ClientIP(r)); err != nil {
-		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	http.Redirect(w, r, "/me/security", http.StatusSeeOther)
@@ -160,7 +163,7 @@ func (d Deps) handleTokenCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	created, err := auth.CreateToken(d.DB, ctx.Who, r.FormValue("name"), scope, nil, days)
 	if err != nil {
-		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": err.Error()})
+		d.securityPage(w, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
 		return
 	}
 	d.securityPage(w, ctx, http.StatusOK, map[string]any{"NewToken": created.Secret})
