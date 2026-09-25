@@ -437,3 +437,10 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 @media (max-width: 800px) {
   .editor-split, .token-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ── widget type picker ── */
+.type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .8rem; margin-bottom: 1.4rem; }
+.type-card { display: flex; flex-direction: column; gap: .3rem; padding: .9rem 1rem; background: var(--bg-panel); border: 1px solid var(--bg1); border-left: 3px solid var(--bg2); color: var(--fg1); text-decoration: none; }
+.type-card:hover { border-left-color: var(--yellow); background: var(--bg1); }
+.type-card b { font-family: var(--font-heading); color: var(--fg0); }
+.type-card small { color: var(--fg3); }

@@ -463,7 +463,7 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 	setupAdmin(t, srv, client, code)
 	login(t, srv, client)
 
-	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))
+	spaceMatch := regexp.MustCompile(`space=(\d+)`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))
 	if spaceMatch == nil {
 		t.Fatal("no space option found in new-widget form")
 	}
@@ -472,7 +472,7 @@ func TestEditorCreateWidgetPlaceUnplace(t *testing.T) {
 	// Create a "note" widget.
 	csrf := csrfToken(t, srv, client)
 	resp, err := client.PostForm(srv.URL+"/widgets", url.Values{
-		"csrf": {csrf}, "space_id": {spaceID}, "type": {"note"}, "title": {"My Note"}, "config": {`{"text":"hi"}`},
+		"csrf": {csrf}, "space_id": {spaceID}, "type": {"note"}, "title": {"My Note"}, "cfg.text": {"hi"},
 	})
 	if err != nil {
 		t.Fatalf("create widget: %v", err)
@@ -563,7 +563,7 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 	csrf = csrfToken(t, srv, client)
 	resp, err = client.PostForm(srv.URL+"/widgets", url.Values{
 		"csrf": {csrf}, "space_id": {spaceID}, "type": {"kpi"}, "title": {"Hours today"},
-		"connection_id": {connID}, "config": {`{"metric":"hours_today"}`},
+		"connection_id": {connID}, "cfg.metric": {"hours_today"},
 	})
 	if err != nil {
 		t.Fatalf("create widget: %v", err)
@@ -626,7 +626,7 @@ func TestWidgetFragmentRendersRssFeed(t *testing.T) {
 	}))
 	defer feed.Close()
 
-	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))
+	spaceMatch := regexp.MustCompile(`space=(\d+)`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))
 	if spaceMatch == nil {
 		t.Fatal("no space option found in new-widget form")
 	}
@@ -635,7 +635,7 @@ func TestWidgetFragmentRendersRssFeed(t *testing.T) {
 	csrf := csrfToken(t, srv, client)
 	resp, err := client.PostForm(srv.URL+"/widgets", url.Values{
 		"csrf": {csrf}, "space_id": {spaceID}, "type": {"rss"}, "title": {"News"},
-		"config": {`{"url":"` + feed.URL + `"}`},
+		"cfg.url": {feed.URL},
 	})
 	if err != nil {
 		t.Fatalf("create widget: %v", err)

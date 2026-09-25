@@ -48,12 +48,13 @@ func TestLinkTileAndLayout(t *testing.T) {
 		t.Fatalf("uploaded SVG not cleaned: %s", icon)
 	}
 
-	space := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))[1]
-	for _, w := range []struct{ title, config string }{
-		{"Kimai", `{"url":"https://kimai.example","icon":"` + spec + `","hotkey":"k","status":"off"}`},
-		{"Wiki Docs", `{"url":"https://wiki.example","status":"off"}`},
+	space := regexp.MustCompile(`space=(\d+)`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))[1]
+	for _, w := range []struct{ title, url, icon, hotkey string }{
+		{"Kimai", "https://kimai.example", spec, "k"},
+		{"Wiki Docs", "https://wiki.example", "", ""},
 	} {
-		postForm(t, client, srv.URL+"/widgets", url.Values{"csrf": {csrf}, "space_id": {string(space)}, "type": {"link"}, "title": {w.title}, "config": {w.config}})
+		postForm(t, client, srv.URL+"/widgets", url.Values{"csrf": {csrf}, "space_id": {string(space)}, "type": {"link"}, "title": {w.title},
+			"cfg.url": {w.url}, "cfg.icon": {w.icon}, "cfg.hotkey": {w.hotkey}, "cfg.status": {"off"}})
 		boardURL, section, version, widget := placeTarget(t, srv, client, w.title)
 		postForm(t, client, srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+section+"/place", url.Values{"csrf": {csrf}, "widget_id": {widget}, "version": {version}})
 	}
@@ -110,5 +111,71 @@ func TestLinkTileAndLayout(t *testing.T) {
 	manifest := mustGet(t, srv, freshClient(t), "/manifest.webmanifest")
 	if !bytes.Contains(manifest, []byte(`"display":"standalone"`)) {
 		t.Fatalf("manifest: %s", manifest)
+	}
+}
+
+// TestNewWidgetFromSectionIsPlaced: "+ new widget" in edit mode creates the
+// widget from the generated form, places it and returns to the board.
+func TestNewWidgetFromSectionIsPlaced(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	resp := getFollowingRedirect(t, srv, client, "/")
+	resp.Body.Close()
+	boardURL := resp.Request.URL.Path
+	edit := string(mustGet(t, srv, client, boardURL+"?edit"))
+	link := regexp.MustCompile(`/widgets/new\?space=(\d+)&(?:amp;)?section=(\d+)&(?:amp;)?board=(\d+)&(?:amp;)?version=(\d+)`).FindStringSubmatch(edit)
+	if link == nil {
+		t.Fatalf("no new-widget link:\n%s", edit)
+	}
+
+	picker := string(mustGet(t, srv, client, "/widgets/new?space="+link[1]+"&section="+link[2]+"&board="+link[3]+"&version="+link[4]))
+	if !strings.Contains(picker, "type=note") {
+		t.Fatalf("type picker incomplete:\n%s", picker)
+	}
+	form := string(mustGet(t, srv, client, "/widgets/new?type=note&space="+link[1]+"&section="+link[2]+"&board="+link[3]+"&version="+link[4]))
+	if !strings.Contains(form, `name="cfg.text"`) || !strings.Contains(form, `name="section_id"`) {
+		t.Fatalf("generated form incomplete:\n%s", form)
+	}
+
+	values := url.Values{"csrf": {csrf}, "type": {"note"}, "title": {"Memo"}, "cfg.text": {"Hallo Welt"},
+		"space_id": {link[1]}, "section_id": {link[2]}, "board_id": {link[3]}, "version": {link[4]}}
+	preview := postForm(t, client, srv.URL+"/widget-preview", values)
+	if preview.StatusCode != http.StatusOK {
+		t.Fatalf("preview: %d", preview.StatusCode)
+	}
+	resp = postForm(t, client, srv.URL+"/widgets", values)
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != boardURL+"?edit" {
+		t.Fatalf("create: %d %s", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	if !strings.Contains(string(mustGet(t, srv, client, boardURL)), "Memo") {
+		t.Fatal("new widget not placed on the board")
+	}
+}
+
+// TestBoardSettingsKeepTheme: saving board settings with a theme stores it,
+// and a later rename that sends the form again keeps it.
+func TestBoardSettingsKeepTheme(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+	csrf := csrfToken(t, srv, client)
+
+	resp := getFollowingRedirect(t, srv, client, "/")
+	resp.Body.Close()
+	boardURL := resp.Request.URL.Path
+	settings := string(mustGet(t, srv, client, boardURL+"/settings"))
+	theme := regexp.MustCompile(`<option value="(\d+)"[^>]*>shrippen`).FindStringSubmatch(settings)
+	if theme == nil {
+		t.Fatalf("no theme choice in board settings:\n%s", settings)
+	}
+	version := regexp.MustCompile(`name="version" value="(\d+)"`).FindStringSubmatch(settings)[1]
+	postForm(t, client, srv.URL+boardURL+"/settings", url.Values{"csrf": {csrf}, "version": {version}, "name": {"Start"}, "theme_id": {theme[1]}})
+
+	settings = string(mustGet(t, srv, client, boardURL+"/settings"))
+	if !regexp.MustCompile(`<option value="` + theme[1] + `" selected>`).MatchString(settings) {
+		t.Fatalf("theme not stored:\n%s", settings)
 	}
 }

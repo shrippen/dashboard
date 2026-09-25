@@ -7,6 +7,7 @@ import (
 	"dashboard/internal/services/auth"
 	"dashboard/internal/services/shares"
 	"dashboard/internal/services/teams"
+	"dashboard/internal/services/widgetlib"
 )
 
 // knownErrors maps service errors without a catalog-key message to their
@@ -26,6 +27,10 @@ var knownErrors = []struct {
 	{teams.ErrNotFound, "team.not_found"},
 	{teams.ErrDenied, "error.denied"},
 	{shares.ErrRight, "share.right_invalid"},
+	{widgetlib.ErrUnknownType, "widget.unknown_type"},
+	{widgetlib.ErrConnRequired, "widget.connection_required"},
+	{widgetlib.ErrConnMissing, "widget.connection_missing"},
+	{widgetlib.ErrConnWrongService, "widget.connection_type"},
 }
 
 // errKey returns the catalog key for err, for {{t .Error}} in templates.

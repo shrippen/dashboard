@@ -605,7 +605,7 @@ Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
 - [x] `.hint`: Hinweis-Karte mit Stufe, Quelle, aufklappbarem „Warum?“, Aktion — bestehende Struktur, jetzt mit Tokens gestylt
 - [x] `.pill` mit `data-state`: Connector-/Link-Status
 - [x] `.progress` mit `data-tier`: Budget- und Auslastungsbalken
-- [ ] `.editbar`, `.dropzone`: Bearbeitungsmodus im Board-Editor — nur als CSS vorbereitet, Board-Bearbeitung läuft weiterhin über separate Formularseiten statt Inline-Editbar
+- [x] `.editbar`: Bearbeitungsmodus direkt auf dem Board (`?edit`), Kacheln per Drag & Drop (SortableJS); eigenes Layout über `?layout`
 - [x] `.login`: eigene Anmeldeseite (`login.html`, `totp`, `setup`)
 - [ ] Kontrastprüfung dunkel/hell (WCAG AA) für die neuen Komponenten — nicht durchgeführt
 
@@ -639,7 +639,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Suche mit Filter, `Enter`, Hotkeys, Websuche als Rückfall
 - [x] Widgets `rss`, `clock`, `weather` (Open-Meteo)
 - [x] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
-- [ ] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen *(Bibliothek/Verbindungstest/Revisionen ja; Board-Bearbeitung läuft in Go über separate Formularseiten statt Inline-Editbar/Drag & Drop — `.editbar`/`.dropzone` nur als CSS vorbereitet)*
+- [x] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen *(Go: Felder je Typ in `widgets/fields.go`, Vorschau per htmx)*
 - [x] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(Go: `services/porting`, `/import`, `/spaces/{id}/code`, CLI `dashboard import`)*
 - [x] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
 - [x] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten

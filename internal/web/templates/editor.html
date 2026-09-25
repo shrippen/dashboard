@@ -16,8 +16,21 @@
       <input type="hidden" name="version" value="{{.Board.Version}}">
       <label for="name">{{t "field.name"}}</label>
       <input id="name" name="name" value="{{.Board.Name}}" required>
+      <label for="theme_id">{{t "field.theme_forced"}}</label>
+      <select id="theme_id" name="theme_id">
+        <option value="">{{t "theme.none"}}</option>
+        {{range .Themes}}<option value="{{.ID}}"{{if eqID $.Board.ThemeID .ID}} selected{{end}}>{{.Name}}</option>{{end}}
+      </select>
+      <label for="min_role">{{t "field.min_role"}}</label>
+      <select id="min_role" name="min_role">
+        <option value="">{{t "role.everyone"}}</option>
+        {{$role := ""}}{{with .Board.MinTeamRole}}{{$role = print .}}{{end}}
+        {{range .TeamRoles}}<option value="{{.}}"{{if eq (print .) $role}} selected{{end}}>{{t (print "role." .)}}</option>{{end}}
+      </select>
+      <p class="small muted">{{t "field.min_role_hint"}}</p>
       <button type="submit">{{t "action.save"}}</button>
     </form>
+    <p><a class="link-btn" href="/boards/{{.Board.ID}}/export">{{t "action.export"}}</a></p>
     <form method="post" action="/boards/{{.Board.ID}}/delete" style="margin-top:1rem"
           data-confirm="{{t "edit.confirm_delete"}}">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
@@ -58,61 +71,141 @@
 </html>
 {{end}}
 
+{{define "target_fields"}}
+<input type="hidden" name="space_id" value="{{.SpaceID}}">
+{{if .SectionID}}<input type="hidden" name="section_id" value="{{.SectionID}}">{{end}}
+{{if .BoardID}}<input type="hidden" name="board_id" value="{{.BoardID}}">{{end}}
+{{if .Place}}<input type="hidden" name="version" value="{{.Version}}">{{end}}
+{{end}}
+
+{{define "widget_types"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "edit.new_widget"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "edit.new_widget"}}</h1>
+    <p class="muted">{{t "widget.choose_type"}}</p>
+    {{range $cat := .Categories}}
+    <h2>{{t (print "category." $cat)}}</h2>
+    <div class="type-grid">
+      {{range $.Types}}{{if eq .Category $cat}}
+      <a class="type-card" href="/widgets/new?type={{.Key}}&space={{$.Target.SpaceID}}{{if $.Target.Place}}&section={{$.Target.SectionID}}&board={{$.Target.BoardID}}&version={{$.Target.Version}}{{end}}">
+        <b>{{t (print "wtype." .Key ".name")}}</b><small>{{t (print "wtype." .Key ".desc")}}</small>
+      </a>
+      {{end}}{{end}}
+    </div>
+    {{end}}
+  </main>
+</body>
+</html>
+{{end}}
+
 {{define "widget_form"}}
 <!doctype html>
 <html lang="{{.Ctx.Locale}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "nav.library"}} · dashboard</title>
+  <title>{{t (print "wtype." .Kind.Key ".name")}} · dashboard</title>
   {{template "style" .}}
+  {{template "htmx" .}}
+  <script src="/static/editor.js" defer></script>
 </head>
 <body>
   {{template "header" .}}
   <main>
-    <h1>{{if .IsNew}}{{t "edit.new_widget"}}{{else}}{{t "action.edit"}}{{end}}</h1>
-    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <h1>{{t (print "wtype." .Kind.Key ".name")}}</h1>
+    <p class="muted">{{t (print "wtype." .Kind.Key ".desc")}}</p>
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
 
-    <form method="post" action="{{if .IsNew}}/widgets{{else}}/widgets/{{.Widget.ID}}/edit{{end}}">
-      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
-      {{if not .IsNew}}<input type="hidden" name="version" value="{{.Widget.Version}}">{{end}}
-
-      {{if .IsNew}}
-        <label for="space_id">{{t "field.space"}}</label>
-        <select id="space_id" name="space_id" required>
-          {{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
-        </select>
-        <label for="type">{{t "field.type"}}</label>
-        <select id="type" name="type" required>
-          {{range .Types}}<option value="{{.Key}}">{{.Key}}</option>{{end}}
-        </select>
-      {{else}}
-        <p>{{t "field.type"}}: <strong>{{.Widget.Type}}</strong></p>
-      {{end}}
-
-      <label for="title">{{t "field.title"}}</label>
-      <input id="title" name="title" value="{{if .Widget}}{{.Widget.Title}}{{end}}">
-
-      <label for="connection_id">{{t "field.connection"}}</label>
-      <select id="connection_id" name="connection_id">
-        <option value="">–</option>
-        {{range .Connections}}<option value="{{.ID}}"{{if and $.Widget (eqID $.Widget.ConnectionID .ID)}} selected{{end}}>{{.Name}}</option>{{end}}
-      </select>
-
-      <label for="config">Config (JSON)</label>
-      <textarea id="config" name="config">{{if .ConfigJSON}}{{.ConfigJSON}}{{else}}{}{{end}}</textarea>
-
-      <button type="submit">{{t "action.save"}}</button>
-    </form>
-
-    {{if not .IsNew}}
-      <form method="post" action="/widgets/{{.Widget.ID}}/delete" style="display:inline"
-            data-confirm="{{t "edit.confirm_delete"}}">
+    <div class="editor-split">
+      <form method="post" action="{{if .Widget}}/widgets/{{.Widget.ID}}/edit{{else}}/widgets{{end}}" class="card" id="widget-form"
+            hx-post="/widget-preview" hx-trigger="input changed delay:600ms from:#widget-form, load" hx-target="#preview" hx-swap="innerHTML">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
-        <button type="submit">{{t "action.delete"}}</button>
+        <input type="hidden" name="type" value="{{.Kind.Key}}">
+        {{template "target_fields" .Target}}
+        {{if .Widget}}<input type="hidden" name="widget_version" value="{{.Widget.Version}}">{{end}}
+
+        <label for="title">{{t "field.title"}}</label>
+        <input id="title" name="title" value="{{.Title}}">
+
+        {{if .NeedsConn}}
+        <label for="connection_id">{{t "field.connection"}}</label>
+        <select id="connection_id" name="connection_id">
+          <option value="">–</option>
+          {{range .Conns}}<option value="{{.ID}}"{{if eqID $.ConnID .ID}} selected{{end}}>{{.Name}} ({{.Service}})</option>{{end}}
+        </select>
+        {{end}}
+
+        {{range .Fields}}
+          {{if eq (print .Input) "checkbox"}}
+          <label class="check"><input type="checkbox" name="{{.Name}}"{{if .On}} checked{{end}}> {{t (print "field." .Label)}}</label>
+          {{else}}
+          <label for="{{.Name}}">{{t (print "field." .Label)}}</label>
+          {{if eq (print .Input) "select"}}
+            <select id="{{.Name}}" name="{{.Name}}">{{$v := .Text}}{{range .Options}}<option value="{{.}}"{{if eq . $v}} selected{{end}}>{{t (print "opt." .)}}</option>{{end}}</select>
+          {{else if eq (print .Input) "textarea"}}
+            <textarea id="{{.Name}}" name="{{.Name}}" rows="3">{{.Text}}</textarea>
+          {{else if eq (print .Input) "number"}}
+            <input id="{{.Name}}" name="{{.Name}}" type="number" step="any" value="{{.Text}}"{{if .Required}} required{{end}}>
+          {{else if eq (print .Input) "connection"}}
+            <select id="{{.Name}}" name="{{.Name}}">{{$v := .Text}}<option value="">–</option>{{range $.AllConns}}<option value="{{.Key}}"{{if eq .Key $v}} selected{{end}}>{{.Name}}</option>{{end}}</select>
+          {{else}}
+            <input id="{{.Name}}" name="{{.Name}}" value="{{.Text}}"{{if .Required}} required{{end}}>
+          {{end}}
+          {{if or (eq (print .Input) "list") (eq (print .Input) "numbers")}}<p class="small muted">{{t "field.list_hint"}}</p>{{end}}
+          {{if eq .Label "icon"}}<p class="small muted">{{t "field.icon_hint"}}</p>
+            <input class="icon-upload" type="file" accept="image/svg+xml,image/png,image/webp,image/jpeg,image/x-icon" data-target="{{.Name}}" aria-label="{{t "field.icon"}}">{{end}}
+          {{end}}
+        {{end}}
+
+        <label for="min_role">{{t "field.min_role"}}</label>
+        <select id="min_role" name="min_role">
+          <option value="">{{t "role.everyone"}}</option>
+          {{range .TeamRoles}}<option value="{{.}}"{{if eq (print .) $.MinRole}} selected{{end}}>{{t (print "role." .)}}</option>{{end}}
+        </select>
+        <p class="small muted">{{t "field.min_role_hint"}}</p>
+
+        <div class="row-actions">
+          <button type="submit">{{t "action.save"}}</button>
+          <a class="link-btn" href="{{.Target.Back}}">{{t "action.cancel"}}</a>
+        </div>
+      </form>
+
+      <aside class="theme-preview">
+        <h2>{{t "edit.preview"}}</h2>
+        <div class="dsec-body size-medium"><div class="tile-slot w-{{.Kind.Key}}">
+          {{if eq .Kind.Key "link"}}<div id="preview"></div>
+          {{else}}<article class="card"><h3 class="card-title">{{.Title}}</h3><div class="card-body" id="preview"></div></article>{{end}}
+        </div></div>
+      </aside>
+    </div>
+
+    {{if .Widget}}
+      <form method="post" action="/widgets/{{.Widget.ID}}/delete" data-confirm="{{t "edit.confirm_delete"}}">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <button type="submit" class="ghost">{{t "action.delete"}}</button>
       </form>
     {{end}}
   </main>
 </body>
 </html>
 {{end}}
+
+{{/* Preview of an unsaved link tile; other types render their own
+     fragment template into the form's static preview card. */}}
+{{define "widget_preview"}}
+{{$c := .Frag.Config}}
+<a class="launch" href="#preview"><span class="launch-icon"><span class="mono">{{monogram .Frag.Title}}</span></span>
+  <span class="launch-body"><b class="launch-title">{{.Frag.Title}}</b>{{if $c.Description}}<small class="launch-desc">{{$c.Description}}</small>{{end}}
+  <span class="launch-live">{{template "widgets/link" .}}</span></span></a>
+{{end}}
+
+{{define "widget_preview_error"}}<p class="error">{{t .Error}}</p>{{end}}

@@ -519,3 +519,25 @@ func snapshot(q db.Queryer, who *access.Principal, w *model.Widget) error {
 	}
 	return content.PruneRevisions(q, enums.RevisionWidget, w.ID)
 }
+
+// Preview renders an unsaved widget with the same checks as Create
+// (EDIT on the space, USE on the connection), so the editor can show
+// live data before saving.
+func Preview(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64, typeKey, title string,
+	config map[string]any, connID *int64) (*Fragment, error) {
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		space, err := access.SpaceOf(tx, who, spaceID)
+		if err != nil {
+			return err
+		}
+		if err := access.Need(access.SpaceRight(who, space), enums.RightEdit); err != nil {
+			return err
+		}
+		return checkConnection(tx, who, connID, typeKey)
+	})
+	if err != nil {
+		return nil, err
+	}
+	w := &model.Widget{SpaceID: spaceID, Type: typeKey, Title: title, Config: config, ConnectionID: connID}
+	return Load(ctx, d, who, w, svcdata.Cached)
+}

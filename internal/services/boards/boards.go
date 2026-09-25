@@ -78,15 +78,16 @@ type SectionView struct {
 
 // BoardView is a full board as rendered for one viewer.
 type BoardView struct {
-	ID         int64
-	Slug       string
-	Name       string
-	Space      access.SpaceRef
-	Version    int
-	ThemeID    *int64
-	CanEdit    bool
-	HasOverlay bool
-	Sections   []SectionView
+	ID          int64
+	Slug        string
+	Name        string
+	Space       access.SpaceRef
+	Version     int
+	ThemeID     *int64
+	MinTeamRole *enums.TeamRole
+	CanEdit     bool
+	HasOverlay  bool
+	Sections    []SectionView
 }
 
 // BoardRef is a lightweight board reference for listings.
