@@ -652,7 +652,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [ ] E-Mail-Versand (SMTP) mit Vorlagen im Design System; Einladungen, Selbstregistrierung (abschaltbar), Passwort-Reset per E-Mail, Sicherheitsmeldungen *(nur Python; Go hat weder SMTP-Outbound noch Routen für Einladung/Reset — Repo-Primitive `model.Invite`/`model.ResetToken` bestehen, kein Service/Route)*
 - [ ] Single Sign-on mit authentik (Abschnitt 4.7): Kontoverknüpfung, automatisches Anlegen mit Startwerten aus authentik-Gruppen (danach manuell pflegbar), Modus „nur authentik“ mit Notzugang *(nur Python; Go hat keine OIDC-Login-Route)*
 - [x] TOTP mit Wiederherstellungscodes, für Admins erzwingbar; Sitzungsliste *(Go: `/me/security`)*
-- [ ] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: Service `internal/services/teams` fertig, keine Route/UI)*
+- [x] Teams mit Rollen Owner/Editor/Viewer, Team-Bereiche *(Go: `/teams`)*
 - [ ] Freigaben `view`/`use`/`edit`/`manage` an Widgets, Boards und Verbindungen; Dialog „Wer hat Zugriff?“ *(Go: Service `internal/services/shares` fertig, kein Dialog)*
 - [ ] Team-Widgets auf persönlichen Boards, persönliche Overlays an Team-Boards, Vorlagen *(Vorlagen über YAML-Export/-Import, keine Vorlagengalerie; in Go zusätzlich kein Import/Export)*
 - [x] Verbindungen mit persönlichen Zugangsdaten

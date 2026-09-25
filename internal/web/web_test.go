@@ -67,6 +67,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *http.Client, string) {
 	deps.RegisterHintRoutes(mux)
 	deps.RegisterProfileRoutes(mux)
 	deps.RegisterSecurityRoutes(mux)
+	deps.RegisterTeamRoutes(mux)
 	deps.RegisterHealthRoute(mux)
 
 	srv := httptest.NewServer(mux)
@@ -806,6 +807,76 @@ func TestHintsPageListsAndAcks(t *testing.T) {
 	body := mustGet(t, srv, client, "/hints")
 	if !strings.Contains(string(body), "hints") {
 		t.Fatalf("expected the hints page to render, got:\n%s", body)
+	}
+}
+
+// TestTeamCreateMemberRenameDelete drives /teams end to end: create a
+// team, set the admin as a member, rename it, remove the member, delete it.
+func TestTeamCreateMemberRenameDelete(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	csrf := csrfToken(t, srv, client)
+	resp, err := client.PostForm(srv.URL+"/teams", url.Values{"csrf": {csrf}, "name": {"Ops"}})
+	if err != nil {
+		t.Fatalf("create team: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303 after create, got %d", resp.StatusCode)
+	}
+
+	body := mustGet(t, srv, client, "/teams")
+	if !strings.Contains(string(body), "Ops") {
+		t.Fatalf("expected team listed:\n%s", body)
+	}
+	teamMatch := regexp.MustCompile(`/teams/(\d+)/members`).FindSubmatch(body)
+	userMatch := regexp.MustCompile(`<option value="(\d+)">Admin`).FindSubmatch(body)
+	if teamMatch == nil || userMatch == nil {
+		t.Fatalf("expected team and user ids on the page:\n%s", body)
+	}
+	teamIDStr, userIDStr := string(teamMatch[1]), string(userMatch[1])
+
+	resp, err = client.PostForm(srv.URL+"/teams/"+teamIDStr+"/members", url.Values{
+		"csrf": {csrf}, "user_id": {userIDStr}, "role": {"editor"},
+	})
+	if err != nil {
+		t.Fatalf("set member: %v", err)
+	}
+	resp.Body.Close()
+
+	body = mustGet(t, srv, client, "/teams")
+	if !strings.Contains(string(body), "Admin") {
+		t.Fatalf("expected member listed:\n%s", body)
+	}
+
+	resp, err = client.PostForm(srv.URL+"/teams/"+teamIDStr+"/rename", url.Values{"csrf": {csrf}, "name": {"Operations"}})
+	if err != nil {
+		t.Fatalf("rename team: %v", err)
+	}
+	resp.Body.Close()
+
+	body = mustGet(t, srv, client, "/teams")
+	if !strings.Contains(string(body), "Operations") {
+		t.Fatalf("expected renamed team:\n%s", body)
+	}
+
+	resp, err = client.PostForm(srv.URL+"/teams/"+teamIDStr+"/members/"+userIDStr+"/remove", url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("remove member: %v", err)
+	}
+	resp.Body.Close()
+
+	resp, err = client.PostForm(srv.URL+"/teams/"+teamIDStr+"/delete", url.Values{"csrf": {csrf}})
+	if err != nil {
+		t.Fatalf("delete team: %v", err)
+	}
+	resp.Body.Close()
+
+	body = mustGet(t, srv, client, "/teams")
+	if strings.Contains(string(body), "Operations") {
+		t.Fatalf("expected team gone after delete:\n%s", body)
 	}
 }
 
