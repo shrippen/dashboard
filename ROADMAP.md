@@ -712,7 +712,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 ```yaml
 services:
   dashboard:
-    image: ghcr.io/shrippen/dashboard:latest
+    image: git.arianw.de/shrippen/dashboard:latest
     restart: unless-stopped
     volumes:
       - ./data:/data
