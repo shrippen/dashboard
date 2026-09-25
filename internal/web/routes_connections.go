@@ -93,13 +93,14 @@ func (d Deps) handleConnectionCreate(w http.ResponseWriter, r *http.Request) {
 	if mode == "" {
 		mode = enums.CredentialShared
 	}
+	service := enums.ServiceType(r.FormValue("service"))
 
-	id, err := connections.Create(d.DB, ctx.Who, spaceID, enums.ServiceType(r.FormValue("service")),
-		r.FormValue("name"), r.FormValue("url"), mode, r.FormValue("secret"), tls, nil)
+	id, err := connections.Create(d.DB, ctx.Who, spaceID, service,
+		r.FormValue("name"), r.FormValue("url"), mode, formSecret(r, service), tls, nil)
 	if err != nil {
 		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
 			"Spaces": access.EditableSpaces(ctx.Who), "Services": serviceOptions, "IsNew": true, "Error": err.Error(),
-			"Service": enums.ServiceType(r.FormValue("service")),
+			"Service": service,
 		})
 		return
 	}
@@ -153,6 +154,11 @@ func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	conn, err := connections.Get(d.DB, ctx.Who, id)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
 	tls := connections.TLSVerify
 	if r.FormValue("tls") == "skip" {
 		tls = connections.TLSSkip
@@ -162,12 +168,11 @@ func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {
 		mode = enums.CredentialShared
 	}
 	var secret *string
-	if s := r.FormValue("secret"); s != "" {
+	if s := formSecret(r, conn.Service); s != "" {
 		secret = &s
 	}
 
 	if err := connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil); err != nil {
-		conn, _ := connections.Get(d.DB, ctx.Who, id)
 		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
 			"Conn": conn, "Services": serviceOptions, "IsNew": false,
 			"OptionsYAML": porting.DumpMap(conn.Options), "Error": errKey(err),

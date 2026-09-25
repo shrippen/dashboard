@@ -51,3 +51,35 @@ func TestConnectionWizard(t *testing.T) {
 		t.Fatalf("bad date accepted: %v", resp.Header)
 	}
 }
+
+// TestConnectionTwoPartCredential: a service whose secret is "a:b" (e.g.
+// FreshRSS) gets two labeled fields instead of one the user must format
+// themselves; they're joined server-side into the stored secret.
+func TestConnectionTwoPartCredential(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	form := string(mustGet(t, srv, client, "/connections/new?service=freshrss"))
+	if !strings.Contains(form, `name="secret_a"`) || !strings.Contains(form, `name="secret_b"`) || strings.Contains(form, `name="secret"`) {
+		t.Fatalf("expected two-part credential fields, not one:\n%s", form)
+	}
+	space := regexp.MustCompile(`<option value="(\d+)">`).FindStringSubmatch(form)[1]
+	csrf := csrfToken(t, srv, client)
+
+	resp := postForm(t, client, srv.URL+"/connections", url.Values{"csrf": {csrf}, "space_id": {space}, "service": {"freshrss"},
+		"name": {"F"}, "url": {"http://127.0.0.1:1"}, "mode": {"shared"}, "secret_a": {"bob"}, "secret_b": {"pw123"}, "tls": {"verify"}})
+	welcome := resp.Header.Get("Location")
+	base := strings.TrimSuffix(welcome, "/edit?welcome")
+
+	page := string(mustGet(t, srv, client, base+"/edit"))
+	if strings.Count(page, "(unverändert lassen)") != 2 {
+		t.Fatalf("expected both credential fields to show the stored placeholder:\n%s", page)
+	}
+
+	// A key:secret credential (e.g. Komodo) gets its own pair of fields too.
+	form = string(mustGet(t, srv, client, "/connections/new?service=komodo"))
+	if !strings.Contains(form, `name="secret_a"`) || !strings.Contains(form, `name="secret_b"`) || strings.Contains(form, `name="secret"`) {
+		t.Fatalf("expected key:secret fields for komodo:\n%s", form)
+	}
+}

@@ -627,9 +627,13 @@ conn:
   hygiene: 'Token und Abrufe'
   budget: 'Abrufe je Tag'
   budget_hint: '0 = unbegrenzt. Danach zeigt das Dashboard den letzten Stand bis morgen.'
-  failed: 'fehlgeschlagen'
+  failed: 'Fehlerquote'
   never_ok: 'noch nie erfolgreich'
   no_fetches: 'noch keine Abrufe'
+  cred_user: 'Benutzername'
+  cred_pass: 'App- oder API-Passwort'
+  cred_key: 'API-Key'
+  cred_secret: 'API-Secret'
   pick: 'Welchen Dienst willst du verbinden? Danach: Adresse und Token, Test, passende Widgets.'
   about_kimai: 'Zeiterfassung: Stunden, Projekte, Budgets'
   about_invoiceninja: 'Rechnungen, Zahlungen, Ausgaben'
@@ -672,17 +676,17 @@ conn:
   options_hint_domains: 'URL = eine Adresse der Domain. Optionen: domains: [example.org, example.de]. Kein Token. .de nennt kein Ablaufdatum.'
   options_hint_blacklist: 'URL = Mailserver (dessen IPv4-Adressen werden geprüft). Optionen: ips: [1.2.3.4], zones: [zen.spamhaus.org]. Kein Token.'
   options_hint_truenas: Keine Optionen. Token = API-Schlüssel (Benutzer → API-Schlüssel). Nutzt die WebSocket-API, ältere Versionen REST.
-  options_hint_komodo: Keine Optionen. Token = key:secret eines Komodo-API-Schlüssels (nur lesend genügt).
+  options_hint_komodo: Keine Optionen. API-Key und -Secret aus Komodo (nur lesend genügt).
   options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1). Optionen: org: <Organisations-ID>. Token = Integration-API-Schlüssel.'
   options_hint_authentik: Keine Optionen. Token = API-Token eines Kontos mit Leserechten auf Ereignisse und Benutzer.
-  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, Token benutzer:app-passwort. Optionen: days: 60, keywords: [abrechnung], ignore_senders: [meinefirma.de] – nur lesend; Anhänge werden nur geladen, wenn du eine Rechnung an Paperless übergibst.'
+  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX. Benutzername und App-Passwort deines Postfachs (nicht das normale Login-Passwort). Optionen: days: 60, keywords: [abrechnung], ignore_senders: [meinefirma.de] – nur lesend; Anhänge werden nur geladen, wenn du eine Rechnung an Paperless übergibst.'
   options_hint_pgbackweb: Keine Optionen, kein Token. PG Back Web meldet sich per Webhook, siehe unten.
   hook: Webhook
   hook_hint: 'In PG Back Web je Ereignis (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) und Backup einen Webhook anlegen: Methode POST, diese URL, Body wie unten mit Ereignis und Backup-Name. Die URL ist geheim.'
   options_hint_linkwarden: 'collections: [Homelab, Werkzeuge] – Sammlungen, die mit den Link-Kacheln dieses Bereichs abgeglichen werden (leer = alle). Token = Zugriffstoken (Einstellungen → Zugriffstoken).'
   options_hint_sure: Keine Optionen nötig. Token = API-Schlüssel mit Leserecht (Einstellungen → API-Schlüssel).
   options_hint_homeassistant: Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.
-  options_hint_freshrss: 'Keine Optionen nötig. Token = benutzer:api-passwort (FreshRSS → Profil → API-Passwort; API-Zugriff muss erlaubt sein).'
+  options_hint_freshrss: 'Keine Optionen nötig. Benutzername und API-Passwort aus FreshRSS → Profil → API-Passwort; dort muss API-Zugriff erlaubt sein.'
   options_hint_gitea: Keine Optionen nötig. Token = Zugriffstoken mit Leserechten (read:user, read:issue, read:repository, read:notification).
   options_hint_borgbackup: Keine Optionen nötig. Token = API-Token bbs_tok_… (Einstellungen → API).
   options_hint_scrutiny: Keine Optionen, kein Token nötig.

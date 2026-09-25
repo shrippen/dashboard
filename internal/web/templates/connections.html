@@ -78,9 +78,24 @@
       </select>
       <p class="small muted">{{t "conn.mode_hint"}} {{t "conn.shared_warning"}}</p>
 
-      <label for="secret">{{t "field.token"}}</label>
-      <input id="secret" name="secret" type="password" autocomplete="off" placeholder="{{if .Conn}}{{if .Conn.HasSecret}}{{t "conn.secret_keep"}}{{end}}{{end}}">
+      {{$keep := ""}}{{if .Conn}}{{if .Conn.HasSecret}}{{$keep = t "conn.secret_keep"}}{{end}}{{end}}
+      {{$shape := ""}}{{if .IsNew}}{{$shape = credShape .Service}}{{else}}{{$shape = credShape .Conn.Service}}{{end}}
+      {{if eq $shape "userpass"}}
+        <label for="secret_a">{{t "conn.cred_user"}}</label>
+        <input id="secret_a" name="secret_a" autocomplete="off" placeholder="{{$keep}}">
+        <label for="secret_b">{{t "conn.cred_pass"}}</label>
+        <input id="secret_b" name="secret_b" type="password" autocomplete="off" placeholder="{{$keep}}">
+      {{else if eq $shape "keysecret"}}
+        <label for="secret_a">{{t "conn.cred_key"}}</label>
+        <input id="secret_a" name="secret_a" autocomplete="off" placeholder="{{$keep}}">
+        <label for="secret_b">{{t "conn.cred_secret"}}</label>
+        <input id="secret_b" name="secret_b" type="password" autocomplete="off" placeholder="{{$keep}}">
+      {{else}}
+        <label for="secret">{{t "field.token"}}</label>
+        <input id="secret" name="secret" type="password" autocomplete="off" placeholder="{{$keep}}">
+      {{end}}
       <p class="small muted">{{t "conn.token_hint"}}</p>
+      {{if not .IsNew}}<p class="small muted">{{t (print "conn.options_hint_" .Conn.Service)}}</p>{{end}}
 
       <label for="tls">TLS</label>
       <select id="tls" name="tls">

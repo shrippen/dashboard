@@ -48,6 +48,7 @@ func mustParse() *template.Template {
 		"monogram":    monogram,
 		"deref":       func(p *enums.TeamRole) enums.TeamRole { return *p },
 		"dataURI":     dataURI,
+		"credShape":   func(s enums.ServiceType) string { return string(credShapeOf(s)) },
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }

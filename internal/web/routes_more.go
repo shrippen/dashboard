@@ -103,7 +103,11 @@ func (d Deps) credentialAction(w http.ResponseWriter, r *http.Request, run func(
 
 func (d Deps) handleCredentialSave(w http.ResponseWriter, r *http.Request) {
 	d.credentialAction(w, r, func(ctx Ctx, id int64) error {
-		return connections.SetMine(d.DB, ctx.Who, id, r.FormValue("secret"))
+		conn, err := connections.Get(d.DB, ctx.Who, id)
+		if err != nil {
+			return err
+		}
+		return connections.SetMine(d.DB, ctx.Who, id, formSecret(r, conn.Service))
 	})
 }
 

@@ -627,9 +627,13 @@ conn:
   hygiene: 'Token and fetches'
   budget: 'Fetches per day'
   budget_hint: '0 = unlimited. Beyond it the dashboard shows the last state until tomorrow.'
-  failed: 'failed'
+  failed: 'failure rate'
   never_ok: 'never succeeded'
   no_fetches: 'no fetches yet'
+  cred_user: 'Username'
+  cred_pass: 'App or API password'
+  cred_key: 'API key'
+  cred_secret: 'API secret'
   pick: 'Which service do you want to connect? Then: address and token, test, matching widgets.'
   about_kimai: 'Time tracking: hours, projects, budgets'
   about_invoiceninja: 'Invoices, payments, expenses'
@@ -672,17 +676,17 @@ conn:
   options_hint_domains: 'URL = any address of the domain. Options: domains: [example.org, example.de]. No token. .de publishes no expiry.'
   options_hint_blacklist: 'URL = mail server (its IPv4 addresses are checked). Options: ips: [1.2.3.4], zones: [zen.spamhaus.org]. No token.'
   options_hint_truenas: No options. Token = API key (user → API keys). Uses the WebSocket API, older versions REST.
-  options_hint_komodo: No options. Token = key:secret of a Komodo API key (read-only suffices).
+  options_hint_komodo: No options. API key and secret from Komodo (read-only suffices).
   options_hint_pangolin: 'Integration API URL including /v1 (e.g. https://api.pangolin.example.org/v1). Options: org: <organisation id>. Token = integration API key.'
   options_hint_authentik: No options. Token = API token of an account allowed to read events and users.
-  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX, token user:app-password. Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only; attachments are downloaded only when you hand an invoice to Paperless.'
+  options_hint_mail: 'URL imaps://mail.example.org:993/INBOX. Username and app password of your mailbox (not your regular login password). Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only; attachments are downloaded only when you hand an invoice to Paperless.'
   options_hint_pgbackweb: No options, no token. PG Back Web reports by webhook, see below.
   hook: Webhook
   hook_hint: 'In PG Back Web add one webhook per event (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) and backup: method POST, this URL, body as below with event and backup name. Keep the URL secret.'
   options_hint_linkwarden: 'collections: [Homelab, Tools] – collections compared with this space''s link tiles (empty = all). Token = access token (settings → access tokens).'
   options_hint_sure: No options needed. Token = API key with read scope (settings → API keys).
   options_hint_homeassistant: No options needed. Token = long-lived access token (profile → security). Only users with the “use” right on this connection may switch.
-  options_hint_freshrss: 'No options needed. Token = user:api-password (FreshRSS → profile → API password; API access must be enabled).'
+  options_hint_freshrss: 'No options needed. Username and API password from FreshRSS → profile → API password; API access must be enabled there.'
   options_hint_gitea: No options needed. Token = access token with read scopes (read:user, read:issue, read:repository, read:notification).
   options_hint_borgbackup: No options needed. Token = API token bbs_tok_… (settings → API).
   options_hint_scrutiny: No options, no token needed.

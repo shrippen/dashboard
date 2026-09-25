@@ -57,9 +57,19 @@
         <td class="row-actions">
           <form method="post" action="/me/credentials/{{.ID}}" class="inline-form">
             <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-            <input name="secret" type="password" autocomplete="off" required placeholder="{{t "field.token"}}" aria-label="{{t "field.token"}}">
+            {{$shape := credShape .Service}}
+            {{if eq $shape "userpass"}}
+              <input name="secret_a" autocomplete="off" required placeholder="{{t "conn.cred_user"}}" aria-label="{{t "conn.cred_user"}}">
+              <input name="secret_b" type="password" autocomplete="off" required placeholder="{{t "conn.cred_pass"}}" aria-label="{{t "conn.cred_pass"}}">
+            {{else if eq $shape "keysecret"}}
+              <input name="secret_a" autocomplete="off" required placeholder="{{t "conn.cred_key"}}" aria-label="{{t "conn.cred_key"}}">
+              <input name="secret_b" type="password" autocomplete="off" required placeholder="{{t "conn.cred_secret"}}" aria-label="{{t "conn.cred_secret"}}">
+            {{else}}
+              <input name="secret" type="password" autocomplete="off" required placeholder="{{t "field.token"}}" aria-label="{{t "field.token"}}">
+            {{end}}
             <button type="submit" class="ghost">{{t "action.save"}}</button>
           </form>
+          <p class="small muted">{{t (print "conn.options_hint_" .Service)}}</p>
           {{if .HasMine}}
           <form method="post" action="/me/credentials/{{.ID}}/delete" class="inline-form">
             <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
