@@ -402,6 +402,22 @@
     });
   }
 
+  // ── Header menus (<details>): one open at a time, closed by outside click or Esc ──
+  function setupMenus() {
+    d.addEventListener("click", function (e) {
+      d.querySelectorAll("details.menu[open]").forEach(function (m) {
+        if (!m.contains(e.target)) {
+          m.open = false;
+        }
+      });
+    });
+    d.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        d.querySelectorAll("details.menu[open]").forEach(function (m) { m.open = false; });
+      }
+    });
+  }
+
   // ── Wall display: fullscreen on first tap, rotate boards, dim at night ──
   var KIOSK_DIM_CHECK_MS = 60000;
 
@@ -456,6 +472,7 @@
 
   d.addEventListener("DOMContentLoaded", function () {
     setupAutosubmit();
+    setupMenus();
     setupKiosk();
     setupOffline();
     setupSearch();

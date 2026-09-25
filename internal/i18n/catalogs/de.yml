@@ -1,5 +1,7 @@
 saved: Gespeichert.
 nav:
+  main: Hauptnavigation
+  setup: Einrichten
   timeline: 'Zeitleiste'
   offline: Offline – letzter bekannter Stand.
   billing: Abrechnung
@@ -2099,6 +2101,9 @@ span:
   '1': Ein Viertel
   '2': Halb
   '3': Drei Viertel
+  '5': Ein Drittel
+  '6': Zwei Drittel
+  '7': Fließende Spalte (Linkgruppen)
 holidays:
   today: heute
   in: 'in {days} Tagen'

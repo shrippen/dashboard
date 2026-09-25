@@ -25,42 +25,57 @@
 <script src="/static/vendor/htmx/htmx.min.js" defer></script>
 {{end}}
 
+{{/* App header: boards and the evaluation pages up front, setup and the
+     account behind two menus (native <details>, no script needed). */}}
 {{define "header"}}
 <header class="app-nav">
   <a class="app-brand" href="/"><span class="mark"></span>dashboard</a>
   {{if .Who}}
-    <nav class="app-links">
-      <a href="/">{{t "nav.home"}}</a>
-      <a href="/widgets">{{t "nav.library"}}</a>
-      <a href="/connections">{{t "nav.connections"}}</a>
-      <a href="/hints">{{t "nav.hints"}}</a>
+    <nav class="app-links" aria-label="{{t "nav.main"}}">
+      {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.CurBoard}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
+      <a href="/hints">{{t "nav.hints"}}{{if .HintOpen}}<span class="nav-count" data-level="{{.HintLevel}}">{{.HintOpen}}</span>{{end}}</a>
       <a href="/billing">{{t "nav.billing"}}</a>
       <a href="/timeline">{{t "nav.timeline"}}</a>
-      <a href="/teams">{{t "nav.teams"}}</a>
-      <a href="/themes">{{t "nav.themes"}}</a>
-      <a href="/import">{{t "nav.import"}}</a>
-      <a href="/spaces/settings">{{t "nav.space_settings"}}</a>
-      {{if .Who.IsAdmin}}
-      <a href="/admin/users">{{t "nav.admin_users"}}</a>
-      <a href="/admin/settings">{{t "nav.admin_settings"}}</a>
-      <a href="/admin/audit">{{t "nav.audit"}}</a>
-      {{end}}
-      <a href="/me/notify">{{t "nav.notify"}}</a>
     </nav>
     <div class="app-side">
-      <a href="/me/profile" class="name">{{.Who.Name}}</a>
-      <a href="/me/security">{{t "nav.security"}}</a>
-      <a href="/me/credentials">{{t "nav.credentials"}}</a>
-      <form method="post" action="/me/locale" class="inline-form">
-        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
-        <input type="hidden" name="locale" value="{{if eq (print .Ctx.Locale) "de"}}en{{else}}de{{end}}">
-        <button type="submit" class="link-btn" aria-label="{{t "field.locale"}}">{{if eq (print .Ctx.Locale) "de"}}EN{{else}}DE{{end}}</button>
-      </form>
-      <form method="post" action="/logout">
-        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
-        <button type="submit">{{t "nav.logout"}}</button>
-      </form>
-      <button type="button" class="link-btn" data-open="palette" aria-keyshortcuts="Control+K">{{t "palette.open"}} <kbd>Ctrl K</kbd></button>
+      <button type="button" class="nav-search" data-open="palette" aria-keyshortcuts="Control+K">{{t "palette.open"}} <kbd>Ctrl K</kbd></button>
+      <details class="menu">
+        <summary>{{t "nav.setup"}}</summary>
+        <div class="menu-list">
+          <a href="/boards/new">+ {{t "board.new"}}</a>
+          <a href="/widgets">{{t "nav.library"}}</a>
+          <a href="/connections">{{t "nav.connections"}}</a>
+          <a href="/spaces/settings">{{t "nav.space_settings"}}</a>
+          <a href="/teams">{{t "nav.teams"}}</a>
+          <a href="/themes">{{t "nav.themes"}}</a>
+          <a href="/import">{{t "nav.import"}}</a>
+          {{if .Who.IsAdmin}}
+          <hr>
+          <a href="/admin/users">{{t "nav.admin_users"}}</a>
+          <a href="/admin/settings">{{t "nav.admin_settings"}}</a>
+          <a href="/admin/audit">{{t "nav.audit"}}</a>
+          {{end}}
+        </div>
+      </details>
+      <details class="menu">
+        <summary class="name">{{.Who.Name}}</summary>
+        <div class="menu-list">
+          <a href="/me/profile">{{t "nav.profile"}}</a>
+          <a href="/me/security">{{t "nav.security"}}</a>
+          <a href="/me/credentials">{{t "nav.credentials"}}</a>
+          <a href="/me/notify">{{t "nav.notify"}}</a>
+          <hr>
+          <form method="post" action="/me/locale">
+            <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+            <input type="hidden" name="locale" value="{{if eq (print .Ctx.Locale) "de"}}en{{else}}de{{end}}">
+            <button type="submit" aria-label="{{t "field.locale"}}">{{if eq (print .Ctx.Locale) "de"}}English{{else}}Deutsch{{end}}</button>
+          </form>
+          <form method="post" action="/logout">
+            <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+            <button type="submit">{{t "nav.logout"}}</button>
+          </form>
+        </div>
+      </details>
     </div>
   {{end}}
 </header>

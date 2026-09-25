@@ -1149,10 +1149,13 @@ func EnsureEditable(d *sql.DB, who *access.Principal, boardID int64) error {
 	})
 }
 
-// Section layout limits: the main column is four quarters wide.
+// Section layout: the main column is twelve twelfths wide. Span 1–3 are
+// quarters, 4 the full width, 5–6 thirds; SpanFlow sections sit in
+// newspaper columns with their flowing neighbours (link groups).
 const (
-	MaxSpan = 4
-	MaxRows = 4
+	SpanFlow = 7
+	MaxSpan  = SpanFlow
+	MaxRows  = 4
 )
 
 // clampLayout keeps span/rows in 0..max; 0 means the default.

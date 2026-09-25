@@ -1,5 +1,7 @@
 saved: Saved.
 nav:
+  main: Main navigation
+  setup: Setup
   timeline: 'Timeline'
   offline: Offline – last known state.
   billing: Billing
@@ -2098,6 +2100,9 @@ span:
   '1': One quarter
   '2': Half
   '3': Three quarters
+  '5': One third
+  '6': Two thirds
+  '7': Flowing column (link groups)
 holidays:
   today: today
   in: 'in {days} days'

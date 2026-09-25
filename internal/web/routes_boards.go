@@ -106,13 +106,13 @@ func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embed
 	}
 
 	_ = d.Page(w, ctx, "board", http.StatusOK, map[string]any{
-		"Board": view, "NavBoards": navBoards, "ThemeURL": themeURL,
+		"Board": view, "NavBoards": navBoards, "CurBoard": view.ID, "ThemeURL": themeURL,
 		"Embed": embed, "EmbedToken": embedToken, "SearchEngine": searchEngine,
 		"Edit": mode.edit, "LayerEdit": mode.layer && !embed, "Compact": mode.compact, "UndoHint": r.URL.Query().Has("undo"),
 		"Sizes": []enums.TileSize{enums.TileSmall, enums.TileMedium, enums.TileLarge},
 		"Sorts": []enums.SortOrder{enums.SortManual, enums.SortAlphabetical},
 		"Areas": []string{"main", "side"},
-		"Spans": []int{0, 1, 2, 3}, "RowSpans": []int{1, 2, 3, 4}, "Colors": widgets.TileColors,
+		"Spans": []int{0, 1, 2, 3, 5, 6, boards.SpanFlow}, "RowSpans": []int{1, 2, 3, 4}, "Colors": widgets.TileColors,
 		"Mobiles": []enums.MobileMode{enums.MobileNormal, enums.MobileFirst, enums.MobileHide},
 		"Kiosk":   kioskOf(r, navBoards, view.ID),
 	})

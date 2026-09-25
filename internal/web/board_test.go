@@ -83,7 +83,7 @@ func TestLinkTileAndLayout(t *testing.T) {
 	if err != nil || resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("fold: %v %d", err, resp.StatusCode)
 	}
-	if !strings.Contains(string(mustGet(t, srv, client, boardURL)), `class="dsec is-collapsed"`) {
+	if !strings.Contains(string(mustGet(t, srv, client, boardURL)), `class="dsec is-collapsed`) {
 		t.Fatal("fold not stored in the overlay")
 	}
 

@@ -22,11 +22,6 @@
   {{if not (or .Embed .Kiosk.On)}}{{template "header" .}}{{end}}
   <main class="board-page">
   {{if not .Embed}}
-  <nav class="board-nav" aria-label="Boards">
-    {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.Board.ID}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
-    <a href="/boards/new">+ {{t "board.new"}}</a>
-  </nav>
-
   <div class="board-head">
     <h1 class="board-title">{{with .Board.Page.Title}}{{.}}{{else}}{{.Board.Name}}{{end}}</h1>
     <label class="search">
@@ -101,7 +96,7 @@
   {{with .Board.Frequent}}{{if not $.Edit}}
   <nav class="frequent" aria-label="{{t "board.frequent"}}">
     <span class="frequent-label">{{t "board.frequent"}}</span>
-    {{range .}}<a href="{{.Config.URL}}"{{if eq (print .Config.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}} data-click="{{.PlacementID}}">{{if .IconEmoji}}<span aria-hidden="true">{{.IconEmoji}}</span>{{else if .IconURL}}<img src="{{.IconURL}}" alt=""{{if .IconGlyph}} class="is-glyph"{{end}}>{{end}}{{.Title}}</a>{{end}}
+    {{range .}}<a href="{{.Config.URL}}"{{if eq (print .Config.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}} data-click="{{.PlacementID}}">{{if .IconEmoji}}<span aria-hidden="true">{{.IconEmoji}}</span>{{else if .IconURL}}<img src="{{.IconURL}}" alt=""{{if .IconGlyph}} class="is-glyph"{{end}}>{{else}}<span class="mono" aria-hidden="true">{{monogram .Title}}</span>{{end}}{{.Title}}</a>{{end}}
   </nav>
   {{end}}{{end}}
 
@@ -111,7 +106,10 @@
        data-board="{{.Board.ID}}" data-version="{{.Board.Version}}"
        data-mode="{{if .Edit}}board{{else if .LayerEdit}}overlay{{end}}">
     <div class="board-col board-main">
-      {{range .Board.Sections}}{{if ne .Area "side"}}{{template "section" dict "S" . "B" $}}{{end}}{{end}}
+      {{range mainRuns .Board.Sections}}
+        {{if .Flow}}<div class="dsec-flow">{{range .Sections}}{{template "section" dict "S" . "B" $}}{{end}}</div>
+        {{else}}{{range .Sections}}{{template "section" dict "S" . "B" $}}{{end}}{{end}}
+      {{end}}
     </div>
     {{if $hasSide}}
     <div class="board-col board-side">
@@ -135,7 +133,7 @@
      since {{template}} takes a single argument. */}}
 {{define "section"}}
 {{$b := .B}}{{with .S}}
-<section class="dsec{{if .Collapsed}} is-collapsed{{end}}" data-section="{{.ID}}"{{with .Span}} data-span="{{.}}"{{end}}{{with .Rows}} data-rows="{{.}}"{{end}}{{with .Color}} data-color="{{.}}"{{end}}{{with .Mobile}} data-mobile="{{.}}"{{end}}>
+<section class="dsec{{if .Collapsed}} is-collapsed{{end}}{{if and (not .Title) (not $b.Edit) (not $b.LayerEdit)}} is-bare{{end}}" data-section="{{.ID}}"{{with .Span}} data-span="{{.}}"{{end}}{{with .Rows}} data-rows="{{.}}"{{end}}{{with .Color}} data-color="{{.}}"{{end}}{{with .Mobile}} data-mobile="{{.}}"{{end}}>
   <header class="dsec-head">
     <button class="fold-btn" type="button" aria-expanded="{{if .Collapsed}}false{{else}}true{{end}}"
             data-fold="/boards/{{$b.Board.ID}}/fold/{{.ID}}">

@@ -48,6 +48,7 @@ func mustParse() *template.Template {
 		"monogram":    monogram,
 		"deref":       func(p *enums.TeamRole) enums.TeamRole { return *p },
 		"dataURI":     dataURI,
+		"mainRuns":    mainRuns,
 		"credShape":   func(s enums.ServiceType) string { return string(credShapeOf(s)) },
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
@@ -157,6 +158,9 @@ func (d Deps) Page(w http.ResponseWriter, ctx Ctx, name string, status int, valu
 	data := map[string]any{"Ctx": ctx, "Who": ctx.Who, "CSRFField": CSRFField, "CSRFHeader": CSRFHeader}
 	for k, v := range values {
 		data[k] = v
+	}
+	if ctx.Who != nil {
+		d.addNav(data, ctx.Who)
 	}
 	if _, ok := data["ThemeURL"]; !ok {
 		url, err := d.themeURL(ctx.Who, nil, nil)
