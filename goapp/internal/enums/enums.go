@@ -1,0 +1,173 @@
+// Package enums holds domain enums shared across layers.
+package enums
+
+// InstanceRole is a user's role at instance level.
+type InstanceRole string
+
+const (
+	RoleAdmin InstanceRole = "admin"
+	RoleUser  InstanceRole = "user"
+)
+
+// TeamRole is a user's role inside one team.
+type TeamRole string
+
+const (
+	TeamOwner  TeamRole = "owner"
+	TeamEditor TeamRole = "editor"
+	TeamViewer TeamRole = "viewer"
+)
+
+// SpaceKind distinguishes the three kinds of spaces.
+type SpaceKind string
+
+const (
+	SpacePersonal SpaceKind = "personal"
+	SpaceTeam     SpaceKind = "team"
+	SpaceInstance SpaceKind = "instance"
+)
+
+// Right is ordered: a higher right includes all lower ones.
+type Right int
+
+const (
+	RightNone   Right = 0
+	RightView   Right = 10
+	RightUse    Right = 20
+	RightEdit   Right = 30
+	RightManage Right = 40
+)
+
+// ResourceKind names what a Share grants a right on.
+type ResourceKind string
+
+const (
+	ResourceSpace      ResourceKind = "space"
+	ResourceBoard      ResourceKind = "board"
+	ResourceWidget     ResourceKind = "widget"
+	ResourceConnection ResourceKind = "connection"
+	ResourceTheme      ResourceKind = "theme"
+)
+
+// GranteeKind names who a Share is granted to.
+type GranteeKind string
+
+const (
+	GranteeUser GranteeKind = "user"
+	GranteeTeam GranteeKind = "team"
+)
+
+// CredentialMode: one shared secret per connection, or one per user.
+type CredentialMode string
+
+const (
+	CredentialShared   CredentialMode = "shared"
+	CredentialPersonal CredentialMode = "personal"
+)
+
+// ServiceType names a supported source service.
+type ServiceType string
+
+const (
+	ServiceKimai        ServiceType = "kimai"
+	ServiceInvoiceNinja ServiceType = "invoiceninja"
+	ServiceSnipeIT      ServiceType = "snipeit"
+	ServiceDawarich     ServiceType = "dawarich"
+	ServiceGlances      ServiceType = "glances"
+)
+
+// Severity of a hint.
+type Severity int
+
+const (
+	SeverityInfo     Severity = 10
+	SeverityWarn     Severity = 20
+	SeverityCritical Severity = 30
+)
+
+// HintState tracks a hint's acknowledgement.
+type HintState string
+
+const (
+	HintOpen         HintState = "open"
+	HintSnoozed      HintState = "snoozed"
+	HintAcknowledged HintState = "acknowledged"
+	HintResolved     HintState = "resolved"
+)
+
+// HintAckMode: whether acknowledging a team hint applies to the team or one user.
+type HintAckMode string
+
+const (
+	AckPerUser HintAckMode = "per_user"
+	AckTeam    HintAckMode = "team"
+)
+
+// AuthMethod names how a session was established.
+type AuthMethod string
+
+const (
+	AuthPassword AuthMethod = "password"
+	AuthOIDC     AuthMethod = "oidc"
+	AuthToken    AuthMethod = "token"
+)
+
+// ColorMode is a user's theme preference.
+type ColorMode string
+
+const (
+	ColorAuto  ColorMode = "auto"
+	ColorDark  ColorMode = "dark"
+	ColorLight ColorMode = "light"
+)
+
+// Locale is a supported UI language.
+type Locale string
+
+const (
+	LocaleDE Locale = "de"
+	LocaleEN Locale = "en"
+)
+
+// TokenScope limits what an API/embed token may do.
+type TokenScope string
+
+const (
+	TokenRead  TokenScope = "read"
+	TokenEmbed TokenScope = "embed"
+)
+
+// TileSize is a section's widget tile size.
+type TileSize string
+
+const (
+	TileSmall  TileSize = "small"
+	TileMedium TileSize = "medium"
+	TileLarge  TileSize = "large"
+)
+
+// SortOrder controls how a section orders its widgets.
+type SortOrder string
+
+const (
+	SortManual       SortOrder = "manual"
+	SortAlphabetical SortOrder = "alphabetical"
+)
+
+// LinkTarget: where a link widget opens.
+type LinkTarget string
+
+const (
+	LinkNewTab  LinkTarget = "newtab"
+	LinkSameTab LinkTarget = "sametab"
+)
+
+// RevisionKind names what a Revision snapshot belongs to.
+type RevisionKind string
+
+const (
+	RevisionBoard  RevisionKind = "board"
+	RevisionWidget RevisionKind = "widget"
+	RevisionSpace  RevisionKind = "space"
+	RevisionTheme  RevisionKind = "theme"
+)
