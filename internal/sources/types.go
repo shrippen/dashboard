@@ -67,6 +67,7 @@ type KimaiDataset struct {
 
 type NinjaInvoice struct {
 	ID       int64
+	Key      string // id as sent (hashed string in v5), for write calls
 	Number   string
 	ClientID int64
 	Status   string

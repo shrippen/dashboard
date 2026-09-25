@@ -31,7 +31,7 @@ func ninjaInvoice(raw any) NinjaInvoice {
 	m := asMap(raw)
 	amount, taxes := asFloat(m["amount"]), asFloat(m["total_taxes"])
 	return NinjaInvoice{
-		ID: asInt64(m["id"]), Number: asStr(m["number"]), ClientID: refNum(m["client_id"]),
+		ID: refNum(m["id"]), Key: idKey(m["id"]), Number: asStr(m["number"]), ClientID: refNum(m["client_id"]),
 		Status: statusFor(ninjaStatus, m["status_id"]), Date: day(m["date"]), DueDate: day(m["due_date"]),
 		Amount: amount, Balance: asFloat(m["balance"]), Taxes: taxes, Net: amount - taxes,
 	}

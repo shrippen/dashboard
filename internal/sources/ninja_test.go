@@ -116,4 +116,8 @@ func TestNinjaHashedClientIDs(t *testing.T) {
 	if names[data.Payments[0].ClientID] != "Beta" || data.Clients[1].Key != "VolejRejNm" {
 		t.Fatalf("payment %+v clients %+v", data.Payments, data.Clients)
 	}
+	// Invoices need distinct ids, and their original key for write calls.
+	if data.Invoices[0].ID == 0 || data.Invoices[0].ID == data.Invoices[1].ID || data.Invoices[1].Key != "Q9ahb6ebJa" {
+		t.Fatalf("invoice ids %+v", data.Invoices)
+	}
 }
