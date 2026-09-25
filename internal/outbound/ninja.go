@@ -29,3 +29,12 @@ func NinjaDraftInvoice(ctx context.Context, baseURL, token string, verifyTLS boo
 	number, _ := inner["number"].(string)
 	return number, nil
 }
+
+// NinjaPayment records a payment of one invoice (hashed v5 ids).
+func NinjaPayment(ctx context.Context, baseURL, token string, verifyTLS bool, clientKey, invoiceKey string, amount float64, day, reference string) error {
+	_, err := services.NinjaApi{URL: baseURL, Token: token, Verify: verifyTLS}.Post(ctx, "payments", map[string]any{
+		"client_id": clientKey, "amount": amount, "date": day, "transaction_reference": reference,
+		"invoices": []map[string]any{{"invoice_id": invoiceKey, "amount": amount}},
+	})
+	return err
+}

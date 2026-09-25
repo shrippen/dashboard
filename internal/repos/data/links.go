@@ -35,6 +35,27 @@ func Clicks(q db.Queryer, userID int64) (map[int64]int, error) {
 	return out, rows.Err()
 }
 
+// LastClicks returns when each link tile was last clicked by anyone.
+func LastClicks(q db.Queryer) (map[int64]time.Time, error) {
+	rows, err := q.Query("SELECT widget_id, MAX(last_at) FROM link_clicks GROUP BY widget_id")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[int64]time.Time{}
+	for rows.Next() {
+		var id int64
+		var at string
+		if err := rows.Scan(&id, &at); err != nil {
+			return nil, err
+		}
+		if t, err := db.ParseTime(at); err == nil {
+			out[id] = t
+		}
+	}
+	return out, rows.Err()
+}
+
 // ── Status history ──
 
 // DayStatus is one tile's checks of one day.

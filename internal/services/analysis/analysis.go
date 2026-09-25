@@ -262,11 +262,16 @@ func spaceLinks(d *sql.DB, spaceID int64) ([]rules.Link, error) {
 	if err != nil {
 		return nil, err
 	}
+	clicks, err := data.LastClicks(d)
+	if err != nil {
+		return nil, err
+	}
 	var links []rules.Link
 	for _, w := range widgets {
 		target, _ := w.Config["url"].(string)
 		if w.Type == linkType && target != "" {
-			links = append(links, rules.Link{Title: w.Title, URL: target, DownDays: linkstatus.DownDays(d, w.ID, time.Now().UTC())})
+			links = append(links, rules.Link{Title: w.Title, URL: target, DownDays: linkstatus.DownDays(d, w.ID, time.Now().UTC()),
+				LastClick: clicks[w.ID]})
 		}
 	}
 	return links, nil

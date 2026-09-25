@@ -432,6 +432,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	}
 
 	live := widgets.LiveData(kind, widget.Config)
+	peerOptions := map[string]map[string]any{}
 	for _, q := range kind.Queries(cfg) {
 		var target *model.Connection
 		switch q.Conn {
@@ -442,6 +443,9 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		case widgets.ConnPeer:
 			if target, err = peerConnection(d, who, widget, q.Service); err != nil {
 				return nil, err
+			}
+			if target != nil {
+				peerOptions[q.Name] = target.Options
 			}
 		}
 		if q.Conn != widgets.ConnNone && target == nil {
@@ -473,7 +477,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	}
 
 	if kind.View != nil {
-		viewCtx := widgets.ViewCtx{Today: time.Now().UTC().Format("2006-01-02"), Settings: settings}
+		viewCtx := widgets.ViewCtx{Today: time.Now().UTC().Format("2006-01-02"), Settings: settings, PeerOptions: peerOptions}
 		if serviceConn != nil {
 			viewCtx.Service, viewCtx.Options = serviceConn.Service, serviceConn.Options
 		}

@@ -840,19 +840,19 @@ Analysen, die erst aus mehreren Diensten zusammen entstehen. Grundlage ist ein K
 - [x] Kennzahl-Verlauf, Versionswechsel und Ereignisse speichern *(Tabellen `samples`, `versions`, `events`; 400 Tage Verlauf)*
 
 **Geld und Zeit**
-- [ ] Vollkosten-Stundensatz je Kunde (Kimai, Invoice Ninja, Dawarich)
-- [ ] Gebundenes Geld in unfakturierter Arbeit (Alter × Satz)
-- [ ] Zahlungseingänge automatisch zuordnen und buchen (Sure → Invoice Ninja)
-- [ ] Belege, die fehlen (Sure gegen Invoice Ninja, Paperless, Mail)
-- [ ] Abhängigkeit von einem Kunden (Umsatz- und Stundenanteil, 5/6-Grenze)
-- [ ] Frei verfügbares Geld (Konto minus Steuern und Fixkosten)
-- [ ] Abo-Radar mit Nutzung (Sure, Paperless, authentik, Klicks)
-- [ ] Projektbudget-Prognose (Erschöpfungsdatum gegen Projektende)
-- [ ] Termine ohne Zeitbuchung (Kalender, Kimai, Feiertage, Abwesenheit)
-- [ ] Projektmarge mit allen Kosten
-- [ ] Auftragsloch früh sehen (Vorjahr gegen jetzt)
-- [ ] Fahrtenbuch-Auszug für die Steuer
-- [ ] Arbeitslast und Erholung
+- [x] Vollkosten-Stundensatz je Kunde (Kimai, Invoice Ninja, Dawarich) *(Tabelle `full_rates`, Regel `in.rate_below`; Fahrzeit aus Kilometern bei 50 km/h)*
+- [x] Gebundenes Geld in unfakturierter Arbeit (Alter × Satz) *(Tabelle `unbilled_aging`; Hinweis nach Alter gab es schon: `kimai.unbilled_hours`)*
+- [x] Zahlungseingänge automatisch zuordnen und buchen (Sure → Invoice Ninja) *(Rechnungsnummer im Buchungstext vor Betrag; „Buchen“ auf /billing; Regel `cross.payment_unmatched`)*
+- [x] Belege, die fehlen (Sure gegen Invoice Ninja, Paperless, Mail) *(`cross.expense_unrecorded` prüft jetzt auch Paperless und Rechnungsmails; Tabelle `missing_receipts`)*
+- [x] Abhängigkeit von einem Kunden (Umsatz- und Stundenanteil, 5/6-Grenze) *(`in.client_concentration` um den Stundenanteil aus Kimai ergänzt)*
+- [x] Frei verfügbares Geld (Konto minus Steuern und Fixkosten) *(KPI `safe_to_spend`, Regel `sure.spendable_negative`)*
+- [x] Abo-Radar mit Nutzung (Sure, Paperless, authentik, Klicks) *(Tabelle `subscriptions`, Regel `sure.subscription_unused`; Abgleich über das erste Wort des Namens)*
+- [x] Projektbudget-Prognose (Erschöpfungsdatum gegen Projektende) *(`kimai.budget_pace` nennt jetzt das Datum; auch Zeitbudgets; Tabelle `budget_forecast`)*
+- [x] Termine ohne Zeitbuchung (Kalender, Kimai, Feiertage, Abwesenheit) *(neue Verbindung „Kalender“; Regeln `calendar.unbooked`, `kimai.booked_free_day`)*
+- [x] Projektmarge mit allen Kosten *(Tabelle `project_margins`, Regel `kimai.margin_low`; Kostensatz `costs.hourly_cost` oder Fixkosten ÷ 168 h; Snipe-IT fehlt mangels Kundenbezug)*
+- [x] Auftragsloch früh sehen (Vorjahr gegen jetzt) *(Regel `in.order_gap`)*
+- [x] Fahrtenbuch-Auszug für die Steuer *(`fahrten.csv` im Jahrespaket)*
+- [x] Arbeitslast und Erholung *(Regel `kimai.workload`; späte Commits fehlen: Gitea/GitHub liefern keine Commit-Zeiten)*
 
 **Homelab: Ursache und Wirkung**
 - [ ] Ereignis-Zeitleiste mit Vorgeschichte

@@ -20,6 +20,7 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  book_payment: 'Zahlung buchen'
   open_in_tailscale: 'In Tailscale / Headscale öffnen'
   open_in_gateway: 'In Router (OPNsense, pfSense, UniFi) öffnen'
   open_in_mediaserver: 'In Jellyfin / Plex öffnen'
@@ -268,6 +269,14 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  full_rates: 'Vollkosten-Stundensatz je Kunde'
+  unbilled_aging: 'Unfakturiert nach Alter'
+  payment_matches: 'Zahlungseingänge zu Rechnungen'
+  missing_receipts: 'Fehlende Belege'
+  subscriptions: 'Abos mit Nutzung'
+  budget_forecast: 'Budget-Prognose'
+  project_margins: 'Projektmargen'
+  safe_to_spend: 'Frei verfügbar'
   payment_morale: Zahlungsmoral je Kunde
   cpu: CPU
   mem: RAM
@@ -563,6 +572,8 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_calendar: 'Private iCal-Adresse als Token eintragen (wird verschlüsselt); URL = eine beliebige Adresse des Kalenders. Termine, deren Titel einen Kimai-Kunden oder ein Projekt nennt, werden mit den Buchungen verglichen.'
+  about_calendar: 'Termine gegen Zeitbuchungen'
   options_hint_tailscale: 'URL https://api.tailscale.com (Token = API-Zugriffstoken) oder die Headscale-URL (Token = API-Schlüssel, headscale apikeys create). Optionen: tailnet: example.com (Tailscale, sonst Standard-Tailnet).'
   about_tailscale: 'Geräte, Schlüsselablauf, Updates'
   options_hint_gateway: 'Optionen: kind: opnsense | pfsense | unifi. OPNsense: Token = key:secret eines API-Schlüssels. pfSense: REST-API-Paket, Token = API-Schlüssel. UniFi: Integrations-API-Schlüssel (Einstellungen → Control Plane → Integrationen), URL der Konsole.'
@@ -685,6 +696,7 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  calendar: 'Kalender (iCal)'
   tailscale: 'Tailscale / Headscale'
   gateway: 'Router (OPNsense, pfSense, UniFi)'
   mediaserver: 'Jellyfin / Plex'
@@ -977,6 +989,10 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  calendar:
+    unbooked:
+      title: 'Termin ohne Zeitbuchung: {title}'
+      why: 'Am {day} gab es den Termin, in Kimai ist für den Kunden an dem Tag nichts gebucht.'
   tailscale:
     key_expiry:
       title: '{name}: Schlüssel läuft ab'
@@ -1172,6 +1188,15 @@ hint:
       title: '{count} Kacheln nicht in Linkwarden gesichert'
       why: '{names}.'
   sure:
+    subscription_unused:
+      title: '{name}: {amount}/Monat, kaum genutzt'
+      why: 'Seit über {days} Tagen keine Nutzung gefunden (Kachel-Klicks, Anmeldungen).'
+    subscription_unused_deadline:
+      title: '{name}: {amount}/Monat, kaum genutzt'
+      why: 'Seit über {days} Tagen keine Nutzung gefunden. Kündbar bis {deadline}.'
+    spendable_negative:
+      title: 'Steuern und Fixkosten übersteigen das Konto'
+      why: 'Kontostand {cash}, zurückzulegen {reserved} (USt, Einkommensteuer, Fixkosten 30 Tage). Es fehlen {missing}.'
     missed:
       title: 'Erwartete Zahlung „{name}“ ausgeblieben'
       why: '{amount} waren für den {day} erwartet. Abbuchung fehlgeschlagen oder Vertrag geändert?'
@@ -1188,6 +1213,9 @@ hint:
       title: 'Hohe Ausgabe: {name} ({amount})'
       why: 'Am {day}, deutlich über dem Üblichen. Doppelbuchung oder Preiserhöhung?'
   cross:
+    payment_unmatched:
+      title: 'Zahlung ohne offene Rechnung: {name}'
+      why: '{amount} am {day} von einem bekannten Kunden, passt zu keiner offenen Rechnung. Rechnung fehlt oder Nummer falsch?'
     invoice_paid:
       title: 'Rechnung {number} vermutlich bezahlt'
       why: '{amount} von {client} am {day} auf {account} eingegangen, in Invoice Ninja noch offen. Zahlung erfassen.'
@@ -1320,6 +1348,18 @@ hint:
       title: '{host}: Zertifikat nicht lesbar'
       why: '{error}'
   kimai:
+    booked_free_day:
+      title: 'Gebucht an einem freien Tag'
+      why: 'Am {day} ({hours} h) war Feiertag oder Abwesenheit. Absicht oder falsches Datum?'
+    workload:
+      title: 'Viel gearbeitet, wenig Pause'
+      why: '{weeks} lange Wochen in den letzten 4, letzte Woche {last_week} h, {late}× nach 22 Uhr, {weekend} Wochenendtage, seit {free} Tagen kein freier Tag.'
+    margin_low:
+      title: '{project}: Marge {margin} %'
+      why: 'Wert der Arbeit {revenue}, Ausgaben {expenses}, Zeit zum Kostensatz {time_cost} (letzte 180 Tage).'
+    runout:
+      title: '{project}: Budget reicht bis {runout}'
+      why: 'Beim Tempo der letzten 4 Wochen ist das Budget ({percent} % verbraucht) {gap} Tage vor Projektende am {end} aufgebraucht.'
     timer_long:
       title: Timer läuft seit {hours} h
       why: Ein laufender Zeiteintrag ist länger als die Grenze. Vergessen zu stoppen?
@@ -1345,6 +1385,18 @@ hint:
       title: 'Monatsabschluss {month}: {hours} h offen'
       why: Abrechenbare Einträge des Vormonats sind noch nicht exportiert.
   in:
+    rate_below:
+      title: '{client}: real {full} je Stunde'
+      why: 'Abgerechnet werden {nominal} je Stunde; mit {other} h internem Aufwand und {travel} h Fahrt bleiben {full} (letzte 90 Tage).'
+    order_gap:
+      title: 'Weniger Arbeit als letztes Jahr'
+      why: 'Letzte 4 Wochen {recent} h, im Vorjahr {last_year} h; danach kamen im Vorjahr {ahead} h. Offene Angebote: {quotes} ({quote_sum}).'
+    concentration_hours:
+      title: '{client}: {percent} % des Umsatzes'
+      why: 'Klumpenrisiko: ein Kunde trägt den Großteil des Umsatzes der letzten 12 Monate und {hours} % deiner Stunden.'
+    concentration_pension_hours:
+      title: '{client}: {percent} % des Umsatzes'
+      why: 'Mehr als 5/6 des Umsatzes und {hours} % der Stunden für einen Auftraggeber: Rentenversicherungspflicht als arbeitnehmerähnlicher Selbständiger prüfen (§ 2 Nr. 9 SGB VI).'
     payment_worse:
       title: '{client} zahlt langsamer'
       why: 'Zuletzt nach {recent} Tagen, sonst nach {avg}. Zahlungsziel ansprechen oder Abschläge vereinbaren.'
@@ -1561,6 +1613,7 @@ info:
   glances:
     cpu: CPU {percent} %
 kpi:
+  safe: 'Konto {in}, zurückzulegen {out}'
   liquidity: Eingang {in} − Fixkosten {out}
   per_hour: je Stunde, {count} Kunden, 12 Monate
   of_target: Soll {hours} h
@@ -1573,6 +1626,26 @@ kpi:
   of_goal: Ziel {goal}
   cash_30: offen + wiederkehrend, 30 Tage
 col:
+  billable_hours: 'Abrechenbar'
+  other_hours: 'Intern'
+  travel_hours: 'Fahrt'
+  nominal_rate: 'Satz abgerechnet'
+  full_rate: 'Satz real'
+  age_fresh: 'bis 30 Tage'
+  age_mid: '31–60 Tage'
+  age_old: 'über 60 Tage'
+  booking: 'Buchung'
+  match: 'Erkannt an'
+  account: 'Konto'
+  monthly: 'Je Monat'
+  deadline: 'Kündbar bis'
+  last_use: 'Zuletzt genutzt'
+  runout: 'Aufgebraucht'
+  end: 'Projektende'
+  revenue: 'Wert'
+  expenses: 'Ausgaben'
+  time_cost: 'Zeitkosten'
+  margin: 'Marge'
   avg_days: Sonst
   recent_days: Zuletzt
   invoices: Rechnungen
@@ -1624,6 +1697,15 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  cross.payment_unmatched: 'Zahlung ohne Rechnung'
+  in.rate_below: 'Vollkosten-Stundensatz niedrig'
+  sure.subscription_unused: 'Abo ohne Nutzung'
+  sure.spendable_negative: 'Rücklagen fehlen'
+  calendar.unbooked: 'Termin ohne Zeitbuchung'
+  kimai.booked_free_day: 'Buchung am freien Tag'
+  in.order_gap: 'Auftragsloch'
+  kimai.workload: 'Arbeitslast'
+  kimai.margin_low: 'Projektmarge niedrig'
   tailscale.key_expiry: 'Tailscale-Schlüssel läuft ab'
   tailscale.offline: 'Tailscale-Geräte offline'
   gateway.wan_down: 'WAN ausgefallen'
@@ -1753,6 +1835,9 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  ratio: 'Unter Anteil vom Vorjahr'
+  min_hours: 'Ab Stunden'
+  min_gap_days: 'Mindestens Tage vor Projektende'
   share: 'Mindestens Anteil der Erwartung'
   max_age_days: 'Höchstalter (Tage)'
   warn_gb: Warnung ab (GB frei)
@@ -1929,6 +2014,13 @@ cashflow:
   prepayment: Steuervorauszahlung
   relative_hint: Ohne Sure-Verbindung ab 0 gerechnet – die Kurve zeigt die Veränderung, nicht den Kontostand.
 billing:
+  payments: 'Zahlungseingänge zuordnen'
+  payments_hint: 'Eingänge auf dem Konto (Sure), die zu offenen Rechnungen passen. „Buchen“ legt die Zahlung in Invoice Ninja an, höchstens bis zum offenen Betrag.'
+  booked: 'Zahlung zu {number} gebucht.'
+  book: 'Buchen'
+  no_payments: 'Keine passenden Eingänge.'
+  open: 'offen'
+  no_match: 'Die Zahlung passt nicht mehr zur Rechnung – inzwischen gebucht?'
   mails: Rechnungsmails
   sender: Absender
   subject: Betreff
@@ -2040,3 +2132,6 @@ assist:
   read: 'Mit KI lesen'
   read_privacy: 'Sendet die Anhänge dieser Mail an Anthropic (Claude).'
   read_line: '{vendor} · {number} · fällig {due} · {gross}'
+match:
+  number: 'Rechnungsnummer'
+  amount: 'Betrag'

@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"dashboard/internal/enums"
 	"dashboard/internal/metrics"
@@ -129,69 +128,65 @@ func init() {
 func registerSureCross() {
 	sources2 := []string{string(enums.ServiceSure), string(enums.ServiceInvoiceNinja)}
 
-	// An income in the bank that equals an open invoice: the payment is
-	// probably just not recorded in Invoice Ninja yet.
+	// An income in the bank that pays an open invoice (its number in the
+	// booking text, else the same amount): probably not recorded yet.
 	Register("cross.invoice_paid", Cross, map[string]any{"days": 90.0}, func(_ any, cfg map[string]any, env Env) []Finding {
 		sure, ok1 := env.Datasets[string(enums.ServiceSure)].(*sources.SureDataset)
 		ninja, ok2 := env.Datasets[string(enums.ServiceInvoiceNinja)].(*sources.NinjaDataset)
 		if !ok1 || !ok2 {
 			return nil
 		}
-		used := map[string]bool{}
 		var found []Finding
-		for _, inv := range metrics.NinjaOpenInvoices(ninja, env.Today) {
-			issued, ok := metrics.ParseDay(inv.Date)
-			if !ok {
-				continue
-			}
-			for _, t := range sure.Transactions {
-				paid, ok := metrics.ParseDay(t.Date)
-				if used[t.ID] || t.Amount <= 0 || !ok || paid.Before(issued) || paid.Sub(issued).Hours()/hoursPerDay > cfgFloat(cfg, "days") {
-					continue
-				}
-				if absF(t.Amount-inv.Balance) > centTolerance && absF(t.Amount-inv.Amount) > centTolerance {
-					continue
-				}
-				used[t.ID] = true
-				found = append(found, Finding{
-					Fingerprint: fmt.Sprintf("paid:%d", inv.ID), Rule: "cross.invoice_paid", Severity: enums.SeverityWarn,
-					Message: "cross.invoice_paid", Params: map[string]any{"number": inv.Number, "client": inv.Client,
-						"amount": Money(t.Amount, ninja.Currency), "day": Day(paid), "account": t.Account},
-					ActionURL: strings.TrimRight(ninja.URL, "/") + fmt.Sprintf("/invoices/%d", inv.ID), ActionLabel: "open_in_invoiceninja",
-					Sources: sources2,
-				})
-				break
-			}
+		for _, m := range metrics.PaymentMatches(sure, ninja, env.Today, cfgInt(cfg, "days")) {
+			found = append(found, Finding{
+				Fingerprint: fmt.Sprintf("paid:%d", m.Invoice.ID), Rule: "cross.invoice_paid", Severity: enums.SeverityWarn,
+				Message: "cross.invoice_paid", Params: map[string]any{"number": m.Invoice.Number, "client": m.Invoice.Client,
+					"amount": Money(m.Txn.Amount, ninja.Currency), "day": Day(m.Day), "account": m.Txn.Account},
+				ActionURL: "/billing#payments", ActionLabel: "book_payment",
+				Sources: sources2,
+			})
 		}
 		return found
 	})
 
-	// Business account spending without a matching expense in Invoice
-	// Ninja. Only accounts named in "accounts" count: private spending
-	// stays out.
+	// Money from a known client that pays no open invoice.
+	Register("cross.payment_unmatched", Cross, map[string]any{"days": 30.0}, func(_ any, cfg map[string]any, env Env) []Finding {
+		sure, ok1 := env.Datasets[string(enums.ServiceSure)].(*sources.SureDataset)
+		ninja, ok2 := env.Datasets[string(enums.ServiceInvoiceNinja)].(*sources.NinjaDataset)
+		if !ok1 || !ok2 {
+			return nil
+		}
+		days := cfgInt(cfg, "days")
+		matches := metrics.PaymentMatches(sure, ninja, env.Today, days)
+		var found []Finding
+		for _, t := range metrics.UnmatchedIncome(sure, ninja, matches, env.Today, days) {
+			found = append(found, Finding{
+				Fingerprint: "unmatched:" + t.ID, Rule: "cross.payment_unmatched", Severity: enums.SeverityInfo,
+				Message: "cross.payment_unmatched", Params: map[string]any{"name": t.Name, "amount": Money(t.Amount, sure.Currency), "day": DayStr(t.Date)},
+				Sources: sources2,
+			})
+		}
+		return found
+	})
+
+	// Business account spending without any receipt: no expense in
+	// Invoice Ninja, no invoice document in Paperless, no invoice mail.
+	// Only accounts named in "accounts" count: private spending stays out.
 	Register("cross.expense_unrecorded", Cross, map[string]any{"accounts": []any{}, "min_amount": 20.0, "lookback_days": 60.0, "date_window": 10.0},
 		func(_ any, cfg map[string]any, env Env) []Finding {
 			sure, ok1 := env.Datasets[string(enums.ServiceSure)].(*sources.SureDataset)
 			ninja, ok2 := env.Datasets[string(enums.ServiceInvoiceNinja)].(*sources.NinjaDataset)
-			accounts := stringsSlice(cfg["accounts"])
-			if !ok1 || !ok2 || len(accounts) == 0 {
+			if !ok1 || !ok2 {
 				return nil
 			}
-			since := env.Today.AddDate(0, 0, -cfgInt(cfg, "lookback_days"))
+			in := ReceiptInputsOf(env, cfg)
+			in.Since = env.Today.AddDate(0, 0, -cfgInt(cfg, "lookback_days"))
 			var found []Finding
-			for _, t := range sure.Transactions {
-				d, ok := metrics.ParseDay(t.Date)
-				spent := -t.Amount
-				if !ok || d.Before(since) || spent < cfgFloat(cfg, "min_amount") || !containsAny(strings.ToLower(t.Account), accounts) {
-					continue
-				}
-				if expenseRecorded(ninja, spent, d, cfgInt(cfg, "date_window")) {
-					continue
-				}
+			for _, t := range metrics.MissingReceipts(in) {
 				found = append(found, Finding{
 					Fingerprint: "expense:" + t.ID, Rule: "cross.expense_unrecorded", Severity: enums.SeverityInfo,
-					Message: "cross.expense_unrecorded", Params: map[string]any{"name": t.Name, "amount": Money(spent, sure.Currency),
-						"day": Day(d), "account": t.Account},
+					Message: "cross.expense_unrecorded", Params: map[string]any{"name": t.Name, "amount": Money(-t.Amount, sure.Currency),
+						"day": DayStr(t.Date), "account": t.Account},
 					ActionURL: strings.TrimRight(ninja.URL, "/") + "/expenses/create", ActionLabel: "open_in_invoiceninja",
 					Sources: sources2,
 				})
@@ -200,16 +195,13 @@ func registerSureCross() {
 		})
 }
 
-// expenseRecorded: a Ninja expense of this amount (gross or net) within
-// window days of day.
-func expenseRecorded(ninja *sources.NinjaDataset, amount float64, day time.Time, window int) bool {
-	for _, e := range ninja.Expenses {
-		if absF(e.Amount-amount) > centTolerance && absF(e.Amount-e.Tax-amount) > centTolerance {
-			continue
-		}
-		if d, ok := metrics.ParseDay(e.Date); ok && absDays(d, day) <= window {
-			return true
-		}
-	}
-	return false
+// ReceiptInputsOf collects the receipt sources of a scope with the
+// cross.expense_unrecorded settings; Since is left to the caller.
+func ReceiptInputsOf(env Env, cfg map[string]any) metrics.ReceiptInputs {
+	in := metrics.ReceiptInputs{Accounts: stringsSlice(cfg["accounts"]), MinAmount: cfgFloat(cfg, "min_amount"), Window: cfgInt(cfg, "date_window")}
+	in.Sure, _ = env.Datasets[string(enums.ServiceSure)].(*sources.SureDataset)
+	in.Ninja, _ = env.Datasets[string(enums.ServiceInvoiceNinja)].(*sources.NinjaDataset)
+	in.Paperless, _ = env.Datasets[string(enums.ServicePaperless)].(*sources.PaperlessDataset)
+	in.Mail, _ = env.Datasets[string(enums.ServiceMail)].(*sources.MailDataset)
+	return in
 }

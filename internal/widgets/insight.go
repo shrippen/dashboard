@@ -43,6 +43,7 @@ const (
 	MetricLiquidity30     Metric = "liquidity_30"
 	MetricNetWorth        Metric = "net_worth"
 	MetricCash            Metric = "cash"
+	MetricSafeToSpend     Metric = "safe_to_spend"
 )
 
 // moraleSlower: recent payments this many days slower than usual count as worse.
@@ -310,6 +311,13 @@ func kpiNinja(metric Metric, data *sources.NinjaDataset, peers map[string]any, c
 		}
 		rows, overall := metrics.EffectiveRates(kimai, data, today)
 		return &KpiResult{Kind: "money", Value: overall, Currency: stats.Currency, SubKey: "kpi.per_hour", SubCount: len(rows)}
+	case MetricSafeToSpend:
+		sure, ok := peers[peerSure].(*sources.SureDataset)
+		if !ok {
+			return nil
+		}
+		s := metrics.SafeToSpend(sure, data, today, interval, method, settingsFloat(tax, "income_tax_rate", defaultIncomeTaxRate))
+		return &KpiResult{Kind: "money", Value: s.Free, Currency: stats.Currency, SubKey: "kpi.safe", SubIn: s.Cash, SubOut: s.VAT + s.IncomeTax + s.Fixed}
 	case MetricTaxReserve:
 		rate := settingsFloat(tax, "income_tax_rate", defaultIncomeTaxRate)
 		var expenses float64
@@ -399,13 +407,16 @@ func colsFor(kind TableKind) []Col {
 	case TableMorale:
 		return []Col{{"client", "text"}, {"avg_days", "daycount"}, {"recent_days", "daycount"}, {"invoices", "text"}}
 	}
-	return nil
+	return crossCols(kind)
 }
 
 func tableRows(kind TableKind, results map[string]any, ctx ViewCtx) ([]Row, bool) {
 	data, ok := results["data"]
 	if !ok || data == nil {
 		return nil, false
+	}
+	if rows, ok := crossRows(kind, data, results, ctx); ok {
+		return rows, true
 	}
 	today := parseToday(ctx.Today)
 	service := enums.ServiceType(ctx.Service)
@@ -772,7 +783,7 @@ func kpiQueries(cfg any) []Query {
 	switch cfg.(KpiConfig).Metric {
 	case MetricEffectiveRate:
 		return append(dataQuery(nil), kimaiPeer)
-	case MetricLiquidity30:
+	case MetricLiquidity30, MetricSafeToSpend:
 		return append(dataQuery(nil), surePeer)
 	}
 	return dataQuery(nil)
@@ -782,7 +793,7 @@ func tableQueries(cfg any) []Query {
 	if cfg.(TableConfig).Table == TableRates {
 		return append(dataQuery(nil), kimaiPeer)
 	}
-	return dataQuery(nil)
+	return append(dataQuery(nil), crossQueries(cfg.(TableConfig).Table)...)
 }
 
 func init() {

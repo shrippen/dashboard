@@ -37,6 +37,26 @@
     </section>
     {{else}}<p class="muted">{{t "billing.none"}}</p>{{end}}
 
+    <h2 id="payments">{{t "billing.payments"}}</h2>
+    <p class="small muted">{{t "billing.payments_hint"}}</p>
+    {{with .Booked}}<p class="pill" data-state="ok">{{t "billing.booked" "number" .}}</p>{{end}}
+    {{if .Payments}}
+    <div class="table-wrap"><table class="table">
+      <tr><th>{{t "col.day"}}</th><th>{{t "col.booking"}}</th><th class="num">{{t "col.amount"}}</th><th>{{t "col.number"}}</th><th>{{t "col.match"}}</th><th></th></tr>
+      {{range .Payments}}
+      <tr><td>{{day .Day}}</td><td>{{.Txn.Name}}<br><small class="muted">{{.Txn.Account}} · {{.SpaceName}}</small></td>
+        <td class="num">{{money .Txn.Amount}}</td><td>{{.Invoice.Number}} <small class="muted">{{.Invoice.Client}} · {{t "billing.open"}} {{money .Invoice.Balance}}</small></td>
+        <td>{{t (print "match." .Reason)}}</td>
+        <td><form method="post" action="/billing/payment" class="inline-form">
+          <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+          <input type="hidden" name="space_id" value="{{.SpaceID}}"><input type="hidden" name="txn" value="{{.Txn.ID}}">
+          <input type="hidden" name="invoice_id" value="{{.Invoice.ID}}"><input type="hidden" name="number" value="{{.Invoice.Number}}">
+          <button type="submit" class="ghost">{{t "billing.book"}}</button>
+        </form></td></tr>
+      {{end}}
+    </table></div>
+    {{else}}<p class="muted">{{t "billing.no_payments"}}</p>{{end}}
+
     <h2>{{t "billing.mails"}}</h2>
     {{if .Mails}}
     <div class="table-wrap"><table class="table">

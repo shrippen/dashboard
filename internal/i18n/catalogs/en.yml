@@ -20,6 +20,7 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  book_payment: 'Book payment'
   open_in_tailscale: 'Open in Tailscale / Headscale'
   open_in_gateway: 'Open in Router (OPNsense, pfSense, UniFi)'
   open_in_mediaserver: 'Open in Jellyfin / Plex'
@@ -268,6 +269,14 @@ field:
   chart: Chart
   info: Info line from connection
 opt:
+  full_rates: 'Full-cost rate per client'
+  unbilled_aging: 'Unbilled by age'
+  payment_matches: 'Incomes to invoices'
+  missing_receipts: 'Missing receipts'
+  subscriptions: 'Subscriptions with use'
+  budget_forecast: 'Budget forecast'
+  project_margins: 'Project margins'
+  safe_to_spend: 'Free to spend'
   payment_morale: Payment morale per client
   cpu: CPU
   mem: RAM
@@ -563,6 +572,8 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_calendar: 'Enter the private iCal address as token (stored encrypted); URL = any address of the calendar. Appointments naming a Kimai customer or project are compared with bookings.'
+  about_calendar: 'Appointments against bookings'
   options_hint_tailscale: 'URL https://api.tailscale.com (token = API access token) or the Headscale URL (token = API key, headscale apikeys create). Options: tailnet: example.com (Tailscale, else the default tailnet).'
   about_tailscale: 'Devices, key expiry, updates'
   options_hint_gateway: 'Options: kind: opnsense | pfsense | unifi. OPNsense: token = key:secret of an API key. pfSense: REST API package, token = API key. UniFi: integration API key (Settings → Control Plane → Integrations), console URL.'
@@ -685,6 +696,7 @@ mode:
   dark: Dark
   light: Light
 service:
+  calendar: 'Calendar (iCal)'
   tailscale: 'Tailscale / Headscale'
   gateway: 'Router (OPNsense, pfSense, UniFi)'
   mediaserver: 'Jellyfin / Plex'
@@ -977,6 +989,10 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  calendar:
+    unbooked:
+      title: 'Appointment without booking: {title}'
+      why: 'The appointment was on {day}; Kimai has nothing booked for that client that day.'
   tailscale:
     key_expiry:
       title: '{name}: key expires'
@@ -1172,6 +1188,15 @@ hint:
       title: '{count} tiles not saved in Linkwarden'
       why: '{names}.'
   sure:
+    subscription_unused:
+      title: '{name}: {amount}/month, hardly used'
+      why: 'No use found for over {days} days (tile clicks, logins).'
+    subscription_unused_deadline:
+      title: '{name}: {amount}/month, hardly used'
+      why: 'No use found for over {days} days. Cancel by {deadline}.'
+    spendable_negative:
+      title: 'Taxes and fixed costs exceed the cash'
+      why: 'Balance {cash}, to set aside {reserved} (VAT, income tax, 30 days of fixed costs). Missing {missing}.'
     missed:
       title: 'Expected payment “{name}” missing'
       why: '{amount} was expected on {day}. Failed debit or changed contract?'
@@ -1188,6 +1213,9 @@ hint:
       title: 'Large expense: {name} ({amount})'
       why: 'On {day}, well above the usual. Double charge or price increase?'
   cross:
+    payment_unmatched:
+      title: 'Payment without open invoice: {name}'
+      why: '{amount} on {day} from a known client matches no open invoice. Invoice missing or wrong number?'
     invoice_paid:
       title: 'Invoice {number} probably paid'
       why: '{amount} from {client} arrived on {day} in {account}, still open in Invoice Ninja. Record the payment.'
@@ -1320,6 +1348,18 @@ hint:
       title: '{host}: certificate not readable'
       why: '{error}'
   kimai:
+    booked_free_day:
+      title: 'Booked on a day off'
+      why: '{day} ({hours} h) was a holiday or absence. On purpose or wrong date?'
+    workload:
+      title: 'Much work, little rest'
+      why: '{weeks} long weeks of the last 4, last week {last_week} h, {late}× after 10 pm, {weekend} weekend days, {free} days since a day off.'
+    margin_low:
+      title: '{project}: margin {margin} %'
+      why: 'Work value {revenue}, expenses {expenses}, time at cost rate {time_cost} (last 180 days).'
+    runout:
+      title: '{project}: budget lasts until {runout}'
+      why: 'At the last 4 weeks pace the budget ({percent} % used) runs out {gap} days before the project ends on {end}.'
     timer_long:
       title: Timer running for {hours} h
       why: A running time entry exceeds the limit. Forgot to stop it?
@@ -1345,6 +1385,18 @@ hint:
       title: 'Month end {month}: {hours} h open'
       why: Billable entries of last month are not exported yet.
   in:
+    rate_below:
+      title: '{client}: really {full} per hour'
+      why: 'Billed at {nominal} per hour; with {other} h internal work and {travel} h travel it is {full} (last 90 days).'
+    order_gap:
+      title: 'Less work than last year'
+      why: 'Last 4 weeks {recent} h, a year ago {last_year} h; the following weeks then brought {ahead} h. Open quotes: {quotes} ({quote_sum}).'
+    concentration_hours:
+      title: '{client}: {percent} % of revenue'
+      why: 'Concentration risk: one client brings most of the last 12 months revenue and {hours} % of your hours.'
+    concentration_pension_hours:
+      title: '{client}: {percent} % of revenue'
+      why: 'Over 5/6 of revenue and {hours} % of hours from one client: check pension insurance duty as a quasi-employee (German § 2 No. 9 SGB VI).'
     payment_worse:
       title: '{client} pays slower'
       why: 'Recently after {recent} days, usually after {avg}. Talk about payment terms or agree on instalments.'
@@ -1560,6 +1612,7 @@ info:
   glances:
     cpu: CPU {percent} %
 kpi:
+  safe: 'Cash {in}, to set aside {out}'
   liquidity: income {in} − fixed costs {out}
   per_hour: per hour, {count} customers, 12 months
   of_target: target {hours} h
@@ -1572,6 +1625,26 @@ kpi:
   of_goal: goal {goal}
   cash_30: open + recurring, 30 days
 col:
+  billable_hours: 'Billable'
+  other_hours: 'Internal'
+  travel_hours: 'Travel'
+  nominal_rate: 'Billed rate'
+  full_rate: 'Real rate'
+  age_fresh: 'up to 30 days'
+  age_mid: '31–60 days'
+  age_old: 'over 60 days'
+  booking: 'Booking'
+  match: 'Matched by'
+  account: 'Account'
+  monthly: 'Per month'
+  deadline: 'Cancel by'
+  last_use: 'Last used'
+  runout: 'Runs out'
+  end: 'Project end'
+  revenue: 'Value'
+  expenses: 'Expenses'
+  time_cost: 'Time cost'
+  margin: 'Margin'
   avg_days: Usually
   recent_days: Recently
   invoices: Invoices
@@ -1623,6 +1696,15 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  cross.payment_unmatched: 'Payment without invoice'
+  in.rate_below: 'Full-cost rate low'
+  sure.subscription_unused: 'Unused subscription'
+  sure.spendable_negative: 'Reserves missing'
+  calendar.unbooked: 'Appointment without booking'
+  kimai.booked_free_day: 'Booking on a day off'
+  in.order_gap: 'Order gap'
+  kimai.workload: 'Workload'
+  kimai.margin_low: 'Project margin low'
   tailscale.key_expiry: 'Tailscale key expires'
   tailscale.offline: 'Tailscale devices offline'
   gateway.wan_down: 'WAN down'
@@ -1752,6 +1834,9 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  ratio: 'Below share of last year'
+  min_hours: 'From hours'
+  min_gap_days: 'At least days before project end'
   share: 'Minimum share of expected'
   max_age_days: 'Maximum age (days)'
   warn_gb: Warn below (GB free)
@@ -1928,6 +2013,13 @@ cashflow:
   prepayment: Tax prepayment
   relative_hint: Without a Sure connection it starts at 0 – the curve shows the change, not the balance.
 billing:
+  payments: 'Match incoming payments'
+  payments_hint: 'Incomes on the account (Sure) that fit open invoices. “Book” records the payment in Invoice Ninja, at most the open amount.'
+  booked: 'Payment for {number} booked.'
+  book: 'Book'
+  no_payments: 'No matching incomes.'
+  open: 'open'
+  no_match: 'The payment no longer fits the invoice – booked meanwhile?'
   mails: Invoice mails
   sender: Sender
   subject: Subject
@@ -2039,3 +2131,6 @@ assist:
   read: 'Read with AI'
   read_privacy: 'Sends this mails attachments to Anthropic (Claude).'
   read_line: '{vendor} · {number} · due {due} · {gross}'
+match:
+  number: 'Invoice number'
+  amount: 'Amount'

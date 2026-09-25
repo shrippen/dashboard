@@ -52,6 +52,23 @@ func (d Deps) RegisterBillingRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /billing/export", d.handleBillingExport)
 	mux.HandleFunc("POST /billing/mail", d.handleMailForward)
 	mux.HandleFunc("POST /billing/mail/read", d.handleMailRead)
+	mux.HandleFunc("POST /billing/payment", d.handlePaymentBook)
+}
+
+// handlePaymentBook books a matched bank income in Invoice Ninja.
+func (d Deps) handlePaymentBook(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	space, _ := strconv.ParseInt(r.FormValue("space_id"), 10, 64)
+	invoice, _ := strconv.ParseInt(r.FormValue("invoice_id"), 10, 64)
+	if err := billing.Book(r.Context(), d.DB, ctx.Who, space, r.FormValue("txn"), invoice, ClientIP(r)); err != nil {
+		d.billingPage(w, r, ctx, http.StatusBadRequest, map[string]any{"Error": errKey(err)})
+		return
+	}
+	http.Redirect(w, r, "/billing?booked="+url.QueryEscape(r.FormValue("number"))+"#payments", http.StatusSeeOther)
 }
 
 func (d Deps) billingPage(w http.ResponseWriter, r *http.Request, ctx Ctx, status int, extra map[string]any) {
@@ -65,8 +82,13 @@ func (d Deps) billingPage(w http.ResponseWriter, r *http.Request, ctx Ctx, statu
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	payments, err := billing.Payments(r.Context(), d.DB, ctx.Who)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	year := time.Now().Year()
-	values := map[string]any{"Drafts": drafts, "Mails": mails, "Assist": assist.Enabled(), "Spaces": access.EditableSpaces(ctx.Who), "Years": []int{year, year - 1}}
+	values := map[string]any{"Drafts": drafts, "Mails": mails, "Payments": payments, "Booked": r.URL.Query().Get("booked"), "Assist": assist.Enabled(), "Spaces": access.EditableSpaces(ctx.Who), "Years": []int{year, year - 1}}
 	for k, v := range extra {
 		values[k] = v
 	}

@@ -128,6 +128,7 @@ const (
 	ServiceDWD           ServiceType = "dwd"
 	ServiceGitHub        ServiceType = "github"
 	ServiceTibber        ServiceType = "tibber"
+	ServiceCalendar      ServiceType = "calendar"
 )
 
 // Services lists every connectable service, in form order.
@@ -139,7 +140,7 @@ var Services = []ServiceType{
 	ServiceTrueNAS, ServiceKomodo, ServicePangolin, ServiceAuthentik,
 	ServicePihole, ServiceAdGuard, ServiceNextcloud, ServiceSabnzbd, ServiceGluetun, ServiceDomains, ServiceBlacklist,
 	ServiceTailscale, ServiceGateway, ServiceMediaServer, ServiceArr, ServiceVaultwarden,
-	ServiceSpeedtest, ServiceGrocy, ServiceDWD, ServiceGitHub, ServiceTibber,
+	ServiceSpeedtest, ServiceGrocy, ServiceDWD, ServiceGitHub, ServiceTibber, ServiceCalendar,
 	ServiceJSONAPI,
 }
 

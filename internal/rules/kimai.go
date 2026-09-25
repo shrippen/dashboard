@@ -138,36 +138,21 @@ func init() {
 			return found
 		})
 
-	Register("kimai.budget_pace", string(enums.ServiceKimai), nil,
+	// At the last four weeks' pace the budget runs out before the project ends.
+	Register("kimai.budget_pace", string(enums.ServiceKimai), map[string]any{"min_gap_days": 7.0},
 		func(raw any, cfg map[string]any, env Env) []Finding {
 			data := kimaiData(raw)
 			var found []Finding
-			for _, p := range data.Projects {
-				end, ok := metrics.ParseDay(p.End)
-				if p.Budget == 0 || !ok || !end.After(env.Today) || p.BudgetType != "" {
-					continue
-				}
-				since := env.Today.AddDate(0, 0, -30)
-				var recentMoney float64
-				for _, s := range data.Timesheets {
-					d, ok := metrics.ParseDay(s.Begin)
-					if s.ProjectID == p.ID && ok && !d.Before(since) {
-						recentMoney += s.Rate
-					}
-				}
-				perDay := recentMoney / 30
-				forecast := p.UsedMoney + perDay*float64(int(end.Sub(env.Today).Hours()/24))
-				if forecast <= p.Budget {
+			for _, f := range metrics.BudgetForecasts(data, env.Today) {
+				if f.RunOut.IsZero() || f.End.IsZero() || !f.End.After(env.Today) || f.GapDays < cfgInt(cfg, "min_gap_days") {
 					continue
 				}
 				found = append(found, Finding{
-					Fingerprint: fmt.Sprintf("pace:%d", p.ID), Rule: "kimai.budget_pace",
-					Severity: enums.SeverityWarn, Message: "kimai.pace",
-					Params: map[string]any{
-						"project": p.Name, "forecast": Money(forecast, ""), "budget": Money(p.Budget, ""),
-						"end": Day(end),
-					},
-					ActionURL:   kimaiURL(data, fmt.Sprintf("admin/project/%d/details", p.ID)),
+					Fingerprint: fmt.Sprintf("pace:%d", f.ProjectID), Rule: "kimai.budget_pace",
+					Severity: enums.SeverityWarn, Message: "kimai.runout",
+					Params: map[string]any{"project": f.Project, "runout": Day(f.RunOut), "end": Day(f.End),
+						"gap": f.GapDays, "percent": Num(f.Used*100, 0)},
+					ActionURL:   kimaiURL(data, fmt.Sprintf("admin/project/%d/details", f.ProjectID)),
 					ActionLabel: kimaiOpen, Sources: []string{kimaiSource},
 				})
 			}

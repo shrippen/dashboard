@@ -3,6 +3,7 @@ package rules
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"dashboard/internal/enums"
 	"dashboard/internal/metrics"
@@ -278,11 +279,19 @@ func init() {
 			if warn {
 				level, msg = enums.SeverityWarn, "in.concentration_pension"
 			}
+			params := map[string]any{"client": top.Client, "percent": Num(top.Share*100, 0)}
+			sourceList := []string{ninjaSource}
+			// With Kimai the share of working hours shows how tied up you are.
+			if kimai, ok := env.Datasets[string(enums.ServiceKimai)].(*sources.KimaiDataset); ok {
+				if share, ok := hoursShare(kimai, top.Client, env.Today); ok {
+					msg += "_hours"
+					params["hours"] = Num(share*100, 0)
+					sourceList = append(sourceList, string(enums.ServiceKimai))
+				}
+			}
 			return []Finding{{
 				Fingerprint: fmt.Sprintf("concentration:%d", top.ClientID), Rule: "in.client_concentration",
-				Severity: level, Message: msg,
-				Params:  map[string]any{"client": top.Client, "percent": Num(top.Share*100, 0)},
-				Sources: []string{ninjaSource},
+				Severity: level, Message: msg, Params: params, Sources: sourceList,
 			}}
 		})
 }
@@ -292,4 +301,26 @@ func clientNameOr(name string) string {
 		return "?"
 	}
 	return name
+}
+
+// hoursShare is a customer's share of all hours in the last 12 months,
+// matched by name.
+func hoursShare(kimai *sources.KimaiDataset, client string, today time.Time) (float64, bool) {
+	names := metrics.KimaiCustomerNames(kimai)
+	start := today.AddDate(-1, 0, 0)
+	var mine, all int
+	for _, s := range kimai.Timesheets {
+		d, ok := metrics.ParseDay(s.Begin)
+		if !ok || d.Before(start) {
+			continue
+		}
+		all += s.Minutes
+		if strings.EqualFold(strings.TrimSpace(names[s.CustomerID]), strings.TrimSpace(client)) {
+			mine += s.Minutes
+		}
+	}
+	if all == 0 || mine == 0 {
+		return 0, false
+	}
+	return float64(mine) / float64(all), true
 }

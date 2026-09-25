@@ -51,10 +51,11 @@ const (
 
 // ViewCtx is what a view function may use: no I/O, only values.
 type ViewCtx struct {
-	Today    string // ISO date
-	Settings map[string]any
-	Options  map[string]any
-	Service  string // "" if the widget has no connection
+	Today       string // ISO date
+	Settings    map[string]any
+	Options     map[string]any
+	Service     string                    // "" if the widget has no connection
+	PeerOptions map[string]map[string]any // options of ConnPeer connections by query name
 }
 
 // Query is one data request a widget type needs; the widgets service runs

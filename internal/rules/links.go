@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"dashboard/internal/enums"
 	"dashboard/internal/sources"
@@ -20,7 +21,8 @@ const LinksDataset = "links"
 // Link is one link tile of a space.
 type Link struct {
 	Title, URL string
-	DownDays   int // days in a row without an answer (background checks)
+	DownDays   int       // days in a row without an answer (background checks)
+	LastClick  time.Time // zero: never clicked
 }
 
 // normURL makes URLs comparable: lower-case host, no scheme, no "www.",

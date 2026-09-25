@@ -76,8 +76,10 @@ func (DawarichData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 
 func loadDawarich(ctx context.Context, api services.DawarichApi, sctx Ctx) (*DawarichDataset, error) {
 	now := time.Now().UTC()
+	// params.days widens the window (the tax year export asks for a year).
+	days := max(visitDays, int(asFloat(sctx.Params["days"])))
 	window := url.Values{
-		"start_at": {now.Add(-visitDays * 24 * time.Hour).Format(time.RFC3339)},
+		"start_at": {now.AddDate(0, 0, -days).Format(time.RFC3339)},
 		"end_at":   {now.Format(time.RFC3339)},
 	}
 

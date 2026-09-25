@@ -3,7 +3,7 @@ package billing
 // Year package for the tax advisor: one ZIP with CSV files (semicolon,
 // decimal comma, UTF-8 with BOM – opens directly in German Excel).
 //
-//	rechnungen.csv  zahlungen.csv  ausgaben.csv  stunden.csv  ust.csv
+//	rechnungen.csv  zahlungen.csv  ausgaben.csv  stunden.csv  ust.csv  fahrten.csv
 
 import (
 	"archive/zip"
@@ -29,6 +29,8 @@ import (
 )
 
 const (
+	hoursPerDay    = 24
+	defaultKMRate  = 0.30 // € per km (Entfernungs- und Dienstreisepauschale)
 	csvComma       = ';'
 	utf8BOM        = "\ufeff"
 	monthsInYear   = 12
@@ -72,14 +74,21 @@ func Export(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64
 
 	var kimai *sources.KimaiDataset
 	var ninja *sources.NinjaDataset
+	var geo *sources.DawarichDataset
+	var geoOptions map[string]any
 	uid := who.UserID
 	for _, c := range conns {
+		var params map[string]any
 		switch enums.ServiceType(c.Service) {
 		case enums.ServiceKimai, enums.ServiceInvoiceNinja:
+		case enums.ServiceDawarich:
+			// Visits back to the start of the tax year.
+			params = map[string]any{"days": float64(time.Since(time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)).Hours()/hoursPerDay + 1)}
+			geoOptions = c.Options
 		default:
 			continue
 		}
-		res, err := svcdata.Get(ctx, d, sources.DataKey(enums.ServiceType(c.Service)), nil, c, &uid, svcdata.Force)
+		res, err := svcdata.Get(ctx, d, sources.DataKey(enums.ServiceType(c.Service)), params, c, &uid, svcdata.Force)
 		if err != nil {
 			continue
 		}
@@ -88,6 +97,8 @@ func Export(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64
 			kimai = data
 		case *sources.NinjaDataset:
 			ninja = data
+		case *sources.DawarichDataset:
+			geo = data
 		}
 	}
 	if kimai == nil && ninja == nil {
@@ -104,7 +115,10 @@ func Export(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64
 	if kimai != nil {
 		files["stunden.csv"] = hourRows(kimai, year)
 	}
-	for _, name := range []string{"rechnungen.csv", "zahlungen.csv", "ausgaben.csv", "ust.csv", "stunden.csv"} {
+	if geo != nil && kimai != nil {
+		files["fahrten.csv"] = tripRows(geo, metrics.ParseAreaMapping(geoOptions), kimai, year, kmRate(settings))
+	}
+	for _, name := range []string{"rechnungen.csv", "zahlungen.csv", "ausgaben.csv", "ust.csv", "stunden.csv", "fahrten.csv"} {
 		rows, ok := files[name]
 		if !ok {
 			continue
@@ -206,6 +220,27 @@ func hourRows(kimai *sources.KimaiDataset, year int) [][]string {
 		}
 		rows = append(rows, []string{day.Format("2006-01-02"), customers[s.CustomerID], projects[s.ProjectID], s.Activity,
 			money(float64(s.Minutes) / minutesPerHour), money(s.Rate), yesNo[s.Billable], yesNo[s.Exported]})
+	}
+	return rows
+}
+
+// kmRate is the geo.travel_costs rule's rate of the space, else the default.
+func kmRate(settings map[string]any) float64 {
+	rulesCfg, _ := settings["rules"].(map[string]any)
+	travel, _ := rulesCfg["geo.travel_costs"].(map[string]any)
+	if v, ok := travel["km_rate"].(float64); ok && v > 0 {
+		return v
+	}
+	return defaultKMRate
+}
+
+// tripRows is the mileage log: one round trip per client day.
+func tripRows(geo *sources.DawarichDataset, mapping map[string]metrics.AreaMapping, kimai *sources.KimaiDataset, year int, rate float64) [][]string {
+	customers := metrics.KimaiCustomerNames(kimai)
+	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
+	rows := [][]string{{"Datum", "Kunde", "Ort", "Kilometer", "Betrag"}}
+	for _, t := range metrics.Trips(geo, mapping, start, start.AddDate(1, 0, -1)) {
+		rows = append(rows, []string{t.Day, customers[t.CustomerID], t.Area, money(t.KM), money(t.KM * rate)})
 	}
 	return rows
 }

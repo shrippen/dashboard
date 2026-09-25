@@ -33,6 +33,7 @@
   {{else if eq $k.SubKey "kpi.of_goal"}}<span class="kpi-sub">{{t "kpi.of_goal" "goal" (money $k.SubGoal $k.Currency)}}</span>
   {{else if eq $k.SubKey "kpi.cash_30"}}<span class="kpi-sub">{{t "kpi.cash_30"}}</span>
   {{else if eq $k.SubKey "kpi.reserve"}}<span class="kpi-sub">{{t "kpi.reserve" "rate" $k.SubRate}}</span>
+  {{else if eq $k.SubKey "kpi.safe"}}<span class="kpi-sub">{{t "kpi.safe" "in" (money $k.SubIn) "out" (money $k.SubOut)}}</span>
   {{else if eq $k.SubKey "kpi.liquidity"}}<span class="kpi-sub">{{t "kpi.liquidity" "in" (money $k.SubIn) "out" (money $k.SubOut)}}</span>
   {{else if eq $k.SubKey "kpi.per_hour"}}<span class="kpi-sub">{{t "kpi.per_hour" "count" $k.SubCount}}</span>
   {{else if eq $k.SubKey "kpi.assets"}}<span class="kpi-sub">{{t "kpi.assets" "count" $k.SubCount}}</span>
@@ -60,6 +61,7 @@
       {{else if eq $col.Format "daycount"}}{{t "col.days" "days" $v}}
       {{else if eq $col.Format "late"}}{{if gt $v 0}}<span class="late">{{t "col.days" "days" $v}}</span>{{else}}–{{end}}
       {{else if eq $col.Format "upcoming"}}{{t (printf "upcoming.%s" $v)}}
+      {{else if eq $col.Format "match"}}{{t (printf "match.%s" $v)}}
       {{else}}{{if $v}}{{$v}}{{else}}–{{end}}{{end}}
     </td>{{end}}</tr>
   {{else}}<tr><td colspan="{{len $cols}}" class="muted">{{t "widget.empty"}}</td></tr>
