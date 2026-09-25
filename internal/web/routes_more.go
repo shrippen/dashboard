@@ -38,7 +38,7 @@ func (d Deps) handleBoardNewForm(w http.ResponseWriter, r *http.Request) {
 		d.handleAuthError(w, r, err)
 		return
 	}
-	_ = d.Page(w, ctx, "board_new", http.StatusOK, map[string]any{"Spaces": access.EditableSpaces(ctx.Who)})
+	_ = d.Page(w, ctx, "board_new", http.StatusOK, map[string]any{"Spaces": access.EditableSpaces(ctx.Who), "Templates": porting.Templates()})
 }
 
 func (d Deps) handleBoardCreate(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +50,14 @@ func (d Deps) handleBoardCreate(w http.ResponseWriter, r *http.Request) {
 	space, err := strconv.ParseInt(r.FormValue("space_id"), 10, 64)
 	if err != nil {
 		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+	if tpl := r.FormValue("template"); tpl != "" {
+		if _, err := porting.ApplyTemplate(d.DB, ctx.Who, space, tpl); err != nil {
+			d.handleBoardError(w, r, err)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	id, err := boards.Create(d.DB, ctx.Who, space, r.FormValue("name"))

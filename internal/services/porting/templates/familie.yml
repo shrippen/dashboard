@@ -1,0 +1,13 @@
+widgets:
+  - {id: tpl-holidays, type: holidays, title: Feiertage, config: {country: DE, limit: 5}}
+  - {id: tpl-weather, type: weather, title: Wetter, config: {label: Berlin, lat: 52.52, lon: 13.41}}
+  - {id: tpl-clock, type: clock, title: Uhr, config: {timezones: [Europe/Berlin], date: true}}
+  - {id: tpl-shopping, type: list, title: Einkaufen, config: {entries: "Milch\nBrot"}}
+  - {id: tpl-joke, type: joke, title: Witz, config: {lang: de}}
+boards:
+  - name: Familie
+    slug: familie
+    sections:
+      - {title: Heute, cols: 3, widgets: [tpl-weather, tpl-clock, tpl-holidays]}
+      - {title: Listen, span: 2, widgets: [tpl-shopping]}
+      - {title: Spaß, span: 2, widgets: [tpl-joke]}

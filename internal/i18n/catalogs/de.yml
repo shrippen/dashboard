@@ -115,6 +115,9 @@ oidc:
   sub_taken: Dieses authentik-Konto ist bereits mit einem anderen Benutzer verknüpft.
   unreachable: Identity Provider nicht erreichbar.
 board:
+  from_template: Aus Vorlage
+  template_hint: Legt Board und Widgets im gewählten Bereich an; Widgets mit Verbindung zeigen danach, was noch fehlt.
+  bulk_invalid: Nichts ausgewählt oder unbekannte Aktion.
   frequent: Häufig
   nothing_to_undo: Nichts zum Rückgängigmachen.
   bad_url: Das ist keine gültige Adresse.
@@ -133,6 +136,12 @@ board:
   full: Alles zeigen
   compact: Kompakt
 edit:
+  bulk: Auswahl
+  bulk_move: verschieben nach
+  bulk_color: Farbe setzen
+  bulk_apply: Anwenden
+  select: Auswählen
+  duplicate: Board duplizieren
   undo: Rückgängig
   quick_link: Link per URL hinzufügen
   edit: Bearbeiten
@@ -1720,3 +1729,8 @@ keys:
   context: Browser-Menü statt Kachel-Menü
 uptime:
   summary: '{share} erreichbar in 30 Tagen, Ø {ms} ms'
+template:
+  familie: Familie (Wetter, Feiertage, Liste)
+  freelancer: Selbstständig (Stunden, Geld, Fristen)
+  homelab: Homelab (Updates, Backups, Hinweise)
+  unknown: Unbekannte Vorlage.

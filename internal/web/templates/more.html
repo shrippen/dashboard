@@ -19,6 +19,15 @@
       <select id="board_space" name="space_id">{{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select>
       <button type="submit">{{t "action.create"}}</button>
     </form>
+
+    <h2>{{t "board.from_template"}}</h2>
+    <form method="post" action="/boards/new" class="card inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <select name="template" aria-label="{{t "board.from_template"}}">{{range .Templates}}<option value="{{.}}">{{t (print "template." .)}}</option>{{end}}</select>
+      <select name="space_id" aria-label="{{t "field.space"}}">{{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select>
+      <button type="submit" class="ghost">{{t "action.create"}}</button>
+    </form>
+    <p class="small muted">{{t "board.template_hint"}}</p>
   </main>
 </body>
 </html>

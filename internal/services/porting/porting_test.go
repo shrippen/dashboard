@@ -286,3 +286,20 @@ func TestDashyWidgetKeysSealed(t *testing.T) {
 		t.Fatalf("export leaks key:\n%s", text)
 	}
 }
+
+// Every shipped template imports cleanly; unknown keys are refused.
+func TestTemplatesApply(t *testing.T) {
+	d := setup(t)
+	who, space := user(t, d, "t@x.de")
+	if len(porting.Templates()) == 0 {
+		t.Fatal("no templates")
+	}
+	for _, key := range porting.Templates() {
+		if _, err := porting.ApplyTemplate(d, who, space, key); err != nil {
+			t.Fatalf("%s: %v", key, err)
+		}
+	}
+	if _, err := porting.ApplyTemplate(d, who, space, "../porting"); err != porting.ErrNoTemplate {
+		t.Fatalf("unknown: %v", err)
+	}
+}

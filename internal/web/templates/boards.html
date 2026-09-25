@@ -68,6 +68,24 @@
       <input name="title" placeholder="{{t "edit.section_title"}}" aria-label="{{t "edit.section_title"}}">
       <button type="submit">{{t "edit.add_section"}}</button>
     </form>
+    <form id="bulk" method="post" action="/boards/{{.Board.ID}}/bulk" class="inline-form bulk">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <input type="hidden" name="version" value="{{.Board.Version}}">
+      <span class="small muted">{{t "edit.bulk"}}</span>
+      <select name="action" aria-label="{{t "edit.bulk"}}">
+        <option value="move">{{t "edit.bulk_move"}}</option>
+        <option value="color">{{t "edit.bulk_color"}}</option>
+        <option value="remove">{{t "edit.remove"}}</option>
+      </select>
+      <select name="section" aria-label="{{t "edit.section"}}">{{range .Board.Sections}}<option value="{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{t "board.untitled"}}{{end}}</option>{{end}}</select>
+      <select name="color" aria-label="{{t "field.color"}}"><option value="">{{t "opt.none"}}</option>{{range .Colors}}<option value="{{.}}">{{t (print "opt." .)}}</option>{{end}}</select>
+      <button type="submit" class="ghost">{{t "edit.bulk_apply"}}</button>
+    </form>
+    <form method="post" action="/boards/{{.Board.ID}}/duplicate" class="inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <input type="hidden" name="name" value="{{.Board.Name}} 2">
+      <button type="submit" class="ghost">{{t "edit.duplicate"}}</button>
+    </form>
     <span class="sp">
       <a href="/boards/{{.Board.ID}}/settings">{{t "edit.board_settings"}}</a>
       <a href="/boards/{{.Board.ID}}/history">{{t "edit.history"}}</a>
@@ -213,6 +231,7 @@
   {{end}}
   {{if $b.Edit}}
   <div class="tile-tools" data-static>
+    <label class="check"><input type="checkbox" name="placement" value="{{.PlacementID}}" form="bulk" aria-label="{{t "edit.select"}} {{.Title}}"></label>
     <a href="/widgets/{{.WidgetID}}/edit?board={{$b.Board.ID}}">{{t "action.edit"}}</a>
     <a href="/shares/widget/{{.WidgetID}}">{{t "edit.share"}}</a>
     <form method="post" action="/placements/{{.PlacementID}}/unplace" class="inline-form">

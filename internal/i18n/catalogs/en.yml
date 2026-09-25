@@ -115,6 +115,9 @@ oidc:
   sub_taken: This authentik account is already linked to another user.
   unreachable: Identity provider unreachable.
 board:
+  from_template: From template
+  template_hint: Creates the board and widgets in the chosen space; widgets needing a connection then show what is missing.
+  bulk_invalid: Nothing selected or unknown action.
   frequent: Frequent
   nothing_to_undo: Nothing to undo.
   bad_url: That is not a valid address.
@@ -133,6 +136,12 @@ board:
   full: Show all
   compact: Compact
 edit:
+  bulk: Selection
+  bulk_move: move to
+  bulk_color: set color
+  bulk_apply: Apply
+  select: Select
+  duplicate: Duplicate board
   undo: Undo
   quick_link: Add link by URL
   edit: Edit
@@ -1719,3 +1728,8 @@ keys:
   context: Browser menu instead of the tile menu
 uptime:
   summary: '{share} reachable in 30 days, avg {ms} ms'
+template:
+  familie: Family (weather, holidays, list)
+  freelancer: Freelance (hours, money, deadlines)
+  homelab: Homelab (updates, backups, hints)
+  unknown: Unknown template.

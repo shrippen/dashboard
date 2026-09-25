@@ -786,8 +786,8 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Häufig genutzte Links *(ab 3 Klicks, je Benutzer)*
 - [x] Tote Links melden *(Hintergrundprüfung alle 10 Minuten, Regel `links.dead` ab 7 Tagen ohne Antwort)*
 - [x] Rückgängig im Editor *(stellt die vorige Board-Version wieder her)*
-- [ ] Mehrere Kacheln gleichzeitig bearbeiten
-- [ ] Board duplizieren und Vorlagen
+- [x] Mehrere Kacheln gleichzeitig bearbeiten *(Auswahl im Editor: verschieben, Farbe, entfernen)*
+- [x] Board duplizieren und Vorlagen *(Vorlagen Homelab, Selbstständig, Familie; eingebettetes YAML)*
 - [x] Tastenkürzel-Übersicht („?“)
 - [x] Verfügbarkeit auf der Kachel (30 Tage, Antwortzeit)
 

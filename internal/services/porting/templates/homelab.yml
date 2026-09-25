@@ -1,0 +1,15 @@
+widgets:
+  - {id: tpl-updates, type: updates, title: Updates, config: {}}
+  - {id: tpl-backups, type: backups, title: Backups, config: {}}
+  - {id: tpl-hints, type: hints, title: Hinweise, config: {min_severity: 20, limit: 8}}
+  - {id: tpl-clock, type: clock, title: Zeit, config: {timezones: [Europe/Berlin], date: true}}
+  - {id: tpl-ip, type: public_ip, title: Öffentliche IP, config: {}}
+  - {id: tpl-list, type: list, title: Notizen, config: {entries: "Wartungsfenster: Sonntag 22 Uhr\nDokumentation | https://example.org"}}
+boards:
+  - name: Homelab
+    slug: homelab
+    sections:
+      - {title: Dienste, cols: 4, widgets: []}
+      - {title: Zustand, span: 2, widgets: [tpl-updates, tpl-backups]}
+      - {title: Hinweise, span: 2, widgets: [tpl-hints]}
+      - {title: Info, area: side, widgets: [tpl-clock, tpl-ip, tpl-list]}

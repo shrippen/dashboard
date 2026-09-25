@@ -16,6 +16,58 @@ func (d Deps) RegisterStartPageRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /sections/{id}/quick-link", d.handleQuickLink)
 	mux.HandleFunc("POST /clicks/{id}", d.handleClick)
 	mux.HandleFunc("GET /palette.json", d.handlePalette)
+	mux.HandleFunc("POST /boards/{id}/duplicate", d.handleBoardDuplicate)
+	mux.HandleFunc("POST /boards/{id}/bulk", d.handleBulk)
+}
+
+func (d Deps) handleBoardDuplicate(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	copyID, err := boards.Duplicate(d.DB, ctx.Who, id, r.FormValue("name"))
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, boardPath(copyID)+"?edit", http.StatusSeeOther)
+}
+
+func (d Deps) handleBulk(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	var placements []int64
+	for _, raw := range r.Form["placement"] {
+		if p, err := strconv.ParseInt(raw, 10, 64); err == nil {
+			placements = append(placements, p)
+		}
+	}
+	version, _ := strconv.Atoi(r.FormValue("version"))
+	section, _ := strconv.ParseInt(r.FormValue("section"), 10, 64)
+	change := boards.BulkChange{Action: boards.BulkAction(r.FormValue("action")), SectionID: section, Color: r.FormValue("color")}
+	if err := boards.Bulk(d.DB, ctx.Who, id, version, placements, change); err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, boardPath(id)+"?edit&undo", http.StatusSeeOther)
 }
 
 // palettePages are the app pages the palette offers, by catalog key.

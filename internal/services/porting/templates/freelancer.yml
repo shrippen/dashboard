@@ -1,0 +1,16 @@
+widgets:
+  - {id: tpl-hours, type: kpi, title: Stunden heute, config: {metric: hours_today}}
+  - {id: tpl-unbilled, type: kpi, title: Unabgerechnet, config: {metric: unbilled}}
+  - {id: tpl-open, type: kpi, title: Offene Posten, config: {metric: open_amount}}
+  - {id: tpl-cash, type: cashflow, title: Liquidität, config: {days: 90}}
+  - {id: tpl-morale, type: table, title: Zahlungsmoral, config: {table: payment_morale}}
+  - {id: tpl-deadlines, type: deadlines, title: Fristen, config: {days: 45}}
+  - {id: tpl-heat, type: heatmap, title: Stunden im Jahr, config: {}}
+boards:
+  - name: Selbstständig
+    slug: freelancer
+    sections:
+      - {title: Heute, cols: 3, widgets: [tpl-hours, tpl-unbilled, tpl-open]}
+      - {title: Geld, span: 2, widgets: [tpl-cash, tpl-morale]}
+      - {title: Jahr, span: 2, widgets: [tpl-heat]}
+      - {title: Fristen, area: side, widgets: [tpl-deadlines]}
