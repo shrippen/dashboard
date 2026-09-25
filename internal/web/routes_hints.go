@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"dashboard/internal/enums"
 	"dashboard/internal/services/assist"
@@ -38,6 +39,9 @@ const (
 
 var workStates = []enums.WorkState{enums.WorkOpen, enums.WorkProgress, enums.WorkDone}
 
+// sortByValue orders the hints page by the money a hint names.
+const sortByValue = "value"
+
 func (d Deps) handleHintsPage(w http.ResponseWriter, r *http.Request) {
 	ctx, err := d.Require(r)
 	if err != nil {
@@ -49,7 +53,16 @@ func (d Deps) handleHintsPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = d.Page(w, ctx, "hints", http.StatusOK, map[string]any{"Hints": found})
+	byValue := r.URL.Query().Get("sort") == sortByValue
+	if byValue {
+		hints.ByValue(found)
+	}
+	noisy, err := hints.NoisyRules(d.DB, ctx.Who, time.Now().UTC())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_ = d.Page(w, ctx, "hints", http.StatusOK, map[string]any{"Hints": found, "ByValue": byValue, "Noisy": noisy})
 }
 
 // hintRequest parses the path id and checks CSRF for posts.

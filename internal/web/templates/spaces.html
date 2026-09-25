@@ -36,6 +36,26 @@
         <input id="hours_per_day" name="hours_per_day" type="number" step="0.5" value="{{with index .Goals "hours_per_day"}}{{.}}{{else}}8{{end}}">
         <label for="fixed_monthly">{{t "settings.fixed_monthly"}}</label>
         <input id="fixed_monthly" name="fixed_monthly" type="number" step="10" min="0" value="{{index .Costs "fixed_monthly"}}">
+        <label for="hourly_cost">{{t "settings.hourly_cost"}}</label>
+        <input id="hourly_cost" name="hourly_cost" type="number" step="1" min="0" value="{{index .Costs "hourly_cost"}}">
+        <p class="small muted">{{t "settings.hourly_cost_hint"}}</p>
+      </div>
+
+      <h2>{{t "settings.homelab"}}</h2>
+      <div class="card">
+        <label for="power_entity">{{t "settings.power_entity"}}</label>
+        <input id="power_entity" name="power_entity" value="{{index .Homelab "power_entity"}}" placeholder="sensor.server_power">
+        <label for="power_price">{{t "settings.power_price"}}</label>
+        <input id="power_price" name="power_price" type="number" step="0.01" min="0" value="{{index .Homelab "power_price"}}">
+        <label for="hardware_years">{{t "settings.hardware_years"}}</label>
+        <input id="hardware_years" name="hardware_years" type="number" step="1" min="1" value="{{with index .Homelab "hardware_years"}}{{.}}{{else}}5{{end}}">
+        <label for="domain_yearly">{{t "settings.domain_yearly"}}</label>
+        <input id="domain_yearly" name="domain_yearly" type="number" step="1" min="0" value="{{index .Homelab "domain_yearly"}}">
+        <label for="hosting_words">{{t "settings.hosting_words"}}</label>
+        <input id="hosting_words" name="hosting_words" value="{{with index .Homelab "hosting_words"}}{{.}}{{else}}hetzner, netcup, ionos, strato, cloudflare, backblaze, tailscale{{end}}">
+        <label for="cloud_monthly">{{t "settings.cloud_monthly"}}</label>
+        <input id="cloud_monthly" name="cloud_monthly" type="number" step="1" min="0" value="{{index .Homelab "cloud_monthly"}}">
+        <p class="small muted">{{t "settings.homelab_hint"}}</p>
       </div>
 
       <h2>{{t "settings.tax"}}</h2>

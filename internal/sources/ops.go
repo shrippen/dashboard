@@ -168,6 +168,9 @@ type ProxmoxGuest struct {
 	Name     string
 	Node     string
 	Template bool
+	Running  bool
+	CPU      float64 // cores in use (share × cores)
+	MemBytes float64
 }
 
 // ProxmoxDataset: Backups is the newest successful vzdump per VMID.
@@ -256,7 +259,8 @@ func loadProxmoxNode(ctx context.Context, api services.ProxmoxApi, node *Proxmox
 		for _, raw := range asList(guests) {
 			g := asMap(raw)
 			data.Guests = append(data.Guests, ProxmoxGuest{VMID: asInt64(g["vmid"]), Name: asStr(g["name"]),
-				Node: node.Name, Template: asFloat(g["template"]) == 1})
+				Node: node.Name, Template: asFloat(g["template"]) == 1, Running: asStr(g["status"]) == "running",
+				CPU: asFloat(g["cpu"]) * asFloat(g["cpus"]), MemBytes: asFloat(g["mem"])})
 		}
 	}
 

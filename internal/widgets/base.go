@@ -42,6 +42,9 @@ const (
 	// ExtraHistory hands the space's recorded history to the view as
 	// results["history"] (*metrics.History).
 	ExtraHistory Extra = "history"
+	// ExtraStory hands the caller's week in numbers to the view as
+	// results["story"] ([]metrics.StoryLine).
+	ExtraStory Extra = "story"
 )
 
 // Category groups widget types for the library UI.

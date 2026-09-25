@@ -111,3 +111,21 @@
 </table></div>
 {{else}}<p class="small muted">{{t "forecast.none"}}</p>{{end}}
 {{end}}
+
+{{define "widgets/homelab_cost"}}
+{{with $v := .Frag.View}}{{with $b := $v.Bill}}
+<p class="kpi"><span class="kpi-label">{{t "cost.per_month"}}</span> <b class="kpi-value">{{money $b.Total}}</b></p>
+{{with $b.Items}}<ul class="plain-list small">{{range .}}<li>{{t (print "cost." .Key)}} <span class="muted">{{.Name}}</span> · {{money .Monthly}}</li>{{end}}</ul>
+{{else}}<p class="small muted">{{t "cost.none"}}</p>{{end}}
+{{if $b.Cloud}}<p class="small">{{t "cost.cloud" "amount" (money $b.Cloud)}}</p>{{end}}
+{{end}}
+{{with $v.Share}}<p class="small">{{t "cost.business" "percent" (num $v.SharePct 0) "count" $v.ShareOf "all" $v.ShareAll "yearly" (money $v.BusinessYearly)}}</p>{{end}}
+{{with $v.Services}}<h4>{{t "cost.power_split" "watts" (num $v.Watts 0) "amount" (money $v.PowerMonthly)}}</h4>
+<ul class="plain-list small">{{range .}}<li>{{.Name}} · {{money .Monthly}}</li>{{end}}</ul>{{end}}
+{{end}}
+{{end}}
+
+{{define "widgets/week_story"}}
+{{with .Frag.View.Lines}}<ul class="plain-list">{{range .}}<li>{{tt (print "week." .Key) .Params}}</li>{{end}}</ul>
+{{else}}<p class="small muted">{{t "week.empty"}}</p>{{end}}
+{{end}}

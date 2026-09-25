@@ -64,7 +64,7 @@ func (d Deps) handleSpaceSettings(w http.ResponseWriter, r *http.Request) {
 	tax := asMap(settings["tax"])
 	_ = d.Page(w, ctx, "space_settings", http.StatusOK, map[string]any{
 		"SpaceID": id, "Goals": goals, "Tax": tax, "VAT": asMap(tax["vat"]), "Prepay": asMap(tax["prepayments"]),
-		"Costs": asMap(settings["costs"]),
+		"Costs": asMap(settings["costs"]), "Homelab": asMap(settings["homelab"]),
 		"Rules": spaces.RuleViews(settings), "Methods": vatMethods, "Intervals": vatIntervals,
 		"Saved": r.URL.Query().Has("saved"), "Page": spaces.PageOf(settings), "NavText": spaces.NavText(spaces.PageOf(settings)),
 		"Custom": spaces.CustomRows(settings), "Ops": rules.CustomOps, "Services": enums.Services, "Levels": severityLevels,
@@ -78,6 +78,9 @@ func asMap(v any) map[string]any {
 	}
 	return m
 }
+
+// defaultHardwareYears is the useful life hardware is written off over.
+const defaultHardwareYears = 5
 
 func number(raw string, fallback float64) float64 {
 	n, err := strconv.ParseFloat(strings.ReplaceAll(strings.TrimSpace(raw), ",", "."), 64)
@@ -126,7 +129,15 @@ func (d Deps) handleSpaceSettingsSave(w http.ResponseWriter, r *http.Request) {
 			"annual_due":      annual,
 			"income_tax_rate": number(r.FormValue("income_tax_rate"), defaultIncomeTaxRate),
 		},
-		"costs": map[string]any{"fixed_monthly": number(r.FormValue("fixed_monthly"), 0)},
+		"costs": map[string]any{"fixed_monthly": number(r.FormValue("fixed_monthly"), 0), "hourly_cost": number(r.FormValue("hourly_cost"), 0)},
+		"homelab": map[string]any{
+			"power_entity":   strings.TrimSpace(r.FormValue("power_entity")),
+			"power_price":    number(r.FormValue("power_price"), 0),
+			"hardware_years": number(r.FormValue("hardware_years"), defaultHardwareYears),
+			"domain_yearly":  number(r.FormValue("domain_yearly"), 0),
+			"cloud_monthly":  number(r.FormValue("cloud_monthly"), 0),
+			"hosting_words":  strings.TrimSpace(r.FormValue("hosting_words")),
+		},
 		"rules": spaces.ParseRules(r.FormValue),
 	}
 	for k, v := range spaces.ParsePage(r.FormValue) {

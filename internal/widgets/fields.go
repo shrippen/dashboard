@@ -106,6 +106,8 @@ var fieldsByType = map[string][]Field{
 	"speedtest":        {},
 	"energy":           {{Key: "power_entity", Input: InputText}},
 	"update_window":    {},
+	"homelab_cost":     {},
+	"week_story":       {},
 	"storage_forecast": {},
 	"cashflow":         {{Key: "days", Input: InputNumber, Default: defaultCashDays}},
 	"backups":          {{Key: "max_hours", Input: InputNumber, Default: defaultBackupHours}},

@@ -355,6 +355,12 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  homelab_cost:
+    name: 'Homelab cost'
+    desc: 'Power, hardware write-off, domains and hosting per month; power per service; business share.'
+  week_story:
+    name: 'Week in numbers'
+    desc: 'Work, money, storage and power of the last 7 days, connected.'
   update_window:
     name: 'Update window'
     desc: 'Pending updates against backup, streams, Kimai timer, appointments and power price: update now or wait?'
@@ -537,6 +543,12 @@ sys:
   swap: Swap
   load: Load (5 min)
 hints:
+  sort_value: 'Sort by money'
+  sort_level: 'Sort by urgency'
+  noisy: '{count} rules mostly report what you dismiss'
+  noisy_hint: 'In the last 90 days these hints were nearly always acknowledged or snoozed instead of fixed. Adjust the threshold or turn the rule off?'
+  noisy_line: '{dismissed} of {opened} dismissed'
+  noisy_adjust: 'Settings'
   before: 'Shortly before'
   note: Note
   note_optional: Note (optional)
@@ -603,7 +615,7 @@ conn:
   about_dwd: 'Weather warnings for a place'
   options_hint_github: 'URL https://api.github.com. Options: repos: [owner/repo]. Token optional (fine-grained, read: actions, contents, issues, pull requests; notifications need a classic token).'
   about_github: 'Repos: PRs, issues, CI, releases'
-  options_hint_tibber: 'URL https://api.tibber.com/v1-beta/gql. Token = personal access token (developer.tibber.com). With Home Assistant the energy widget also shows the current power.'
+  options_hint_tibber: 'URL https://api.tibber.com/v1-beta/gql. Token = personal access token (developer.tibber.com). Options: lat, lon (place) for daily temperatures, used to adjust consumption for the weather. With Home Assistant the energy widget also shows the current power.'
   about_tibber: 'Electricity prices and cost'
   health: 'Health'
   token_age: 'Token age'
@@ -1075,6 +1087,12 @@ hint:
       title: '{repo}: CI failed'
       why: 'Latest run on the default branch.'
   energy:
+    shift_jobs:
+      title: '{job} runs at {hour}:00 when power is expensive'
+      why: 'Power costs {price}/kWh on average at {hour}:00, {cheap_price} at {cheap_hour}:00. Move the schedule?'
+    weather_adjusted:
+      title: 'Power use {percent} % above the weather'
+      why: 'Last 7 days {actual} kWh; the temperatures would explain {expected} kWh. Device left on, heater, hot water?'
     cost_rising:
       title: 'Electricity cost up'
       why: 'Last 7 days {recent}, before {before}.'
@@ -1482,6 +1500,9 @@ hint:
       title: '{client}: {percent} % of revenue'
       why: 'More than 5/6 of revenue from one client: check German pension insurance duty (§ 2 Nr. 9 SGB VI).'
   snipe:
+    replace_worth:
+      title: '{name}: replacement pays back in {months} months'
+      why: '{years} years old, draws {watts} W ({yearly} power a year). A {new_watts} W device for {new_cost} pays back after {months} months.'
     warranty:
       title: Warranty of {asset} ends on {day}
       why: Asset {tag}. Extend or plan a replacement.
@@ -1542,6 +1563,9 @@ hint:
       title: Tax returns {year} due {day}
       why: Profit statement, income tax and VAT return.
   system:
+    unused_service:
+      title: '{name} unused for {days} days'
+      why: '{kind}: no tile clicks, no logins, no visitors. Uses {gb} GB RAM. Switch off?'
     storage_forecast:
       title: '{name} full in {days} days'
       why: 'Now {percent} % used; at the last 30 days pace full on {day}.'
@@ -1757,6 +1781,10 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  system.unused_service: 'Unused service'
+  energy.shift_jobs: 'Maintenance at expensive hours'
+  snipe.replace_worth: 'Replacement pays back'
+  energy.weather_adjusted: 'Use above the weather'
   system.storage_forecast: 'Storage filling up'
   backups.unsaved: 'Unsaved new data'
   system.slower_since_update: 'Slower since update'
@@ -1905,6 +1933,10 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  new_watts: 'New device (W)'
+  new_cost: 'New device (€)'
+  max_months: 'At most months'
+  min_saving: 'From saving (€/kWh)'
   min_queries: 'From queries'
   backup_hours: 'Backup older than hours'
   ratio: 'Below share of last year'
@@ -1948,6 +1980,16 @@ param:
   date_window: Date window (days)
   notice_days: Notice (days)
 settings:
+  hourly_cost: 'Cost rate per hour (€)'
+  hourly_cost_hint: 'For project margins. Empty: fixed costs ÷ 168 hours.'
+  homelab: 'Homelab costs'
+  power_entity: 'Power sensor (Home Assistant)'
+  power_price: 'Power price €/kWh (without Tibber)'
+  hardware_years: 'Hardware write-off (years)'
+  domain_yearly: 'Cost per domain and year (€)'
+  hosting_words: 'Recognize hosting subscriptions by (Sure)'
+  cloud_monthly: 'Compare: cloud cost per month (€)'
+  homelab_hint: 'For the “Homelab cost” widget, the replacement calculation and it-kosten.csv in the tax package.'
   custom: Custom rules
   custom_hint: 'Threshold on a dataset field, e.g. SABnzbd "Slots" > 10 or Custom API "stats.users" < 1. Count lists with "#": "Failures#" >= 1. The connection test shows field names.'
   custom_source: Source
@@ -2243,3 +2285,21 @@ isp:
   none: 'No Speedtest Tracker connection with a booked speed (option expect_down).'
   csv: 'Download as CSV'
   legal: 'For a reduction under German § 57 TKG the Federal Network Agency requires measurements with its broadband measurement app on several days. This report shows whether that is worth it and documents the history.'
+cost:
+  per_month: 'Homelab per month'
+  power: 'Power'
+  hardware: 'Hardware'
+  domains: 'Domains'
+  hosting: 'Hosting'
+  none: 'No costs found yet: set a power sensor, Snipe-IT purchase prices or hosting subscriptions (Sure) in the space settings.'
+  cloud: 'Comparable cloud services: {amount} per month.'
+  business: 'Business: {percent} % ({count} of {all} stacks and repos for clients), {yearly} a year.'
+  power_split: 'Power per service ({watts} W, {amount} per month)'
+week:
+  hours: '{hours} h worked, {percent} % for {customer}'
+  invoiced: '{count} invoices written ({amount})'
+  paid: '{count} payments received ({amount})'
+  storage: '{name} +{points} points, now {percent} % used'
+  power: 'Power {kwh} kWh, {cost}'
+  hints: '{opened} hints new, {resolved} resolved'
+  empty: 'Nothing for this week yet.'

@@ -3,7 +3,7 @@ package billing
 // Year package for the tax advisor: one ZIP with CSV files (semicolon,
 // decimal comma, UTF-8 with BOM – opens directly in German Excel).
 //
-//	rechnungen.csv  zahlungen.csv  ausgaben.csv  stunden.csv  ust.csv  fahrten.csv
+//	rechnungen.csv  zahlungen.csv  ausgaben.csv  stunden.csv  ust.csv  fahrten.csv  it-kosten.csv
 
 import (
 	"archive/zip"
@@ -76,10 +76,18 @@ func Export(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64
 	var ninja *sources.NinjaDataset
 	var geo *sources.DawarichDataset
 	var geoOptions map[string]any
+	costData := map[string]any{}
 	uid := who.UserID
 	for _, c := range conns {
 		var params map[string]any
 		switch enums.ServiceType(c.Service) {
+		case enums.ServiceHomeAssistant, enums.ServiceTibber, enums.ServiceSnipeIT, enums.ServiceSure, enums.ServiceDomains,
+			enums.ServiceKomodo, enums.ServiceGitea, enums.ServiceGitHub:
+			// The last background run is enough for the cost overview.
+			if res, err := svcdata.Get(ctx, d, sources.DataKey(enums.ServiceType(c.Service)), nil, c, &uid, svcdata.Stored); err == nil && res.Data != nil {
+				costData[c.Service] = res.Data
+			}
+			continue
 		case enums.ServiceKimai, enums.ServiceInvoiceNinja:
 		case enums.ServiceDawarich:
 			// Visits back to the start of the tax year.
@@ -118,7 +126,10 @@ func Export(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64
 	if geo != nil && kimai != nil {
 		files["fahrten.csv"] = tripRows(geo, metrics.ParseAreaMapping(geoOptions), kimai, year, kmRate(settings))
 	}
-	for _, name := range []string{"rechnungen.csv", "zahlungen.csv", "ausgaben.csv", "ust.csv", "stunden.csv", "fahrten.csv"} {
+	if rows := itCostRows(costData, kimai, settings); len(rows) > 1 {
+		files["it-kosten.csv"] = rows
+	}
+	for _, name := range []string{"rechnungen.csv", "zahlungen.csv", "ausgaben.csv", "ust.csv", "stunden.csv", "fahrten.csv", "it-kosten.csv"} {
 		rows, ok := files[name]
 		if !ok {
 			continue
@@ -241,6 +252,26 @@ func tripRows(geo *sources.DawarichDataset, mapping map[string]metrics.AreaMappi
 	rows := [][]string{{"Datum", "Kunde", "Ort", "Kilometer", "Betrag"}}
 	for _, t := range metrics.Trips(geo, mapping, start, start.AddDate(1, 0, -1)) {
 		rows = append(rows, []string{t.Day, customers[t.CustomerID], t.Area, money(t.KM), money(t.KM * rate)})
+	}
+	return rows
+}
+
+// itCostRows lists the homelab's monthly costs with the business share
+// (stacks and repos named after Kimai customers or projects).
+func itCostRows(data map[string]any, kimai *sources.KimaiDataset, settings map[string]any) [][]string {
+	in := metrics.CostInputs{}
+	in.Hass, _ = data[string(enums.ServiceHomeAssistant)].(*sources.HassDataset)
+	in.Tibber, _ = data[string(enums.ServiceTibber)].(*sources.TibberDataset)
+	in.Snipe, _ = data[string(enums.ServiceSnipeIT)].(*sources.SnipeDataset)
+	in.Sure, _ = data[string(enums.ServiceSure)].(*sources.SureDataset)
+	in.Domains, _ = data[string(enums.ServiceDomains)].(*sources.DomainsDataset)
+	bill := metrics.HomelabCost(in, metrics.HomelabSettingsOf(settings), time.Now().UTC())
+	share, _, _ := metrics.BusinessShare(kimai, metrics.WorkNames(data))
+
+	rows := [][]string{{"Posten", "Bezeichnung", "Je Monat", "Je Jahr", "Betrieblicher Anteil", "Betrieblich je Jahr"}}
+	for _, item := range bill.Items {
+		yearly := item.Monthly * monthsInYear
+		rows = append(rows, []string{item.Key, item.Name, money(item.Monthly), money(yearly), money(share * 100), money(yearly * share)})
 	}
 	return rows
 }

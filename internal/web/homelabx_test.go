@@ -16,7 +16,7 @@ func TestHomelabWidgetsAndPages(t *testing.T) {
 	space := string(regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new?service=kimai"))[1])
 
 	conns := map[string]string{}
-	for _, service := range []string{"pangolin", "domains", "immich"} {
+	for _, service := range []string{"pangolin", "domains", "immich", "kimai"} {
 		resp := postForm(t, client, srv.URL+"/connections", url.Values{"csrf": {csrfToken(t, srv, client)}, "space_id": {space},
 			"service": {service}, "name": {service}, "url": {"demo://" + service}, "mode": {"shared"}, "tls": {"verify"}})
 		conns[service] = regexp.MustCompile(`/connections/(\d+)/edit`).FindStringSubmatch(resp.Header.Get("Location"))[1]
@@ -27,6 +27,8 @@ func TestHomelabWidgetsAndPages(t *testing.T) {
 		{"table", "domains", "domain_chain", "example.org"},
 		{"update_window", "", "", "v1.131.0 → v1.132.3"},
 		{"storage_forecast", "", "", "Noch zu wenig Verlauf"},
+		{"homelab_cost", "", "", "Noch keine Kosten erkannt"},
+		{"week_story", "", "", "h gearbeitet"},
 	}
 	for _, c := range cases {
 		title := "H-" + c.widget + c.table
@@ -52,6 +54,9 @@ func TestHomelabWidgetsAndPages(t *testing.T) {
 
 	if page := string(mustGet(t, srv, client, "/timeline")); !strings.Contains(page, "Zeitleiste") {
 		t.Fatalf("timeline:\n%s", page)
+	}
+	if page := string(mustGet(t, srv, client, "/hints?sort=value")); !strings.Contains(page, "Nach Dringlichkeit sortieren") {
+		t.Fatalf("hints sort:\n%s", page)
 	}
 	if page := string(mustGet(t, srv, client, "/reports/isp")); !strings.Contains(page, "Internet gegen Vertrag") {
 		t.Fatalf("isp:\n%s", page)

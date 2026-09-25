@@ -260,7 +260,8 @@ func DemoProxmox(now time.Time) *ProxmoxDataset {
 			{Name: "local-lvm", Used: 430e9, Total: 480e9}, {Name: "backup", Used: 1.1e12, Total: 4e12},
 		}}},
 		Guests: []ProxmoxGuest{
-			{VMID: 100, Name: "docker", Node: "pve"}, {VMID: 101, Name: "homeassistant", Node: "pve"},
+			{VMID: 100, Name: "docker", Node: "pve", Running: true, CPU: 1.2, MemBytes: 6e9},
+			{VMID: 101, Name: "homeassistant", Node: "pve", Running: true, CPU: 0.3, MemBytes: 2e9},
 			{VMID: 9000, Name: "debian-template", Node: "pve", Template: true},
 		},
 		Backups: map[int64]time.Time{100: today.AddDate(0, 0, -1), 101: today.AddDate(0, 0, -9)},

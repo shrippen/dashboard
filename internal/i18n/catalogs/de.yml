@@ -355,6 +355,12 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  homelab_cost:
+    name: 'Homelab-Kosten'
+    desc: 'Strom, Hardware-Abschreibung, Domains und Hosting je Monat; Strom je Dienst; betrieblicher Anteil.'
+  week_story:
+    name: 'Woche in Zahlen'
+    desc: 'Arbeit, Geld, Speicher und Strom der letzten 7 Tage im Zusammenhang.'
   update_window:
     name: 'Update-Fenster'
     desc: 'Offene Updates gegen Sicherung, Streams, Kimai-Timer, Termine und Strompreis: jetzt updaten oder warten?'
@@ -537,6 +543,12 @@ sys:
   swap: Swap
   load: Last (5 min)
 hints:
+  sort_value: 'Nach Geldwert sortieren'
+  sort_level: 'Nach Dringlichkeit sortieren'
+  noisy: '{count} Regeln melden fast nur, was du wegklickst'
+  noisy_hint: 'Diese Hinweise wurden in den letzten 90 Tagen fast immer quittiert oder verschoben statt behoben. Schwelle anpassen oder Regel abschalten?'
+  noisy_line: '{dismissed} von {opened} weggeklickt'
+  noisy_adjust: 'Einstellungen'
   before: 'Kurz davor'
   note: Notiz
   note_optional: Notiz (optional)
@@ -603,7 +615,7 @@ conn:
   about_dwd: 'Wetterwarnungen für einen Ort'
   options_hint_github: 'URL https://api.github.com. Optionen: repos: [besitzer/repo]. Token optional (Feingranular, Lesen: Actions, Contents, Issues, Pull Requests; Benachrichtigungen nur mit klassischem Token).'
   about_github: 'Repos: PRs, Issues, CI, Releases'
-  options_hint_tibber: 'URL https://api.tibber.com/v1-beta/gql. Token = persönliches Zugriffstoken (developer.tibber.com). Zusammen mit Home Assistant zeigt das Energie-Widget die aktuelle Leistung.'
+  options_hint_tibber: 'URL https://api.tibber.com/v1-beta/gql. Token = persönliches Zugriffstoken (developer.tibber.com). Optionen: lat, lon (Ort) für Tagestemperaturen – damit wird der Verbrauch ums Wetter bereinigt. Zusammen mit Home Assistant zeigt das Energie-Widget die aktuelle Leistung.'
   about_tibber: 'Strompreise und Kosten'
   health: 'Zustand'
   token_age: 'Token-Alter'
@@ -1075,6 +1087,12 @@ hint:
       title: '{repo}: CI fehlgeschlagen'
       why: 'Letzter Lauf auf dem Hauptzweig.'
   energy:
+    shift_jobs:
+      title: '{job} läuft um {hour} Uhr teuer'
+      why: 'Strom kostet um {hour} Uhr im Schnitt {price}/kWh, um {cheap_hour} Uhr {cheap_price}. Zeitplan verschieben?'
+    weather_adjusted:
+      title: 'Stromverbrauch {percent} % über dem Wetter'
+      why: 'Letzte 7 Tage {actual} kWh; nach den Temperaturen wären {expected} kWh zu erwarten. Gerät läuft durch, Heizstab, Warmwasser?'
     cost_rising:
       title: 'Stromkosten gestiegen'
       why: 'Letzte 7 Tage {recent}, davor {before}.'
@@ -1483,6 +1501,9 @@ hint:
       why: 'Mehr als 5/6 des Umsatzes von einem Auftraggeber: Rentenversicherungspflicht als arbeitnehmerähnlicher Selbständiger prüfen (§ 2 Nr.
         9 SGB VI).'
   snipe:
+    replace_worth:
+      title: '{name}: Austausch rechnet sich in {months} Monaten'
+      why: '{years} Jahre alt, zieht {watts} W ({yearly} Strom im Jahr). Ein Gerät mit {new_watts} W für {new_cost} hat sich nach {months} Monaten bezahlt.'
     warranty:
       title: Garantie {asset} endet am {day}
       why: Asset {tag}. Verlängern oder Ersatz planen.
@@ -1543,6 +1564,9 @@ hint:
       title: Steuererklärungen {year} bis {day}
       why: EÜR, Einkommen- und Umsatzsteuererklärung.
   system:
+    unused_service:
+      title: '{name} seit {days} Tagen ungenutzt'
+      why: '{kind}: keine Klicks auf die Kachel, keine Anmeldungen, keine Besucher. Belegt {gb} GB RAM. Abschalten?'
     storage_forecast:
       title: '{name} voll in {days} Tagen'
       why: 'Jetzt {percent} % belegt; beim Tempo der letzten 30 Tage voll am {day}.'
@@ -1758,6 +1782,10 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  system.unused_service: 'Ungenutzter Dienst'
+  energy.shift_jobs: 'Wartung zu teuren Zeiten'
+  snipe.replace_worth: 'Austausch lohnt sich'
+  energy.weather_adjusted: 'Verbrauch über dem Wetter'
   system.storage_forecast: 'Speicher läuft voll'
   backups.unsaved: 'Ungesicherte neue Daten'
   system.slower_since_update: 'Langsamer seit Update'
@@ -1906,6 +1934,10 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  new_watts: 'Neues Gerät (W)'
+  new_cost: 'Neues Gerät (€)'
+  max_months: 'Höchstens Monate'
+  min_saving: 'Ab Ersparnis (€/kWh)'
   min_queries: 'Ab Anfragen'
   backup_hours: 'Sicherung älter als Stunden'
   ratio: 'Unter Anteil vom Vorjahr'
@@ -1949,6 +1981,16 @@ param:
   date_window: Datumsfenster (Tage)
   notice_days: Vorlauf (Tage)
 settings:
+  hourly_cost: 'Kostensatz je Stunde (€)'
+  hourly_cost_hint: 'Für Projektmargen. Leer: Fixkosten ÷ 168 Stunden.'
+  homelab: 'Homelab-Kosten'
+  power_entity: 'Leistungs-Sensor (Home Assistant)'
+  power_price: 'Strompreis €/kWh (ohne Tibber)'
+  hardware_years: 'Abschreibung Hardware (Jahre)'
+  domain_yearly: 'Kosten je Domain und Jahr (€)'
+  hosting_words: 'Hosting-Abos erkennen an (Sure)'
+  cloud_monthly: 'Vergleich: Cloud-Kosten je Monat (€)'
+  homelab_hint: 'Für das Widget „Homelab-Kosten“, die Austausch-Rechnung und it-kosten.csv im Jahrespaket.'
   custom: Eigene Regeln
   custom_hint: 'Schwellwert auf ein Feld eines Datensatzes, z. B. SABnzbd „Slots“ > 10 oder Eigene API „stats.users“ < 1. Listen zählen mit „#“: „Failures#“ >= 1. Feldnamen stehen im Verbindungstest.'
   custom_source: Quelle
@@ -2244,3 +2286,21 @@ isp:
   none: 'Keine Speedtest-Tracker-Verbindung mit gebuchter Geschwindigkeit (Option expect_down).'
   csv: 'Als CSV herunterladen'
   legal: 'Für eine Minderung nach § 57 TKG verlangt die Bundesnetzagentur Messungen mit ihrer Breitbandmessung-App an mehreren Tagen. Dieser Bericht zeigt, ob sich das lohnt, und belegt den Verlauf.'
+cost:
+  per_month: 'Homelab je Monat'
+  power: 'Strom'
+  hardware: 'Hardware'
+  domains: 'Domains'
+  hosting: 'Hosting'
+  none: 'Noch keine Kosten erkannt: Leistungs-Sensor, Snipe-IT-Kaufpreise oder Hosting-Abos (Sure) in den Bereichseinstellungen festlegen.'
+  cloud: 'Vergleichbare Cloud-Dienste: {amount} je Monat.'
+  business: 'Betrieblich: {percent} % ({count} von {all} Stacks und Repos für Kunden), {yearly} im Jahr.'
+  power_split: 'Strom je Dienst ({watts} W, {amount} je Monat)'
+week:
+  hours: '{hours} h gearbeitet, {percent} % für {customer}'
+  invoiced: '{count} Rechnungen geschrieben ({amount})'
+  paid: '{count} Zahlungen erhalten ({amount})'
+  storage: '{name} +{points} Punkte, jetzt {percent} % belegt'
+  power: 'Strom {kwh} kWh, {cost}'
+  hints: '{opened} Hinweise neu, {resolved} erledigt'
+  empty: 'Für diese Woche liegt noch nichts vor.'

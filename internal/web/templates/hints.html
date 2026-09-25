@@ -14,13 +14,19 @@
     {{if not .Embed}}
     <h1>{{t "hints.title"}}</h1>
     <p class="muted">{{t "hints.lead"}}</p>
+    <p class="small">{{if .ByValue}}<a href="/hints">{{t "hints.sort_level"}}</a>{{else}}<a href="/hints?sort=value">{{t "hints.sort_value"}}</a>{{end}}</p>
+    {{with .Noisy}}<details class="card"><summary>{{t "hints.noisy" "count" (len .)}}</summary>
+      <p class="small muted">{{t "hints.noisy_hint"}}</p>
+      <ul class="plain-list small">{{range .}}<li>{{t (print "rule_name." .Rule)}} · {{.Space}} · {{t "hints.noisy_line" "dismissed" .Dismissed "opened" .Opened}}
+        <a href="/spaces/{{.SpaceID}}/settings">{{t "hints.noisy_adjust"}}</a></li>{{end}}</ul>
+    </details>{{end}}
     {{end}}
     <ul class="hints">
       {{range .Hints}}
       <li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
         <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
         <div class="hint-main">
-          <b>{{.Title}}</b>
+          <b>{{.Title}}</b>{{if .Value}} <span class="pill">{{money .Value .Currency}}</span>{{end}}
           {{if or .Assignee (ne (print .Work) "open") .Flapping}}<p class="hint-tags">
             {{with .Assignee}}<span class="pill">{{t "hints.assigned_to" "name" .}}</span>{{end}}
             {{if ne (print .Work) "open"}}<span class="pill" data-state="{{if eq (print .Work) "done"}}ok{{else}}reviewing{{end}}">{{t (print "hints.work_" .Work)}}</span>{{end}}

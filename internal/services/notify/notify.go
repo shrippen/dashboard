@@ -33,6 +33,7 @@ import (
 	"dashboard/internal/services/mail"
 	"dashboard/internal/services/summary"
 	"dashboard/internal/services/util"
+	"dashboard/internal/services/weekly"
 	"dashboard/internal/settings"
 )
 
@@ -541,6 +542,27 @@ func weeklySummary(prefs map[string]any, open []hints.View, deadlines int, local
 	return text
 }
 
+// weekStory is the week in numbers for weekly digests, locally computed;
+// nil for daily digests or on failure.
+func weekStory(d *sql.DB, who *access.Principal, prefs map[string]any, local time.Time) []string {
+	digest, _ := prefs[digestKey].(map[string]any)
+	if w, _ := digest["weekly"].(string); w == "" {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), summaryWait)
+	defer cancel()
+	lines, err := weekly.Story(ctx, d, who, local)
+	if err != nil {
+		slog.Warn("week story", "err", err)
+		return nil
+	}
+	var out []string
+	for _, l := range lines {
+		out = append(out, i18n.T("week."+l.Key, who.Locale, i18n.Typed(l.Params, who.Locale)))
+	}
+	return out
+}
+
 func sendDigest(d *sql.DB, userID int64, local time.Time) error {
 	var who *access.Principal
 	var prefs map[string]any
@@ -593,6 +615,7 @@ func sendDigest(d *sql.DB, userID int64, local time.Time) error {
 	if text := weeklySummary(prefs, open, len(due), locale); text != "" {
 		paragraphs = []string{text, body}
 	}
+	paragraphs = append(weekStory(d, who, prefs, local), paragraphs...)
 	m, err := mail.Render(who.Email, locale, subject, paragraphs, nil, rows)
 	if err != nil {
 		return err

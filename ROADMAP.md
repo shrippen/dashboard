@@ -869,16 +869,16 @@ Analysen, die erst aus mehreren Diensten zusammen entstehen. Grundlage ist ein K
 - [x] Domain-Kette auf einen Blick *(Tabelle `domain_chain`; `domains.expiring` nennt, was an der Domain hängt)*
 
 **Kosten und Nutzen**
-- [ ] Dienste, die niemand nutzt
-- [ ] Stromkosten je Dienst
-- [ ] Wartung in günstige Stunden legen
-- [ ] Gesamtkosten des Homelabs
-- [ ] Betrieblicher Anteil der IT-Kosten
-- [ ] Ersetzen oder weiterbetreiben
-- [ ] Energieverbrauch bereinigt ums Wetter
-- [ ] Wochenrückblick mit Zusammenhängen
-- [ ] Schwellen, die nur nerven
-- [ ] Was ein Hinweis kostet
+- [x] Dienste, die niemand nutzt *(Regel `system.unused_service`: Komodo-Stacks, Proxmox-Gäste, TrueNAS-Apps gegen Kachel-Klicks und authentik; ohne Nutzungssignal keine Aussage)*
+- [x] Stromkosten je Dienst *(Widget „Homelab-Kosten“: Leistung aus Home Assistant × Preis, verteilt nach CPU der Proxmox-Gäste)*
+- [x] Wartung in günstige Stunden legen *(Regel `energy.shift_jobs`: letzte Laufzeit von Borg, TrueNAS, Proxmox gegen den Tibber-Tagesverlauf)*
+- [x] Gesamtkosten des Homelabs *(Widget „Homelab-Kosten“: Strom, Abschreibung aus Snipe-IT, Domains, Hosting-Abos aus Sure, Cloud-Vergleich; Einstellungen im Bereich)*
+- [x] Betrieblicher Anteil der IT-Kosten *(Anteil der Stacks und Repos mit Kunden- oder Projektnamen; `it-kosten.csv` im Jahrespaket)*
+- [x] Ersetzen oder weiterbetreiben *(Regel `snipe.replace_worth`: Snipe-IT-Gerät ↔ Leistungssensor per Name)*
+- [x] Energieverbrauch bereinigt ums Wetter *(Regel `energy.weather_adjusted`: Heizgradtage aus Open-Meteo, Optionen lat/lon an der Tibber-Verbindung)*
+- [x] Wochenrückblick mit Zusammenhängen *(im wöchentlichen Digest und als Widget „Woche in Zahlen“; lokal berechnet)*
+- [x] Schwellen, die nur nerven *(Hinweise-Seite: Regeln, deren Hinweise in 90 Tagen zu ≥ 80 % weggeklickt wurden)*
+- [x] Was ein Hinweis kostet *(Betrag am Hinweis, Sortierung nach Geldwert)*
 
 ---
 

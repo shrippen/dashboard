@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"dashboard/internal/drivers/httpclient"
 	"dashboard/internal/drivers/services"
 	"dashboard/internal/enums"
 )
@@ -337,6 +338,8 @@ type PricePoint struct {
 type EnergyDay struct {
 	Day       string
 	KWh, Cost float64
+	TempC     float64 // daily mean outside temperature
+	HasTemp   bool
 }
 
 type TibberDataset struct {
@@ -395,7 +398,36 @@ func (TibberData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		n := asMap(raw)
 		data.Days = append(data.Days, EnergyDay{Day: day(n["from"]), KWh: asFloat(n["consumption"]), Cost: asFloat(n["cost"])})
 	}
+	addTemperatures(ctx, data.Days, sctx.Options)
 	return data, nil
+}
+
+// addTemperatures fills the days' mean outside temperature from Open-Meteo
+// when the connection has lat/lon options; best-effort.
+func addTemperatures(ctx context.Context, days []EnergyDay, options map[string]any) {
+	lat, lon := asFloat(options["lat"]), asFloat(options["lon"])
+	if lat == 0 && lon == 0 {
+		return
+	}
+	params := url.Values{"latitude": {fmtCoord(lat)}, "longitude": {fmtCoord(lon)}, "daily": {"temperature_2m_mean"},
+		"past_days": {strconv.Itoa(tibberDays + 1)}, "forecast_days": {"1"}, "timezone": {"auto"}}
+	body, _, err := httpclient.GetJSON(ctx, openMeteoURL, httpclient.Options{Params: params})
+	if err != nil {
+		return
+	}
+	daily := asMap(asMap(body)["daily"])
+	temps := map[string]float64{}
+	values := asList(daily["temperature_2m_mean"])
+	for i, d := range asList(daily["time"]) {
+		if i < len(values) && values[i] != nil {
+			temps[asStr(d)] = asFloat(values[i])
+		}
+	}
+	for i := range days {
+		if t, ok := temps[days[i].Day]; ok {
+			days[i].TempC, days[i].HasTemp = t, true
+		}
+	}
 }
 
 // ── Demo ──
@@ -437,7 +469,8 @@ func DemoTibber(now time.Time) *TibberDataset {
 	}
 	data.Current = data.Prices[now.Hour()].Total
 	for d := tibberDays; d > 0; d-- {
-		data.Days = append(data.Days, EnergyDay{Day: now.AddDate(0, 0, -d).Format(time.DateOnly), KWh: 7 + float64(d%5), Cost: 2 + float64(d%5)*0.3})
+		data.Days = append(data.Days, EnergyDay{Day: now.AddDate(0, 0, -d).Format(time.DateOnly), KWh: 7 + float64(d%5), Cost: 2 + float64(d%5)*0.3,
+			TempC: 18 - float64(d%5)*2, HasTemp: true})
 	}
 	return data
 }

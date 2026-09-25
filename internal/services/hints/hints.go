@@ -139,7 +139,9 @@ type View struct {
 	Assignee     string // "" = nobody
 	AssigneeID   *int64
 	Work         enums.WorkState
-	Flapping     bool // reopened often lately; pushed only once
+	Flapping     bool    // reopened often lately; pushed only once
+	Value        float64 // largest money amount the hint names, 0 if none
+	Currency     string
 }
 
 func hidden(marks []*model.HintMark, now time.Time) bool {
@@ -276,8 +278,9 @@ func viewOf(h *model.Hint, who *access.Principal) View {
 	if h.ActionLabel != "" {
 		actionLabel = i18n.T("action."+h.ActionLabel, locale, nil)
 	}
+	value, currency := moneyValue(h.Params)
 	return View{
-		ID: h.ID, Rule: h.Rule, Severity: h.Severity,
+		ID: h.ID, Rule: h.Rule, Severity: h.Severity, Value: value, Currency: currency,
 		Title:     i18n.T("hint."+h.Message+".title", locale, params),
 		Why:       i18n.T("hint."+h.Message+".why", locale, params),
 		ActionURL: h.ActionURL, ActionLabel: actionLabel, Due: h.Due, Sources: h.Sources,
