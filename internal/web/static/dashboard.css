@@ -438,6 +438,11 @@ table.table tr:last-child td { border-bottom: 0; }
 .late { color: var(--danger-text); }
 .custom-rules input, .custom-rules select { margin: 0; min-width: 6rem; }
 .custom-if { display: flex; gap: .3rem; }
+.timer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; font-size: .86rem; }
+.timer-list li { display: flex; align-items: center; gap: .6rem; }
+.timer-list li > span:first-child { flex: 1; min-width: 0; }
+.timer-list li.is-running { border-left: 3px solid var(--green); padding-left: .5rem; }
+.timer-clock { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .topic-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; font-size: .86rem; }
 .topic-list li { display: flex; flex-direction: column; border-left: 3px solid var(--blue); padding-left: .5rem; }
 .topic-list li[data-tier="yellow"] { border-left-color: var(--yellow); }

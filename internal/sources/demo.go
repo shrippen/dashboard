@@ -512,3 +512,14 @@ func DemoBlacklist() *BlacklistDataset {
 	return &BlacklistDataset{Checked: []string{"93.184.216.34"},
 		Listings: []Listing{{IP: "93.184.216.34", Zone: "bl.spamcop.net", Code: "127.0.0.2"}}}
 }
+
+// DemoKimaiLive is the demo live Kimai view: one timer running.
+func DemoKimaiLive(now time.Time) *KimaiLive {
+	begin := now.Add(-47 * time.Minute)
+	return &KimaiLive{URL: "https://kimai.demo", TodayMin: 312,
+		Active: []KimaiTimer{{ID: 901, ProjectID: 3, ActivityID: 7, Project: "Relaunch", Activity: "Entwicklung", Customer: "Acme GmbH", Begin: begin}},
+		Recent: []KimaiTimer{
+			{ProjectID: 3, ActivityID: 7, Project: "Relaunch", Activity: "Entwicklung", Customer: "Acme GmbH"},
+			{ProjectID: 5, ActivityID: 2, Project: "Wartung", Activity: "Support", Customer: "Beta AG"},
+		}}
+}

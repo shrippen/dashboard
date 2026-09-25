@@ -12,6 +12,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,6 +28,11 @@ func joinURL(base, path string) string {
 
 // postJSON sends body as JSON and decodes the JSON answer.
 func postJSON(ctx context.Context, rawURL string, headers map[string]string, body any, skipVerify bool) (any, error) {
+	return sendJSON(ctx, http.MethodPost, rawURL, headers, body, skipVerify)
+}
+
+// sendJSON sends body as JSON with any method; nil body sends none.
+func sendJSON(ctx context.Context, method, rawURL string, headers map[string]string, body any, skipVerify bool) (any, error) {
 	raw, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -35,7 +41,10 @@ func postJSON(ctx context.Context, rawURL string, headers map[string]string, bod
 	for k, v := range headers {
 		all[k] = v
 	}
-	resp, err := httpclient.Request(ctx, http.MethodPost, rawURL, httpclient.Options{Headers: all, Body: raw, SkipVerify: skipVerify})
+	if body == nil {
+		raw = nil
+	}
+	resp, err := httpclient.Request(ctx, method, rawURL, httpclient.Options{Headers: all, Body: raw, SkipVerify: skipVerify})
 	if err != nil {
 		return nil, ApiError{err.Error()}
 	}
@@ -45,7 +54,11 @@ func postJSON(ctx context.Context, rawURL string, headers map[string]string, bod
 		return nil, ApiError{fmt.Sprintf("HTTP %d", resp.StatusCode)}
 	}
 	var out any
-	if err := json.NewDecoder(io.LimitReader(resp.Body, httpclient.MaxBody)).Decode(&out); err != nil {
+	err = json.NewDecoder(io.LimitReader(resp.Body, httpclient.MaxBody)).Decode(&out)
+	if errors.Is(err, io.EOF) {
+		return nil, nil // 204 No Content
+	}
+	if err != nil {
 		return nil, ApiError{"invalid JSON"}
 	}
 	return out, nil

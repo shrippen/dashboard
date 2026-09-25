@@ -311,6 +311,9 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  kimai_timer:
+    name: Kimai timer
+    desc: Stop the running timer, start recent activities with one click, hours today.
   updates:
     name: Update center
     desc: Every available update of the connected services in one place.
@@ -1625,3 +1628,7 @@ backup:
   failed: failed
   unknown: unknown
   none: No backup tools connected.
+timer:
+  today: Today
+  start: Start
+  stop: Stop

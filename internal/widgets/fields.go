@@ -88,13 +88,14 @@ var fieldsByType = map[string][]Field{
 		"asset_value", "assets_ready", "revenue_forecast", "cash_30", "liquidity_30", "effective_rate", "net_worth", "cash")},
 	"table": {sel("table", "open_invoices", "open_invoices", "unbilled", "budgets", "client_shares", "asset_dates", "trips", "effective_rates", "app_usage"),
 		{Key: "limit", Input: InputNumber, Default: 8}},
-	"chart":     {sel("chart", "revenue", "revenue", "hours", "seasonal"), {Key: "months", Input: InputNumber, Default: 12}},
-	"progress":  {{Key: "goal", Input: InputCheck}},
-	"deadlines": {{Key: "days", Input: InputNumber, Default: 45}},
-	"trend":     {sel("metric", "revenue_ytd", "revenue_ytd", "open_amount", "month_min"), {Key: "days", Input: InputNumber, Default: 90}},
-	"updates":   {{Key: "limit", Input: InputNumber, Default: 20}},
-	"backups":   {{Key: "max_hours", Input: InputNumber, Default: defaultBackupHours}},
-	"hints":     {{Key: "sources", Input: InputList}, {Key: "min_severity", Input: InputNumber, Default: 10}, {Key: "limit", Input: InputNumber, Default: 8}},
+	"chart":       {sel("chart", "revenue", "revenue", "hours", "seasonal"), {Key: "months", Input: InputNumber, Default: 12}},
+	"progress":    {{Key: "goal", Input: InputCheck}},
+	"deadlines":   {{Key: "days", Input: InputNumber, Default: 45}},
+	"trend":       {sel("metric", "revenue_ytd", "revenue_ytd", "open_amount", "month_min"), {Key: "days", Input: InputNumber, Default: 90}},
+	"updates":     {{Key: "limit", Input: InputNumber, Default: 20}},
+	"kimai_timer": {},
+	"backups":     {{Key: "max_hours", Input: InputNumber, Default: defaultBackupHours}},
+	"hints":       {{Key: "sources", Input: InputList}, {Key: "min_severity", Input: InputNumber, Default: 10}, {Key: "limit", Input: InputNumber, Default: 8}},
 	"calendar": {{Key: "ical_url", Input: InputSecret}, {Key: "days", Input: InputNumber, Default: defaultCalDays},
 		{Key: "limit", Input: InputNumber, Default: defaultListLimit}},
 	"custom_api": {{Key: "url", Input: InputText, Required: true}, {Key: "fields", Input: InputArea}, {Key: "headers", Input: InputHeaders}},
@@ -116,7 +117,7 @@ var dataModeField = sel(DataModeKey, string(DataAuto), string(DataAuto), string(
 
 // liveCapable are types whose data comes from a connection.
 var liveCapable = map[string]bool{"link": true, "kpi": true, "table": true, "chart": true, "progress": true,
-	"sysinfo": true, "monitors": true, "hass": true, "glances_chart": true}
+	"sysinfo": true, "monitors": true, "hass": true, "glances_chart": true, "kimai_timer": true}
 
 // FieldsOf returns the config fields of a widget type.
 func FieldsOf(key string) []Field {

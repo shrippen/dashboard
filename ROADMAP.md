@@ -723,7 +723,7 @@ Jede Quelle liefert einen gecachten Datensatz (`<dienst>.data`), Regeln, eine In
 
 - [x] Prüflauf als Hintergrund-Job: holt alle Integrationen (beim Start und alle `ANALYSIS_MINUTES`, Standard 5) und leitet Hinweise ab; Seiten lesen nur diesen Stand, live ist nur der Status-Ping der Link-Kacheln. Fehlt ein Stand (neue Verbindung), wird er einmal im Hintergrund geholt. Admin → Instanz zeigt den letzten Lauf und startet ihn auf Wunsch sofort
 - [x] Datenmodus je Widget: automatisch (Vorgabe des Typs) / live beim Anzeigen / aus dem Prüflauf. Live als Vorgabe bei Home Assistant, Uptime-Kuma-Monitoren und Systemwerten; Daten anderer Verbindungen im selben Widget (z. B. Kimai beim Stundensatz) bleiben beim Prüflauf
-- [ ] Leichte Live-Quelle für Kimai (laufender Timer, Stunden heute), damit „live“ dort nicht den ganzen Datensatz lädt
+- [x] Leichte Live-Quelle für Kimai (laufender Timer, Stunden heute), damit „live“ dort nicht den ganzen Datensatz lädt *(`kimai.live`)*
 
 - [x] FreshRSS (Google-Reader-API): Leserückstand mit den größten Quellen, verstummte Feeds
 - [x] Gitea: wartende Reviews, fällige Issues, ruhende PRs, fehlgeschlagene Actions, veraltete Spiegel
@@ -772,7 +772,7 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 
 **Selbstständigkeit**
 - [ ] Rechnungsentwurf aus unabgerechneten Kimai-Stunden in Invoice Ninja (Vorschau, Bestätigung)
-- [ ] Kimai-Timer starten/stoppen (mit der leichten Kimai-Quelle aus Phase 10)
+- [x] Kimai-Timer starten/stoppen (mit der leichten Kimai-Quelle aus Phase 10) *(Widget `kimai_timer`; Schreibzugriffe nur über `outbound`, mit Nutzungsrecht auf die Verbindung)*
 - [ ] Liquiditätsverlauf 90 Tage
 - [ ] Zahlungsmoral je Kunde
 - [ ] Verträge und Kündigungsfristen aus Paperless

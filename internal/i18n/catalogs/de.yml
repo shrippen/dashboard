@@ -311,6 +311,9 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  kimai_timer:
+    name: Kimai-Timer
+    desc: Laufende Zeiterfassung stoppen, letzte Tätigkeiten mit einem Klick starten, Stunden heute.
   updates:
     name: Update-Zentrale
     desc: Alle verfügbaren Updates der verbundenen Dienste an einer Stelle.
@@ -1626,3 +1629,7 @@ backup:
   failed: fehlgeschlagen
   unknown: unbekannt
   none: Keine Backup-Werkzeuge verbunden.
+timer:
+  today: Heute
+  start: Starten
+  stop: Stoppen
