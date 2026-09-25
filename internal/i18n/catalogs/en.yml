@@ -18,6 +18,9 @@ nav:
   logout: Log out
   space_settings: Set up analysis
 action:
+  open_in_scrutiny: Open in Scrutiny
+  open_in_immich: Open in Immich
+  open_in_umami: Open in Umami
   open_in_uptimekuma: Open in Uptime Kuma
   open_in_proxmox: Open in Proxmox
   open_in_paperless: Open in Paperless
@@ -342,6 +345,9 @@ history:
   sections: Sections
   restore: Restore
 conn:
+  options_hint_scrutiny: No options, no token needed.
+  options_hint_immich: No options needed. Token = API key (account → API keys); statistics and jobs need an admin key.
+  options_hint_umami: 'No options needed. Token = user:password (self-hosted) or API key (Umami Cloud).'
   options_hint_uptimekuma: No options needed. Token = API key from Uptime Kuma (Settings → API Keys).
   options_hint_proxmox: 'No options needed. Token = user@pam!name=uuid, role PVEAuditor, Sys.Audit for updates.'
   options_hint_paperless: No options needed. Token from Paperless (profile → API auth token).
@@ -373,6 +379,9 @@ mode:
   dark: Dark
   light: Light
 service:
+  scrutiny: Scrutiny
+  immich: Immich
+  umami: Umami
   uptimekuma: Uptime Kuma
   proxmox: Proxmox VE
   paperless: Paperless-ngx
@@ -614,6 +623,33 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  scrutiny:
+    failed:
+      title: 'Disk {disk} reports errors'
+      why: '{model}, {hours} power-on hours. Back up and plan a replacement.'
+    hot:
+      title: '{disk} runs at {temp} °C'
+      why: Check cooling and airflow.
+    stale:
+      title: 'No SMART data for {disk} since {day}'
+      why: The Scrutiny collector has probably stopped.
+  immich:
+    storage:
+      title: 'Immich storage {percent} % full'
+      why: '{free} left.'
+    jobs:
+      title: '{count} failed Immich jobs'
+      why: 'Queues: {queues}. Retry them in the job overview.'
+    update:
+      title: 'Immich {latest} available'
+      why: 'Installed: {version}. Check release notes for breaking changes.'
+  umami:
+    drop:
+      title: '{site}: {percent} % fewer visitors'
+      why: '{visitors} instead of {prev} in the last 7 days.'
+    no_data:
+      title: '{site}: no page views'
+      why: 'Previous week {prev} visitors. Check the tracking script.'
   kuma:
     down:
       title: '{monitor} is down'
@@ -775,6 +811,13 @@ hint:
       title: '{name} unreachable'
       why: 'Last fetch failed: {error}. Widgets show the last data.'
 info:
+  scrutiny:
+    disks: '{ok}/{count} disks ok'
+  immich:
+    photos: '{photos} photos'
+    disk: '{percent} % used'
+  umami:
+    visitors: '{visitors} visitors (7 d)'
   kuma:
     status: '{up}/{count} up'
   proxmox:
@@ -851,6 +894,13 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  scrutiny.disk_failed: Disk failure
+  scrutiny.disk_hot: Disk temperature
+  scrutiny.stale: SMART data stale
+  immich.storage: Storage (Immich)
+  immich.jobs_failed: Failed jobs
+  immich.update: Update (Immich)
+  umami.traffic_drop: Traffic drop
   kuma.monitor_down: Monitor down
   kuma.cert_expiring: Certificate (Uptime Kuma)
   proxmox.node_offline: Node offline
@@ -892,6 +942,8 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  drop: Drop from (share)
+  min_visitors: From visitors (previous week)
   min_count: From count
   ignore: Exclude (VMIDs)
   hours: Hours

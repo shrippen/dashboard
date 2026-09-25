@@ -281,3 +281,27 @@ func DemoCerts(now time.Time) *CertDataset {
 		{Host: "zeit.demo:443", NotAfter: today.AddDate(0, 0, 54), Issuer: "R10"},
 	}}
 }
+
+// DemoScrutiny is the demo Scrutiny dataset.
+func DemoScrutiny(now time.Time) *ScrutinyDataset {
+	seen := now.UTC().Add(-3 * time.Hour)
+	return &ScrutinyDataset{URL: "https://disks.demo", Disks: []Disk{
+		{Name: "sda", Model: "WDC WD40EFRX", Status: ScrutinyPassed, Temp: 38, Hours: 31000, Seen: seen},
+		{Name: "sdb", Model: "ST4000VN008", Status: 1, Temp: 41, Hours: 42000, Seen: seen},
+		{Name: "nvme0", Model: "Samsung 980", Status: ScrutinyPassed, Temp: 56, Hours: 9000, Seen: seen},
+	}}
+}
+
+// DemoImmich is the demo Immich dataset.
+func DemoImmich() *ImmichDataset {
+	return &ImmichDataset{URL: "https://photos.demo", Photos: 48213, Videos: 1920, DiskPercent: 87.4,
+		DiskAvailable: "412 GiB", FailedJobs: map[string]int{"faceDetection": 3}, Version: "v1.131.0", Latest: "v1.132.3"}
+}
+
+// DemoUmami is the demo Umami dataset.
+func DemoUmami() *UmamiDataset {
+	return &UmamiDataset{URL: "https://stats.demo", Sites: []Site{
+		{ID: "1", Name: "Blog", Domain: "blog.demo", Views: 1840, Visitors: 610, PrevViews: 1720, PrevVisit: 590},
+		{ID: "2", Name: "Shop", Domain: "shop.demo", Views: 120, Visitors: 41, PrevViews: 980, PrevVisit: 305},
+	}}
+}

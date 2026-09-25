@@ -57,3 +57,32 @@ func CertsInfo(data *sources.CertDataset, today time.Time) []InfoPart {
 	}
 	return []InfoPart{part("certs.next", map[string]any{"days": int(next.Sub(today).Hours() / hoursPerDay)})}
 }
+
+// ScrutinyInfo: "2/3 disks ok".
+func ScrutinyInfo(data *sources.ScrutinyDataset) []InfoPart {
+	ok := 0
+	for _, d := range data.Disks {
+		if d.Status == sources.ScrutinyPassed {
+			ok++
+		}
+	}
+	return []InfoPart{part("scrutiny.disks", map[string]any{"ok": ok, "count": len(data.Disks)})}
+}
+
+// ImmichInfo: "48,213 photos · 87 % used".
+func ImmichInfo(data *sources.ImmichDataset) []InfoPart {
+	var found []InfoPart
+	if data.Photos > 0 {
+		found = append(found, part("immich.photos", map[string]any{"photos": map[string]any{"$num": float64(data.Photos)}}))
+	}
+	return append(found, part("immich.disk", map[string]any{"percent": int(data.DiskPercent + 0.5)}))
+}
+
+// UmamiInfo: visitors over all sites, last 7 days.
+func UmamiInfo(data *sources.UmamiDataset) []InfoPart {
+	visitors := 0
+	for _, s := range data.Sites {
+		visitors += s.Visitors
+	}
+	return []InfoPart{part("umami.visitors", map[string]any{"visitors": map[string]any{"$num": float64(visitors)}})}
+}

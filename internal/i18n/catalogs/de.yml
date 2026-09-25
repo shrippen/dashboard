@@ -18,6 +18,9 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_scrutiny: In Scrutiny öffnen
+  open_in_immich: In Immich öffnen
+  open_in_umami: In Umami öffnen
   open_in_uptimekuma: In Uptime Kuma öffnen
   open_in_proxmox: In Proxmox öffnen
   open_in_paperless: In Paperless öffnen
@@ -342,6 +345,9 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_scrutiny: Keine Optionen, kein Token nötig.
+  options_hint_immich: Keine Optionen nötig. Token = API-Schlüssel (Konto → API-Schlüssel); Statistik und Jobs brauchen einen Admin-Schlüssel.
+  options_hint_umami: 'Keine Optionen nötig. Token = benutzer:passwort (selbst gehostet) oder API-Schlüssel (Umami Cloud).'
   options_hint_uptimekuma: Keine Optionen nötig. Token = API-Schlüssel aus Uptime Kuma (Einstellungen → API-Schlüssel).
   options_hint_proxmox: 'Keine Optionen nötig. Token = user@pam!name=uuid, Rechte: PVEAuditor, für Updates Sys.Audit.'
   options_hint_paperless: Keine Optionen nötig. Token aus Paperless (Profil → API-Auth-Token).
@@ -373,6 +379,9 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  scrutiny: Scrutiny
+  immich: Immich
+  umami: Umami
   uptimekuma: Uptime Kuma
   proxmox: Proxmox VE
   paperless: Paperless-ngx
@@ -614,6 +623,33 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  scrutiny:
+    failed:
+      title: 'Platte {disk} meldet Fehler'
+      why: '{model}, {hours} Betriebsstunden. Daten sichern und Tausch planen.'
+    hot:
+      title: '{disk} ist {temp} °C warm'
+      why: Kühlung oder Luftstrom prüfen.
+    stale:
+      title: 'Keine SMART-Daten für {disk} seit {day}'
+      why: Der Scrutiny-Collector läuft vermutlich nicht mehr.
+  immich:
+    storage:
+      title: 'Immich-Speicher zu {percent} % belegt'
+      why: 'Noch {free} frei.'
+    jobs:
+      title: '{count} fehlgeschlagene Immich-Jobs'
+      why: 'Warteschlangen: {queues}. In der Job-Übersicht erneut starten.'
+    update:
+      title: 'Immich {latest} verfügbar'
+      why: 'Installiert: {version}. Release-Notes auf Breaking Changes prüfen.'
+  umami:
+    drop:
+      title: '{site}: {percent} % weniger Besucher'
+      why: '{visitors} statt {prev} in den letzten 7 Tagen.'
+    no_data:
+      title: '{site}: keine Aufrufe mehr'
+      why: 'Vorwoche {prev} Besucher. Tracking-Skript prüfen.'
   kuma:
     down:
       title: '{monitor} ist nicht erreichbar'
@@ -776,6 +812,13 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  scrutiny:
+    disks: '{ok}/{count} Platten ok'
+  immich:
+    photos: '{photos} Fotos'
+    disk: '{percent} % belegt'
+  umami:
+    visitors: '{visitors} Besucher (7 T.)'
   kuma:
     status: '{up}/{count} online'
   proxmox:
@@ -852,6 +895,13 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  scrutiny.disk_failed: Plattenfehler
+  scrutiny.disk_hot: Plattentemperatur
+  scrutiny.stale: SMART-Daten veraltet
+  immich.storage: Speicher (Immich)
+  immich.jobs_failed: Fehlgeschlagene Jobs
+  immich.update: Update (Immich)
+  umami.traffic_drop: Besuchereinbruch
   kuma.monitor_down: Monitor down
   kuma.cert_expiring: Zertifikat (Uptime Kuma)
   proxmox.node_offline: Knoten offline
@@ -893,6 +943,8 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  drop: Rückgang ab (Anteil)
+  min_visitors: Ab Besuchern (Vorwoche)
   min_count: Ab Anzahl
   ignore: Ausnehmen (VMIDs)
   hours: Stunden

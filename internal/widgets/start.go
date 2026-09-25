@@ -158,6 +158,12 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.PaperlessInfo(data)
 	case *sources.CertDataset:
 		parts = metrics.CertsInfo(data, today)
+	case *sources.ScrutinyDataset:
+		parts = metrics.ScrutinyInfo(data)
+	case *sources.ImmichDataset:
+		parts = metrics.ImmichInfo(data)
+	case *sources.UmamiDataset:
+		parts = metrics.UmamiInfo(data)
 	}
 	return map[string]any{"Info": parts}
 }

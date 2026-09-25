@@ -95,7 +95,27 @@ const (
 	ServiceProxmox      ServiceType = "proxmox"
 	ServicePaperless    ServiceType = "paperless"
 	ServiceCerts        ServiceType = "certs"
+	ServiceScrutiny     ServiceType = "scrutiny"
+	ServiceImmich       ServiceType = "immich"
+	ServiceUmami        ServiceType = "umami"
 )
+
+// Services lists every connectable service, in form order.
+var Services = []ServiceType{
+	ServiceKimai, ServiceInvoiceNinja, ServiceSnipeIT, ServiceDawarich, ServiceGlances,
+	ServiceUptimeKuma, ServiceProxmox, ServicePaperless, ServiceCerts,
+	ServiceScrutiny, ServiceImmich, ServiceUmami,
+}
+
+// Known reports whether s is a connectable service.
+func (s ServiceType) Known() bool {
+	for _, k := range Services {
+		if k == s {
+			return true
+		}
+	}
+	return false
+}
 
 // Severity of a hint.
 type Severity int
