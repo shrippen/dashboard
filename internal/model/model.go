@@ -75,6 +75,9 @@ type Connection struct {
 	Options        map[string]any
 	VerifyTLS      bool
 	CreatedAt      time.Time
+	SecretAt       time.Time // zero = unknown
+	SecretExpires  string    // "2026-12-31", "" = unknown
+	DailyBudget    int       // fetches per day, 0 = unlimited
 }
 
 type UserCredential struct {
@@ -82,6 +85,7 @@ type UserCredential struct {
 	ConnectionID int64
 	UserID       int64
 	SecretEnc    []byte
+	SecretAt     time.Time // zero = unknown
 }
 
 type Widget struct {

@@ -158,6 +158,9 @@ func runSpace(ctx context.Context, d *sql.DB, sp *model.Space, mine []*model.Con
 	for _, sc := range scopes {
 		sc.datasets[rules.LinksDataset] = links
 	}
+	if err := addSecrets(d, mine, owners, scopeOf); err != nil {
+		slog.Error("analysis: secrets failed", "space", sp.ID, "err", err)
+	}
 
 	fresh := 0
 	for _, r := range runs {
@@ -175,6 +178,30 @@ func runSpace(ctx context.Context, d *sql.DB, sp *model.Space, mine []*model.Con
 		fresh += n
 	}
 	return fresh, nil
+}
+
+// addSecrets lists each scope's stored secrets for the token rule: the
+// shared token, or the owner's own personal one.
+func addSecrets(d *sql.DB, conns []*model.Connection, owners map[int64][]int64, scopeOf func(*int64) *scope) error {
+	for _, conn := range conns {
+		for _, owner := range owningUsers(conn, owners[conn.ID]) {
+			c := rules.Conn{Name: conn.Name, SecretAt: conn.SecretAt, Expires: conn.SecretExpires}
+			if owner != nil {
+				cred, err := content.Credential(d, conn.ID, *owner)
+				if err != nil {
+					return err
+				}
+				c.SecretAt = time.Time{}
+				if cred != nil {
+					c.SecretAt = cred.SecretAt
+				}
+			}
+			sc := scopeOf(owner)
+			list, _ := sc.datasets[rules.ConnsDataset].([]rules.Conn)
+			sc.datasets[rules.ConnsDataset] = append(list, c)
+		}
+	}
+	return nil
 }
 
 // certsLast orders certificate connections after all others.

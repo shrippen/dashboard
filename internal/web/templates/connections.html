@@ -13,12 +13,14 @@
     <h1>{{t "nav.connections"}}</h1>
     <p><a class="link-btn" href="/connections/new">+ {{t "action.create"}}</a></p>
     <div class="table-wrap"><table class="table">
-      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th></th><th></th></tr>
+      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th>{{t "conn.health"}}</th><th>{{t "conn.token_age"}}</th><th></th><th></th></tr>
       {{range .Connections}}
       <tr>
         <td>{{.Name}}</td>
         <td>{{.Service}}</td>
         <td>{{.URL}}</td>
+        <td>{{template "conn_health" .Health}}</td>
+        <td>{{if not .SecretAt.IsZero}}{{ago .SecretAt}}{{else}}–{{end}}{{with .SecretExpires}}<br><small class="muted">{{t "conn.expires"}} {{day .}}</small>{{end}}</td>
         <td><a class="link-btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a></td>
         <td><a class="link-btn" href="/shares/connection/{{.ID}}">{{t "share.title"}}</a></td>
       </tr>
@@ -54,13 +56,12 @@
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
 
       {{if .IsNew}}
+        <p><b>{{t (print "service." .Service)}}</b> · <a href="/connections/new">{{t "conn.other_service"}}</a></p>
+        <p class="small muted">{{t (print "conn.options_hint_" .Service)}}</p>
+        <input type="hidden" name="service" value="{{.Service}}">
         <label for="space_id">{{t "field.space"}}</label>
         <select id="space_id" name="space_id" required>
           {{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
-        </select>
-        <label for="service">{{t "field.service"}}</label>
-        <select id="service" name="service" required>
-          {{range .Services}}<option value="{{.}}">{{t (print "service." .)}}</option>{{end}}
         </select>
       {{end}}
 
@@ -98,7 +99,30 @@
         <pre class="mono">{"event": "execution_failed", "name": "kimai"}</pre>
       </div>
     {{end}}
+    {{with .Suggest}}
+      <h2>{{t "conn.suggest"}}</h2>
+      <div class="type-grid">
+        {{range .}}<a class="type-card" href="/widgets/new?type={{.Key}}&space={{$.Conn.SpaceID}}"><b>{{t (print "wtype." .Key ".name")}}</b><small>{{t (print "wtype." .Key ".desc")}}</small></a>{{end}}
+      </div>
+    {{end}}
     {{if not .IsNew}}
+      <h2>{{t "conn.health"}}</h2>
+      <div class="card">
+        <p>{{template "conn_health" .Conn.Health}}</p>
+        {{with .Conn.Health.LastError}}<p class="small muted">{{t "conn.last_error"}}: {{.}}</p>{{end}}
+        {{if .Conn.DailyBudget}}<p class="small muted">{{t "conn.budget_today" "n" .Conn.Health.Today "max" .Conn.DailyBudget}}</p>{{end}}
+      </div>
+      <h2>{{t "conn.hygiene"}}</h2>
+      <form method="post" action="/connections/{{.Conn.ID}}/hygiene" class="card">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <p class="small muted">{{t "conn.token_age"}}: {{if not .Conn.SecretAt.IsZero}}{{ago .Conn.SecretAt}}{{else}}–{{end}}</p>
+        <label for="expires">{{t "conn.expires"}}</label>
+        <input id="expires" name="expires" type="date" value="{{.Conn.SecretExpires}}">
+        <label for="budget">{{t "conn.budget"}}</label>
+        <input id="budget" name="budget" type="number" min="0" value="{{.Conn.DailyBudget}}">
+        <p class="small muted">{{t "conn.budget_hint"}}</p>
+        <button type="submit">{{t "action.save"}}</button>
+      </form>
       <h2>{{t "conn.options"}}</h2>
       <form method="post" action="/connections/{{.Conn.ID}}/options" class="card">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
@@ -117,6 +141,31 @@
         <button type="submit">{{t "conn.delete"}}</button>
       </form>
     {{end}}
+  </main>
+</body>
+</html>
+{{end}}
+
+{{/* One line of fetch health: 7 days, failure rate, mean time, last success. */}}
+{{define "conn_health"}}{{if .Fetches}}<span class="pill" data-state="{{if ge .FailPct 50}}fail{{else if .FailPct}}warn{{else}}ok{{end}}">{{.FailPct}} % {{t "conn.failed"}}</span> <small class="muted">{{.AvgMS}} ms · {{if not .LastOK.IsZero}}✓ {{ago .LastOK}}{{else}}{{t "conn.never_ok"}}{{end}}</small>{{else}}<small class="muted">{{t "conn.no_fetches"}}</small>{{end}}{{end}}
+
+{{define "connection_pick"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "conn.new"}} · dashboard</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "conn.new"}}</h1>
+    <p class="muted">{{t "conn.pick"}}</p>
+    <div class="type-grid">
+      {{range .Services}}<a class="type-card" href="/connections/new?service={{.}}"><b>{{t (print "service." .)}}</b><small>{{t (print "conn.about_" .)}}</small></a>{{end}}
+    </div>
   </main>
 </body>
 </html>

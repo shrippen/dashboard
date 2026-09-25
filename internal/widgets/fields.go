@@ -95,6 +95,7 @@ var fieldsByType = map[string][]Field{
 	"updates":     {{Key: "limit", Input: InputNumber, Default: 20}},
 	"kimai_timer": {},
 	"heatmap":     {},
+	"jsonapi":     {},
 	"cashflow":    {{Key: "days", Input: InputNumber, Default: defaultCashDays}},
 	"backups":     {{Key: "max_hours", Input: InputNumber, Default: defaultBackupHours}},
 	"hints":       {{Key: "sources", Input: InputList}, {Key: "min_severity", Input: InputNumber, Default: 10}, {Key: "limit", Input: InputNumber, Default: 8}},

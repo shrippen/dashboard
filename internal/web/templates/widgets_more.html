@@ -95,3 +95,17 @@
 </svg>
 {{end}}{{end}}
 {{end}}
+
+{{define "widgets/jsonapi"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}
+{{if $v.Fields}}<dl class="kv">
+  {{range $v.Fields}}<dt>{{.Label}}</dt><dd>{{if not .Found}}<span class="muted">–</span>{{else if .Numeric}}{{if .Level}}<span class="pill" data-state="{{.Level}}">{{num .Value 2}}</span>{{else}}{{num .Value 2}}{{end}}{{else}}{{.Text}}{{end}}</dd>{{end}}
+</dl>{{end}}
+{{if $v.Rows}}<div class="table-wrap"><table class="table">
+  <tr>{{range $v.Columns}}<th>{{.}}</th>{{end}}</tr>
+  {{range $v.Rows}}<tr>{{range .}}<td>{{.}}</td>{{end}}</tr>{{end}}
+</table></div>{{end}}
+{{if not (or $v.Fields $v.Rows)}}<p class="small muted">{{t "wtype.jsonapi.empty"}}</p>{{end}}
+{{end}}
+{{end}}

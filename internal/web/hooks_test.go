@@ -15,7 +15,7 @@ func TestPGBackWebHook(t *testing.T) {
 	setupAdmin(t, srv, client, code)
 	login(t, srv, client)
 
-	space := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new"))
+	space := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new?service=kimai"))
 	resp := postForm(t, client, srv.URL+"/connections", url.Values{
 		"csrf": {csrfToken(t, srv, client)}, "space_id": {string(space[1])}, "service": {"pgbackweb"}, "name": {"PG"},
 		"url": {"https://pgback.lan"}, "mode": {"shared"}, "tls": {"verify"},

@@ -42,7 +42,7 @@ func TestKimaiTimerStops(t *testing.T) {
 	kimai := httptest.NewServer(mux)
 	defer kimai.Close()
 
-	space := string(regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new"))[1])
+	space := string(regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new?service=kimai"))[1])
 	csrf := csrfToken(t, srv, client)
 	resp := postForm(t, client, srv.URL+"/connections", url.Values{"csrf": {csrf}, "space_id": {space}, "service": {"kimai"}, "name": {"Kimai"},
 		"url": {kimai.URL}, "mode": {"shared"}, "secret": {"tok"}, "tls": {"verify"}})
@@ -121,7 +121,7 @@ func TestBillingDraftAndExport(t *testing.T) {
 	ninja := httptest.NewServer(ninjaMux)
 	defer ninja.Close()
 
-	space := string(regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new"))[1])
+	space := string(regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new?service=kimai"))[1])
 	csrf := csrfToken(t, srv, client)
 	for _, c := range []struct{ svc, url string }{{"kimai", kimai.URL}, {"invoiceninja", ninja.URL}} {
 		postForm(t, client, srv.URL+"/connections", url.Values{"csrf": {csrf}, "space_id": {space}, "service": {c.svc}, "name": {c.svc},

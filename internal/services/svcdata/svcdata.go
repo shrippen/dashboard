@@ -261,7 +261,26 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 		return result, nil
 	}
 
+	if spent(d, conn) {
+		if result := stored(key); !result.Pending {
+			return result, nil
+		}
+		return Result{FetchedAt: time.Now().UTC(), Error: BudgetSpent}, nil
+	}
 	return fetch(ctx, d, key, sourceKey, source, sctx, conn), nil
+}
+
+// BudgetSpent is the error of a fetch skipped because the connection's
+// daily budget is used up.
+const BudgetSpent = "budget.spent"
+
+// spent reports whether a rate-limited connection has used today's budget.
+func spent(d *sql.DB, conn *model.Connection) bool {
+	if conn == nil || conn.DailyBudget <= 0 {
+		return false
+	}
+	n, err := data.Fetches(d, conn.ID, time.Now().UTC().Format(time.DateOnly))
+	return err == nil && n >= conn.DailyBudget
 }
 
 // backgroundWait bounds a background fill.
@@ -305,6 +324,7 @@ func fetch(ctx context.Context, d *sql.DB, key, sourceKey string, source sources
 		}
 	}
 	out, fetchErr := source.Fetch(ctx, sctx)
+	took := time.Since(now).Milliseconds()
 	result := Result{FetchedAt: now}
 	if fetchErr != nil {
 		result.Error = fetchErr.Error()
@@ -318,6 +338,9 @@ func fetch(ctx context.Context, d *sql.DB, key, sourceKey string, source sources
 	}
 	remember(key, memConn, result, source.TTL())
 	_ = persistCache(d, key, sourceKey, result) // best-effort; a cache write failure must not fail the fetch
+	if conn != nil {
+		_ = data.RecordFetch(d, conn.ID, now, took, result.Error) // best-effort, health view only
+	}
 	return result
 }
 
@@ -356,9 +379,16 @@ func persistCache(d *sql.DB, key, sourceKey string, result Result) error {
 // Prune deletes cache entries older than the retention window.
 const CacheRetention = 7 * 24 * time.Hour
 
+// StatsRetention keeps fetch statistics for the health view and budget.
+const StatsRetention = 30 * 24 * time.Hour
+
 func Prune(d *sql.DB) error {
 	return db.WithTx(d, func(tx *sql.Tx) error {
-		return data.PruneCache(tx, time.Now().UTC().Add(-CacheRetention))
+		now := time.Now().UTC()
+		if err := data.PruneConnStats(tx, now.Add(-StatsRetention).Format(time.DateOnly)); err != nil {
+			return err
+		}
+		return data.PruneCache(tx, now.Add(-CacheRetention))
 	})
 }
 

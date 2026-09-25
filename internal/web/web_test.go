@@ -361,7 +361,7 @@ func TestConnectionsCreateEditDelete(t *testing.T) {
 	login(t, srv, client)
 
 	// The "new connection" form's space picker gives us a real space id.
-	resp, err := client.Get(srv.URL + "/connections/new")
+	resp, err := client.Get(srv.URL + "/connections/new?service=kimai")
 	if err != nil {
 		t.Fatalf("get new form: %v", err)
 	}
@@ -385,7 +385,7 @@ func TestConnectionsCreateEditDelete(t *testing.T) {
 	if resp.StatusCode != http.StatusSeeOther {
 		t.Fatalf("expected 303 after create, got %d", resp.StatusCode)
 	}
-	editLocation := resp.Header.Get("Location")
+	editLocation, _, _ := strings.Cut(resp.Header.Get("Location"), "?")
 
 	resp, err = client.Get(srv.URL + "/connections")
 	if err != nil {
@@ -544,7 +544,7 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 	login(t, srv, client)
 	kimai := fakeKimaiServer(t)
 
-	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new"))
+	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new?service=kimai"))
 	if spaceMatch == nil {
 		t.Fatal("no space option found in new-connection form")
 	}
@@ -559,7 +559,7 @@ func TestWidgetFragmentRendersKimaiKpi(t *testing.T) {
 		t.Fatalf("create connection: %v", err)
 	}
 	resp.Body.Close()
-	editLocation := resp.Header.Get("Location")
+	editLocation, _, _ := strings.Cut(resp.Header.Get("Location"), "?")
 	connMatch := regexp.MustCompile(`/connections/(\d+)/edit`).FindStringSubmatch(editLocation)
 	if connMatch == nil {
 		t.Fatalf("no connection id in redirect %q", editLocation)
@@ -834,7 +834,7 @@ func TestSharesGrantAndRevoke(t *testing.T) {
 	setupAdmin(t, srv, client, code)
 	login(t, srv, client)
 
-	body := mustGet(t, srv, client, "/connections/new")
+	body := mustGet(t, srv, client, "/connections/new?service=kimai")
 	spaceMatch := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(body)
 	if spaceMatch == nil {
 		t.Fatalf("no space option found in new-connection form:\n%s", body)
@@ -848,7 +848,7 @@ func TestSharesGrantAndRevoke(t *testing.T) {
 		t.Fatalf("create connection: %v", err)
 	}
 	resp.Body.Close()
-	editLocation := resp.Header.Get("Location")
+	editLocation, _, _ := strings.Cut(resp.Header.Get("Location"), "?")
 	connID := regexp.MustCompile(`/connections/(\d+)/edit`).FindStringSubmatch(editLocation)[1]
 
 	body = mustGet(t, srv, client, "/shares/connection/"+connID)

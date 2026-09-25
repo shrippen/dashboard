@@ -57,6 +57,11 @@ type View struct {
 	Options   map[string]any
 	SpaceID   int64
 	Right     enums.Right
+
+	SecretAt      time.Time // shared token, or the caller's own; zero = unknown
+	SecretExpires string
+	DailyBudget   int
+	Health        Health
 }
 
 func rightOf(q db.Queryer, who *access.Principal, conn *model.Connection) (enums.Right, error) {
@@ -72,10 +77,22 @@ func viewOf(q db.Queryer, who *access.Principal, conn *model.Connection, granted
 	if err != nil {
 		return View{}, err
 	}
+	health, err := healthOf(q, conn.ID, time.Now().UTC())
+	if err != nil {
+		return View{}, err
+	}
+	secretAt := conn.SecretAt
+	if conn.CredentialMode == enums.CredentialPersonal {
+		secretAt = time.Time{}
+		if cred != nil {
+			secretAt = cred.SecretAt
+		}
+	}
 	return View{
 		ID: conn.ID, Key: conn.Key, Name: conn.Name, Service: enums.ServiceType(conn.Service), URL: conn.URL,
 		Mode: conn.CredentialMode, HasSecret: len(conn.SecretEnc) > 0, HasMine: cred != nil,
 		VerifyTLS: conn.VerifyTLS, Options: conn.Options, SpaceID: conn.SpaceID, Right: granted,
+		SecretAt: secretAt, SecretExpires: conn.SecretExpires, DailyBudget: conn.DailyBudget, Health: health,
 	}, nil
 }
 
@@ -209,8 +226,13 @@ func Create(d *sql.DB, who *access.Principal, spaceID int64, service enums.Servi
 			}
 			secretEnc = enc
 		}
+		var secretAt time.Time
+		if secretEnc != nil {
+			secretAt = time.Now().UTC()
+		}
 		conn := &model.Connection{
-			SpaceID: spaceID, Key: util.Unique(util.Slug(label, string(service)), taken), Name: label,
+			SecretAt: secretAt,
+			SpaceID:  spaceID, Key: util.Unique(util.Slug(label, string(service)), taken), Name: label,
 			Service: string(service), URL: strings.TrimRight(strings.TrimSpace(url), "/"),
 			CredentialMode: mode, SecretEnc: secretEnc, VerifyTLS: tls == TLSVerify, Options: orEmpty(options),
 			CreatedAt: time.Now().UTC(),
@@ -267,6 +289,7 @@ func Update(d *sql.DB, who *access.Principal, connID int64, name, url string, mo
 				return err
 			}
 			conn.SecretEnc = enc
+			conn.SecretAt = time.Now().UTC()
 			if err := audit.Log(tx, &who.UserID, "connection.secret_changed", conn.Name, "", nil); err != nil {
 				return err
 			}

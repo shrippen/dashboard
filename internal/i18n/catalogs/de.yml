@@ -332,6 +332,10 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  jsonapi:
+    name: 'Eigene Integration'
+    desc: 'Kennzahlen und Liste einer eigenen JSON-API, festgelegt in den Verbindungsoptionen (YAML).'
+    empty: 'Keine Felder festgelegt: fields und list in den Optionen der Verbindung eintragen.'
   heatmap:
     name: Stunden-Heatmap
     desc: Gearbeitete Stunden je Tag über das letzte Jahr (Kimai).
@@ -456,6 +460,7 @@ widget:
   connection_type: Die Verbindung passt nicht zum Widget-Typ.
   unsupported: Passt nicht zur gewählten Verbindung.
 connection:
+  bad_date: 'Datum im Format JJJJ-MM-TT angeben.'
   missing: Verbindung fehlt
   location_personal: Standortdaten sind nur als persönliche Verbindung erlaubt.
 source:
@@ -524,7 +529,53 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
-  options_hint_jsonapi: 'URL einer JSON-Antwort. Optionen: header: X-Api-Key (sonst Authorization: Bearer <Token>). Token optional. Felder mit eigenen Regeln prüfen, z. B. stats.users.'
+  health: 'Zustand'
+  token_age: 'Token-Alter'
+  expires: 'Läuft ab'
+  other_service: 'anderer Dienst'
+  suggest: 'Passende Widgets'
+  last_error: 'Letzter Fehler'
+  budget_today: 'Heute {n} von {max} Abrufen.'
+  hygiene: 'Token und Abrufe'
+  budget: 'Abrufe je Tag'
+  budget_hint: '0 = unbegrenzt. Danach zeigt das Dashboard den letzten Stand bis morgen.'
+  failed: 'fehlgeschlagen'
+  never_ok: 'noch nie erfolgreich'
+  no_fetches: 'noch keine Abrufe'
+  pick: 'Welchen Dienst willst du verbinden? Danach: Adresse und Token, Test, passende Widgets.'
+  about_kimai: 'Zeiterfassung: Stunden, Projekte, Budgets'
+  about_invoiceninja: 'Rechnungen, Zahlungen, Ausgaben'
+  about_snipeit: 'Inventar: Geräte, Lizenzen, Garantie'
+  about_dawarich: 'Standortverlauf: Orte und Wege'
+  about_glances: 'Systemlast eines Rechners'
+  about_uptimekuma: 'Erreichbarkeit von Diensten'
+  about_proxmox: 'VMs, Container, Knoten, Updates'
+  about_paperless: 'Dokumente, Rechnungen, Verträge'
+  about_certs: 'TLS-Zertifikate und ihr Ablauf'
+  about_scrutiny: 'Festplatten-Zustand (SMART)'
+  about_immich: 'Fotos: Speicher, Jobs, Version'
+  about_umami: 'Webseiten-Besucher'
+  about_freshrss: 'Ungelesene Feeds'
+  about_gitea: 'Repos, Issues, Pull Requests'
+  about_borgbackup: 'Borg-Backups und ihr Alter'
+  about_homeassistant: 'Sensoren und Schalter'
+  about_sure: 'Konten und Ausgaben'
+  about_linkwarden: 'Lesezeichen gegen Kacheln abgleichen'
+  about_pgbackweb: 'Postgres-Backups per Webhook'
+  about_mail: 'Rechnungen im Postfach (IMAP)'
+  about_truenas: 'Pools, Snapshots, Replikation'
+  about_komodo: 'Stacks, Deployments, Updates'
+  about_pangolin: 'Tunnel, Standorte, Ressourcen'
+  about_authentik: 'Anmeldungen und Nutzung'
+  about_pihole: 'DNS-Filter: Anfragen, Blockquote'
+  about_adguard: 'DNS-Filter: Anfragen, Blockquote'
+  about_nextcloud: 'Speicher, Nutzer, App-Updates'
+  about_sabnzbd: 'Downloads und Warteschlange'
+  about_gluetun: 'VPN-Ausgang prüfen'
+  about_domains: 'Ablauf von Domains'
+  about_blacklist: 'Mailserver auf Sperrlisten'
+  about_jsonapi: 'Beliebige JSON-Schnittstelle, eigene Felder'
+  options_hint_jsonapi: 'URL einer JSON-Antwort, Token optional. Optionen (YAML): header: X-Api-Key (sonst Authorization: Bearer <Token>); fields: [{label: Warteschlange, path: stats.queue, warn: 10, critical: 50}] für Kennzahlen und Hinweise; list: {path: jobs, columns: [name, state], limit: 10} für eine Tabelle. Widget „Eigene Integration“ zeigt beides; eigene Regeln prüfen jedes Feld.'
   options_hint_pihole: Keine Optionen. Token = App-Passwort (Pi-hole v6) bzw. API-Token (v5).
   options_hint_adguard: Keine Optionen. Token = benutzer:passwort.
   options_hint_nextcloud: 'Keine Optionen. Token = serverinfo-Token (occ config:app:set serverinfo token --value …) oder admin:app-passwort.'
@@ -855,6 +906,10 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  jsonapi:
+    threshold:
+      title: '{label}: {value}'
+      why: 'Schwelle {limit} erreicht.'
   links:
     dead:
       title: '{count} Kacheln seit {days} Tagen nicht erreichbar'
@@ -1262,6 +1317,12 @@ hint:
       title: Steuererklärungen {year} bis {day}
       why: EÜR, Einkommen- und Umsatzsteuererklärung.
   system:
+    token_expires:
+      title: '{name}: Token läuft ab'
+      why: 'Gültig bis {day}. Neues Token erzeugen und in der Verbindung hinterlegen.'
+    token_old:
+      title: '{name}: Token seit {days} Tagen unverändert'
+      why: 'Hinterlegt am {since}. Alte Tokens regelmäßig ersetzen.'
     outage:
       title: '{host} nicht erreichbar'
       why: '{count} Dienste betroffen: {names}. Einzelne Hinweise dazu werden zurückgehalten.'
@@ -1404,6 +1465,8 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  jsonapi.threshold: 'Eigene Integration: Schwelle überschritten'
+  system.token_age: 'Token alt oder läuft ab'
   links.dead: Tote Links
   paperless.contract_notice: Kündigungsfrist
   in.payment_worse: Kunde zahlt langsamer
@@ -1515,6 +1578,7 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  max_age_days: 'Höchstalter (Tage)'
   warn_gb: Warnung ab (GB frei)
   critical_gb: Kritisch ab (GB frei)
   factor: Faktor zum Üblichen
@@ -1742,3 +1806,5 @@ mobile:
   normal: Normal
   first: Oben anzeigen
   hide: Ausblenden
+budget:
+  spent: 'Abruf-Budget für heute aufgebraucht.'

@@ -52,7 +52,7 @@ func TestHassToggle(t *testing.T) {
 	login(t, srv, client)
 	ha, calls := fakeHass(t)
 
-	space := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new"))
+	space := regexp.MustCompile(`<option value="(\d+)">`).FindSubmatch(mustGet(t, srv, client, "/connections/new?service=kimai"))
 	resp := postForm(t, client, srv.URL+"/connections", url.Values{
 		"csrf": {csrfToken(t, srv, client)}, "space_id": {string(space[1])}, "service": {"homeassistant"}, "name": {"HA"},
 		"url": {ha.URL}, "mode": {"shared"}, "secret": {"tok"}, "tls": {"verify"},

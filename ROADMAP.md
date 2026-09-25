@@ -797,11 +797,11 @@ Auswahl vom 25.09.2026 (Checkliste „Dashboard-Ausbau“). Nicht gewählt: Hell
 - [x] Eigenes Handy-Layout je Board *(je Abschnitt: oben anzeigen oder ausblenden)*
 
 **Verbindungen**
-- [ ] Verbindungs-Assistent
-- [ ] Zustand je Verbindung (letzter Erfolg, Fehlerquote, Antwortzeit)
-- [ ] Token-Hygiene (Alter, Ablauf)
-- [ ] Eigene Integration per YAML
-- [ ] Abruf-Budget für begrenzte APIs
+- [x] Verbindungs-Assistent *(Dienst wählen → Adresse/Token mit Hilfe → Test und passende Widgets)*
+- [x] Zustand je Verbindung (letzter Erfolg, Fehlerquote, Antwortzeit) *(7 Tage, Tabelle `conn_stats`)*
+- [x] Token-Hygiene (Alter, Ablauf) *(Regel `system.token_age`)*
+- [x] Eigene Integration per YAML *(JSON-API-Verbindung: fields mit Schwellen, list; Widget „Eigene Integration“, Regel `jsonapi.threshold`)*
+- [x] Abruf-Budget für begrenzte APIs *(Abrufe je Tag, danach letzter Stand)*
 
 **Integrationen**
 - [ ] Tailscale / Headscale

@@ -332,6 +332,10 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  jsonapi:
+    name: 'Own integration'
+    desc: 'Key figures and a list from your own JSON API, defined in the connection options (YAML).'
+    empty: 'No fields defined: add fields and list to the connection options.'
   heatmap:
     name: Hours heatmap
     desc: Hours worked per day over the last year (Kimai).
@@ -456,6 +460,7 @@ widget:
   connection_type: The connection does not fit the widget type.
   unsupported: Does not fit the chosen connection.
 connection:
+  bad_date: 'Give the date as YYYY-MM-DD.'
   missing: Connection missing
   location_personal: Location data is only allowed as a personal connection.
 source:
@@ -524,7 +529,53 @@ history:
   sections: Sections
   restore: Restore
 conn:
-  options_hint_jsonapi: 'URL of a JSON response. Options: header: X-Api-Key (else Authorization: Bearer <token>). Token optional. Check fields with custom rules, e.g. stats.users.'
+  health: 'Health'
+  token_age: 'Token age'
+  expires: 'Expires'
+  other_service: 'other service'
+  suggest: 'Matching widgets'
+  last_error: 'Last error'
+  budget_today: 'Today {n} of {max} fetches.'
+  hygiene: 'Token and fetches'
+  budget: 'Fetches per day'
+  budget_hint: '0 = unlimited. Beyond it the dashboard shows the last state until tomorrow.'
+  failed: 'failed'
+  never_ok: 'never succeeded'
+  no_fetches: 'no fetches yet'
+  pick: 'Which service do you want to connect? Then: address and token, test, matching widgets.'
+  about_kimai: 'Time tracking: hours, projects, budgets'
+  about_invoiceninja: 'Invoices, payments, expenses'
+  about_snipeit: 'Inventory: assets, licenses, warranty'
+  about_dawarich: 'Location history: places and trips'
+  about_glances: 'System load of one machine'
+  about_uptimekuma: 'Service availability'
+  about_proxmox: 'VMs, containers, nodes, updates'
+  about_paperless: 'Documents, invoices, contracts'
+  about_certs: 'TLS certificates and their expiry'
+  about_scrutiny: 'Disk health (SMART)'
+  about_immich: 'Photos: storage, jobs, version'
+  about_umami: 'Website visitors'
+  about_freshrss: 'Unread feeds'
+  about_gitea: 'Repos, issues, pull requests'
+  about_borgbackup: 'Borg backups and their age'
+  about_homeassistant: 'Sensors and switches'
+  about_sure: 'Accounts and spending'
+  about_linkwarden: 'Match bookmarks against tiles'
+  about_pgbackweb: 'Postgres backups via webhook'
+  about_mail: 'Invoices in the mailbox (IMAP)'
+  about_truenas: 'Pools, snapshots, replication'
+  about_komodo: 'Stacks, deployments, updates'
+  about_pangolin: 'Tunnels, sites, resources'
+  about_authentik: 'Logins and usage'
+  about_pihole: 'DNS filter: queries, block rate'
+  about_adguard: 'DNS filter: queries, block rate'
+  about_nextcloud: 'Storage, users, app updates'
+  about_sabnzbd: 'Downloads and queue'
+  about_gluetun: 'Check the VPN exit'
+  about_domains: 'Domain expiry'
+  about_blacklist: 'Mail server on blocklists'
+  about_jsonapi: 'Any JSON API, own fields'
+  options_hint_jsonapi: 'URL of a JSON response, token optional. Options (YAML): header: X-Api-Key (else Authorization: Bearer <token>); fields: [{label: Queue, path: stats.queue, warn: 10, critical: 50}] for key figures and hints; list: {path: jobs, columns: [name, state], limit: 10} for a table. The "Own integration" widget shows both; custom rules can test any field.'
   options_hint_pihole: No options. Token = app password (Pi-hole v6) or API token (v5).
   options_hint_adguard: No options. Token = user:password.
   options_hint_nextcloud: 'No options. Token = serverinfo token (occ config:app:set serverinfo token --value …) or admin:app-password.'
@@ -855,6 +906,10 @@ mail:
     new_login_body: New login from {ip} ({agent}).
     hint: If this was not you, change your password now and end all sessions.
 hint:
+  jsonapi:
+    threshold:
+      title: '{label}: {value}'
+      why: 'Threshold {limit} reached.'
   links:
     dead:
       title: '{count} tiles unreachable for {days} days'
@@ -1261,6 +1316,12 @@ hint:
       title: Tax returns {year} due {day}
       why: Profit statement, income tax and VAT return.
   system:
+    token_expires:
+      title: '{name}: token expires'
+      why: 'Valid until {day}. Create a new token and store it in the connection.'
+    token_old:
+      title: '{name}: token unchanged for {days} days'
+      why: 'Stored on {since}. Replace old tokens regularly.'
     outage:
       title: '{host} unreachable'
       why: '{count} services affected: {names}. Their single hints are held back.'
@@ -1403,6 +1464,8 @@ deadline:
   prepayment: Income tax prepayment
   annual: Tax returns {year}
 rule_name:
+  jsonapi.threshold: 'Own integration: threshold exceeded'
+  system.token_age: 'Token old or expiring'
   links.dead: Dead links
   paperless.contract_notice: Cancellation deadline
   in.payment_worse: Client pays slower
@@ -1514,6 +1577,7 @@ rule_name:
   geo.no_data: No location data
   tax.deadlines: Tax deadlines
 param:
+  max_age_days: 'Maximum age (days)'
   warn_gb: Warn below (GB free)
   critical_gb: Critical below (GB free)
   factor: Factor to usual
@@ -1741,3 +1805,5 @@ mobile:
   normal: Normal
   first: Show first
   hide: Hide
+budget:
+  spent: 'Fetch budget for today used up.'

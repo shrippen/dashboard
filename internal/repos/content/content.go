@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"dashboard/internal/db"
 	"dashboard/internal/enums"
@@ -159,17 +160,20 @@ func RemoveSpace(q db.Queryer, spaceID int64) error {
 // ── Connections ──
 
 const connCols = `id, space_id, key, name, service, url, credential_mode, secret_enc,
-	options, verify_tls, created_at`
+	options, verify_tls, created_at, secret_at, secret_expires, daily_budget`
 
 func scanConnection(row interface{ Scan(...any) error }) (*model.Connection, error) {
 	var c model.Connection
-	var options, createdAt string
+	var options, createdAt, secretAt string
 
 	err := row.Scan(
 		&c.ID, &c.SpaceID, &c.Key, &c.Name, &c.Service, &c.URL, &c.CredentialMode,
-		&c.SecretEnc, &options, &c.VerifyTLS, &createdAt,
+		&c.SecretEnc, &options, &c.VerifyTLS, &createdAt, &secretAt, &c.SecretExpires, &c.DailyBudget,
 	)
 	if err != nil {
+		return nil, err
+	}
+	if c.SecretAt, err = optTime(secretAt); err != nil {
 		return nil, err
 	}
 	c.Options = map[string]any{}
@@ -178,6 +182,21 @@ func scanConnection(row interface{ Scan(...any) error }) (*model.Connection, err
 	}
 	c.CreatedAt, err = db.ParseTime(createdAt)
 	return &c, err
+}
+
+// optTime parses an optional db time ("" = zero).
+func optTime(raw string) (time.Time, error) {
+	if raw == "" {
+		return time.Time{}, nil
+	}
+	return db.ParseTime(raw)
+}
+
+func optTimeStr(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return db.TimeStr(t)
 }
 
 // Connection returns a connection by id, or nil.
@@ -245,10 +264,11 @@ func AddConnection(q db.Queryer, c *model.Connection) error {
 		return err
 	}
 	res, err := q.Exec(`INSERT INTO connections
-		(space_id, key, name, service, url, credential_mode, secret_enc, options, verify_tls, created_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?)`,
+		(space_id, key, name, service, url, credential_mode, secret_enc, options, verify_tls, created_at,
+		 secret_at, secret_expires, daily_budget)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		c.SpaceID, c.Key, c.Name, c.Service, c.URL, c.CredentialMode, c.SecretEnc, options,
-		c.VerifyTLS, db.TimeStr(c.CreatedAt),
+		c.VerifyTLS, db.TimeStr(c.CreatedAt), optTimeStr(c.SecretAt), c.SecretExpires, c.DailyBudget,
 	)
 	if err != nil {
 		return err
@@ -268,9 +288,11 @@ func UpdateConnection(q db.Queryer, c *model.Connection) error {
 		return err
 	}
 	_, err = q.Exec(`UPDATE connections SET
-		name=?, service=?, url=?, credential_mode=?, secret_enc=?, options=?, verify_tls=?
+		name=?, service=?, url=?, credential_mode=?, secret_enc=?, options=?, verify_tls=?,
+		secret_at=?, secret_expires=?, daily_budget=?
 		WHERE id=?`,
-		c.Name, c.Service, c.URL, c.CredentialMode, c.SecretEnc, options, c.VerifyTLS, c.ID,
+		c.Name, c.Service, c.URL, c.CredentialMode, c.SecretEnc, options, c.VerifyTLS,
+		optTimeStr(c.SecretAt), c.SecretExpires, c.DailyBudget, c.ID,
 	)
 	return err
 }
@@ -284,13 +306,18 @@ func RemoveConnection(q db.Queryer, connID int64) error {
 // Credential returns one user's personal credential for a connection, or nil.
 func Credential(q db.Queryer, connID, userID int64) (*model.UserCredential, error) {
 	var c model.UserCredential
+	var secretAt string
 	err := q.QueryRow(
-		"SELECT id, connection_id, user_id, secret_enc FROM user_credentials WHERE connection_id = ? AND user_id = ?",
+		"SELECT id, connection_id, user_id, secret_enc, secret_at FROM user_credentials WHERE connection_id = ? AND user_id = ?",
 		connID, userID,
-	).Scan(&c.ID, &c.ConnectionID, &c.UserID, &c.SecretEnc)
+	).Scan(&c.ID, &c.ConnectionID, &c.UserID, &c.SecretEnc, &secretAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
+	if err != nil {
+		return nil, err
+	}
+	c.SecretAt, err = optTime(secretAt)
 	return &c, err
 }
 
@@ -324,12 +351,12 @@ func SetCredential(q db.Queryer, connID, userID int64, secretEnc []byte) error {
 	}
 	if existing == nil {
 		_, err := q.Exec(
-			"INSERT INTO user_credentials (connection_id, user_id, secret_enc) VALUES (?,?,?)",
-			connID, userID, secretEnc,
+			"INSERT INTO user_credentials (connection_id, user_id, secret_enc, secret_at) VALUES (?,?,?,?)",
+			connID, userID, secretEnc, db.TimeStr(time.Now().UTC()),
 		)
 		return err
 	}
-	_, err = q.Exec("UPDATE user_credentials SET secret_enc = ? WHERE id = ?", secretEnc, existing.ID)
+	_, err = q.Exec("UPDATE user_credentials SET secret_enc = ?, secret_at = ? WHERE id = ?", secretEnc, db.TimeStr(time.Now().UTC()), existing.ID)
 	return err
 }
 
