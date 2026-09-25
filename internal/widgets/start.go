@@ -242,6 +242,18 @@ func linkView(_ any, results map[string]any, ctx ViewCtx) map[string]any {
 		parts = metrics.PangolinInfo(data)
 	case *sources.AuthentikDataset:
 		parts = metrics.AuthentikInfo(data)
+	case *sources.DNSFilterDataset:
+		parts = metrics.DNSFilterInfo(data)
+	case *sources.NextcloudDataset:
+		parts = metrics.NextcloudInfo(data)
+	case *sources.SabnzbdDataset:
+		parts = metrics.SabnzbdInfo(data)
+	case *sources.GluetunDataset:
+		parts = metrics.GluetunInfo(data)
+	case *sources.DomainsDataset:
+		parts = metrics.DomainsInfo(data, today)
+	case *sources.BlacklistDataset:
+		parts = metrics.BlacklistInfo(data)
 	}
 	return map[string]any{"Info": parts}
 }

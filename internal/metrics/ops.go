@@ -180,3 +180,60 @@ func AuthentikInfo(data *sources.AuthentikDataset) []InfoPart {
 		part("authentik.users", map[string]any{"count": len(data.Users)}),
 	}
 }
+
+// DNSFilterInfo: "18 % blocked", Pi-hole and AdGuard alike.
+func DNSFilterInfo(data *sources.DNSFilterDataset) []InfoPart {
+	if !data.Enabled {
+		return []InfoPart{part("dnsfilter.off", nil)}
+	}
+	return []InfoPart{part("dnsfilter.blocked", map[string]any{"percent": int(data.Percent + 0.5)})}
+}
+
+// NextcloudInfo: "3/6 active (24 h)".
+func NextcloudInfo(data *sources.NextcloudDataset) []InfoPart {
+	return []InfoPart{part("nextcloud.active", map[string]any{"active": data.Active24, "users": data.Users})}
+}
+
+const kbPerMB = 1024
+
+// SabnzbdInfo: "3 queued · 41 MB/s".
+func SabnzbdInfo(data *sources.SabnzbdDataset) []InfoPart {
+	found := []InfoPart{part("sabnzbd.queue", map[string]any{"count": data.Slots})}
+	if data.Paused {
+		return append(found, part("sabnzbd.paused", nil))
+	}
+	if data.SpeedKB > 0 {
+		found = append(found, part("sabnzbd.speed", map[string]any{"mb": int(data.SpeedKB/kbPerMB + 0.5)}))
+	}
+	return found
+}
+
+// GluetunInfo: "VPN · Sweden".
+func GluetunInfo(data *sources.GluetunDataset) []InfoPart {
+	if data.Status != "running" {
+		return []InfoPart{part("gluetun.down", nil)}
+	}
+	return []InfoPart{part("gluetun.up", map[string]any{"country": data.Country})}
+}
+
+// DomainsInfo: days until the next known domain expiry.
+func DomainsInfo(data *sources.DomainsDataset, today time.Time) []InfoPart {
+	var next time.Time
+	for _, d := range data.Domains {
+		if !d.Expires.IsZero() && (next.IsZero() || d.Expires.Before(next)) {
+			next = d.Expires
+		}
+	}
+	if next.IsZero() {
+		return nil
+	}
+	return []InfoPart{part("domains.next", map[string]any{"days": int(next.Sub(today).Hours() / hoursPerDay)})}
+}
+
+// BlacklistInfo: "clean" or "2 listings".
+func BlacklistInfo(data *sources.BlacklistDataset) []InfoPart {
+	if len(data.Listings) == 0 {
+		return []InfoPart{part("blacklist.clean", nil)}
+	}
+	return []InfoPart{part("blacklist.listed", map[string]any{"count": len(data.Listings)})}
+}

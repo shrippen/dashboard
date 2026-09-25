@@ -71,17 +71,18 @@ var fieldsByType = map[string][]Field{
 		sel("color", "none", "none", "yellow", "green", "red", "blue", "purple", "aqua", "orange"),
 		{Key: "headers", Input: InputHeaders},
 	},
-	"rss":       {{Key: "url", Input: InputText, Required: true}, {Key: "limit", Input: InputNumber, Default: 8}, {Key: "summary", Input: InputCheck}},
-	"clock":     {{Key: "timezones", Input: InputList, Default: []any{defaultTimezone}}, {Key: "seconds", Input: InputCheck}, {Key: "date", Input: InputCheck, Default: true}},
-	"weather":   {{Key: "label", Input: InputText}, {Key: "lat", Input: InputNumber, Required: true}, {Key: "lon", Input: InputNumber, Required: true}},
-	"iframe":    {{Key: "url", Input: InputText, Required: true}, {Key: "height", Input: InputNumber, Default: 320}},
-	"note":      {{Key: "text", Input: InputArea}},
-	"image":     {{Key: "url", Input: InputText, Required: true}, {Key: "height", Input: InputNumber, Default: 240}, {Key: "link", Input: InputText}},
-	"rates":     {{Key: "base", Input: InputText, Default: "EUR"}, {Key: "symbols", Input: InputList, Default: []any{"USD", "CHF", "GBP"}}},
-	"monitors":  {},
-	"hass":      {{Key: "entities", Input: InputList, Required: true}},
-	"sysinfo":   {},
-	"public_ip": {},
+	"rss":           {{Key: "url", Input: InputText, Required: true}, {Key: "limit", Input: InputNumber, Default: 8}, {Key: "summary", Input: InputCheck}},
+	"clock":         {{Key: "timezones", Input: InputList, Default: []any{defaultTimezone}}, {Key: "seconds", Input: InputCheck}, {Key: "date", Input: InputCheck, Default: true}},
+	"weather":       {{Key: "label", Input: InputText}, {Key: "lat", Input: InputNumber, Required: true}, {Key: "lon", Input: InputNumber, Required: true}},
+	"iframe":        {{Key: "url", Input: InputText, Required: true}, {Key: "height", Input: InputNumber, Default: 320}},
+	"note":          {{Key: "text", Input: InputArea}},
+	"image":         {{Key: "url", Input: InputText, Required: true}, {Key: "height", Input: InputNumber, Default: 240}, {Key: "link", Input: InputText}},
+	"rates":         {{Key: "base", Input: InputText, Default: "EUR"}, {Key: "symbols", Input: InputList, Default: []any{"USD", "CHF", "GBP"}}},
+	"monitors":      {},
+	"hass":          {{Key: "entities", Input: InputList, Required: true}},
+	"sysinfo":       {},
+	"glances_chart": {sel("metric", "cpu", "cpu", "mem", "load", "swap"), {Key: "points", Input: InputNumber, Default: defaultGlancesPoints}},
+	"public_ip":     {},
 	"kpi": {sel("metric", "hours_today", "hours_today", "hours_week", "hours_month", "utilization", "unbilled",
 		"revenue_ytd", "revenue_month", "open_amount", "overdue_amount", "vat_liability", "tax_reserve",
 		"asset_value", "assets_ready", "revenue_forecast", "cash_30", "liquidity_30", "effective_rate", "net_worth", "cash")},
@@ -113,7 +114,7 @@ var dataModeField = sel(DataModeKey, string(DataAuto), string(DataAuto), string(
 
 // liveCapable are types whose data comes from a connection.
 var liveCapable = map[string]bool{"link": true, "kpi": true, "table": true, "chart": true, "progress": true,
-	"sysinfo": true, "monitors": true, "hass": true}
+	"sysinfo": true, "monitors": true, "hass": true, "glances_chart": true}
 
 // FieldsOf returns the config fields of a widget type.
 func FieldsOf(key string) []Field {

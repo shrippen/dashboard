@@ -18,6 +18,13 @@ nav:
   logout: Abmelden
   space_settings: Auswertung einstellen
 action:
+  open_in_pihole: In Pi-hole öffnen
+  open_in_adguard: In AdGuard Home öffnen
+  open_in_nextcloud: In Nextcloud öffnen
+  open_in_sabnzbd: In SABnzbd öffnen
+  open_in_gluetun: In Gluetun öffnen
+  open_in_domains: In Domains öffnen
+  open_in_blacklist: In Blacklist-Check öffnen
   open_in_truenas: In TrueNAS öffnen
   open_in_komodo: In Komodo öffnen
   open_in_pangolin: In Pangolin öffnen
@@ -142,6 +149,7 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  points: Messpunkte
   ical_url: iCal-Adresse
   fields: Felder
   entries: Einträge
@@ -228,6 +236,10 @@ field:
   chart: Diagramm
   info: Infozeile aus Verbindung
 opt:
+  cpu: CPU
+  mem: RAM
+  load: Last
+  swap: Swap
   Any: Alle
   Programming: Programmieren
   Misc: Verschiedenes
@@ -297,6 +309,9 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  glances_chart:
+    name: Glances-Verlauf
+    desc: Verlauf einer Kennzahl (CPU, RAM, Last, Swap) aus einer Glances-Verbindung.
   calendar:
     name: Kalender
     desc: 'Nächste Termine aus einer iCal-Adresse (Nextcloud, Google, Outlook), Wiederholungen aufgelöst.'
@@ -448,6 +463,13 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
+  options_hint_pihole: Keine Optionen. Token = App-Passwort (Pi-hole v6) bzw. API-Token (v5).
+  options_hint_adguard: Keine Optionen. Token = benutzer:passwort.
+  options_hint_nextcloud: 'Keine Optionen. Token = serverinfo-Token (occ config:app:set serverinfo token --value …) oder admin:app-passwort.'
+  options_hint_sabnzbd: Keine Optionen. Token = API-Schlüssel (Konfiguration → Allgemein).
+  options_hint_gluetun: 'URL des Control-Servers (http://gluetun:8000). Optionen: country: Sweden (erwartetes Ausgangsland). Token = API-Schlüssel, falls gesetzt.'
+  options_hint_domains: 'URL = eine Adresse der Domain. Optionen: domains: [example.org, example.de]. Kein Token. .de nennt kein Ablaufdatum.'
+  options_hint_blacklist: 'URL = Mailserver (dessen IPv4-Adressen werden geprüft). Optionen: ips: [1.2.3.4], zones: [zen.spamhaus.org]. Kein Token.'
   options_hint_truenas: Keine Optionen. Token = API-Schlüssel (Benutzer → API-Schlüssel). Nutzt die WebSocket-API, ältere Versionen REST.
   options_hint_komodo: Keine Optionen. Token = key:secret eines Komodo-API-Schlüssels (nur lesend genügt).
   options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1). Optionen: org: <Organisations-ID>. Token = Integration-API-Schlüssel.'
@@ -496,6 +518,13 @@ mode:
   dark: Dunkel
   light: Hell
 service:
+  pihole: Pi-hole
+  adguard: AdGuard Home
+  nextcloud: Nextcloud
+  sabnzbd: SABnzbd
+  gluetun: Gluetun
+  domains: Domains
+  blacklist: Blacklist-Check
   truenas: TrueNAS
   komodo: Komodo
   pangolin: Pangolin
@@ -760,6 +789,49 @@ mail:
     new_login_body: Neue Anmeldung von {ip} ({agent}).
     hint: Warst du das nicht, ändere sofort dein Passwort und beende alle Sitzungen.
 hint:
+  dnsfilter:
+    disabled:
+      title: 'Werbeblocker in {service} ausgeschaltet'
+      why: Blockieren wieder einschalten – vorübergehendes Ausschalten wird leicht vergessen.
+  pihole:
+    lists_old:
+      title: 'Pi-hole-Listen seit {days} Tagen nicht aktualisiert'
+      why: Gravity aktualisieren (pihole -g) oder den Cron-Job prüfen.
+  nextcloud:
+    disk_low:
+      title: 'Nextcloud: nur noch {gb} GB frei'
+      why: Papierkorb und Versionen leeren oder Speicher erweitern.
+    app_updates:
+      title: '{count} App-Updates in Nextcloud'
+      why: In den Apps-Einstellungen aktualisieren.
+  sabnzbd:
+    failed:
+      title: 'Download fehlgeschlagen: {name}'
+      why: '{reason}'
+    disk_low:
+      title: 'SABnzbd: nur noch {gb} GB frei'
+      why: Bei vollem Datenträger pausieren alle Downloads.
+  gluetun:
+    down:
+      title: 'VPN-Tunnel nicht aktiv ({status})'
+      why: Container hinter Gluetun haben keine Verbindung oder gehen ungeschützt raus.
+    leak:
+      title: 'VPN-Leck: Ausgangs-IP {ip} ist die eigene'
+      why: Der Verkehr läuft nicht durch den Tunnel. Gluetun-Konfiguration und Firewall prüfen.
+    country:
+      title: 'VPN-Ausgang in {country} statt {expected}'
+      why: Server-Auswahl in Gluetun prüfen.
+  domains:
+    expiring:
+      title: 'Domain {domain} läuft am {day} ab'
+      why: 'Noch {days} Tage. Verlängerung beim Registrar prüfen.'
+  blacklist:
+    listed:
+      title: '{ip} steht auf {zone}'
+      why: Mails werden abgewiesen. Ursache (offenes Relay, kompromittiertes Konto) beheben und Delisting beantragen.
+    refused:
+      title: Blacklist-Abfrage abgelehnt
+      why: '{zones} beantwortet Anfragen über öffentliche DNS-Resolver nicht. Eigenen Resolver nutzen.'
   truenas:
     pool_unhealthy:
       title: 'Pool {pool} ist {status}'
@@ -1103,6 +1175,23 @@ hint:
       title: '{name} nicht erreichbar'
       why: 'Letzter Abruf fehlgeschlagen: {error}. Widgets zeigen den letzten Stand.'
 info:
+  dnsfilter:
+    blocked: '{percent} % geblockt'
+    'off': Blockieren aus
+  nextcloud:
+    active: '{active}/{users} aktiv (24 h)'
+  sabnzbd:
+    queue: '{count} in Warteschlange'
+    speed: '{mb} MB/s'
+    paused: pausiert
+  gluetun:
+    up: 'VPN · {country}'
+    down: VPN aus
+  domains:
+    next: 'Ablauf in {days} Tagen'
+  blacklist:
+    clean: nicht gelistet
+    listed: '{count} Listungen'
   truenas:
     pools: '{count} Pools · {percent} % belegt'
   komodo:
@@ -1214,6 +1303,16 @@ deadline:
   prepayment: ESt-Vorauszahlung
   annual: Steuererklärungen {year}
 rule_name:
+  pihole.disabled: Pi-hole ausgeschaltet
+  pihole.lists_old: Pi-hole-Listen veraltet
+  adguard.disabled: AdGuard ausgeschaltet
+  nextcloud.disk_low: Nextcloud-Speicher knapp
+  nextcloud.app_updates: Nextcloud-App-Updates
+  sabnzbd.failed: Fehlgeschlagene Downloads
+  sabnzbd.disk_low: SABnzbd-Speicher knapp
+  gluetun.vpn: VPN-Tunnel
+  domains.expiring: Domain-Ablauf
+  blacklist.listed: Blacklist-Einträge
   truenas.pool_unhealthy: Pool-Zustand
   truenas.pool_full: Pool-Füllstand
   truenas.alerts: TrueNAS-Warnungen
@@ -1307,6 +1406,8 @@ rule_name:
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
 param:
+  warn_gb: Warnung ab (GB frei)
+  critical_gb: Kritisch ab (GB frei)
   factor: Faktor zum Üblichen
   accounts: Geschäftskonten (Namen)
   warn_hours: Warnung ab Stunden

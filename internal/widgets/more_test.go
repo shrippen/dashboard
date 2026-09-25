@@ -47,3 +47,11 @@ func TestHolidaysView(t *testing.T) {
 		t.Fatalf("holidays: %+v", rows)
 	}
 }
+
+func TestGlancesChartView(t *testing.T) {
+	data := &sources.GlancesHistory{Metric: "cpu", Samples: []sources.Sample{{Value: 0}, {Value: 100}}}
+	view := glancesChartView(nil, map[string]any{"history": data}, ViewCtx{})
+	if view["Path"] != "M0.0,155.0 L1000.0,5.0" || view["Now"] != 100.0 {
+		t.Fatalf("view: %+v", view)
+	}
+}

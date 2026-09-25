@@ -84,3 +84,14 @@
 </table>
 {{end}}
 {{end}}
+
+{{define "widgets/glances_chart"}}
+{{with $slot := index .Frag.Slots "history"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{if $v.Path}}
+<p class="kpi"><span class="kpi-label">{{t (printf "opt.%s" $v.Metric)}}</span>
+  <b class="kpi-value">{{if eq $v.Metric "load"}}{{num $v.Now 2}}{{else}}{{num $v.Now 0}} %{{end}}</b></p>
+<svg class="chart spark-lg" viewBox="0 0 {{$v.W}} {{$v.H}}" preserveAspectRatio="none" role="img" aria-label="{{t (printf "opt.%s" $v.Metric)}}">
+  <path class="trend-line" d="{{$v.Path}}"/>
+</svg>
+{{end}}{{end}}
+{{end}}

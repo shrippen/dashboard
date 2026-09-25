@@ -465,3 +465,46 @@ func DemoAuthentik(now time.Time) *AuthentikDataset {
 		Users: []AKUser{{Name: "alex", LastLogin: ago(0)}, {Name: "sam", LastLogin: ago(2)}, {Name: "kim", LastLogin: ago(240)}, {Name: "test", LastLogin: time.Time{}}},
 	}
 }
+
+// DemoPihole is the demo Pi-hole dataset: blocking switched off.
+func DemoPihole(now time.Time) *DNSFilterDataset {
+	return &DNSFilterDataset{URL: "https://pihole.demo", Queries: 48210, Blocked: 9120, Percent: 18.9,
+		Enabled: false, ListsUpdated: now.UTC().AddDate(0, 0, -21), Clients: 14}
+}
+
+// DemoAdGuard is the demo AdGuard Home dataset.
+func DemoAdGuard() *DNSFilterDataset {
+	return &DNSFilterDataset{URL: "https://adguard.demo", Queries: 30500, Blocked: 4100, Percent: 13.4, Enabled: true}
+}
+
+// DemoNextcloud is the demo Nextcloud dataset.
+func DemoNextcloud() *NextcloudDataset {
+	return &NextcloudDataset{URL: "https://cloud.demo", Version: "31.0.8.1", FreeBytes: 7.5 * (1 << 30), Users: 6, Active24: 3,
+		Files: 182340, AppUpdates: 4}
+}
+
+// DemoSabnzbd is the demo Sabnzbd dataset.
+func DemoSabnzbd(now time.Time) *SabnzbdDataset {
+	return &SabnzbdDataset{URL: "https://sab.demo", Slots: 3, SpeedKB: 42000, FreeGB: 14.2,
+		Failures: []SabFailure{{Name: "Linux.ISO.2026", Reason: "Unpacking failed, CRC error", At: now.UTC().Add(-5 * time.Hour)}}}
+}
+
+// DemoGluetun is the demo Gluetun dataset: tunnel up, wrong country.
+func DemoGluetun() *GluetunDataset {
+	return &GluetunDataset{URL: "http://gluetun.demo:8000", Status: "running", ExitIP: "185.65.134.10", Country: "Netherlands",
+		OwnIP: "93.184.216.34", ExpectedCountry: "Sweden"}
+}
+
+// DemoDomains is the demo domain dataset.
+func DemoDomains(now time.Time) *DomainsDataset {
+	return &DomainsDataset{Domains: []DomainInfo{
+		{Name: "example.de"},
+		{Name: "example.org", Expires: now.UTC().AddDate(0, 0, 18)},
+	}}
+}
+
+// DemoBlacklist is the demo blacklist dataset.
+func DemoBlacklist() *BlacklistDataset {
+	return &BlacklistDataset{Checked: []string{"93.184.216.34"},
+		Listings: []Listing{{IP: "93.184.216.34", Zone: "bl.spamcop.net", Code: "127.0.0.2"}}}
+}

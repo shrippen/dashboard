@@ -18,6 +18,12 @@ connections:
   - {id: komodo, type: komodo, name: Komodo, url: "demo://komodo", credentials: shared}
   - {id: pangolin, type: pangolin, name: Pangolin, url: "demo://pangolin", credentials: shared}
   - {id: authentik, type: authentik, name: authentik, url: "demo://authentik", credentials: shared}
+  - {id: pihole, type: pihole, name: Pi-hole, url: "demo://pihole", credentials: shared}
+  - {id: nextcloud, type: nextcloud, name: Nextcloud, url: "demo://nextcloud", credentials: shared}
+  - {id: sabnzbd, type: sabnzbd, name: SABnzbd, url: "demo://sabnzbd", credentials: shared}
+  - {id: gluetun, type: gluetun, name: Gluetun, url: "demo://gluetun", credentials: shared}
+  - {id: domains, type: domains, name: Domains, url: "demo://domains", credentials: shared}
+  - {id: blacklist, type: blacklist, name: Blacklist, url: "demo://blacklist", credentials: shared}
 widgets:
   - {id: kuma-link, type: link, title: Uptime Kuma, config: {url: "https://uptime.kuma.pet", icon: "hl-uptime-kuma", description: Monitoring, status: "off", info: {connection: kuma}}}
   - {id: pve-link, type: link, title: Proxmox, config: {url: "https://www.proxmox.com", icon: "hl-proxmox", description: Virtualisierung, status: "off", info: {connection: pve}}}
@@ -33,6 +39,12 @@ widgets:
   - {id: komodo-link, type: link, title: Komodo, config: {url: "https://komo.do", icon: "hl-komodo", description: Container, status: "off", info: {connection: komodo}}}
   - {id: pangolin-link, type: link, title: Pangolin, config: {url: "https://pangolin.net", icon: "hl-pangolin", description: Tunnel, status: "off", info: {connection: pangolin}}}
   - {id: authentik-link, type: link, title: authentik, config: {url: "https://goauthentik.io", icon: "hl-authentik", description: Anmeldung, status: "off", info: {connection: authentik}}}
+  - {id: pihole-link, type: link, title: Pi-hole, config: {url: "https://pi-hole.net", icon: "hl-pi-hole", description: DNS, status: "off", info: {connection: pihole}}}
+  - {id: nextcloud-link, type: link, title: Nextcloud, config: {url: "https://nextcloud.com", icon: "hl-nextcloud", description: Cloud, status: "off", info: {connection: nextcloud}}}
+  - {id: sabnzbd-link, type: link, title: SABnzbd, config: {url: "https://sabnzbd.org", icon: "hl-sabnzbd", description: Downloads, status: "off", info: {connection: sabnzbd}}}
+  - {id: gluetun-link, type: link, title: Gluetun, config: {url: "https://github.com/qdm12/gluetun", icon: "hl-gluetun", description: VPN, status: "off", info: {connection: gluetun}}}
+  - {id: domains-link, type: link, title: Domains, config: {url: "https://rdap.org", icon: "mdi-web", description: Registrierung, status: "off", info: {connection: domains}}}
+  - {id: blacklist-link, type: link, title: Blacklist, config: {url: "https://www.spamhaus.org", icon: "mdi-email-alert", description: Mailserver, status: "off", info: {connection: blacklist}}}
   - {id: authentik-apps, type: table, title: Anmeldungen je Anwendung, connection: authentik, config: {table: app_usage, limit: 5}}
   - {id: hass-panel, type: hass, title: Zuhause, connection: hass, config: {entities: [light.buero, switch.kaffeemaschine, sensor.wohnzimmer_temperatur, sensor.fenster_bad_batterie]}}
   - {id: monitors, type: monitors, title: Monitore, connection: kuma, config: {}}
@@ -50,6 +62,7 @@ boards:
     sections:
       - {title: Dienste, cols: 4, widgets: [kimai, invoiceninja, snipeit, dawarich]}
       - {title: Betrieb, cols: 4, widgets: [kuma-link, pve-link, paperless-link, certs-link, scrutiny-link, immich-link, umami-link, freshrss-link, gitea-link, borg-link, hass-link, truenas-link, komodo-link, pangolin-link, authentik-link]}
+      - {title: Netz, cols: 4, span: 2, color: blue, widgets: [pihole-link, nextcloud-link, sabnzbd-link, gluetun-link, domains-link, blacklist-link]}
       - {title: News, area: side, widgets: [news]}
       - {title: Info, area: side, widgets: [clock, note]}
       - {title: Status, area: side, widgets: [monitors, hass-panel, authentik-apps]}
