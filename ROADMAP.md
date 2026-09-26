@@ -613,6 +613,72 @@ Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
 
 ---
 
+### 9.1 Startseite im D-Stil
+
+Aufbau (Entwurf D, umgesetzt 2026-09-26): Kopfleiste mit Boards, Hinweis-Zähler, Suche und den Menüs „Einrichten“ und Nutzer. Darunter frei platzierbare Bereiche: Begrüßung, „Häufig“, Datenkacheln, Linkgruppen in fließenden Spalten (Spanne 7), rechts die Lage (Hinweise nach Schwere). Jeder Bereich und jede Kachel lässt sich im Bearbeiten-Modus verschieben und über „Mein Layout“ je Nutzer ausblenden.
+
+Links: klein = kompakte Zeilen, mittel = Zeile mit Beschreibung, groß = Icon-Kachel. Ein Link ohne Info-Verbindung zählt die Hinweise der Verbindung auf demselben Host; Klick auf den Zähler zeigt sie.
+
+### 9.2 Katalog der Datenkacheln
+
+Status: **da** = gibt es, **neu** = mit dem D-Stil gebaut, **offen** = Idee, Quelle vorhanden.
+
+| Bereich | Kachel | Darstellung | Quelle | Status |
+|---|---|---|---|---|
+| Start | Begrüßung (Gruß, Uhr, Wetter, seit gestern) | Text, Vorhersage-Balken, Liste | Open-Meteo, Zeitleiste, Hinweise | neu |
+| Start | Lage | Hinweise nach Schwere, Aktion, Später | Hinweise | neu (Umbau) |
+| Start | Uhr, Wetter, Feiertage, Kalender, RSS, Notiz, Liste, Bild, Eingebettete Seite | Text | diverse | da |
+| Start | Öffentliche IP | Wert | ipify | da |
+| Zeit | Kimai Lite | Timer, Tagesbalken, Heute/Woche, Zuletzt | Kimai (live) | neu (Umbau) |
+| Zeit | Stunden-Heatmap | Jahresraster | Kimai | da |
+| Zeit | Woche je Tag gegen Ziel | Balken mit Ziellinie | Kimai | offen |
+| Zeit | Projekte je Tag / Tätigkeitsverteilung (wie Plasmai-Statistik) | gestapelte Balken, Ring | Kimai | offen |
+| Geld | Offene Rechnungen nach Alter | gestapelte Leiste | Invoice Ninja | neu |
+| Geld | Kennzahl (Umsatz, offen, überfällig, Stundensatz …) | Wert, Delta | Kimai, Invoice Ninja, Sure | da |
+| Geld | Liquiditätsverlauf | Linie mit Ereignissen | Invoice Ninja, Sure | da |
+| Geld | Umsatz je Monat | Balken | Invoice Ninja | da (Diagramm) |
+| Geld | Nicht abgerechnete Stunden nach Alter | gestapelte Leiste | Kimai | offen (Tabelle da) |
+| Geld | Budget-Fortschritt | Fortschrittsbalken | Kimai | da |
+| Homelab | Verbindungen | gesund/gesamt, 14-Tage-Streifen | Abrufstatistik | neu |
+| Homelab | Last (CPU, RAM, Load) | Balken | Glances | da (jetzt Balken) |
+| Homelab | Systemwerte (CPU, RAM, Swap, Platten) | Fortschrittsbalken | Glances | da (jetzt Balken) |
+| Homelab | Backups | Statusstreifen, Liste | Borg, PG Back Web | da (jetzt Streifen) |
+| Homelab | Speicherprognose | Füllstand, „voll in“ | Kennzahl-Verlauf der Speicherquellen | da |
+| Homelab | Update-Zentrale, Update-Fenster | Liste | diverse | da |
+| Homelab | Monitore | Status-Pills | Uptime Kuma | da |
+| Homelab | Link-Erreichbarkeit 30 Tage | Streifen | Linkstatus | da (in Link-Kacheln) |
+| Homelab | Plattengesundheit | Ampel je Platte | Scrutiny | offen |
+| Homelab | Container/Stacks | Zähler, Liste | Komodo | offen |
+| Homelab | Pools | Füllstand je Pool | TrueNAS | offen (in Speicherprognose) |
+| Homelab | Werbeblocker heute | Anteil geblockt, Balken je Stunde | Pi-hole, AdGuard | offen |
+| Homelab | VPN-Tunnel | Status, Ausgangsland | Gluetun | offen |
+| Homelab | Tailnet | Geräte, ablaufende Schlüssel | Tailscale | da |
+| Homelab | Gateway | WAN, Geräte, Updates | OPNsense, pfSense, UniFi | offen (Hinweise da) |
+| Homelab | Zertifikate und Domains | Tage bis Ablauf als Balken | Zertifikate, RDAP | offen |
+| Homelab | Homelab-Kosten | Summe, Aufteilung | Einstellungen, Tibber | da |
+| Netz | Internet-Geschwindigkeit | Balken gegen Vertrag | Speedtest Tracker | da (jetzt Balken) |
+| Netz | Geschwindigkeit 7 Tage | Balken je Tag | Speedtest Tracker | offen (Verlauf nötig) |
+| Haushalt | Home Assistant | Werte, Schalter | Home Assistant | da |
+| Haushalt | Energie | Preiskurve, Kosten | Tibber, Home Assistant | da |
+| Haushalt | Vorräte, Einkaufsliste | Liste | Grocy | da |
+| Haushalt | Wetterwarnungen | Liste | DWD | da |
+| Medien | Mediaserver (Streams, Bibliothek) | Zähler | Jellyfin, Plex | da |
+| Medien | Demnächst | Liste | Sonarr, Radarr | da |
+| Medien | Downloads | Fortschritt, Speicher frei | SABnzbd | offen |
+| Dokumente | Paperless-Posteingang | Zähler, ältestes | Paperless | offen |
+| Dokumente | Rechnungen aus Mail | Liste | IMAP | offen (Abrechnung da) |
+| Wissen | Ungelesen je Feed | Balken | FreshRSS | offen |
+| Wissen | Linkwarden-Abgleich | Zähler | Linkwarden | offen |
+| Code | GitHub-Repos | PRs, Issues, CI | GitHub | da |
+| Code | Gitea | Offene Reviews | Gitea | offen |
+| Standort | Pendeln heute, Fahrtenbuch | Strecke, km | Dawarich | offen |
+| Assets | Garantien und Prüfungen | Fristen | Snipe-IT | da (Fristen) |
+| Sicherheit | Anmeldungen | Liste, Länder | authentik | offen |
+| Sicherheit | Tresore ohne 2FA | Zähler | Vaultwarden | offen (Hinweis da) |
+| Übergreifend | Woche in Zahlen | Zeilen | alle | da |
+| Übergreifend | Hinweise als Widget mit Filter | Liste | Hinweise | da |
+| Übergreifend | Eigene Integration / Eigene API | Kennzahl, Tabelle | JSON-API | da |
+
 ## 10. Phasen
 
 Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichsmodell kommen bewusst ganz an den Anfang: Mehrbenutzerfähigkeit nachträglich einzubauen hieße, jede Abfrage und jedes Widget noch einmal anzufassen.
