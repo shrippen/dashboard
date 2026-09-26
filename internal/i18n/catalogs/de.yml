@@ -154,6 +154,8 @@ board:
   full: Alles zeigen
   compact: Kompakt
 edit:
+  tile_tall: Doppelte Höhe
+  tile_normal: Normale Höhe
   bulk: Auswahl
   bulk_move: verschieben nach
   bulk_color: Farbe setzen

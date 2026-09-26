@@ -23,6 +23,7 @@ import (
 	"dashboard/internal/repos/content"
 	"dashboard/internal/repos/users"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/boards"
 	"dashboard/internal/services/util"
 	"dashboard/internal/widgets"
 )
@@ -85,13 +86,21 @@ func widgetRef(w *model.Widget, home int64, spaces map[int64]*model.Space) strin
 func boardDoc(b *model.Board, spaces map[int64]*model.Space) map[string]any {
 	sections := []any{}
 	for _, sec := range b.Sections {
-		refs := []any{}
+		refs, tall := []any{}, []any{}
 		for _, p := range sec.Placements {
-			if p.Widget != nil {
-				refs = append(refs, widgetRef(p.Widget, b.SpaceID, spaces))
+			if p.Widget == nil {
+				continue
+			}
+			ref := widgetRef(p.Widget, b.SpaceID, spaces)
+			refs = append(refs, ref)
+			if p.Rows > 1 {
+				tall = append(tall, ref)
 			}
 		}
 		item := map[string]any{"title": sec.Title, "widgets": refs}
+		if len(tall) > 0 {
+			item["tall"] = tall
+		}
 		if sec.Cols != nil {
 			item["cols"] = *sec.Cols
 		}
@@ -550,6 +559,10 @@ func importBoard(q db.Queryer, who *access.Principal, spaceID int64, item map[st
 			return err
 		}
 
+		tall := map[string]bool{}
+		for _, r := range asAnyList(raw["tall"]) {
+			tall[fmt.Sprint(r)] = true
+		}
 		refs, _ := raw["widgets"].([]any)
 		for pos, r := range refs {
 			ref := fmt.Sprint(r)
@@ -561,7 +574,11 @@ func importBoard(q db.Queryer, who *access.Principal, spaceID int64, item map[st
 				report.Skipped = append(report.Skipped, "board "+name+": widget "+ref)
 				continue
 			}
-			if err := content.AddPlacement(q, &model.Placement{SectionID: sec.ID, WidgetID: id, Position: pos}); err != nil {
+			rows := 1
+			if tall[ref] {
+				rows = boards.MaxTileRows
+			}
+			if err := content.AddPlacement(q, &model.Placement{SectionID: sec.ID, WidgetID: id, Position: pos, Rows: rows}); err != nil {
 				return err
 			}
 		}
@@ -646,4 +663,10 @@ func DumpMap(m map[string]any) string {
 		return ""
 	}
 	return string(out)
+}
+
+// asAnyList reads a YAML list, nil if it is none.
+func asAnyList(v any) []any {
+	list, _ := v.([]any)
+	return list
 }

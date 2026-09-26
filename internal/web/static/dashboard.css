@@ -258,7 +258,7 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .section-form { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: end; margin-top: .6rem; }
 .section-form label { display: flex; flex-direction: column; gap: .2rem; }
 /* --cols caps the number of columns; tiles never get narrower than --tile. */
-.dsec-body { --tile: 13.5rem; --cols: 12; display: grid; gap: .8rem;
+.dsec-body { --tile: 13.5rem; --cols: 12; display: grid; gap: .8rem; grid-auto-flow: row dense;
   grid-template-columns: repeat(auto-fill, minmax(max(min(var(--tile), 100%), calc(100% / var(--cols) - .8rem)), 1fr)); }
 .dsec-body.size-small { --tile: 10.5rem; gap: 2px .4rem; }
 .dsec-body.size-large { --tile: 5.6rem; gap: .25rem; }
@@ -266,7 +266,8 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .tile-slot { position: relative; min-width: 0; display: flex; flex-direction: column; }
 .tile-slot.w-rss, .tile-slot.w-iframe, .tile-slot.w-deadlines, .tile-slot.w-hints, .tile-slot.w-table, .tile-slot.w-chart,
 .tile-slot.w-note, .tile-slot.w-progress, .tile-slot.w-greeting { grid-column: 1 / -1; }
-.tile-slot.w-kimai_timer { grid-row: span 2; }
+.tile-slot[data-rows="2"] { grid-row: span 2; }
+.tile-slot[data-rows="2"] > .card { height: 100%; }
 .tile-slot.is-hidden { opacity: .35; }
 .add-tile { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; padding: .6rem; border: 1px dashed var(--bg2); grid-column: 1 / -1; }
 .tile-tools { display: flex; gap: .7rem; padding: .3rem .2rem 0; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .06em; }

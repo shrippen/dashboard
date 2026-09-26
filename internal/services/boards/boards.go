@@ -62,6 +62,7 @@ type Tile struct {
 	RefreshS    int
 	Config      any
 	Hidden      bool
+	Rows        int    // grid rows the tile spans: the board's, or the viewer's overlay
 	IconURL     string // link tiles: cached icon, "" = monogram
 	IconEmoji   string // link tiles: emoji instead of an image
 	IconGlyph   bool   // single-color icon, inverted on dark themes
@@ -341,6 +342,7 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 	view := SectionView{ID: section.ID, Title: section.Title, Cols: section.Cols, Size: size, Sort: section.Sort,
 		Collapsed: collapsed, Area: area, Span: section.Span, Rows: section.Rows, Color: section.Color, Mobile: section.Mobile}
 
+	myRows, _ := layer[layerRows].(map[string]any)
 	hidden := map[int64]bool{}
 	if hiddenList, ok := layer["hidden"].([]any); ok {
 		for _, v := range hiddenList {
@@ -389,6 +391,10 @@ func viewSection(q db.Queryer, who *access.Principal, section model.Section, boa
 		tile := Tile{
 			PlacementID: placement.ID, WidgetID: w.ID, Type: w.Type, Title: w.Title, Template: kind.Template,
 			Category: kind.Category, Inline: kind.Inline, RefreshS: kind.RefreshS, Config: cfg, Hidden: hidden[placement.ID],
+			Rows: tileRows(placement.Rows),
+		}
+		if v, ok := myRows[strconv.FormatInt(placement.ID, 10)]; ok {
+			tile.Rows = tileRows(int(int64FromAny(v)))
 		}
 		if link, ok := cfg.(widgets.LinkConfig); ok {
 			tile.IconEmoji = icons.Emoji(link.Icon)
@@ -944,6 +950,53 @@ func ResizeSection(d *sql.DB, who *access.Principal, boardID, sectionID int64, s
 	return setLayer(d, who, boardID, "size", sectionID, string(size))
 }
 
+// Tile heights: a placed tile spans one row of its section's grid, or
+// two (MaxTileRows) for a tall one.
+const (
+	MaxTileRows = 2
+	layerRows   = "rows"
+)
+
+// tileRows keeps a stored height within 1..MaxTileRows.
+func tileRows(rows int) int {
+	return min(max(rows, 1), MaxTileRows)
+}
+
+// SetTileRows sets how many rows a placed tile spans for everybody.
+// Requires EDIT; bumps the board version and records a revision.
+func SetTileRows(d *sql.DB, who *access.Principal, placementID int64, rows, version int) error {
+	return db.WithTx(d, func(tx *sql.Tx) error {
+		placement, err := content.Placement(tx, placementID)
+		if err != nil || placement == nil {
+			return orNotFound(err)
+		}
+		section, err := content.Section(tx, placement.SectionID)
+		if err != nil || section == nil {
+			return orNotFound(err)
+		}
+		board, err := load(tx, who, section.BoardID, enums.RightEdit)
+		if err != nil {
+			return err
+		}
+		if err := bump(board, version); err != nil {
+			return err
+		}
+		if err := content.UpdatePlacementRows(tx, placement.ID, tileRows(rows)); err != nil {
+			return err
+		}
+		board.UpdatedAt = time.Now().UTC()
+		if err := content.UpdateBoard(tx, board); err != nil {
+			return err
+		}
+		return snapshot(tx, who, board)
+	})
+}
+
+// SetMyTileRows sets a placed tile's height in the caller's overlay.
+func SetMyTileRows(d *sql.DB, who *access.Principal, boardID, placementID int64, rows int) error {
+	return setLayer(d, who, boardID, layerRows, placementID, tileRows(rows))
+}
+
 // ResetOverlay clears the caller's overlay for a board.
 func ResetOverlay(d *sql.DB, who *access.Principal, boardID int64) error {
 	return db.WithTx(d, func(tx *sql.Tx) error {
@@ -976,6 +1029,7 @@ type snapshotSection struct {
 	Color     string  `json:"color,omitempty"`
 	Mobile    string  `json:"mobile,omitempty"`
 	Widgets   []int64 `json:"widgets"`
+	Tall      []int64 `json:"tall,omitempty"` // widgets of Widgets placed MaxTileRows high
 }
 
 type snapshotBoard struct {
@@ -996,6 +1050,9 @@ func snapshot(q db.Queryer, who *access.Principal, board *model.Board) error {
 		}
 		for _, p := range sec.Placements {
 			row.Widgets = append(row.Widgets, p.WidgetID)
+			if p.Rows > 1 {
+				row.Tall = append(row.Tall, p.WidgetID)
+			}
 		}
 		snap.Sections = append(snap.Sections, row)
 	}
@@ -1117,7 +1174,7 @@ func Restore(d *sql.DB, who *access.Principal, boardID, revisionID int64) error 
 					continue // widget gone, or from a space we can't resolve here (see doc comment)
 				}
 				if err := content.AddPlacement(tx, &model.Placement{
-					SectionID: newSection.ID, WidgetID: widgetID, Position: pos,
+					SectionID: newSection.ID, WidgetID: widgetID, Position: pos, Rows: rowsIn(sec.Tall, widgetID),
 				}); err != nil {
 					return err
 				}
@@ -1182,4 +1239,14 @@ func sectionColor(raw string) string {
 		}
 	}
 	return ""
+}
+
+// rowsIn is MaxTileRows for a widget listed as tall, else 1.
+func rowsIn(tall []int64, widgetID int64) int {
+	for _, id := range tall {
+		if id == widgetID {
+			return MaxTileRows
+		}
+	}
+	return 1
 }

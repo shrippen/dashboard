@@ -200,7 +200,7 @@
 {{define "tile"}}
 {{$b := .B}}{{with .T}}
 {{$frag := print "/widget-fragments/" .PlacementID}}{{if $b.EmbedToken}}{{$frag = print $frag "?token=" $b.EmbedToken}}{{end}}
-<div class="tile-slot w-{{.Type}}{{if .Hidden}} is-hidden{{end}}" data-placement="{{.PlacementID}}">
+<div class="tile-slot w-{{.Type}}{{if .Hidden}} is-hidden{{end}}" data-placement="{{.PlacementID}}"{{if gt .Rows 1}} data-rows="{{.Rows}}"{{end}}>
   {{if eq .Type "link"}}
     {{$c := .Config}}
     <a class="launch" data-click="{{.PlacementID}}" href="{{$c.URL}}"{{if eq (print $c.Target) "newtab"}} target="_blank" rel="noopener noreferrer"{{end}}
@@ -240,13 +240,27 @@
       <input type="hidden" name="version" value="{{$b.Board.Version}}">
       <button class="link-btn" type="submit">{{t "edit.remove"}}</button>
     </form>
+    <form method="post" action="/placements/{{.PlacementID}}/rows" class="inline-form">
+      <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+      <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
+      <input type="hidden" name="version" value="{{$b.Board.Version}}">
+      <input type="hidden" name="rows" value="{{if gt .Rows 1}}1{{else}}2{{end}}">
+      <button class="link-btn" type="submit" aria-pressed="{{gt .Rows 1}}">{{if gt .Rows 1}}{{t "edit.tile_normal"}}{{else}}{{t "edit.tile_tall"}}{{end}}</button>
+    </form>
   </div>
   {{else if $b.LayerEdit}}
-  <form class="tile-tools" method="post" action="/boards/{{$b.Board.ID}}/show/{{.PlacementID}}" data-static>
-    <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
-    <input type="hidden" name="state" value="{{if .Hidden}}shown{{else}}hidden{{end}}">
-    <button class="link-btn" type="submit">{{if .Hidden}}{{t "edit.show"}}{{else}}{{t "edit.hide"}}{{end}}</button>
-  </form>
+  <div class="tile-tools" data-static>
+    <form method="post" action="/boards/{{$b.Board.ID}}/show/{{.PlacementID}}" class="inline-form">
+      <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+      <input type="hidden" name="state" value="{{if .Hidden}}shown{{else}}hidden{{end}}">
+      <button class="link-btn" type="submit">{{if .Hidden}}{{t "edit.show"}}{{else}}{{t "edit.hide"}}{{end}}</button>
+    </form>
+    <form method="post" action="/boards/{{$b.Board.ID}}/rows/{{.PlacementID}}" class="inline-form">
+      <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
+      <input type="hidden" name="rows" value="{{if gt .Rows 1}}1{{else}}2{{end}}">
+      <button class="link-btn" type="submit" aria-pressed="{{gt .Rows 1}}">{{if gt .Rows 1}}{{t "edit.tile_normal"}}{{else}}{{t "edit.tile_tall"}}{{end}}</button>
+    </form>
+  </div>
   {{end}}
 </div>
 {{end}}

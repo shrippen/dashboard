@@ -144,11 +144,18 @@ func TestExportImportRoundtrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// A tall tile keeps its height through export and import.
+	visible, _ := boards.Visible(d, a)
+	view, _ := boards.View(d, a, visible[0].ID)
+	if err := boards.SetTileRows(d, a, view.Sections[0].Tiles[0].PlacementID, boards.MaxTileRows, view.Version); err != nil {
+		t.Fatal(err)
+	}
+
 	text, err := porting.ExportSpace(d, a, spaceA)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(text, "Jellyfin") || !strings.HasPrefix(text, "space: personal") {
+	if !strings.Contains(text, "Jellyfin") || !strings.HasPrefix(text, "space: personal") || !strings.Contains(text, "tall:") {
 		t.Fatalf("unexpected export:\n%s", text)
 	}
 
@@ -159,6 +166,11 @@ func TestExportImportRoundtrip(t *testing.T) {
 	lib, _ := widgetlib.Library(d, b)
 	if len(lib) != 5 {
 		t.Fatalf("expected 5 widgets in b's library, got %d", len(lib))
+	}
+	visibleB, _ := boards.Visible(d, b)
+	viewB, _ := boards.View(d, b, visibleB[0].ID)
+	if viewB.Sections[0].Tiles[0].Rows != boards.MaxTileRows {
+		t.Fatalf("tall tile lost on import: %+v", viewB.Sections[0].Tiles[0])
 	}
 
 	if _, err := porting.ImportSpace(d, b, spaceA, text, porting.Merge); err == nil {

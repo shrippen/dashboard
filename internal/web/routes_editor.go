@@ -25,6 +25,7 @@ func (d Deps) RegisterEditorRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /sections/{id}/delete", d.handleSectionDelete)
 	mux.HandleFunc("POST /boards/{boardID}/sections/{sectionID}/place", d.handlePlace)
 	mux.HandleFunc("POST /placements/{id}/unplace", d.handleUnplace)
+	mux.HandleFunc("POST /placements/{id}/rows", d.handleTileRows)
 
 	mux.HandleFunc("GET /widgets", d.handleWidgetLibrary)
 	mux.HandleFunc("GET /widgets/new", d.handleWidgetNewForm)
@@ -245,6 +246,31 @@ func (d Deps) handleUnplace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/boards/"+boardID+"?edit&undo", http.StatusSeeOther)
+}
+
+// handleTileRows sets how many rows a placed tile spans for everybody.
+func (d Deps) handleTileRows(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	version, _ := strconv.Atoi(r.FormValue("version"))
+	rows, _ := strconv.Atoi(r.FormValue("rows"))
+	if err := boards.SetTileRows(d.DB, ctx.Who, id, rows, version); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, "/boards/"+r.FormValue("board_id")+"?edit", http.StatusSeeOther)
 }
 
 // ── Widget library ──

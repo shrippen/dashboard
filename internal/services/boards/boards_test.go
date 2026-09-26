@@ -224,3 +224,52 @@ func TestHistoryAndRestore(t *testing.T) {
 		t.Fatalf("expected restored board to have no tiles, got %+v", view.Sections[0].Tiles)
 	}
 }
+
+// TestTileRows: editors make a tile tall for everybody (kept in history),
+// every viewer may override it in the own layout.
+func TestTileRows(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c", enums.RoleUser)
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+	boardID, _ := boards.Create(d, who, space.ID, "B")
+	w := addWidget(t, d, space.ID, "w1")
+	view, _ := boards.View(d, who, boardID)
+	placementID, _ := boards.Place(d, who, view.Sections[0].ID, w.ID, view.Version)
+
+	tile := func() boards.Tile {
+		v, err := boards.View(d, who, boardID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v.Sections[0].Tiles[0]
+	}
+	if tile().Rows != 1 {
+		t.Fatalf("new tile rows %d, want 1", tile().Rows)
+	}
+
+	view, _ = boards.View(d, who, boardID)
+	if err := boards.SetTileRows(d, who, placementID, 5, view.Version); err != nil {
+		t.Fatalf("set rows: %v", err)
+	}
+	if tile().Rows != boards.MaxTileRows {
+		t.Fatalf("rows %d, want the cap %d", tile().Rows, boards.MaxTileRows)
+	}
+
+	if err := boards.SetMyTileRows(d, who, boardID, placementID, 1); err != nil {
+		t.Fatalf("my rows: %v", err)
+	}
+	if tile().Rows != 1 {
+		t.Fatalf("overlay not applied: %d", tile().Rows)
+	}
+	boards.ResetOverlay(d, who, boardID)
+
+	// The tall height survives a restore of the latest revision.
+	history, _ := boards.History(d, who, boardID)
+	if err := boards.Restore(d, who, boardID, history[0].ID); err != nil {
+		t.Fatalf("restore: %v", err)
+	}
+	if tile().Rows != boards.MaxTileRows {
+		t.Fatalf("restored rows %d", tile().Rows)
+	}
+}

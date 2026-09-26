@@ -167,7 +167,7 @@ func Duplicate(d *sql.DB, who *access.Principal, boardID int64, name string) (in
 				return err
 			}
 			for _, p := range sec.Placements {
-				if err := content.AddPlacement(tx, &model.Placement{SectionID: clone.ID, WidgetID: p.WidgetID, Position: p.Position}); err != nil {
+				if err := content.AddPlacement(tx, &model.Placement{SectionID: clone.ID, WidgetID: p.WidgetID, Position: p.Position, Rows: p.Rows}); err != nil {
 					return err
 				}
 			}

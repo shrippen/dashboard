@@ -154,6 +154,8 @@ board:
   full: Show all
   compact: Compact
 edit:
+  tile_tall: Double height
+  tile_normal: Normal height
   bulk: Selection
   bulk_move: move to
   bulk_color: set color
