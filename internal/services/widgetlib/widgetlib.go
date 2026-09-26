@@ -538,6 +538,13 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		}
 		frag.Slots[widgets.StorySlot] = Slot{Data: lines}
 	}
+	if kind.Extra == widgets.ExtraGreeting {
+		g, err := greetingData(d, who, cfg.(widgets.GreetingConfig))
+		if err != nil {
+			return nil, err
+		}
+		frag.Slots[widgets.GreetingSlot] = Slot{Data: g}
+	}
 	if kind.Extra == widgets.ExtraHistory {
 		h, err := history.Load(d, widget.SpaceID, 0, time.Now().UTC())
 		if err != nil {
@@ -707,3 +714,37 @@ func hintGroups(views []hints.View) []HintGroup {
 	}
 	return out
 }
+
+// greetingData collects what a greeting says about the viewer: open hints
+// and the timeline since yesterday evening in the greeting's timezone.
+func greetingData(d *sql.DB, who *access.Principal, cfg widgets.GreetingConfig) (*widgets.GreetingData, error) {
+	loc, err := time.LoadLocation(cfg.Timezone)
+	if err != nil {
+		loc = time.Local
+	}
+	since := widgets.GreetingSince(time.Now().In(loc), cfg.SinceHour)
+
+	counts, err := hints.Summary(d, who)
+	if err != nil {
+		return nil, err
+	}
+	g := &widgets.GreetingData{Name: who.Name, Since: since}
+	for sev, n := range counts {
+		g.OpenHints += n
+		if n > 0 && int(sev) > g.HintLevel {
+			g.HintLevel = int(sev)
+		}
+	}
+
+	entries, err := history.Timeline(d, who, since.UTC(), greetingChanges)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range entries {
+		g.Changes = append(g.Changes, widgets.GreetingChange{Kind: e.Kind, Subject: e.Subject, Detail: e.Detail, At: e.At})
+	}
+	return g, nil
+}
+
+// greetingChanges caps the timeline a greeting reads.
+const greetingChanges = 200

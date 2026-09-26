@@ -184,6 +184,8 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  timezone: Time zone
+  since_hour: Since yesterday from (hour)
   mobile: On phones
   max_hours: Maximum age (hours)
   points: Data points
@@ -357,6 +359,9 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  greeting:
+    name: Greeting
+    desc: 'Greeting, date and clock, weather and what changed since last evening.'
   homelab_cost:
     name: 'Homelab cost'
     desc: 'Power, hardware write-off, domains and hosting per month; power per service; business share.'
@@ -2191,6 +2196,7 @@ keys:
 uptime:
   summary: '{share} reachable in 30 days, avg {ms} ms'
 template:
+  start: Start (greeting, data tiles, hint rail)
   familie: Family (weather, holidays, list)
   freelancer: Freelance (hours, money, deadlines)
   homelab: Homelab (updates, backups, hints)
@@ -2314,3 +2320,15 @@ week:
   power: 'Power {kwh} kWh, {cost}'
   hints: '{opened} hints new, {resolved} resolved'
   empty: 'Nothing for this week yet.'
+greeting:
+  morning: Good morning
+  day: Hello
+  evening: Good evening
+  open: '{n} open hints'
+  calm: No open hints.
+  since: 'Since yesterday {hour}:00'
+  new_hints: 'New hints: {n}'
+  resolved_hints: 'Resolved hints: {n}'
+  nothing: Nothing new.
+  wind: 'Wind {n} km/h'
+  weather: Weather

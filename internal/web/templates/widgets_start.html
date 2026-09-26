@@ -121,3 +121,31 @@
 {{define "widgets/note"}}
 <p class="note-tile">{{.Frag.Config.Text}}</p>
 {{end}}
+
+{{/* Greeting: hello, clock, weather ahead, changes since last evening. */}}
+{{define "widgets/greeting"}}
+{{$v := .Frag.View}}
+<div class="greet">
+  <div class="greet-hello">
+    <p class="clock greet-when" data-tz="{{$v.Timezone}}" data-locale="{{.Ctx.Locale}}"><span class="clock-date">{{clockDate $v.Timezone}}</span> · <span class="clock-time">{{clockNow $v.Timezone false}}</span></p>
+    <h2 class="greet-title">{{t (print "greeting." $v.Part)}},<br>{{$v.Name}}.</h2>
+    <p class="greet-sub">{{if $v.OpenHints}}<a href="/hints">{{t "greeting.open" "n" $v.OpenHints}}</a>{{else}}{{t "greeting.calm"}}{{end}}</p>
+  </div>
+  {{if $v.Days}}
+  <div class="greet-box greet-weather">
+    <span class="greet-label">{{t "greeting.weather"}}{{with $v.Label}} · {{.}}{{end}}</span>
+    <div class="greet-now"><b>{{num $v.Temp 0}}°</b><span>{{t (printf "weather.%s" (weatherKind $v.Code))}} · {{t "greeting.wind" "n" (num $v.Wind 0)}}</span></div>
+    <ol class="forecast">
+      {{range $v.Days}}<li><small>{{day .Day}}</small><span class="forecast-bar"><i style="--h:{{.Height}}%"></i></span><b>{{num .Max 0}}°</b><small>{{num .Min 0}}°</small></li>{{end}}
+    </ol>
+  </div>
+  {{end}}
+  <div class="greet-box greet-since">
+    <span class="greet-label">{{t "greeting.since" "hour" $v.SinceHour}}</span>
+    <ul>
+      {{range $v.Lines}}<li><span class="sq" data-tier="{{.Tier}}" aria-hidden="true"></span>{{if .Key}}{{t .Key "n" .N}}{{else}}{{.Text}}{{end}}</li>
+      {{else}}<li class="muted">{{t "greeting.nothing"}}</li>{{end}}
+    </ul>
+  </div>
+</div>
+{{end}}

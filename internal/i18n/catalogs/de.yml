@@ -184,6 +184,8 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  timezone: Zeitzone
+  since_hour: Seit gestern ab (Uhr)
   mobile: Auf dem Handy
   max_hours: Höchstalter (Stunden)
   points: Messpunkte
@@ -357,6 +359,9 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  greeting:
+    name: Begrüßung
+    desc: 'Gruß, Datum und Uhr, Wetter und was sich seit gestern Abend geändert hat.'
   homelab_cost:
     name: 'Homelab-Kosten'
     desc: 'Strom, Hardware-Abschreibung, Domains und Hosting je Monat; Strom je Dienst; betrieblicher Anteil.'
@@ -2192,6 +2197,7 @@ keys:
 uptime:
   summary: '{share} erreichbar in 30 Tagen, Ø {ms} ms'
 template:
+  start: Start (Begrüßung, Datenkacheln, Lage)
   familie: Familie (Wetter, Feiertage, Liste)
   freelancer: Selbstständig (Stunden, Geld, Fristen)
   homelab: Homelab (Updates, Backups, Hinweise)
@@ -2315,3 +2321,15 @@ week:
   power: 'Strom {kwh} kWh, {cost}'
   hints: '{opened} Hinweise neu, {resolved} erledigt'
   empty: 'Für diese Woche liegt noch nichts vor.'
+greeting:
+  morning: Guten Morgen
+  day: Guten Tag
+  evening: Guten Abend
+  open: '{n} offene Hinweise'
+  calm: Keine offenen Hinweise.
+  since: 'Seit gestern {hour}:00'
+  new_hints: 'Neue Hinweise: {n}'
+  resolved_hints: 'Erledigte Hinweise: {n}'
+  nothing: Nichts Neues.
+  wind: 'Wind {n} km/h'
+  weather: Wetter

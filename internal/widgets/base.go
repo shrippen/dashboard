@@ -45,6 +45,10 @@ const (
 	// ExtraStory hands the caller's week in numbers to the view as
 	// results["story"] ([]metrics.StoryLine).
 	ExtraStory Extra = "story"
+	// ExtraGreeting hands the viewer's name, open hints and the changes
+	// since yesterday evening to the view as results["greeting"]
+	// (*GreetingData).
+	ExtraGreeting Extra = "greeting"
 )
 
 // Category groups widget types for the library UI.

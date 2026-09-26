@@ -1,0 +1,10 @@
+widgets:
+  - {id: tpl-greeting, type: greeting, title: "", config: {label: Berlin, lat: 52.52, lon: 13.41, timezone: Europe/Berlin, since_hour: 18}}
+  - {id: tpl-lage, type: hints, title: Lage, config: {min_severity: 10, limit: 12}}
+boards:
+  - name: Start
+    slug: start-d
+    sections:
+      - {title: "", widgets: [tpl-greeting]}
+      - {title: "", widgets: []}
+      - {title: Lage, area: side, widgets: [tpl-lage]}
