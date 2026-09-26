@@ -230,6 +230,10 @@ func (PangolinData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if org == "" {
 		return nil, newSourceError("options: org missing")
 	}
+	// The dashboard address answers with HTML; the integration API ends in /v1.
+	if !strings.HasSuffix(strings.TrimRight(sctx.URL, "/"), "/v1") {
+		return nil, newSourceError("pangolin.url")
+	}
 	api := services.PangolinApi{URL: sctx.URL, Key: secret, Verify: sctx.VerifyTLS}
 	base := "org/" + url.PathEscape(org) + "/"
 	page := url.Values{"pageSize": {pangolinPage}}

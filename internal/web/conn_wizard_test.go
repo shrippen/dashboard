@@ -110,3 +110,26 @@ func TestNoTokenFieldWithoutAuth(t *testing.T) {
 		t.Fatalf("kimai setup lacks the token hint:\n%s", kimai)
 	}
 }
+
+// TestPangolinOrgField: Pangolin's required organisation ID is a field of
+// the setup form and lands in the connection's options.
+func TestPangolinOrgField(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	form := string(mustGet(t, srv, client, "/connections/new?service=pangolin"))
+	if !strings.Contains(form, `name="opt_org"`) {
+		t.Fatalf("no organisation field:\n%s", form)
+	}
+	space := regexp.MustCompile(`<option value="(\d+)">`).FindStringSubmatch(form)[1]
+	noFollow := *client
+	noFollow.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	resp := postForm(t, &noFollow, srv.URL+"/connections", url.Values{"csrf": {csrfToken(t, srv, client)}, "space_id": {space},
+		"service": {"pangolin"}, "name": {"P"}, "url": {"https://api.example.org/v1"}, "mode": {"shared"}, "secret": {"k"},
+		"tls": {"verify"}, "opt_org": {"home"}})
+	edit := string(mustGet(t, srv, client, resp.Header.Get("Location")))
+	if !strings.Contains(edit, `name="opt_org" value="home"`) {
+		t.Fatalf("organisation not stored:\n%s", edit)
+	}
+}

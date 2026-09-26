@@ -115,7 +115,7 @@ func (d Deps) handleConnectionCreate(w http.ResponseWriter, r *http.Request) {
 	var id int64
 	if err == nil {
 		id, err = connections.Create(d.DB, ctx.Who, spaceID, service,
-			r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil)
+			r.FormValue("name"), r.FormValue("url"), mode, secret, tls, formOptions(r, service, nil))
 	}
 	if err != nil {
 		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
@@ -211,7 +211,8 @@ func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {
 		secret = &s
 	}
 	if err == nil {
-		err = connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil)
+		err = connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls,
+			formOptions(r, conn.Service, conn.Options))
 	}
 	if err == nil && mode == enums.CredentialShared && r.FormValue("share_mine") != "" {
 		err = connections.ShareMine(d.DB, ctx.Who, id)

@@ -717,6 +717,7 @@ conn:
   cred_pass: 'App or API password'
   cred_key: 'API key'
   cred_secret: 'API secret'
+  pangolin_org: 'Organisation ID'
   existing: '{count} connection(s) of this kind exist'
   cred_incomplete: 'Please fill in both fields, e.g. user name and password.'
   ical_private: 'Private iCal address'
@@ -764,7 +765,7 @@ conn:
   options_hint_blacklist: 'URL = mail server (its IPv4 addresses are checked). Options: ips: [1.2.3.4], zones: [zen.spamhaus.org]. No token.'
   options_hint_truenas: 'No options. URL with https:// (e.g. https://truenas.lan) – TrueNAS revokes an API key used over http; with a self-signed certificate set TLS to “insecure”. Token = API key (credentials → users → API keys) of a user with the “Readonly Admin” role. Uses the WebSocket API, older versions REST.'
   options_hint_komodo: No options. API key and secret from Komodo (read-only suffices).
-  options_hint_pangolin: 'Integration API URL including /v1 (e.g. https://api.pangolin.example.org/v1). Options: org: <organisation id>. Token = integration API key.'
+  options_hint_pangolin: 'Integration API URL including /v1 (e.g. https://api.pangolin.example.org/v1), not the Pangolin dashboard: enable the integration API in Pangolin''s config.yml (flags: enable_integration_api: true) and expose it on its own domain (port 3003). The organisation ID is in the Pangolin URL (…/<org>/settings). Token = integration API key with read access to sites and resources.'
   options_hint_authentik: No options. Token = API token of an account allowed to read events and users.
   options_hint_mail: 'URL imaps://mail.example.org:993/INBOX. Username and app password of your mailbox (not your regular login password). Options: days: 60, keywords: [statement], ignore_senders: [mycompany.com] – read-only; attachments are downloaded only when you hand an invoice to Paperless.'
   options_hint_pgbackweb: No options, no token. PG Back Web reports by webhook, see below.
@@ -2707,3 +2708,5 @@ mode_switch:
   no_token: There is no shared token yet. Enter one after switching, or the connection works for nobody.
   secret_dropped: The token you just entered was not saved yet. Please enter it again after switching.
   confirm: Switch
+pangolin:
+  url: 'This URL is not the Pangolin integration API. It ends in /v1 and runs on its own address (port 3003), e.g. https://api.pangolin.example.org/v1; enable_integration_api must be on in config.yml.'

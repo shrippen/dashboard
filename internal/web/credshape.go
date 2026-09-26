@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"andon/internal/enums"
 )
@@ -91,4 +92,49 @@ func formSecret(r *http.Request, service enums.ServiceType) (string, error) {
 		return a + "=" + b, nil
 	}
 	return a + ":" + b, nil
+}
+
+// setupField is a connection option the setup form asks for directly,
+// because the service does not work without it.
+type setupField struct {
+	Key   string // option key, form field "opt_<key>"
+	Label string // catalog key
+}
+
+// setupFields are those options per service, e.g. Pangolin's organisation.
+var setupFields = map[enums.ServiceType][]setupField{
+	enums.ServicePangolin: {{Key: "org", Label: "conn.pangolin_org"}},
+}
+
+func setupFieldsOf(service enums.ServiceType) []setupField {
+	return setupFields[service]
+}
+
+// formOptions merges the setup fields sent with the form into options; nil
+// means "no change" (the service has none, or none were sent).
+func formOptions(r *http.Request, service enums.ServiceType, options map[string]any) map[string]any {
+	fields := setupFields[service]
+	if len(fields) == 0 {
+		return nil
+	}
+	out := map[string]any{}
+	for k, v := range options {
+		out[k] = v
+	}
+	changed := false
+	for _, f := range fields {
+		if _, sent := r.Form["opt_"+f.Key]; !sent {
+			continue
+		}
+		changed = true
+		if v := strings.TrimSpace(r.FormValue("opt_" + f.Key)); v != "" {
+			out[f.Key] = v
+		} else {
+			delete(out, f.Key)
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return out
 }

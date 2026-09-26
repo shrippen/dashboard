@@ -77,6 +77,12 @@
       <label for="url">{{if eq $shape "ical"}}{{t "conn.ical_url"}}{{else}}{{t "field.url"}}{{end}}</label>
       <input id="url" name="url" type="url" value="{{if .Conn}}{{.Conn.URL}}{{else}}{{defaultURL .Service}}{{end}}" required>
 
+      {{$opts := dict}}{{if .Conn}}{{$opts = .Conn.Options}}{{end}}
+      {{range setupFields (or .Service .Conn.Service)}}
+        <label for="opt_{{.Key}}">{{t .Label}}</label>
+        <input id="opt_{{.Key}}" name="opt_{{.Key}}" value="{{with index $opts .Key}}{{.}}{{end}}" required>
+      {{end}}
+
       {{if eq $shape "none"}}
       <p class="small muted">{{t "conn.no_login"}}</p>
       {{else}}

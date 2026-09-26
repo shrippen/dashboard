@@ -717,6 +717,7 @@ conn:
   cred_pass: 'App- oder API-Passwort'
   cred_key: 'API-Key'
   cred_secret: 'API-Secret'
+  pangolin_org: 'Organisations-ID'
   existing: '{count} Verbindung(en) dieser Art vorhanden'
   cred_incomplete: 'Bitte beide Felder ausfüllen, z. B. Benutzername und Passwort.'
   ical_private: 'Private iCal-Adresse'
@@ -764,7 +765,7 @@ conn:
   options_hint_blacklist: 'URL = Mailserver (dessen IPv4-Adressen werden geprüft). Optionen: ips: [1.2.3.4], zones: [zen.spamhaus.org]. Kein Token.'
   options_hint_truenas: 'Keine Optionen. URL mit https:// (z. B. https://truenas.lan) – TrueNAS widerruft einen API-Schlüssel, der über http benutzt wird; bei selbstsigniertem Zertifikat TLS auf „unsicher“ stellen. Token = API-Schlüssel (Anmeldedaten → Benutzer → API-Schlüssel) eines Nutzers mit der Rolle „Readonly Admin“. Nutzt die WebSocket-API, ältere Versionen REST.'
   options_hint_komodo: Keine Optionen. API-Key und -Secret aus Komodo (nur lesend genügt).
-  options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1). Optionen: org: <Organisations-ID>. Token = Integration-API-Schlüssel.'
+  options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1), nicht die Pangolin-Oberfläche: Die Integration-API in der Pangolin-config.yml einschalten (flags: enable_integration_api: true) und über eine eigene Domain erreichbar machen (Port 3003). Organisations-ID steht in der Pangolin-URL (…/<org>/settings). Token = Integration-API-Schlüssel mit Leserechten auf Sites und Ressourcen.'
   options_hint_authentik: Keine Optionen. Token = API-Token eines Kontos mit Leserechten auf Ereignisse und Benutzer.
   options_hint_mail: 'URL imaps://mail.example.org:993/INBOX. Benutzername und App-Passwort deines Postfachs (nicht das normale Login-Passwort). Optionen: days: 60, keywords: [abrechnung], ignore_senders: [meinefirma.de] – nur lesend; Anhänge werden nur geladen, wenn du eine Rechnung an Paperless übergibst.'
   options_hint_pgbackweb: Keine Optionen, kein Token. PG Back Web meldet sich per Webhook, siehe unten.
@@ -2708,3 +2709,5 @@ mode_switch:
   no_token: Es gibt noch kein geteiltes Token. Trag nach dem Umstellen eins ein, sonst funktioniert die Verbindung für niemanden.
   secret_dropped: Das eben eingegebene Token wurde noch nicht gespeichert. Bitte nach dem Umstellen erneut eintragen.
   confirm: Umstellen
+pangolin:
+  url: 'Unter dieser URL antwortet nicht die Pangolin-Integration-API. Sie endet auf /v1 und läuft auf einer eigenen Adresse (Port 3003), z. B. https://api.pangolin.example.org/v1; in der config.yml muss enable_integration_api eingeschaltet sein.'

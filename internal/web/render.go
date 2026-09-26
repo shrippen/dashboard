@@ -56,6 +56,7 @@ func mustParse() *template.Template {
 		"asset":       asset,
 		"defaultURL":  defaultURL,
 		"canSignIn":   canSignIn,
+		"setupFields": setupFieldsOf,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }

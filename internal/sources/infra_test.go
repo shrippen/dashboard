@@ -175,3 +175,17 @@ func TestTrueNASRefusesPlainHTTP(t *testing.T) {
 		t.Fatalf("the key was sent over plain HTTP (%d requests)", hits.Load())
 	}
 }
+
+// TestPangolinWantsIntegrationAPI: the dashboard address (no /v1) gets a
+// clear error before any request, so nobody hunts a JSON parse error.
+func TestPangolinWantsIntegrationAPI(t *testing.T) {
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { hits.Add(1) }))
+	t.Cleanup(srv.Close)
+
+	sctx := sources.Ctx{URL: srv.URL, Secret: testKey, Options: map[string]any{"org": "home"}}
+	_, err := sources.PangolinData{}.Fetch(context.Background(), sctx)
+	if err == nil || !strings.Contains(err.Error(), "pangolin.url") || hits.Load() != 0 {
+		t.Fatalf("expected pangolin.url without a request, got %v (%d requests)", err, hits.Load())
+	}
+}
