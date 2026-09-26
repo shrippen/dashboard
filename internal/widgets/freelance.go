@@ -7,7 +7,6 @@ package widgets
 //	cashflow      expected balance for the next days (Ninja + Sure + taxes)
 
 import (
-
 	"dashboard/internal/enums"
 	"dashboard/internal/metrics"
 	"dashboard/internal/sources"

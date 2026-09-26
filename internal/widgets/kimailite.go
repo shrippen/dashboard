@@ -21,10 +21,10 @@ import (
 )
 
 const (
-	dayBarFrom     = 9  // the day bar spans at least 09–21 …
-	dayBarTo       = 21 // … and widens for earlier or later work
-	dayBarTick     = 3  // hours between labels
-	recentShown    = 4
+	dayBarFrom  = 9  // the day bar spans at least 09–21 …
+	dayBarTo    = 21 // … and widens for earlier or later work
+	dayBarTick  = 3  // hours between labels
+	recentShown = 4
 )
 
 // KimaiLiteConfig is the "kimai_timer" widget's config.
