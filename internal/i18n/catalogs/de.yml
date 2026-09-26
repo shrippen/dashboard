@@ -717,6 +717,8 @@ conn:
   cred_pass: 'App- oder API-Passwort'
   cred_key: 'API-Key'
   cred_secret: 'API-Secret'
+  existing: '{count} Verbindung(en) dieser Art vorhanden'
+  cred_incomplete: 'Bitte beide Felder ausfüllen, z. B. Benutzername und Passwort.'
   ical_private: 'Private iCal-Adresse'
   cred_tokenid: 'Token-ID'
   pick: 'Welchen Dienst willst du verbinden? Danach: Adresse und Token, Test, passende Widgets.'
@@ -760,7 +762,7 @@ conn:
   options_hint_gluetun: 'URL des Control-Servers (http://gluetun:8000). Optionen: country: Sweden (erwartetes Ausgangsland). Token = API-Schlüssel, falls gesetzt.'
   options_hint_domains: 'URL = eine Adresse der Domain. Optionen: domains: [example.org, example.de]. Kein Token. .de nennt kein Ablaufdatum.'
   options_hint_blacklist: 'URL = Mailserver (dessen IPv4-Adressen werden geprüft). Optionen: ips: [1.2.3.4], zones: [zen.spamhaus.org]. Kein Token.'
-  options_hint_truenas: 'Keine Optionen. Token = API-Schlüssel (Anmeldedaten → Benutzer → API-Schlüssel) eines Nutzers mit der Rolle „Readonly Admin“. Nutzt die WebSocket-API, ältere Versionen REST.'
+  options_hint_truenas: 'Keine Optionen. URL mit https:// (z. B. https://truenas.lan) – TrueNAS widerruft einen API-Schlüssel, der über http benutzt wird; bei selbstsigniertem Zertifikat TLS auf „unsicher“ stellen. Token = API-Schlüssel (Anmeldedaten → Benutzer → API-Schlüssel) eines Nutzers mit der Rolle „Readonly Admin“. Nutzt die WebSocket-API, ältere Versionen REST.'
   options_hint_komodo: Keine Optionen. API-Key und -Secret aus Komodo (nur lesend genügt).
   options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1). Optionen: org: <Organisations-ID>. Token = Integration-API-Schlüssel.'
   options_hint_authentik: Keine Optionen. Token = API-Token eines Kontos mit Leserechten auf Ereignisse und Benutzer.
@@ -2480,6 +2482,7 @@ komodo:
   updates: 'Image-Updates: {n}'
   alerts: 'Warnungen: {n}'
 truenas:
+  https_required: 'TrueNAS nur über https:// verbinden: TrueNAS widerruft einen API-Schlüssel, sobald er über http benutzt wird. Bitte die URL auf https:// ändern und einen neuen Schlüssel anlegen.'
   alerts: 'Warnungen: {n}'
   updates: 'App-Updates: {n}'
 dns:
@@ -2682,3 +2685,26 @@ connect:
   unsupported: Dieser Dienst kann sich nicht anmelden, nur per Token.
 grant:
   expired: Die Anmeldung ist abgelaufen. Bitte bei der Verbindung neu anmelden.
+
+suggest:
+  links: Links
+  button: Layout vorschlagen
+  title: Layout-Vorschlag
+  lead: 'Aus den Kacheln und Verbindungen von „{space}“, nach Themen geordnet. Neue Kacheln entstehen erst beim Übernehmen.'
+  new: neu
+  warning: Übernehmen ersetzt das aktuelle Layout dieses Boards für alle. Mit „Rückgängig“ im Bearbeiten-Modus kommt es zurück; neu angelegte Kacheln bleiben in der Bibliothek.
+  apply: Vorschlag übernehmen
+  empty: In diesem Bereich gibt es noch keine Kacheln oder Verbindungen, aus denen sich ein Layout bauen ließe.
+  applied: Layout übernommen. „Rückgängig“ stellt das vorige wieder her.
+
+mode_switch:
+  title: Zugangsdaten umstellen
+  to_personal: Auf persönliche Zugangsdaten umstellen?
+  to_shared: Auf geteilte Zugangsdaten umstellen?
+  personal_others: Alle anderen, die Kacheln dieser Verbindung sehen, brauchen danach ein eigenes Token (unter „Meine Zugangsdaten“). Bis dahin zeigen ihre Kacheln „Zugangsdaten fehlen“.
+  personal_mine: Das bisherige geteilte Token wird dein persönliches, bei dir läuft die Verbindung also weiter.
+  personal_jobs: Auswertungen und Hinweise laufen danach je Person mit ihrem eigenen Token.
+  share_mine: Mein persönliches Token für alle verwenden (es gibt noch kein geteiltes).
+  no_token: Es gibt noch kein geteiltes Token. Trag nach dem Umstellen eins ein, sonst funktioniert die Verbindung für niemanden.
+  secret_dropped: Das eben eingegebene Token wurde noch nicht gespeichert. Bitte nach dem Umstellen erneut eintragen.
+  confirm: Umstellen

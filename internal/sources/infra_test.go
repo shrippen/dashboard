@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,7 +30,7 @@ var truenasResults = map[string]any{
 }
 
 func TestTrueNASOverWebSocket(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Accept(w, r, nil)
 		if err != nil {
 			return
@@ -55,7 +57,7 @@ func TestTrueNASOverWebSocket(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	out, err := sources.TrueNASData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: testKey, VerifyTLS: true})
+	out, err := sources.TrueNASData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: testKey})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,9 +72,11 @@ func TestTrueNASRestFallback(t *testing.T) {
 	for method, path := range map[string]string{"system.info": "system/info", "pool.query": "pool", "alert.list": "alert/list", "app.query": "app"} {
 		routes["/api/v2.0/"+path] = truenasResults[method]
 	}
-	srv := jsonServer(t, routes, func(r *http.Request) bool { return r.Header.Get("Authorization") == "Bearer "+testKey })
+	plain := jsonServer(t, routes, func(r *http.Request) bool { return r.Header.Get("Authorization") == "Bearer "+testKey })
+	srv := httptest.NewTLSServer(plain.Config.Handler)
+	t.Cleanup(srv.Close)
 
-	out, err := sources.TrueNASData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: testKey, VerifyTLS: true})
+	out, err := sources.TrueNASData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: testKey})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,5 +157,21 @@ func TestAuthentikUsage(t *testing.T) {
 	data := out.(*sources.AuthentikDataset)
 	if data.Logins7d != 10 || data.Failed7d != 10 || data.Failed24h != 4 || len(data.Apps) != 1 || len(data.Users) != 1 || !data.Outdated {
 		t.Fatalf("data: %+v", data)
+	}
+}
+
+// TestTrueNASRefusesPlainHTTP: TrueNAS revokes an API key used over plain
+// HTTP, so Andon never sends it there.
+func TestTrueNASRefusesPlainHTTP(t *testing.T) {
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { hits.Add(1) }))
+	t.Cleanup(srv.Close)
+
+	_, err := sources.TrueNASData{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: testKey})
+	if err == nil || !strings.Contains(err.Error(), "truenas.https_required") {
+		t.Fatalf("expected https_required, got %v", err)
+	}
+	if hits.Load() != 0 {
+		t.Fatalf("the key was sent over plain HTTP (%d requests)", hits.Load())
 	}
 }

@@ -22,6 +22,10 @@
         <td>{{template "conn_health" .Health}}</td>
         <td class="nowrap small">{{if not .SecretAt.IsZero}}{{ago .SecretAt}}{{else}}–{{end}}{{with .SecretExpires}}<br><small class="muted">{{t "conn.expires"}} {{day .}}</small>{{end}}</td>
         <td class="row-actions nowrap"><a class="link-btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a>
+          <form method="post" action="/connections/{{.ID}}/test" class="inline-form" hx-post="/connections/{{.ID}}/check" hx-target="#toast">
+            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+            <button type="submit" class="ghost">{{t "conn.test"}}</button>
+          </form>
           <a class="link-btn" href="/shares/connection/{{.ID}}">{{t "share.title"}}</a></td>
       </tr>
       {{end}}
@@ -79,7 +83,7 @@
       <label for="mode">{{t "conn.credentials"}}</label>
       <select id="mode" name="mode">
         <option value="shared" {{if .Conn}}{{if eq (print .Conn.Mode) "shared"}}selected{{end}}{{end}}>{{t "mode.shared"}}</option>
-        <option value="personal" {{if .Conn}}{{if eq (print .Conn.Mode) "personal"}}selected{{end}}{{end}}>{{t "mode.personal"}}</option>
+        <option value="personal" {{if .Conn}}{{if eq (print .Conn.Mode) "personal"}}selected{{end}}{{else}}selected{{end}}>{{t "mode.personal"}}</option>
       </select>
       <p class="small muted">{{t "conn.mode_hint"}} {{t "conn.shared_warning"}}</p>
 
@@ -196,7 +200,7 @@
         <button type="submit">{{t "action.save"}}</button>
       </form>
       <p><a class="link-btn" href="/shares/connection/{{.Conn.ID}}">{{t "share.title"}}</a></p>
-      <form method="post" action="/connections/{{.Conn.ID}}/test" style="display:inline">
+      <form method="post" action="/connections/{{.Conn.ID}}/test" style="display:inline" hx-post="/connections/{{.Conn.ID}}/check" hx-target="#toast">
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <button type="submit">{{t "conn.test"}}</button>
       </form>
@@ -229,7 +233,7 @@
     <h1>{{t "conn.new"}}</h1>
     <p class="muted">{{t "conn.pick"}}</p>
     <div class="type-grid">
-      {{range .Services}}<a class="type-card" href="/connections/new?service={{.}}"><b>{{t (print "service." .)}}</b><small>{{t (print "conn.about_" .)}}</small></a>{{end}}
+      {{range .Services}}<a class="type-card" href="/connections/new?service={{.Service}}"><b>{{.Name}}{{if .Count}}<span class="nav-count" title="{{t "conn.existing" "count" .Count}}">{{.Count}}</span>{{end}}</b><small>{{t (print "conn.about_" .Service)}}</small></a>{{end}}
     </div>
   </main>
 </body>
@@ -265,3 +269,53 @@
 </body>
 </html>
 {{end}}
+
+{{/* Shared ⇄ personal: what changes for whom, before it is saved. */}}
+{{define "connection_mode"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "mode_switch.title"}} · Andon</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{if eq .To "personal"}}{{t "mode_switch.to_personal"}}{{else}}{{t "mode_switch.to_shared"}}{{end}}</h1>
+    <p class="muted">{{.Conn.Name}} · {{t (print "service." .Conn.Service)}}</p>
+    <form method="post" action="/connections/{{.Conn.ID}}/edit">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <input type="hidden" name="mode_confirmed" value="1">
+      <input type="hidden" name="mode" value="{{.To}}">
+      <input type="hidden" name="name" value="{{.Name}}">
+      <input type="hidden" name="url" value="{{.URL}}">
+      <input type="hidden" name="tls" value="{{.TLS}}">
+      <ul class="callout">
+      {{if eq .To "personal"}}
+        <li>{{t "mode_switch.personal_others"}}</li>
+        {{if and .Conn.HasSecret (not .Conn.HasMine)}}<li>{{t "mode_switch.personal_mine"}}</li>{{end}}
+        <li>{{t "mode_switch.personal_jobs"}}</li>
+      {{else}}
+        <li>{{t "conn.shared_warning"}}</li>
+        {{if not .Conn.HasSecret}}
+          {{if .Conn.HasMine}}
+            <li><label class="check"><input type="checkbox" name="share_mine" value="1" checked> {{t "mode_switch.share_mine"}}</label></li>
+          {{else}}
+            <li>{{t "mode_switch.no_token"}}</li>
+          {{end}}
+        {{end}}
+      {{end}}
+      {{if .SecretDropped}}<li>{{t "mode_switch.secret_dropped"}}</li>{{end}}
+      </ul>
+      <button type="submit">{{t "mode_switch.confirm"}}</button>
+      <a class="link-btn" href="/connections/{{.Conn.ID}}/edit">{{t "action.cancel"}}</a>
+    </form>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{/* Result of a connection test run from the overview. */}}
+{{define "conn_check"}}<div class="toast-msg" data-state="{{if .Result.Ok}}ok{{else}}error{{end}}"><b>{{.Name}}</b> {{if .Result.Ok}}✓ OK{{with .Result.Version}} ({{.}}){{end}}{{else}}✗ {{t .Result.Message}}{{end}}</div>{{end}}

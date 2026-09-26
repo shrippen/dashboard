@@ -902,3 +902,18 @@ button.kl-ib { margin: 0; padding: 0; background: none; cursor: pointer; }
 .cred-way button { align-self: flex-start; }
 .ok { color: var(--ok-text); }
 .connect-code { font-family: var(--font-mono); font-size: 2rem; letter-spacing: .3em; color: var(--fg0); }
+
+/* Layout suggestion preview: one card per proposed section. */
+.suggest { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; margin: 1rem 0; }
+.suggest-sec h2 { margin: 0 0 .4rem; font-size: 1rem; }
+.suggest-sec ul { margin: 0; padding-left: 1.1rem; }
+.callout { border-left: 3px solid var(--yellow); background: var(--bg-panel); padding: .6rem .9rem; }
+
+/* Toast: short results fade in bottom right and go away by themselves. */
+.toast { position: fixed; right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 50; display: flex; flex-direction: column; gap: .4rem; pointer-events: none; }
+.toast-msg { background: var(--bg-panel); border: 1px solid var(--bg2); border-left: 4px solid var(--aqua); color: var(--fg1);
+  padding: .6rem .9rem; max-width: 26rem; box-shadow: 0 6px 18px var(--shadow); animation: toast-life 6s ease forwards; }
+.toast-msg[data-state="error"] { border-left-color: var(--red); animation-duration: 10s; }
+@keyframes toast-life { 0% { opacity: 0; transform: translateY(.5rem); } 6%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .toast-msg { animation: toast-fade 8s steps(1, end) forwards; } }
+@keyframes toast-fade { to { visibility: hidden; } }

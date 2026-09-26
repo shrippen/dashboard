@@ -2,10 +2,15 @@ package web
 
 import (
 	"errors"
-	"net/http"
+	"sort"
 	"strconv"
 
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+	"net/http"
+
 	"andon/internal/enums"
+	"andon/internal/i18n"
 	"andon/internal/services/access"
 	"andon/internal/services/connect"
 	"andon/internal/services/connections"
@@ -23,6 +28,7 @@ func (d Deps) RegisterConnectionRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /connections/{id}/edit", d.handleConnectionUpdate)
 	mux.HandleFunc("POST /connections/{id}/delete", d.handleConnectionDelete)
 	mux.HandleFunc("POST /connections/{id}/test", d.handleConnectionTest)
+	mux.HandleFunc("POST /connections/{id}/check", d.handleConnectionCheck)
 	mux.HandleFunc("POST /connections/{id}/hygiene", d.handleConnectionHygiene)
 	mux.HandleFunc("POST /connections/{id}/connect", d.handleConnectStart)
 	mux.HandleFunc("POST /connections/{id}/oauth-client", d.handleOAuthClient)
@@ -59,7 +65,12 @@ func (d Deps) handleConnectionNewForm(w http.ResponseWriter, r *http.Request) {
 	// matching widgets.
 	service := enums.ServiceType(r.URL.Query().Get("service"))
 	if !service.Known() {
-		_ = d.Page(w, ctx, "connection_pick", http.StatusOK, map[string]any{"Services": serviceOptions})
+		picks, err := d.servicePicks(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_ = d.Page(w, ctx, "connection_pick", http.StatusOK, map[string]any{"Services": picks})
 		return
 	}
 	spaces := access.EditableSpaces(ctx.Who)
@@ -100,8 +111,12 @@ func (d Deps) handleConnectionCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	service := enums.ServiceType(r.FormValue("service"))
 
-	id, err := connections.Create(d.DB, ctx.Who, spaceID, service,
-		r.FormValue("name"), r.FormValue("url"), mode, formSecret(r, service), tls, nil)
+	secret, err := formSecret(r, service)
+	var id int64
+	if err == nil {
+		id, err = connections.Create(d.DB, ctx.Who, spaceID, service,
+			r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil)
+	}
 	if err != nil {
 		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
 			"Spaces": access.EditableSpaces(ctx.Who), "Services": serviceOptions, "IsNew": true, "Error": err.Error(),
@@ -180,12 +195,28 @@ func (d Deps) handleConnectionUpdate(w http.ResponseWriter, r *http.Request) {
 	if mode == "" {
 		mode = enums.CredentialShared
 	}
-	var secret *string
-	if s := formSecret(r, conn.Service); s != "" {
-		secret = &s
+	// Switching shared ⇄ personal changes who can see what: explain first.
+	if mode != conn.Mode && r.FormValue("mode_confirmed") == "" {
+		entered, _ := formSecret(r, conn.Service)
+		_ = d.Page(w, ctx, "connection_mode", http.StatusOK, map[string]any{
+			"Conn": conn, "To": string(mode), "Name": r.FormValue("name"), "URL": r.FormValue("url"),
+			"TLS": r.FormValue("tls"), "SecretDropped": entered != "",
+		})
+		return
 	}
 
-	if err := connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil); err != nil {
+	var secret *string
+	s, err := formSecret(r, conn.Service)
+	if s != "" {
+		secret = &s
+	}
+	if err == nil {
+		err = connections.Update(d.DB, ctx.Who, id, r.FormValue("name"), r.FormValue("url"), mode, secret, tls, nil)
+	}
+	if err == nil && mode == enums.CredentialShared && r.FormValue("share_mine") != "" {
+		err = connections.ShareMine(d.DB, ctx.Who, id)
+	}
+	if err != nil {
 		_ = d.Page(w, ctx, "connection_form", http.StatusBadRequest, map[string]any{
 			"Conn": conn, "Services": serviceOptions, "IsNew": false,
 			"OptionsYAML": porting.DumpMap(conn.Options), "Error": errKey(err),
@@ -261,4 +292,56 @@ func (d Deps) handleConnectionHygiene(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, target, http.StatusSeeOther)
+}
+
+// servicePick is one card of the service picker.
+type servicePick struct {
+	Service enums.ServiceType
+	Name    string
+	Count   int // connections of this service the caller can see
+}
+
+// servicePicks lists the services by shown name, e.g. "AdGuard Home"
+// before "authentik", each with how many connections of it exist.
+func (d Deps) servicePicks(ctx Ctx) ([]servicePick, error) {
+	conns, err := connections.Listing(d.DB, ctx.Who, enums.RightView)
+	if err != nil {
+		return nil, err
+	}
+	count := map[enums.ServiceType]int{}
+	for _, c := range conns {
+		count[c.Service]++
+	}
+
+	picks := make([]servicePick, 0, len(serviceOptions))
+	for _, s := range serviceOptions {
+		picks = append(picks, servicePick{Service: s, Name: i18n.T("service."+string(s), ctx.Locale, nil), Count: count[s]})
+	}
+	sorter := collate.New(language.Make(string(ctx.Locale)), collate.IgnoreCase)
+	sort.SliceStable(picks, func(a, b int) bool { return sorter.CompareString(picks[a].Name, picks[b].Name) < 0 })
+	return picks, nil
+}
+
+// handleConnectionCheck runs the connection test from the overview and
+// answers with the result only (htmx swaps it into the row).
+func (d Deps) handleConnectionCheck(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	name := ""
+	if conn, err := connections.Get(d.DB, ctx.Who, id); err == nil {
+		name = conn.Name
+	}
+	result, err := connections.Test(r.Context(), d.DB, ctx.Who, id)
+	if err != nil {
+		result = connections.TestResult{Message: errKey(err)}
+	}
+	_ = d.Page(w, ctx, "conn_check", http.StatusOK, map[string]any{"Result": result, "Name": name})
 }

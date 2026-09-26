@@ -32,8 +32,23 @@ func TestFormSecretShapes(t *testing.T) {
 	for _, c := range cases {
 		r, _ := http.NewRequest(http.MethodPost, "/", strings.NewReader(c.form.Encode()))
 		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		if got := web.FormSecret(r, c.service); got != c.want {
-			t.Errorf("%s: got %q, want %q", c.service, got, c.want)
+		if got, err := web.FormSecret(r, c.service); err != nil || got != c.want {
+			t.Errorf("%s: got %q (%v), want %q", c.service, got, err, c.want)
+		}
+	}
+}
+
+// TestFormSecretIncomplete: services that always log in with both parts
+// refuse half a credential instead of storing a broken one, e.g. a
+// FreshRSS API password without its user name.
+func TestFormSecretIncomplete(t *testing.T) {
+	for _, service := range []enums.ServiceType{enums.ServiceFreshRSS, enums.ServiceMail, enums.ServiceAdGuard, enums.ServiceProxmox} {
+		for _, form := range []url.Values{{"secret_b": {"only-password"}}, {"secret_a": {"only-user"}}} {
+			r, _ := http.NewRequest(http.MethodPost, "/", strings.NewReader(form.Encode()))
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			if got, err := web.FormSecret(r, service); err == nil {
+				t.Errorf("%s %v: accepted %q", service, form, got)
+			}
 		}
 	}
 }

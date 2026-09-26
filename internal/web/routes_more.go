@@ -113,7 +113,11 @@ func (d Deps) handleCredentialSave(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		return connections.SetMine(d.DB, ctx.Who, id, formSecret(r, conn.Service))
+		secret, err := formSecret(r, conn.Service)
+		if err != nil {
+			return err
+		}
+		return connections.SetMine(d.DB, ctx.Who, id, secret)
 	})
 }
 

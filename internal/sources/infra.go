@@ -68,6 +68,10 @@ func (TrueNASData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	// TrueNAS revokes an API key that was sent over plain HTTP: never do that.
+	if !strings.HasPrefix(strings.ToLower(sctx.URL), "https://") {
+		return nil, newSourceError("truenas.https_required")
+	}
 	session, err := services.TrueNASApi{URL: sctx.URL, Key: secret, Verify: sctx.VerifyTLS}.Open(ctx)
 	if err != nil {
 		return nil, fetchError(err)

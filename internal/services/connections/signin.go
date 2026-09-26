@@ -159,3 +159,39 @@ func HasOAuthClient(d *sql.DB, connID int64) bool {
 	_, err := OAuthClientOf(d, connID)
 	return err == nil
 }
+
+// ShareMine makes the caller's personal token the connection's shared one,
+// e.g. when switching to shared credentials without a shared token yet.
+// Requires MANAGE.
+func ShareMine(d *sql.DB, who *access.Principal, connID int64) error {
+	defer svcdata.Forget(connID) // cached data may be stale now
+
+	return db.WithTx(d, func(tx *sql.Tx) error {
+		conn, err := content.Connection(tx, connID)
+		if err != nil {
+			return err
+		}
+		if conn == nil {
+			return ErrNotFound
+		}
+		granted, err := rightOf(tx, who, conn)
+		if err != nil {
+			return err
+		}
+		if err := access.Need(granted, enums.RightManage); err != nil {
+			return err
+		}
+		mine, err := content.Credential(tx, conn.ID, who.UserID)
+		if err != nil {
+			return err
+		}
+		if mine == nil {
+			return svcdata.ErrMissingCredential
+		}
+		conn.SecretEnc, conn.SecretAt = mine.SecretEnc, time.Now().UTC()
+		if err := content.UpdateConnection(tx, conn); err != nil {
+			return err
+		}
+		return audit.Log(tx, &who.UserID, "connection.secret_changed", conn.Name, "", nil)
+	})
+}

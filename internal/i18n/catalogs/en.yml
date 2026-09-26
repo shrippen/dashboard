@@ -717,6 +717,8 @@ conn:
   cred_pass: 'App or API password'
   cred_key: 'API key'
   cred_secret: 'API secret'
+  existing: '{count} connection(s) of this kind exist'
+  cred_incomplete: 'Please fill in both fields, e.g. user name and password.'
   ical_private: 'Private iCal address'
   cred_tokenid: 'Token ID'
   pick: 'Which service do you want to connect? Then: address and token, test, matching widgets.'
@@ -760,7 +762,7 @@ conn:
   options_hint_gluetun: 'Control server URL (http://gluetun:8000). Options: country: Sweden (expected exit country). Token = API key, if set.'
   options_hint_domains: 'URL = any address of the domain. Options: domains: [example.org, example.de]. No token. .de publishes no expiry.'
   options_hint_blacklist: 'URL = mail server (its IPv4 addresses are checked). Options: ips: [1.2.3.4], zones: [zen.spamhaus.org]. No token.'
-  options_hint_truenas: 'No options. Token = API key (credentials → users → API keys) of a user with the “Readonly Admin” role. Uses the WebSocket API, older versions REST.'
+  options_hint_truenas: 'No options. URL with https:// (e.g. https://truenas.lan) – TrueNAS revokes an API key used over http; with a self-signed certificate set TLS to “insecure”. Token = API key (credentials → users → API keys) of a user with the “Readonly Admin” role. Uses the WebSocket API, older versions REST.'
   options_hint_komodo: No options. API key and secret from Komodo (read-only suffices).
   options_hint_pangolin: 'Integration API URL including /v1 (e.g. https://api.pangolin.example.org/v1). Options: org: <organisation id>. Token = integration API key.'
   options_hint_authentik: No options. Token = API token of an account allowed to read events and users.
@@ -2479,6 +2481,7 @@ komodo:
   updates: 'Image updates: {n}'
   alerts: 'Alerts: {n}'
 truenas:
+  https_required: 'Connect TrueNAS over https:// only: TrueNAS revokes an API key as soon as it is used over http. Please change the URL to https:// and create a new key.'
   alerts: 'Alerts: {n}'
   updates: 'App updates: {n}'
 dns:
@@ -2681,3 +2684,26 @@ connect:
   unsupported: This service cannot sign in, only use a token.
 grant:
   expired: The sign-in expired. Please sign in again at the connection.
+
+suggest:
+  links: Links
+  button: Suggest layout
+  title: Layout suggestion
+  lead: 'From the tiles and connections of “{space}”, ordered by topic. New tiles are only created when you apply.'
+  new: new
+  warning: Applying replaces this board's current layout for everyone. “Undo” in edit mode brings it back; newly created tiles stay in the library.
+  apply: Apply suggestion
+  empty: This space has no tiles or connections yet to build a layout from.
+  applied: Layout applied. “Undo” restores the previous one.
+
+mode_switch:
+  title: Switch credentials
+  to_personal: Switch to personal credentials?
+  to_shared: Switch to shared credentials?
+  personal_others: Everyone else who sees tiles of this connection then needs their own token (under “My credentials”). Until then their tiles show “credentials missing”.
+  personal_mine: The current shared token becomes your personal one, so the connection keeps working for you.
+  personal_jobs: Analyses and hints then run per person with their own token.
+  share_mine: Use my personal token for everyone (there is no shared one yet).
+  no_token: There is no shared token yet. Enter one after switching, or the connection works for nobody.
+  secret_dropped: The token you just entered was not saved yet. Please enter it again after switching.
+  confirm: Switch

@@ -98,6 +98,10 @@ func TestNoTokenFieldWithoutAuth(t *testing.T) {
 		}
 	}
 	kimai := string(mustGet(t, srv, client, "/connections/new?service=kimai"))
+	// New connections start with personal credentials.
+	if !regexp.MustCompile(`<option value="personal"\s+selected>`).MatchString(kimai) {
+		t.Fatalf("personal is not the default:\n%s", kimai)
+	}
 	if !strings.Contains(kimai, `name="secret"`) {
 		t.Fatal("kimai form lost its token field")
 	}

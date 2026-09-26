@@ -158,48 +158,56 @@ func checkConnection(q db.Queryer, who *access.Principal, connID *int64, typeKey
 // Create adds a new widget to a space. Requires EDIT on the space.
 func Create(d *sql.DB, who *access.Principal, spaceID int64, typeKey, title string, config map[string]any,
 	connID *int64, minRole *enums.TeamRole) (int64, error) {
+	var id int64
+	err := db.WithTx(d, func(tx *sql.Tx) error {
+		var err error
+		id, err = CreateTx(tx, who, spaceID, typeKey, title, config, connID, minRole)
+		return err
+	})
+	return id, err
+}
+
+// CreateTx is Create inside a running transaction, for callers that add
+// widgets as part of a larger change (e.g. a suggested board layout).
+func CreateTx(tx *sql.Tx, who *access.Principal, spaceID int64, typeKey, title string, config map[string]any,
+	connID *int64, minRole *enums.TeamRole) (int64, error) {
 	if _, ok := widgets.Get(typeKey); !ok {
 		return 0, ErrUnknownType
 	}
-	var id int64
-	err := db.WithTx(d, func(tx *sql.Tx) error {
-		space, err := access.SpaceOf(tx, who, spaceID)
-		if err != nil {
-			return err
-		}
-		if err := access.Need(access.SpaceRight(who, space), enums.RightEdit); err != nil {
-			return err
-		}
-		if err := checkConnection(tx, who, connID, typeKey); err != nil {
-			return err
-		}
+	space, err := access.SpaceOf(tx, who, spaceID)
+	if err != nil {
+		return 0, err
+	}
+	if err := access.Need(access.SpaceRight(who, space), enums.RightEdit); err != nil {
+		return 0, err
+	}
+	if err := checkConnection(tx, who, connID, typeKey); err != nil {
+		return 0, err
+	}
 
-		existing, err := content.Widgets(tx, []int64{spaceID})
-		if err != nil {
-			return err
-		}
-		taken := map[string]bool{}
-		for _, w := range existing {
-			taken[w.Key] = true
-		}
-		label := strings.TrimSpace(title)
-		config, err := util.SealSecrets(config, nil)
-		if err != nil {
-			return err
-		}
+	existing, err := content.Widgets(tx, []int64{spaceID})
+	if err != nil {
+		return 0, err
+	}
+	taken := map[string]bool{}
+	for _, w := range existing {
+		taken[w.Key] = true
+	}
+	label := strings.TrimSpace(title)
+	config, err = util.SealSecrets(config, nil)
+	if err != nil {
+		return 0, err
+	}
 
-		widget := &model.Widget{
-			SpaceID: spaceID, Key: util.Unique(util.Slug(firstNonEmpty(label, typeKey), typeKey), taken),
-			Type: typeKey, Title: label, Config: config, ConnectionID: connID, MinTeamRole: minRole,
-			Version: 1, UpdatedAt: time.Now().UTC(),
-		}
-		if err := content.AddWidget(tx, widget); err != nil {
-			return err
-		}
-		id = widget.ID
-		return snapshot(tx, who, widget)
-	})
-	return id, err
+	widget := &model.Widget{
+		SpaceID: spaceID, Key: util.Unique(util.Slug(firstNonEmpty(label, typeKey), typeKey), taken),
+		Type: typeKey, Title: label, Config: config, ConnectionID: connID, MinTeamRole: minRole,
+		Version: 1, UpdatedAt: time.Now().UTC(),
+	}
+	if err := content.AddWidget(tx, widget); err != nil {
+		return 0, err
+	}
+	return widget.ID, snapshot(tx, who, widget)
 }
 
 func firstNonEmpty(a, b string) string {

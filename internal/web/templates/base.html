@@ -31,6 +31,8 @@
 {{/* App header: boards and the evaluation pages up front, setup and the
      account behind two menus (native <details>, no script needed). */}}
 {{define "header"}}
+{{/* Short results (e.g. a connection test) fade in here, see andon.css .toast. */}}
+<div id="toast" class="toast" aria-live="polite"></div>
 <header class="app-nav">
   <a class="app-brand" href="/">{{template "mark"}}Andon</a>
   {{if .Who}}

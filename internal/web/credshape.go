@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 
 	"andon/internal/enums"
@@ -56,25 +57,38 @@ func credShapeOf(service enums.ServiceType) credShape {
 	}
 }
 
+// errCredIncomplete: only one of two required parts was filled in.
+var errCredIncomplete = errors.New("conn.cred_incomplete")
+
+// singleKeyToo lists two-part services that also take one key alone,
+// entered with the first field empty (Umami Cloud API key, Nextcloud
+// serverinfo token, pfSense and UniFi keys).
+var singleKeyToo = map[enums.ServiceType]bool{
+	enums.ServiceUmami: true, enums.ServiceNextcloud: true, enums.ServiceGateway: true,
+}
+
 // formSecret reads the connection secret from the form, joining a two-part
 // credential's fields into the "a:b" shape the drivers expect. Both parts
 // empty means "unchanged" (create: no secret), same as the single field.
-func formSecret(r *http.Request, service enums.ServiceType) string {
+func formSecret(r *http.Request, service enums.ServiceType) (string, error) {
 	shape := credShapeOf(service)
 	switch shape {
 	case credNone:
-		return ""
+		return "", nil
 	case credSingle, credICal, credPassword:
-		return r.FormValue("secret")
+		return r.FormValue("secret"), nil
 	}
+
 	a, b := r.FormValue("secret_a"), r.FormValue("secret_b")
-	// First field empty: the service takes a single key instead, e.g.
-	// Umami Cloud's API key or a Nextcloud serverinfo token.
-	if a == "" {
-		return b
+	switch {
+	case a == "" && b == "":
+		return "", nil
+	case a == "" && singleKeyToo[service]:
+		return b, nil
+	case a == "" || b == "":
+		return "", errCredIncomplete
+	case shape == credTokenID:
+		return a + "=" + b, nil
 	}
-	if shape == credTokenID {
-		return a + "=" + b
-	}
-	return a + ":" + b
+	return a + ":" + b, nil
 }

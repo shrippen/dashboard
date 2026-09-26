@@ -34,6 +34,8 @@ func (d Deps) RegisterBoardRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /boards/{id}/size/{sectionID}", d.handleSize)
 	mux.HandleFunc("POST /boards/{id}/overlay/reset", d.handleOverlayReset)
 	mux.HandleFunc("GET /boards/{id}/history", d.handleHistory)
+	mux.HandleFunc("GET /boards/{id}/suggest", d.handleSuggest)
+	mux.HandleFunc("POST /boards/{id}/suggest", d.handleSuggestApply)
 	mux.HandleFunc("POST /boards/{id}/restore/{revisionID}", d.handleRestore)
 }
 
@@ -446,4 +448,50 @@ func (d Deps) handleRestore(w http.ResponseWriter, r *http.Request) {
 	d.layoutAction(w, r, "revisionID", func(ctx Ctx, id, revisionID int64) error {
 		return boards.Restore(d.DB, ctx.Who, id, revisionID)
 	}, func(id int64) string { return boardPath(id) + "?edit" })
+}
+
+// handleSuggest previews a layout built from the space's tiles and
+// connections (cold start); nothing changes until it is applied.
+func (d Deps) handleSuggest(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := pathID(r, "id")
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	view, err := boards.View(d.DB, ctx.Who, id)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	suggestion, err := boards.Suggest(d.DB, ctx.Who, id)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	_ = d.Page(w, ctx, "board_suggest", http.StatusOK, map[string]any{"Board": view, "Suggestion": suggestion})
+}
+
+// handleSuggestApply replaces the board's layout with the suggestion.
+func (d Deps) handleSuggestApply(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := pathID(r, "id")
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	version, _ := strconv.Atoi(r.FormValue("version"))
+	if err := boards.ApplySuggestion(d.DB, ctx.Who, id, version); err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/boards/"+strconv.FormatInt(id, 10)+"?edit&undo", http.StatusSeeOther)
 }

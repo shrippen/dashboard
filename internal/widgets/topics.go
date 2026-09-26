@@ -1,5 +1,7 @@
 package widgets
 
+import "andon/internal/enums"
+
 // Topic groups widget types by subject in the gallery ("Kachel hinzufügen").
 // Unlike Category, which says how a type gets its data, a topic says what
 // it is about.
@@ -63,4 +65,33 @@ func TopicOf(key string) Topic {
 		return topic
 	}
 	return TopicOverview
+}
+
+// starterPick is the first tile a service gets on a suggested board where
+// it offers several types.
+var starterPick = map[enums.ServiceType]string{
+	enums.ServiceKimai:        "kimai_week",
+	enums.ServiceInvoiceNinja: "invoice_aging",
+	enums.ServiceGlances:      "sysinfo",
+	enums.ServiceSpeedtest:    "speedtest",
+}
+
+// noStarter lists service types that show nothing without setup first.
+var noStarter = map[enums.ServiceType]bool{enums.ServiceJSONAPI: true}
+
+// Starter returns the tile type a connection of service starts with, e.g.
+// Kimai → kimai_week; false if the service has no tile of its own.
+func Starter(service enums.ServiceType) (string, bool) {
+	if noStarter[service] {
+		return "", false
+	}
+	if key, ok := starterPick[service]; ok {
+		return key, true
+	}
+	for _, kind := range AllTypes() {
+		if kind.Service == service {
+			return kind.Key, true
+		}
+	}
+	return "", false
 }

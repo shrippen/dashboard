@@ -76,6 +76,7 @@
       <select name="color" aria-label="{{t "field.color"}}"><option value="">{{t "opt.none"}}</option>{{range .Colors}}<option value="{{.}}">{{t (print "opt." .)}}</option>{{end}}</select>
       <button type="submit" class="ghost">{{t "edit.bulk_apply"}}</button>
     </form>
+    <a class="link-btn" href="/boards/{{.Board.ID}}/suggest">{{t "suggest.button"}}</a>
     <form method="post" action="/boards/{{.Board.ID}}/duplicate" class="inline-form">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
       <input type="hidden" name="name" value="{{.Board.Name}} 2">
@@ -301,6 +302,51 @@
       {{end}}
     </table></div>
     <p><a class="link-btn" href="/boards/{{.Board.ID}}?edit">{{t "action.cancel"}}</a></p>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{/* Cold start: preview of a layout built from the space's tiles and
+     connections; applying replaces the board's layout (undo-able). */}}
+{{define "board_suggest"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "suggest.title"}} · Andon</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "suggest.title"}}</h1>
+    <p class="muted">{{.Board.Name}} · {{t "suggest.lead" "space" .Board.Space.Name}}</p>
+    {{if .Suggestion.Sections}}
+      <div class="suggest">
+      {{range .Suggestion.Sections}}
+        <section class="card suggest-sec">
+          <h2>{{.Title}}</h2>
+          <ul>
+          {{range .Tiles}}
+            <li>{{if .Title}}{{.Title}}{{else}}{{t (print "wtype." .Type ".name")}}{{end}}{{with .ConnName}} <span class="muted">· {{.}}</span>{{end}}{{if .New}} <span class="pill" data-state="ok">{{t "suggest.new"}}</span>{{end}}</li>
+          {{end}}
+          </ul>
+        </section>
+      {{end}}
+      </div>
+      <p class="callout">{{t "suggest.warning"}}</p>
+      <form method="post" action="/boards/{{.Board.ID}}/suggest" class="inline-form">
+        <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+        <input type="hidden" name="version" value="{{.Suggestion.Version}}">
+        <button type="submit">{{t "suggest.apply"}}</button>
+        <a class="link-btn" href="/boards/{{.Board.ID}}?edit">{{t "action.cancel"}}</a>
+      </form>
+    {{else}}
+      <p>{{t "suggest.empty"}}</p>
+      <p><a class="link-btn" href="/boards/{{.Board.ID}}?edit">{{t "action.cancel"}}</a></p>
+    {{end}}
   </main>
 </body>
 </html>

@@ -1120,12 +1120,6 @@ func Restore(d *sql.DB, who *access.Principal, boardID, revisionID int64) error 
 			return ErrBadRevision
 		}
 
-		for _, sec := range board.Sections {
-			if err := content.RemoveSection(tx, sec.ID); err != nil {
-				return err
-			}
-		}
-
 		raw, err := json.Marshal(rev.Data)
 		if err != nil {
 			return err
@@ -1138,51 +1132,62 @@ func Restore(d *sql.DB, who *access.Principal, boardID, revisionID int64) error 
 			board.Name = snap.Name
 		}
 		board.Version++
-		board.UpdatedAt = time.Now().UTC()
-
-		for index, sec := range snap.Sections {
-			size := enums.TileSize(sec.Size)
-			if size == "" {
-				size = enums.TileMedium
-			}
-			sortOrder := enums.SortOrder(sec.Sort)
-			if sortOrder == "" {
-				sortOrder = enums.SortManual
-			}
-			area := sec.Area
-			if area == "" {
-				area = areas[0]
-			}
-			newSection := &model.Section{
-				BoardID: board.ID, Title: sec.Title, Position: index, Cols: sec.Cols,
-				Size: size, Sort: sortOrder, Collapsed: sec.Collapsed, Area: area,
-				Span: clampLayout(sec.Span, MaxSpan), Rows: clampLayout(sec.Rows, MaxRows), Color: sectionColor(sec.Color),
-				Mobile: mobileMode(enums.MobileMode(sec.Mobile)),
-			}
-			if err := content.AddSection(tx, newSection); err != nil {
-				return err
-			}
-			for pos, widgetID := range sec.Widgets {
-				w, err := content.Widget(tx, widgetID)
-				if err != nil {
-					return err
-				}
-				if w == nil || w.SpaceID != board.SpaceID {
-					continue // widget gone, or from a space we can't resolve here (see doc comment)
-				}
-				if err := content.AddPlacement(tx, &model.Placement{
-					SectionID: newSection.ID, WidgetID: widgetID, Position: pos, Rows: rowsIn(sec.Tall, widgetID),
-				}); err != nil {
-					return err
-				}
-			}
-		}
-
-		if err := content.UpdateBoard(tx, board); err != nil {
+		if err := rebuild(tx, board, snap); err != nil {
 			return err
 		}
 		return snapshot(tx, who, board)
 	})
+}
+
+// rebuild replaces a board's sections and placements with those of snap
+// and stores the board. Widgets outside the board's space are skipped.
+func rebuild(tx *sql.Tx, board *model.Board, snap snapshotBoard) error {
+	for _, sec := range board.Sections {
+		if err := content.RemoveSection(tx, sec.ID); err != nil {
+			return err
+		}
+	}
+	board.UpdatedAt = time.Now().UTC()
+
+	for index, sec := range snap.Sections {
+		size := enums.TileSize(sec.Size)
+		if size == "" {
+			size = enums.TileMedium
+		}
+		sortOrder := enums.SortOrder(sec.Sort)
+		if sortOrder == "" {
+			sortOrder = enums.SortManual
+		}
+		area := sec.Area
+		if area == "" {
+			area = areas[0]
+		}
+		newSection := &model.Section{
+			BoardID: board.ID, Title: sec.Title, Position: index, Cols: sec.Cols,
+			Size: size, Sort: sortOrder, Collapsed: sec.Collapsed, Area: area,
+			Span: clampLayout(sec.Span, MaxSpan), Rows: clampLayout(sec.Rows, MaxRows), Color: sectionColor(sec.Color),
+			Mobile: mobileMode(enums.MobileMode(sec.Mobile)),
+		}
+		if err := content.AddSection(tx, newSection); err != nil {
+			return err
+		}
+		for pos, widgetID := range sec.Widgets {
+			w, err := content.Widget(tx, widgetID)
+			if err != nil {
+				return err
+			}
+			if w == nil || w.SpaceID != board.SpaceID {
+				continue // widget gone, or from a space we can't resolve here (see doc comment)
+			}
+			if err := content.AddPlacement(tx, &model.Placement{
+				SectionID: newSection.ID, WidgetID: widgetID, Position: pos, Rows: rowsIn(sec.Tall, widgetID),
+			}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return content.UpdateBoard(tx, board)
 }
 
 // Section layout: the main column is twelve twelfths wide. Span 1–3 are
