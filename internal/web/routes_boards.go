@@ -12,6 +12,7 @@ import (
 	"dashboard/internal/services/hass"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
+	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
 )
 
@@ -105,8 +106,13 @@ func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embed
 		return
 	}
 
+	var bodies map[int64]*tileBody
+	if !embed {
+		bodies = d.tileBodies(r, ctx, view)
+	}
+
 	_ = d.Page(w, ctx, "board", http.StatusOK, map[string]any{
-		"Board": view, "NavBoards": navBoards, "CurBoard": view.ID, "ThemeURL": themeURL,
+		"Bodies": bodies, "Board": view, "NavBoards": navBoards, "CurBoard": view.ID, "ThemeURL": themeURL,
 		"Embed": embed, "EmbedToken": embedToken, "SearchEngine": searchEngine,
 		"Edit": mode.edit, "LayerEdit": mode.layer && !embed, "Compact": mode.compact, "UndoHint": r.URL.Query().Has("undo"),
 		"Sizes": []enums.TileSize{enums.TileSmall, enums.TileMedium, enums.TileLarge},
@@ -116,6 +122,61 @@ func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embed
 		"Mobiles": []enums.MobileMode{enums.MobileNormal, enums.MobileFirst, enums.MobileHide},
 		"Kiosk":   kioskOf(r, navBoards, view.ID),
 	})
+}
+
+// tileBody is a tile's first render, done with the page so tiles don't
+// grow one by one as their fragments arrive. Load asks htmx to fetch the
+// fragment right away anyway: stored data may be missing or stale.
+type tileBody struct {
+	PlacementID int64
+	Template    string
+	Frag        *widgetlib.Fragment
+	Load        bool
+}
+
+// tileBodies renders every card tile from stored data only (svcdata.Stored:
+// no request leaves the server), so the page stays as fast as before.
+// Link tiles keep loading lazily: their status line is small.
+func (d Deps) tileBodies(r *http.Request, ctx Ctx, view *boards.BoardView) map[int64]*tileBody {
+	out := map[int64]*tileBody{}
+	for _, sec := range view.Sections {
+		for _, tile := range sec.Tiles {
+			if tile.Type == linkType {
+				continue
+			}
+			kind, ok := widgets.Get(tile.Type)
+			if !ok {
+				continue
+			}
+			frag, err := boards.Fragment(r.Context(), d.DB, ctx.Who, tile.PlacementID, svcdata.Stored)
+			if err != nil {
+				continue
+			}
+			out[tile.PlacementID] = &tileBody{PlacementID: tile.PlacementID, Template: kind.Template, Frag: frag,
+				Load: needsLoad(kind, tile.Config, frag)}
+		}
+	}
+	return out
+}
+
+// needsLoad: live types want fresh data on every view, sources without a
+// connection (weather, feeds) are only fetched on view, and pending slots
+// have no stored value yet.
+func needsLoad(kind widgets.WidgetType, cfg any, frag *widgetlib.Fragment) bool {
+	if kind.Live {
+		return true
+	}
+	for _, q := range kind.Queries(cfg) {
+		if q.Conn == widgets.ConnNone {
+			return true
+		}
+	}
+	for _, slot := range frag.Slots {
+		if slot.Pending {
+			return true
+		}
+	}
+	return false
 }
 
 // handleWidgetFragment renders one placed widget's live data (lazy-loaded

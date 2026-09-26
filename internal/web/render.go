@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"embed"
 	"errors"
 	"html/template"
@@ -35,6 +36,7 @@ func mustParse() *template.Template {
 		"ago":       func(any) string { return "" },
 		"clockDate": func(string) string { return "" },
 		"tt":        func(string, map[string]any) string { return "" },
+		"fragment":  func(*tileBody) (template.HTML, error) { return "", nil },
 
 		// barPct/tier are locale-independent (plain numbers/CSS keywords),
 		// so unlike the above they're the real implementation, not a
@@ -175,6 +177,21 @@ func (d Deps) Page(w http.ResponseWriter, ctx Ctx, name string, status int, valu
 		return err
 	}
 	page = page.Funcs(funcs)
+
+	// fragment renders a tile body inside the page, with the page's data
+	// plus the fragment, as /widget-fragments/{id} would answer.
+	page = page.Funcs(template.FuncMap{"fragment": func(body *tileBody) (template.HTML, error) {
+		own := make(map[string]any, len(data)+2)
+		for k, v := range data {
+			own[k] = v
+		}
+		own["Frag"], own["PlacementID"] = body.Frag, body.PlacementID
+		var buf bytes.Buffer
+		if err := page.ExecuteTemplate(&buf, body.Template, own); err != nil {
+			return "", err
+		}
+		return template.HTML(buf.String()), nil //nolint:gosec // output of our own escaping templates
+	}})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	return page.ExecuteTemplate(w, name, data)

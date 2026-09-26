@@ -109,3 +109,34 @@ func nextVersion(t *testing.T, v string) string {
 	}
 	return strconv.Itoa(n + 1)
 }
+
+// A tile arrives with the page, so the board doesn't grow as fragments
+// load; a note has nothing to refresh and asks for no fragment at all.
+func TestBoardRendersTilesWithPage(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	space := regexp.MustCompile(`space=(\d+)`).FindSubmatch(mustGet(t, srv, client, "/widgets/new"))[1]
+	resp, err := client.PostForm(srv.URL+"/widgets", url.Values{
+		"csrf": {csrfToken(t, srv, client)}, "space_id": {string(space)}, "type": {"note"}, "title": {"My Note"}, "cfg.text": {"Inline body"},
+	})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	resp.Body.Close()
+	boardURL, section, version, widget := placeTarget(t, srv, client, "My Note")
+	resp, err = client.PostForm(srv.URL+"/boards/"+boardIDFrom(boardURL)+"/sections/"+section+"/place", url.Values{
+		"csrf": {csrfToken(t, srv, client)}, "widget_id": {widget}, "version": {version},
+	})
+	if err != nil {
+		t.Fatalf("place: %v", err)
+	}
+	resp.Body.Close()
+
+	page := string(mustGet(t, srv, client, boardURL))
+	tile := regexp.MustCompile(`(?s)<div class="tile-slot w-note".*?</article>`).FindString(page)
+	if !strings.Contains(tile, "Inline body") || strings.Contains(tile, "hx-get") {
+		t.Fatalf("expected the note rendered inline without a fragment request:\n%s", tile)
+	}
+}
