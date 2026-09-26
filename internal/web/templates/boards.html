@@ -12,10 +12,9 @@
   <title>{{.Board.Name}} · Andon</title>
   <link rel="manifest" href="/manifest.webmanifest">
   {{template "style" .}}
-  {{template "htmx" .}}
   {{if or .Edit .LayerEdit}}
-  <script src="/static/vendor/sortable/Sortable.min.js" defer></script>
-  <script src="/static/editor.js" defer></script>
+  <script src="{{asset "vendor/sortable/Sortable.min.js"}}" defer></script>
+  <script src="{{asset "editor.js"}}" defer></script>
   {{end}}
 </head>
 <body{{if .Kiosk.On}} class="is-kiosk" data-kiosk-next="{{.Kiosk.Next}}" data-kiosk-every="{{.Kiosk.Every}}" data-kiosk-dim="{{.Kiosk.Dim}}"{{end}}>

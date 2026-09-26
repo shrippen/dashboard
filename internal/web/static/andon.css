@@ -125,10 +125,11 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
   text-decoration: none;
 }
 .app-brand .mark {
-  width: 18px; height: 18px;
-  background: var(--accent);
+  width: 22px; height: 22px;
   flex: 0 0 auto;
 }
+.mark { color: var(--accent); fill: currentColor; }
+.mark .sig { fill: var(--yellow); }
 .app-links { display: flex; gap: .4rem 1.4rem; flex-wrap: wrap; align-items: center; }
 .app-links a {
   display: inline-flex;
@@ -631,7 +632,7 @@ table.table tr:last-child td { border-bottom: 0; }
 }
 .login-card { width: 100%; max-width: 22rem; background: var(--bg-panel); border: 1px solid var(--bg2); padding: 2rem 1.8rem; }
 .login-brand { display: flex; align-items: center; gap: .6rem; margin-bottom: 1.6rem; }
-.login-brand .mark { width: 26px; height: 26px; background: var(--orange); clip-path: polygon(0 0, 70% 0, 100% 30%, 100% 100%, 0 100%); }
+.login-brand .mark { width: 30px; height: 30px; }
 .login-brand b { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: .1em; font-size: 1.1rem; color: var(--fg0); }
 .login-btn { width: 100%; }
 .login-foot { margin-top: 1.2rem; display: flex; justify-content: space-between; font-size: .78rem; }

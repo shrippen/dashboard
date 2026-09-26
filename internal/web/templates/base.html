@@ -4,32 +4,35 @@
      overriding a {{block}}, so multiple pages parsed into one template
      set never clash over a shared block name. */}}
 {{define "style"}}
+<meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="{{.ThemeURL}}">
-<link rel="stylesheet" href="/static/andon.css">
-<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="{{asset "andon.css"}}">
+<link rel="icon" href="{{asset "icon.svg"}}" type="image/svg+xml">
 <meta name="csrf" content="{{.Ctx.CSRF}}">
 <meta name="offline-note" content="{{t "nav.offline"}}">
-<script src="/static/andon.js" defer></script>
+{{/* Soft page changes (hx-boost, see andon.js). Back and forward load
+     the full page: a cached body would miss its head. */}}
+<meta name="htmx-config" content='{"historyCacheSize":0,"refreshOnHistoryMiss":true}'>
+<script src="{{asset "vendor/htmx/htmx.min.js"}}" defer></script>
+<script src="{{asset "andon.js"}}" defer></script>
 {{end}}
 
 {{/* Loaded only by pages with <textarea data-code>. */}}
 {{define "code-editor"}}
-<link rel="stylesheet" href="/static/vendor/codemirror/codemirror.min.css">
-<script src="/static/vendor/codemirror/codemirror.min.js" defer></script>
-<script src="/static/code-editor.js" defer></script>
+<link rel="stylesheet" href="{{asset "vendor/codemirror/codemirror.min.css"}}">
+<script src="{{asset "vendor/codemirror/codemirror.min.js"}}" defer></script>
+<script src="{{asset "code-editor.js"}}" defer></script>
 {{end}}
 
-{{/* Loaded only by pages with hx-get tiles (the board page), not every
-     page, to keep the login/setup flow free of it. */}}
-{{define "htmx"}}
-<script src="/static/vendor/htmx/htmx.min.js" defer></script>
-{{end}}
+{{/* Brand mark (docs/icon.svg): frame and tiles follow --accent, the
+     signal tile --yellow, so it reads in dark and light themes. */}}
+{{define "mark"}}<svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="7" width="42" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="9" y="12" width="8" height="11" rx="1.5"/><rect x="20" y="12" width="8" height="11" rx="1.5"/><rect class="sig" x="31" y="12" width="8" height="11" rx="1.5"/><rect x="9" y="26" width="8" height="10" rx="1.5"/><rect x="20" y="26" width="8" height="10" rx="1.5"/><rect x="31" y="26" width="8" height="10" rx="1.5"/></svg>{{end}}
 
 {{/* App header: boards and the evaluation pages up front, setup and the
      account behind two menus (native <details>, no script needed). */}}
 {{define "header"}}
 <header class="app-nav">
-  <a class="app-brand" href="/"><span class="mark"></span>Andon</a>
+  <a class="app-brand" href="/">{{template "mark"}}Andon</a>
   {{if .Who}}
     <nav class="app-links" aria-label="{{t "nav.main"}}">
       {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.CurBoard}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}

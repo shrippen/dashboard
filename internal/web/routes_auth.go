@@ -55,6 +55,12 @@ func (d Deps) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+
+	// Fresh instance: nobody can log in yet, the first admin comes from /setup.
+	if needed, err := auth.SetupNeeded(d.DB); err == nil && needed {
+		http.Redirect(w, r, "/setup", http.StatusSeeOther)
+		return
+	}
 	_ = d.Page(w, ctx, "login", http.StatusOK, d.loginExtras(nil))
 }
 

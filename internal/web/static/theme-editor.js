@@ -17,7 +17,7 @@
     });
   }
 
-  d.addEventListener("DOMContentLoaded", function () {
+  window.andonPage(function () {
     [].forEach.call(d.querySelectorAll("#theme-form input[type=color]"), function (picker) {
       var text = d.querySelector('#theme-form [name="' + picker.getAttribute("data-for") + '"]');
       picker.addEventListener("input", function () {

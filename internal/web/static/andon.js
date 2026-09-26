@@ -1,4 +1,4 @@
-/* dashboard — search, hotkeys, clocks, folding, confirmations. No framework. */
+/* Andon — search, hotkeys, clocks, folding, confirmations, soft page changes. No framework. */
 (function () {
   "use strict";
 
@@ -162,19 +162,19 @@
   // ── Context menu on links: new tab, same tab, copy address ──
   // Shift + right click keeps the browser's own menu.
   function setupContextMenu() {
-    var menu = d.getElementById("ctx-menu");
-    if (!menu) {
-      return;
-    }
     var target = "";
 
     function close() {
-      menu.hidden = true;
+      var menu = d.getElementById("ctx-menu");
+      if (menu) {
+        menu.hidden = true;
+      }
     }
 
     d.addEventListener("contextmenu", function (e) {
+      var menu = d.getElementById("ctx-menu");
       var link = e.target.closest && e.target.closest(".launch, .launch-items a");
-      if (!link || e.shiftKey) {
+      if (!menu || !link || e.shiftKey) {
         close();
         return;
       }
@@ -190,8 +190,8 @@
       menu.querySelector("button").focus();
     });
 
-    menu.addEventListener("click", function (e) {
-      var btn = e.target.closest("button");
+    d.addEventListener("click", function (e) {
+      var btn = e.target.closest && e.target.closest("#ctx-menu button");
       if (!btn) {
         return;
       }
@@ -207,7 +207,7 @@
     });
 
     d.addEventListener("click", function (e) {
-      if (!menu.contains(e.target)) {
+      if (!(e.target.closest && e.target.closest("#ctx-menu"))) {
         close();
       }
     });
@@ -281,7 +281,9 @@
     });
   }
 
-  function setupPalette() {
+  // bindPalette wires the palette input of the current page.
+  function bindPalette() {
+    paletteItems = null;
     var dlg = d.getElementById("palette");
     if (!dlg) {
       return;
@@ -309,6 +311,9 @@
         }
       }
     });
+  }
+
+  function setupPalette() {
     d.addEventListener("click", function (e) {
       if (e.target.closest && e.target.closest('[data-open="palette"]')) {
         openPalette();
@@ -403,6 +408,7 @@
       var form = e.target.closest && e.target.closest("form[data-confirm]");
       if (form && !window.confirm(form.getAttribute("data-confirm"))) {
         e.preventDefault();
+        e.stopPropagation();
       }
     }, true);
   }
@@ -436,12 +442,18 @@
   // ── Hint badge on a link tile: show that connection's hints instead of following the link ──
   var HINT_POP_WIDTH = 360, HINT_POP_GAP = 6, HINT_POP_MARGIN = 8;
 
-  function setupHintPop() {
-    var pop = d.createElement("div");
-    pop.className = "hint-pop";
-    pop.setAttribute("popover", "");
-    d.body.appendChild(pop);
+  function hintPop() {
+    var pop = d.querySelector(".hint-pop");
+    if (!pop) {
+      pop = d.createElement("div");
+      pop.className = "hint-pop";
+      pop.setAttribute("popover", "");
+      d.body.appendChild(pop);
+    }
+    return pop;
+  }
 
+  function setupHintPop() {
     d.addEventListener("click", function (e) {
       var badge = e.target.closest && e.target.closest(".launch-hints[data-hints]");
       if (!badge) {
@@ -454,6 +466,7 @@
         .then(function (r) { return r.ok ? r.text() : ""; })
         .then(function (html) {
           // Server-rendered html/template output from our own origin.
+          var pop = hintPop();
           pop.innerHTML = html;
           var box = badge.getBoundingClientRect();
           var left = Math.min(box.left, window.innerWidth - HINT_POP_WIDTH - HINT_POP_MARGIN);
@@ -536,8 +549,20 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(function () {});
     }
+    var show = function (hidden) {
+      var note = d.querySelector(".offline-note");
+      if (note) {
+        note.hidden = hidden;
+      }
+    };
+    window.addEventListener("online", function () { show(true); });
+    window.addEventListener("offline", function () { show(false); });
+  }
+
+  // offlineNote puts the banner into the current page, hidden while online.
+  function offlineNote() {
     var meta = d.querySelector('meta[name="offline-note"]');
-    if (!meta) {
+    if (!meta || d.querySelector(".offline-note")) {
       return;
     }
     var note = d.createElement("p");
@@ -545,8 +570,6 @@
     note.textContent = meta.content;
     note.hidden = navigator.onLine;
     d.body.prepend(note);
-    window.addEventListener("online", function () { note.hidden = true; });
-    window.addEventListener("offline", function () { note.hidden = false; });
   }
 
   // Tiles without stored data yet ask again shortly: the first fetch is
@@ -568,8 +591,143 @@
   }
 
   function setupRetry() {
-    retryPending(d);
-    d.body.addEventListener("htmx:afterSwap", function (e) { retryPending(e.target); });
+    d.addEventListener("htmx:afterSwap", function (e) { retryPending(e.target); });
+  }
+
+  // ── Soft page changes: htmx swaps the body (hx-boost), this syncs the rest ──
+  //
+  //   click ─► GET via htmx ─► beforeSwap: non-HTML (download) or kiosk page
+  //                             → normal page load instead
+  //                           ─► head: metas, lang, new stylesheets (early)
+  //                           ─► body swapped ─► afterSwap: new scripts,
+  //                              stale stylesheets out ─► afterSettle: page setup
+  var pageFns = [];
+  var page = 0;
+  var nextHead = null;
+
+  function runPage(fn) {
+    if (fn.andonPage === page) {
+      return;
+    }
+    fn.andonPage = page;
+    fn();
+  }
+
+  // andonPage registers a page setup: it runs on the first load and after
+  // every soft page change, once per page.
+  window.andonPage = function (fn) {
+    pageFns.push(fn);
+    if (d.readyState === "loading") {
+      d.addEventListener("DOMContentLoaded", function () { runPage(fn); });
+      return;
+    }
+    runPage(fn);
+  };
+
+  function htmlAttr(el, name) {
+    return el.getAttribute(name) || "";
+  }
+
+  // syncHead takes over what the new page declares in <head> and on <body>.
+  function syncHead(next) {
+    d.documentElement.lang = next.documentElement.lang;
+    [].forEach.call(next.head.querySelectorAll("meta[name]"), function (meta) {
+      var own = d.head.querySelector('meta[name="' + meta.name + '"]');
+      if (own) {
+        own.content = meta.content;
+        return;
+      }
+      d.head.appendChild(meta.cloneNode());
+    });
+    [].forEach.call(next.head.querySelectorAll('link[rel="stylesheet"]'), function (link) {
+      if (!d.head.querySelector('link[rel="stylesheet"][href="' + htmlAttr(link, "href") + '"]')) {
+        d.head.appendChild(link.cloneNode());
+      }
+    });
+    [].slice.call(d.body.attributes).forEach(function (a) {
+      if (a.name !== "hx-boost") {
+        d.body.removeAttribute(a.name);
+      }
+    });
+    [].forEach.call(next.body.attributes, function (a) { d.body.setAttribute(a.name, a.value); });
+  }
+
+  // settleHead drops stylesheets the new page no longer links and loads its
+  // new scripts in order.
+  function settleHead(next) {
+    var want = [].map.call(next.head.querySelectorAll('link[rel="stylesheet"]'), function (l) { return htmlAttr(l, "href"); });
+    [].forEach.call(d.head.querySelectorAll('link[rel="stylesheet"]'), function (link) {
+      if (want.indexOf(htmlAttr(link, "href")) < 0) {
+        link.remove();
+      }
+    });
+    [].forEach.call(next.head.querySelectorAll("script[src]"), function (script) {
+      if (d.head.querySelector('script[src="' + htmlAttr(script, "src") + '"]')) {
+        return;
+      }
+      var s = d.createElement("script");
+      s.src = htmlAttr(script, "src");
+      s.async = false;
+      d.head.appendChild(s);
+    });
+  }
+
+  function setupBoost() {
+    if (typeof htmx === "undefined") {
+      return;
+    }
+    d.addEventListener("htmx:beforeSwap", function (e) {
+      if (!e.detail.boosted) {
+        return;
+      }
+      var xhr = e.detail.xhr;
+      var type = xhr.getResponseHeader("Content-Type") || "";
+      if (type.indexOf("text/html") !== 0) {
+        e.detail.shouldSwap = false;
+        if (e.detail.requestConfig.verb === "get") {
+          window.location.href = xhr.responseURL;
+          return;
+        }
+        var pre = d.createElement("pre");
+        pre.textContent = xhr.responseText;
+        e.detail.serverResponse = "<body>" + pre.outerHTML + "</body>";
+        e.detail.shouldSwap = true;
+        e.detail.isError = false;
+        return;
+      }
+
+      var next = new DOMParser().parseFromString(xhr.responseText, "text/html");
+      if (next.body.classList.contains("is-kiosk")) {
+        e.detail.shouldSwap = false;
+        window.location.href = xhr.responseURL;
+        return;
+      }
+      // Forms answer errors with a status (e.g. 422 plus the form again): show them.
+      e.detail.shouldSwap = true;
+      e.detail.isError = false;
+      nextHead = next;
+      syncHead(next);
+    });
+    d.addEventListener("htmx:afterSwap", function (e) {
+      if (!nextHead || !e.detail.boosted) {
+        return;
+      }
+      page += 1;
+      settleHead(nextHead);
+    });
+    d.addEventListener("htmx:afterSettle", function (e) {
+      if (!nextHead || !e.detail.boosted) {
+        return;
+      }
+      nextHead = null;
+      pageFns.forEach(runPage);
+    });
+  }
+
+  // Soft page changes for every same-origin link and form, except on a wall
+  // display, which rotates by full page loads.
+  if (!d.body.classList.contains("is-kiosk")) {
+    d.body.setAttribute("hx-boost", "true");
   }
 
   d.addEventListener("DOMContentLoaded", function () {
@@ -578,16 +736,23 @@
     setupMenus();
     setupHintPop();
     setupKimaiForm();
-    setupKiosk();
     setupOffline();
-    setupSearch();
     setupHotkeys();
     setupFolding();
     setupContextMenu();
     setupPalette();
     setupClicks();
     setupConfirm();
-    tick();
+    setupBoost();
     window.setInterval(tick, CLOCK_TICK_MS);
+  });
+
+  window.andonPage(function () {
+    retryPending(d);
+    setupSearch();
+    bindPalette();
+    offlineNote();
+    setupKiosk();
+    tick();
   });
 })();

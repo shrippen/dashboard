@@ -53,7 +53,7 @@
     return post("/login/passkey/finish?ceremony=" + encodeURIComponent(begin.ceremony), credentialJSON(cred));
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  window.andonPage(() => {
     if (!window.PublicKeyCredential) {
       return;
     }

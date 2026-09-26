@@ -34,7 +34,7 @@
     });
   }
 
-  d.addEventListener("DOMContentLoaded", function () {
+  window.andonPage(function () {
     var board = d.querySelector(".board[data-mode]");
     if (!board || !board.getAttribute("data-mode") || typeof Sortable === "undefined") {
       return;

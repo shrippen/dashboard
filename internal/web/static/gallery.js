@@ -25,7 +25,19 @@
     d.querySelector(".gal-none").hidden = any;
   }
 
-  d.addEventListener("DOMContentLoaded", function () {
+  // Registered once: this script stays loaded across soft page changes.
+  d.addEventListener("click", function (e) {
+    var opener = e.target.closest("[data-open]:not([data-open=\"palette\"])");
+    if (!opener) {
+      return;
+    }
+    var dialog = d.getElementById(opener.getAttribute("data-open"));
+    if (dialog && dialog.showModal && !dialog.open) {
+      dialog.showModal();
+    }
+  });
+
+  window.andonPage(function () {
     var q = d.getElementById("gal-q");
     if (!q) {
       return;
@@ -35,16 +47,5 @@
     if (box) {
       box.addEventListener("change", filter);
     }
-
-    d.addEventListener("click", function (e) {
-      var opener = e.target.closest("[data-open]");
-      if (!opener) {
-        return;
-      }
-      var dialog = d.getElementById(opener.getAttribute("data-open"));
-      if (dialog && dialog.showModal) {
-        dialog.showModal();
-      }
-    });
   });
 })();

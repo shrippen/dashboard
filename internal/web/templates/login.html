@@ -6,13 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{t "login.title"}} · Andon</title>
   {{template "style" .}}
-  <script src="/static/passkeys.js" defer></script>
+  <script src="{{asset "passkeys.js"}}" defer></script>
 </head>
 <body>
   {{template "header" .}}
   <div class="login-wrap">
     <div class="login-card">
-      <div class="login-brand"><span class="mark"></span><b>Andon</b></div>
+      <div class="login-brand">{{template "mark"}}<b>Andon</b></div>
       {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
       <form method="post" action="/login">
         <label for="email">{{t "field.email"}}</label>
@@ -47,7 +47,7 @@
   {{template "header" .}}
   <div class="login-wrap">
     <div class="login-card">
-      <div class="login-brand"><span class="mark"></span><b>Andon</b></div>
+      <div class="login-brand">{{template "mark"}}<b>Andon</b></div>
       <h1 style="font-size:1.1rem;margin-bottom:1rem">Bestätigungscode</h1>
       {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
       <form method="post" action="/login/totp">
@@ -75,7 +75,7 @@
   {{template "header" .}}
   <div class="login-wrap">
     <div class="login-card" style="max-width:26rem">
-      <div class="login-brand"><span class="mark"></span><b>Andon</b></div>
+      <div class="login-brand">{{template "mark"}}<b>Andon</b></div>
       <p class="small muted">Der Einrichtungscode steht im Container-Log.</p>
       {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
       <form method="post" action="/setup">

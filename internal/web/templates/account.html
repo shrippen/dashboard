@@ -13,7 +13,7 @@
   {{template "header" .}}
   <div class="login-wrap">
     <div class="login-card">
-      <div class="login-brand"><span class="mark"></span><b>Andon</b></div>
+      <div class="login-brand">{{template "mark"}}<b>Andon</b></div>
       {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
 {{end}}
 

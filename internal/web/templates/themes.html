@@ -73,7 +73,7 @@
   <title>{{.Theme.Name}} · Andon</title>
   {{template "style" .}}
   {{template "code-editor"}}
-  <script src="/static/theme-editor.js" defer></script>
+  <script src="{{asset "theme-editor.js"}}" defer></script>
 </head>
 <body>
   {{template "header" .}}

@@ -1,6 +1,6 @@
 // Turns <textarea data-code="yaml|css"> into a CodeMirror editor. The
 // textarea stays the form field: CodeMirror writes back on submit.
-document.addEventListener("DOMContentLoaded", () => {
+window.andonPage(() => {
   if (!window.CodeMirror) {
     return;
   }

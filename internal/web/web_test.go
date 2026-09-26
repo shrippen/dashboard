@@ -209,6 +209,40 @@ func TestFullLoginLogoutFlow(t *testing.T) {
 // TestLogoutRequiresCSRF guards against a regression to the bug found while
 // hand-testing: logout without a CSRF token must be refused, not silently
 // end the session (a bare cross-site <form> could otherwise force a logout).
+// TestFreshInstanceLeadsToSetup: without any user, the login page sends
+// visitors to /setup; afterwards it stays the login page.
+func TestFreshInstanceLeadsToSetup(t *testing.T) {
+	srv, client, code := newTestServer(t)
+
+	for _, path := range []string{"/", "/login"} {
+		resp, err := client.Get(srv.URL + path)
+		if err != nil {
+			t.Fatalf("get %s: %v", path, err)
+		}
+		resp.Body.Close()
+		if path == "/" {
+			resp, err = client.Get(srv.URL + resp.Header.Get("Location"))
+			if err != nil {
+				t.Fatalf("follow %s: %v", path, err)
+			}
+			resp.Body.Close()
+		}
+		if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "/setup" {
+			t.Fatalf("%s: expected redirect to /setup, got %d %q", path, resp.StatusCode, resp.Header.Get("Location"))
+		}
+	}
+
+	setupAdmin(t, srv, client, code)
+	resp, err := client.Get(srv.URL + "/login")
+	if err != nil {
+		t.Fatalf("get /login: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected login page after setup, got %d", resp.StatusCode)
+	}
+}
+
 func TestLogoutRequiresCSRF(t *testing.T) {
 	srv, client, code := newTestServer(t)
 	setupAdmin(t, srv, client, code)
@@ -320,19 +354,19 @@ func TestThemeCSSRoute(t *testing.T) {
 func TestAnonymousPageLoadsThemeAndStyles(t *testing.T) {
 	srv, client, _ := newTestServer(t)
 
-	resp, err := client.Get(srv.URL + "/login")
+	resp, err := client.Get(srv.URL + "/setup")
 	if err != nil {
-		t.Fatalf("get login: %v", err)
+		t.Fatalf("get setup: %v", err)
 	}
 	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
 
 	if !strings.Contains(string(body), "/static/andon.css") {
-		t.Fatalf("expected andon.css linked on the login page:\n%s", body)
+		t.Fatalf("expected andon.css linked on the setup page:\n%s", body)
 	}
 	m := regexp.MustCompile(`href="(/theme/[^"]+\.css[^"]*)"`).FindSubmatch(body)
 	if m == nil {
-		t.Fatalf("expected a theme stylesheet link on the login page:\n%s", body)
+		t.Fatalf("expected a theme stylesheet link on the setup page:\n%s", body)
 	}
 
 	cssResp, err := client.Get(srv.URL + string(m[1]))
@@ -352,6 +386,39 @@ func TestAnonymousPageLoadsThemeAndStyles(t *testing.T) {
 	defer dashboardCSS.Body.Close()
 	if dashboardCSS.StatusCode != http.StatusOK {
 		t.Fatalf("expected andon.css to be served, got %d", dashboardCSS.StatusCode)
+	}
+}
+
+// TestStaticAssetsAreCached: pages link static files with a content
+// version, served as immutable, so a page change reads CSS and JS from the
+// browser cache instead of flashing unstyled; unversioned URLs revalidate.
+func TestStaticAssetsAreCached(t *testing.T) {
+	srv, client, _ := newTestServer(t)
+
+	resp, err := client.Get(srv.URL + "/setup")
+	if err != nil {
+		t.Fatalf("get setup: %v", err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	m := regexp.MustCompile(`href="(/static/andon\.css\?v=[0-9a-f]+)"`).FindSubmatch(body)
+	if m == nil {
+		t.Fatalf("expected a versioned andon.css link:\n%s", body)
+	}
+	if !strings.Contains(string(body), `<meta name="color-scheme" content="dark light">`) {
+		t.Fatalf("expected a color-scheme meta, so the first paint is not white:\n%s", body)
+	}
+
+	for path, want := range map[string]string{string(m[1]): "immutable", "/static/andon.css": "no-cache"} {
+		res, err := client.Get(srv.URL + path)
+		if err != nil {
+			t.Fatalf("get %s: %v", path, err)
+		}
+		res.Body.Close()
+		if got := res.Header.Get("Cache-Control"); !strings.Contains(got, want) {
+			t.Fatalf("%s: expected Cache-Control with %q, got %q", path, want, got)
+		}
 	}
 }
 
