@@ -360,6 +360,69 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  kimai_week:
+    name: 'Kimai-Woche'
+    desc: 'Stunden je Wochentag gegen das Tagesziel.'
+  kimai_split:
+    name: 'Projekte je Tag'
+    desc: 'Stunden dieser Woche je Tag, gestapelt nach Kunde.'
+  unbilled_age:
+    name: 'Nicht abgerechnet nach Alter'
+    desc: 'Abrechenbare, nicht exportierte Kimai-Zeit nach Alter, je Kunde.'
+  disks:
+    name: 'Plattengesundheit'
+    desc: 'Zustand, Temperatur und Laufzeit jeder Platte aus Scrutiny.'
+  komodo_stacks:
+    name: 'Container-Stacks'
+    desc: 'Server und Stacks aus Komodo, ausstehende Image-Updates.'
+  truenas_pools:
+    name: 'TrueNAS-Pools'
+    desc: 'Füllstand und Zustand der Pools, Warnungen, App-Updates.'
+  pihole:
+    name: 'Pi-hole'
+    desc: 'Heute geblockter Anteil der DNS-Anfragen.'
+  adguard:
+    name: 'AdGuard Home'
+    desc: 'Heute geblockter Anteil der DNS-Anfragen.'
+  vpn:
+    name: 'VPN-Tunnel'
+    desc: 'Gluetun: Tunnelstatus, Ausgangsland, Leck.'
+  gateway:
+    name: 'Gateway'
+    desc: 'WAN-Leitungen, Geräte und Updates von OPNsense, pfSense oder UniFi.'
+  expiry:
+    name: 'Zertifikate und Domains'
+    desc: 'Tage bis zum Ablauf als Balken, das Nächste zuerst.'
+  speed_history:
+    name: 'Geschwindigkeit 7 Tage'
+    desc: 'Download der letzten Tage gegen den Vertrag.'
+  sabnzbd:
+    name: 'Downloads'
+    desc: 'SABnzbd: Geschwindigkeit, Warteschlange, freier Platz, Fehler.'
+  paperless_inbox:
+    name: 'Paperless-Posteingang'
+    desc: 'Dokumente im Posteingang und das älteste davon.'
+  mail_invoices:
+    name: 'Rechnungen aus Mail'
+    desc: 'Im Postfach gefundene Rechnungen mit Beträgen.'
+  freshrss_feeds:
+    name: 'Ungelesen je Feed'
+    desc: 'FreshRSS: ungelesene Artikel je Feed.'
+  linkwarden:
+    name: 'Linkwarden'
+    desc: 'Links je Sammlung.'
+  gitea_reviews:
+    name: 'Gitea'
+    desc: 'Offene Reviews und zugewiesene Issues.'
+  dawarich_day:
+    name: 'Orte heute'
+    desc: 'Dawarich: heutige Aufenthalte auf einer Stundenleiste.'
+  authentik_logins:
+    name: 'Anmeldungen'
+    desc: 'authentik: Anmeldungen, Fehlversuche, letzte Anmeldungen.'
+  vaultwarden_2fa:
+    name: 'Zwei-Faktor im Tresor'
+    desc: 'Vaultwarden: Konten mit und ohne Zwei-Faktor.'
   conn_health:
     name: Verbindungen
     desc: 'Wie viele Verbindungen gesund sind; die wackeligen als Streifen der letzten 14 Tage.'
@@ -2339,6 +2402,13 @@ cost:
   business: 'Betrieblich: {percent} % ({count} von {all} Stacks und Repos für Kunden), {yearly} im Jahr.'
   power_split: 'Strom je Dienst ({watts} W, {amount} je Monat)'
 week:
+  d0: 'Mo'
+  d1: 'Di'
+  d2: 'Mi'
+  d3: 'Do'
+  d4: 'Fr'
+  d5: 'Sa'
+  d6: 'So'
   hours: '{hours} h gearbeitet, {percent} % für {customer}'
   invoiced: '{count} Rechnungen geschrieben ({amount})'
   paid: '{count} Zahlungen erhalten ({amount})'
@@ -2369,3 +2439,78 @@ aging:
   d60: 31–60 Tage über
   older: über 60 Tage
   none: Keine offenen Rechnungen.
+split:
+  other: 'Übrige'
+unbilled:
+  sub: 'nicht abgerechnet'
+  fresh: 'bis 30 Tage'
+  mid: '31–60 Tage'
+  old: 'über 60 Tage'
+  none: 'Alles abgerechnet.'
+disks:
+  healthy: 'Platten in Ordnung'
+  ok: 'ok'
+  failed: 'fehlerhaft'
+  years: 'Jahre'
+komodo:
+  running: 'Stacks laufen · Server {servers}/{total} gesund'
+  stacks: 'Stacks'
+  updates: 'Image-Updates: {n}'
+  alerts: 'Warnungen: {n}'
+truenas:
+  alerts: 'Warnungen: {n}'
+  updates: 'App-Updates: {n}'
+dns:
+  blocked: 'heute geblockt'
+  on: 'an'
+  off: 'aus'
+  queries: '{n} Anfragen'
+  blocked_n: '{n} geblockt'
+vpn:
+  down: 'Tunnel aus'
+  leak: 'Leck'
+  up: 'Tunnel aktiv'
+  expected: 'Erwartet: {country}'
+  exit: 'Ausgang'
+gateway:
+  up: 'online'
+  down: 'offline'
+  loss: 'Verlust'
+  devices: 'Geräte online'
+  offline: 'Offline'
+  updates: 'Updates: {n}'
+expiry:
+  days: 'Tage'
+  total: '{n} Zertifikate und Domains'
+speed:
+  contract: 'Vertrag {n} Mbit/s'
+  slow: '{n} Tage zu langsam'
+sab:
+  paused: 'pausiert'
+  queue: '{n} in der Warteschlange'
+  free: '{n} GB frei'
+paperless:
+  inbox: 'im Posteingang'
+  oldest: 'Ältestes: {title} ({days} Tage)'
+  total: '{n} Dokumente'
+mailinv:
+  found: 'Rechnungen in der Mail · {sum}'
+  scanned: '{n} Mails in {box} gelesen'
+rss:
+  unread: 'ungelesen in {n} Feeds'
+linkwarden:
+  links: 'Links in {n} Sammlungen'
+gitea:
+  reviews: 'Reviews offen'
+  notifications: '{n} Benachrichtigungen'
+  assigned: 'Mir zugewiesen'
+places:
+  unknown: 'Unbekannter Ort'
+  none: 'Heute noch keine Orte.'
+authentik:
+  logins: 'Anmeldungen in 7 Tagen'
+  failed24: '{n} fehlgeschlagen (24 h)'
+  failed7: '{n} fehlgeschlagen in 7 Tagen'
+vault:
+  with2fa: 'Konten mit Zwei-Faktor'
+  without: 'Ohne'

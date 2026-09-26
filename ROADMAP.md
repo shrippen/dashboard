@@ -621,7 +621,7 @@ Links: klein = kompakte Zeilen, mittel = Zeile mit Beschreibung, groß = Icon-Ka
 
 ### 9.2 Katalog der Datenkacheln
 
-Status: **da** = gibt es, **neu** = mit dem D-Stil gebaut, **offen** = Idee, Quelle vorhanden.
+Status: **da** = gab es schon, **neu** = mit dem D-Stil gebaut (2026-09-26).
 
 | Bereich | Kachel | Darstellung | Quelle | Status |
 |---|---|---|---|---|
@@ -631,13 +631,13 @@ Status: **da** = gibt es, **neu** = mit dem D-Stil gebaut, **offen** = Idee, Que
 | Start | Öffentliche IP | Wert | ipify | da |
 | Zeit | Kimai Lite | Timer, Tagesbalken, Heute/Woche, Zuletzt | Kimai (live) | neu (Umbau) |
 | Zeit | Stunden-Heatmap | Jahresraster | Kimai | da |
-| Zeit | Woche je Tag gegen Ziel | Balken mit Ziellinie | Kimai | offen |
-| Zeit | Projekte je Tag / Tätigkeitsverteilung (wie Plasmai-Statistik) | gestapelte Balken, Ring | Kimai | offen |
+| Zeit | Woche je Tag gegen Ziel | Balken mit Ziellinie | Kimai | neu |
+| Zeit | Projekte je Tag / Tätigkeitsverteilung (wie Plasmai-Statistik) | gestapelte Balken, Ring | Kimai | neu |
 | Geld | Offene Rechnungen nach Alter | gestapelte Leiste | Invoice Ninja | neu |
 | Geld | Kennzahl (Umsatz, offen, überfällig, Stundensatz …) | Wert, Delta | Kimai, Invoice Ninja, Sure | da |
 | Geld | Liquiditätsverlauf | Linie mit Ereignissen | Invoice Ninja, Sure | da |
 | Geld | Umsatz je Monat | Balken | Invoice Ninja | da (Diagramm) |
-| Geld | Nicht abgerechnete Stunden nach Alter | gestapelte Leiste | Kimai | offen (Tabelle da) |
+| Geld | Nicht abgerechnete Stunden nach Alter | gestapelte Leiste | Kimai | neu |
 | Geld | Budget-Fortschritt | Fortschrittsbalken | Kimai | da |
 | Homelab | Verbindungen | gesund/gesamt, 14-Tage-Streifen | Abrufstatistik | neu |
 | Homelab | Last (CPU, RAM, Load) | Balken | Glances | da (jetzt Balken) |
@@ -647,34 +647,34 @@ Status: **da** = gibt es, **neu** = mit dem D-Stil gebaut, **offen** = Idee, Que
 | Homelab | Update-Zentrale, Update-Fenster | Liste | diverse | da |
 | Homelab | Monitore | Status-Pills | Uptime Kuma | da |
 | Homelab | Link-Erreichbarkeit 30 Tage | Streifen | Linkstatus | da (in Link-Kacheln) |
-| Homelab | Plattengesundheit | Ampel je Platte | Scrutiny | offen |
-| Homelab | Container/Stacks | Zähler, Liste | Komodo | offen |
-| Homelab | Pools | Füllstand je Pool | TrueNAS | offen (in Speicherprognose) |
-| Homelab | Werbeblocker heute | Anteil geblockt, Balken je Stunde | Pi-hole, AdGuard | offen |
-| Homelab | VPN-Tunnel | Status, Ausgangsland | Gluetun | offen |
+| Homelab | Plattengesundheit | Ampel je Platte | Scrutiny | neu |
+| Homelab | Container/Stacks | Zähler, Liste | Komodo | neu |
+| Homelab | Pools | Füllstand je Pool | TrueNAS | neu |
+| Homelab | Werbeblocker heute | Anteil geblockt, Balken je Stunde | Pi-hole, AdGuard | neu |
+| Homelab | VPN-Tunnel | Status, Ausgangsland | Gluetun | neu |
 | Homelab | Tailnet | Geräte, ablaufende Schlüssel | Tailscale | da |
-| Homelab | Gateway | WAN, Geräte, Updates | OPNsense, pfSense, UniFi | offen (Hinweise da) |
-| Homelab | Zertifikate und Domains | Tage bis Ablauf als Balken | Zertifikate, RDAP | offen |
+| Homelab | Gateway | WAN, Geräte, Updates | OPNsense, pfSense, UniFi | neu |
+| Homelab | Zertifikate und Domains | Tage bis Ablauf als Balken | Zertifikate, RDAP | neu |
 | Homelab | Homelab-Kosten | Summe, Aufteilung | Einstellungen, Tibber | da |
 | Netz | Internet-Geschwindigkeit | Balken gegen Vertrag | Speedtest Tracker | da (jetzt Balken) |
-| Netz | Geschwindigkeit 7 Tage | Balken je Tag | Speedtest Tracker | offen (Verlauf nötig) |
+| Netz | Geschwindigkeit 7 Tage | Balken je Tag | Speedtest Tracker | neu |
 | Haushalt | Home Assistant | Werte, Schalter | Home Assistant | da |
 | Haushalt | Energie | Preiskurve, Kosten | Tibber, Home Assistant | da |
 | Haushalt | Vorräte, Einkaufsliste | Liste | Grocy | da |
 | Haushalt | Wetterwarnungen | Liste | DWD | da |
 | Medien | Mediaserver (Streams, Bibliothek) | Zähler | Jellyfin, Plex | da |
 | Medien | Demnächst | Liste | Sonarr, Radarr | da |
-| Medien | Downloads | Fortschritt, Speicher frei | SABnzbd | offen |
-| Dokumente | Paperless-Posteingang | Zähler, ältestes | Paperless | offen |
-| Dokumente | Rechnungen aus Mail | Liste | IMAP | offen (Abrechnung da) |
-| Wissen | Ungelesen je Feed | Balken | FreshRSS | offen |
-| Wissen | Linkwarden-Abgleich | Zähler | Linkwarden | offen |
+| Medien | Downloads | Fortschritt, Speicher frei | SABnzbd | neu |
+| Dokumente | Paperless-Posteingang | Zähler, ältestes | Paperless | neu |
+| Dokumente | Rechnungen aus Mail | Liste | IMAP | neu |
+| Wissen | Ungelesen je Feed | Balken | FreshRSS | neu |
+| Wissen | Linkwarden-Abgleich | Zähler | Linkwarden | neu |
 | Code | GitHub-Repos | PRs, Issues, CI | GitHub | da |
-| Code | Gitea | Offene Reviews | Gitea | offen |
-| Standort | Pendeln heute, Fahrtenbuch | Strecke, km | Dawarich | offen |
+| Code | Gitea | Offene Reviews | Gitea | neu |
+| Standort | Pendeln heute, Fahrtenbuch | Strecke, km | Dawarich | neu |
 | Assets | Garantien und Prüfungen | Fristen | Snipe-IT | da (Fristen) |
-| Sicherheit | Anmeldungen | Liste, Länder | authentik | offen |
-| Sicherheit | Tresore ohne 2FA | Zähler | Vaultwarden | offen (Hinweis da) |
+| Sicherheit | Anmeldungen | Liste, Länder | authentik | neu |
+| Sicherheit | Tresore ohne 2FA | Zähler | Vaultwarden | neu |
 | Übergreifend | Woche in Zahlen | Zeilen | alle | da |
 | Übergreifend | Hinweise als Widget mit Filter | Liste | Hinweise | da |
 | Übergreifend | Eigene Integration / Eigene API | Kennzahl, Tabelle | JSON-API | da |

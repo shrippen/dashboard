@@ -360,6 +360,69 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  kimai_week:
+    name: 'Kimai week'
+    desc: 'Hours per weekday against the daily target.'
+  kimai_split:
+    name: 'Projects per day'
+    desc: 'This week''s hours per day, stacked by customer.'
+  unbilled_age:
+    name: 'Unbilled by age'
+    desc: 'Billable, unexported Kimai time by age, per customer.'
+  disks:
+    name: 'Disk health'
+    desc: 'State, temperature and power-on time of every disk from Scrutiny.'
+  komodo_stacks:
+    name: 'Container stacks'
+    desc: 'Servers and stacks from Komodo, pending image updates.'
+  truenas_pools:
+    name: 'TrueNAS pools'
+    desc: 'Pool fill and state, alerts, app updates.'
+  pihole:
+    name: 'Pi-hole'
+    desc: 'Share of DNS queries blocked today.'
+  adguard:
+    name: 'AdGuard Home'
+    desc: 'Share of DNS queries blocked today.'
+  vpn:
+    name: 'VPN tunnel'
+    desc: 'Gluetun: tunnel state, exit country, leak.'
+  gateway:
+    name: 'Gateway'
+    desc: 'WAN links, devices and updates from OPNsense, pfSense or UniFi.'
+  expiry:
+    name: 'Certificates and domains'
+    desc: 'Days until expiry as bars, soonest first.'
+  speed_history:
+    name: 'Speed 7 days'
+    desc: 'The last days'' download against the contract.'
+  sabnzbd:
+    name: 'Downloads'
+    desc: 'SABnzbd: speed, queue, free space, failures.'
+  paperless_inbox:
+    name: 'Paperless inbox'
+    desc: 'Documents in the inbox and the oldest one.'
+  mail_invoices:
+    name: 'Invoices from mail'
+    desc: 'Invoices found in the mailbox with amounts.'
+  freshrss_feeds:
+    name: 'Unread per feed'
+    desc: 'FreshRSS: unread articles per feed.'
+  linkwarden:
+    name: 'Linkwarden'
+    desc: 'Links per collection.'
+  gitea_reviews:
+    name: 'Gitea'
+    desc: 'Open reviews and assigned issues.'
+  dawarich_day:
+    name: 'Places today'
+    desc: 'Dawarich: today''s stays on an hour bar.'
+  authentik_logins:
+    name: 'Logins'
+    desc: 'authentik: logins, failures, latest logins.'
+  vaultwarden_2fa:
+    name: 'Two-factor in the vault'
+    desc: 'Vaultwarden: accounts with and without two-factor.'
   conn_health:
     name: Connections
     desc: 'How many connections are healthy; the shaky ones as strips of the last 14 days.'
@@ -2338,6 +2401,13 @@ cost:
   business: 'Business: {percent} % ({count} of {all} stacks and repos for clients), {yearly} a year.'
   power_split: 'Power per service ({watts} W, {amount} per month)'
 week:
+  d0: 'Mo'
+  d1: 'Tu'
+  d2: 'We'
+  d3: 'Th'
+  d4: 'Fr'
+  d5: 'Sa'
+  d6: 'Su'
   hours: '{hours} h worked, {percent} % for {customer}'
   invoiced: '{count} invoices written ({amount})'
   paid: '{count} payments received ({amount})'
@@ -2368,3 +2438,78 @@ aging:
   d60: 31–60 days overdue
   older: over 60 days
   none: No open invoices.
+split:
+  other: 'Other'
+unbilled:
+  sub: 'unbilled'
+  fresh: 'up to 30 days'
+  mid: '31–60 days'
+  old: 'over 60 days'
+  none: 'Everything billed.'
+disks:
+  healthy: 'disks fine'
+  ok: 'ok'
+  failed: 'failing'
+  years: 'years'
+komodo:
+  running: 'stacks running · servers {servers}/{total} healthy'
+  stacks: 'Stacks'
+  updates: 'Image updates: {n}'
+  alerts: 'Alerts: {n}'
+truenas:
+  alerts: 'Alerts: {n}'
+  updates: 'App updates: {n}'
+dns:
+  blocked: 'blocked today'
+  on: 'on'
+  off: 'off'
+  queries: '{n} queries'
+  blocked_n: '{n} blocked'
+vpn:
+  down: 'Tunnel down'
+  leak: 'Leak'
+  up: 'Tunnel up'
+  expected: 'Expected: {country}'
+  exit: 'Exit'
+gateway:
+  up: 'online'
+  down: 'offline'
+  loss: 'loss'
+  devices: 'devices online'
+  offline: 'Offline'
+  updates: 'Updates: {n}'
+expiry:
+  days: 'days'
+  total: '{n} certificates and domains'
+speed:
+  contract: 'Contract {n} Mbit/s'
+  slow: '{n} days too slow'
+sab:
+  paused: 'paused'
+  queue: '{n} queued'
+  free: '{n} GB free'
+paperless:
+  inbox: 'in the inbox'
+  oldest: 'Oldest: {title} ({days} days)'
+  total: '{n} documents'
+mailinv:
+  found: 'invoices in the mail · {sum}'
+  scanned: '{n} mails read in {box}'
+rss:
+  unread: 'unread in {n} feeds'
+linkwarden:
+  links: 'links in {n} collections'
+gitea:
+  reviews: 'reviews open'
+  notifications: '{n} notifications'
+  assigned: 'Assigned to me'
+places:
+  unknown: 'Unknown place'
+  none: 'No places today yet.'
+authentik:
+  logins: 'logins in 7 days'
+  failed24: '{n} failed (24 h)'
+  failed7: '{n} failed in 7 days'
+vault:
+  with2fa: 'accounts with two-factor'
+  without: 'Without'
