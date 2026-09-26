@@ -6,6 +6,7 @@ package widgets
 import (
 	"dashboard/internal/enums"
 	"dashboard/internal/sources"
+	"sort"
 )
 
 const (
@@ -52,23 +53,66 @@ var kumaStates = map[int][2]string{
 	sources.KumaMaintenance: {"warn", "maintenance"},
 }
 
-// monitorsView lists down monitors first, then the rest by name.
+// kumaCells maps monitor_status to a strip cell state.
+var kumaCells = map[int]string{sources.KumaDown: "bad", sources.KumaUp: "ok", sources.KumaPending: "mid", sources.KumaMaintenance: "none"}
+
+// Limits of the monitors tile: problems listed, certificate warning.
+const (
+	monitorProblems = 4
+	certSoonDays    = 30
+)
+
+// monitorsView sums up the instance in a few lines: how many are up, one
+// strip cell per monitor (down first) and only the monitors that are not
+// up by name.
+//
+//	12 / 14 online · Ø 180 ms
+//	▮▮▮▮▮▮▮▮▮▮▮▮▯▯
+//	NAS down · Shop pending
 func monitorsView(_ any, results map[string]any, _ ViewCtx) map[string]any {
 	data, ok := results["data"].(*sources.KumaDataset)
 	if !ok {
 		return map[string]any{}
 	}
-	var down, rest []MonitorRow
-	for _, m := range data.Monitors {
-		state := kumaStates[m.Status]
-		row := MonitorRow{Name: m.Name, State: state[0], Key: "kuma." + state[1]}
-		if m.Status == sources.KumaDown {
-			down = append(down, row)
-			continue
+	mons := append([]sources.KumaMonitor(nil), data.Monitors...)
+	rank := func(status int) int {
+		if status == sources.KumaUp {
+			return 1
 		}
-		rest = append(rest, row)
+		return 0
 	}
-	return map[string]any{"Monitors": append(down, rest...)}
+	sort.SliceStable(mons, func(a, b int) bool { return rank(mons[a].Status) < rank(mons[b].Status) })
+
+	up, msSum, msCount, more := 0, 0.0, 0, 0
+	var cells []StripCell
+	var problems []MonitorRow
+	soon := sources.KumaMonitor{CertDays: -1}
+	for _, m := range mons {
+		cells = append(cells, StripCell{State: kumaCells[m.Status], Title: m.Name})
+		if m.Status == sources.KumaUp {
+			up++
+			if m.MS > 0 {
+				msSum, msCount = msSum+m.MS, msCount+1
+			}
+		} else if len(problems) < monitorProblems {
+			state := kumaStates[m.Status]
+			problems = append(problems, MonitorRow{Name: m.Name, State: state[0], Key: "kuma." + state[1]})
+		} else {
+			more++
+		}
+		if m.CertDays >= 0 && m.CertDays < certSoonDays && (soon.CertDays < 0 || m.CertDays < soon.CertDays) {
+			soon = m
+		}
+	}
+
+	out := map[string]any{"Up": up, "Total": len(mons), "Cells": cells, "Problems": problems, "More": more}
+	if msCount > 0 {
+		out["AvgMS"] = msSum / float64(msCount)
+	}
+	if soon.CertDays >= 0 {
+		out["CertName"], out["CertDays"] = soon.Name, soon.CertDays
+	}
+	return out
 }
 
 func init() {

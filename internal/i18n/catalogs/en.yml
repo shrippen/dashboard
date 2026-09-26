@@ -2159,6 +2159,10 @@ passkey:
 rates:
   source: ECB, as of {day}
 kuma:
+  online: online
+  strip: '{up} of {total} monitors online'
+  more: '{n} more'
+  cert: 'Certificate {name} expires in {days} days'
   up: up
   down: down
   pending: pending

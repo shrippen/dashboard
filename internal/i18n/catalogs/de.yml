@@ -2160,6 +2160,10 @@ passkey:
 rates:
   source: EZB, Stand {day}
 kuma:
+  online: online
+  strip: '{up} von {total} Monitoren online'
+  more: '{n} weitere'
+  cert: 'Zertifikat {name} läuft in {days} Tagen ab'
   up: online
   down: down
   pending: ausstehend

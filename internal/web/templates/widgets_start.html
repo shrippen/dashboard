@@ -101,11 +101,16 @@
 {{end}}{{end}}
 {{end}}
 
+{{/* Uptime Kuma in three lines: up count, one cell per monitor, the ones
+     not up by name. */}}
 {{define "widgets/monitors"}}
 {{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
-<ul class="monitors">
-  {{range .Frag.View.Monitors}}<li><span class="pill" data-state="{{.State}}">{{t .Key}}</span> {{.Name}}</li>{{end}}
-</ul>
+{{with $v := .Frag.View}}{{if $v.Total}}
+<div class="tile-head"><b class="tile-value">{{$v.Up}} / {{$v.Total}}</b><span class="tile-sub">{{t "kuma.online"}}{{with $v.AvgMS}} · Ø {{num . 0}} ms{{end}}</span></div>
+<span class="strip strip-lg" role="img" aria-label="{{t "kuma.strip" "up" $v.Up "total" $v.Total}}">{{range $v.Cells}}<i data-state="{{.State}}" title="{{.Title}}"></i>{{end}}</span>
+{{if $v.Problems}}<p class="kuma-problems">{{range $i, $m := $v.Problems}}{{if $i}} · {{end}}<span class="kuma-bad" data-state="{{$m.State}}">{{$m.Name}}</span> <small>{{t $m.Key}}</small>{{end}}{{if $v.More}} · {{t "kuma.more" "n" $v.More}}{{end}}</p>{{end}}
+{{with $v.CertName}}<p class="tile-foot"><span>{{t "kuma.cert" "name" . "days" $v.CertDays}}</span></p>{{end}}
+{{end}}{{end}}
 {{end}}
 
 {{define "widgets/hass"}}

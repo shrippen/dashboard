@@ -49,6 +49,7 @@ func TestCatalogTilesRender(t *testing.T) {
 		"dawarich_day":     {sources.DemoDawarich(now), "kl-day"},
 		"authentik_logins": {sources.DemoAuthentik(now), "Anmeldungen"},
 		"vaultwarden_2fa":  {sources.DemoVaultwarden(now), "progress-bar"},
+		"monitors":         {sources.DemoKuma(), "strip-lg"},
 	}
 	for key, c := range cases {
 		kind, ok := widgets.Get(key)

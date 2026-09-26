@@ -805,3 +805,8 @@ button.kl-ib { margin: 0; padding: 0; background: none; cursor: pointer; }
 .legend-list b[data-tier="red"] { color: var(--danger-text); }
 .legend-list a { color: var(--fg1); text-decoration: none; }
 .legend-list a:hover { color: var(--blue); }
+.kuma-problems { margin: .5rem 0 0; font-size: .82rem; color: var(--fg2); line-height: 1.5; }
+.kuma-bad { color: var(--fg0); font-weight: 600; }
+.kuma-bad[data-state="fail"]::before { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-right: .35rem; background: var(--red); }
+.kuma-bad[data-state="warn"]::before { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-right: .35rem; background: var(--yellow); }
+.kuma-problems small { color: var(--fg3); font-family: var(--font-mono); font-size: .68rem; }
