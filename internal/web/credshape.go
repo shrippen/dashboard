@@ -17,9 +17,9 @@ const (
 	credSingle    credShape = "single"
 	credUserPass  credShape = "userpass"
 	credKeySecret credShape = "keysecret"
-	credNone      credShape = "none"    // no login at all: no token field, no mode
-	credTokenID   credShape = "tokenid" // token ID and secret, joined "id=secret" (Proxmox)
-	credICal      credShape = "ical"    // one field, but it holds a private iCal address
+	credNone      credShape = "none"     // no login at all: no token field, no mode
+	credTokenID   credShape = "tokenid"  // token ID and secret, joined "id=secret" (Proxmox)
+	credICal      credShape = "ical"     // one field, but it holds a private iCal address
 	credPassword  credShape = "password" // one field, but a password, not a token (Pi-hole)
 )
 
