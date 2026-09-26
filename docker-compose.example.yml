@@ -8,6 +8,9 @@ services:
       - ./data:/data
     environment:
       TZ: Europe/Berlin
+      # User and group Andon runs as; /data is handed to them at start.
+      # PUID: 1000
+      # PGID: 1000
       BASE_URL: https://andon.example.lan
       # Existing Apprise API instance to send push notifications through
       # (no bundled Apprise container here — reuse what you already run):

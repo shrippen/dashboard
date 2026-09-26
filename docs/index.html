@@ -148,12 +148,11 @@
   <ol class="steps" lang="de"><li>Einen Ordner mit <code>data</code> und <code>secrets</code> und einen Hauptschlüssel anlegen. Den Schlüssel sicher aufbewahren, aber nicht neben den Backups: Ohne ihn lässt sich die Datenbank nicht öffnen.</li><li><code>docker-compose.example.yml</code> als <code>docker-compose.yml</code> herunterladen und <code>BASE_URL</code> setzen.</li><li>Starten, dann <code>/setup</code> öffnen und den Code aus dem Log eingeben.</li></ol>
   <div class="codeblock"><span class="k">mkdir</span> -p andon/{data,secrets} &amp;&amp; <span class="k">cd</span> andon
 <span class="k">openssl</span> rand -base64 32 &gt; secrets/master_key
-<span class="k">sudo chown</span> -R 10001 data secrets &amp;&amp; <span class="k">sudo chmod</span> 400 secrets/master_key
 <span class="k">curl</span> -Lo docker-compose.yml https://raw.githubusercontent.com/shrippen/andon/main/docker-compose.example.yml
 <span class="k">docker compose</span> up -d
 <span class="k">docker compose</span> logs andon | grep "SETUP CODE"</div>
-  <p lang="en">Backups run on a schedule into <code>data/backups</code>. <code>docker compose exec andon andon backup /data/backups</code> writes one now: database, icons and themes in one archive.</p>
-  <p lang="de">Backups laufen nach Zeitplan nach <code>data/backups</code>. <code>docker compose exec andon andon backup /data/backups</code> schreibt sofort eins: Datenbank, Icons und Themes in einem Archiv.</p>
+  <p lang="en">Backups run on a schedule into <code>data/backups</code>. <code>docker compose exec -u 10001 andon andon backup /data/backups</code> writes one now: database, icons and themes in one archive.</p>
+  <p lang="de">Backups laufen nach Zeitplan nach <code>data/backups</code>. <code>docker compose exec -u 10001 andon andon backup /data/backups</code> schreibt sofort eins: Datenbank, Icons und Themes in einem Archiv.</p>
 </section>
 
 <section class="section" id="faq">

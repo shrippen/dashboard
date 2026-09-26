@@ -17,7 +17,6 @@ Landing page: <https://shrippen.github.io/andon/>. Plan and decisions: [ROADMAP.
 
 ```sh
 mkdir -p secrets data && openssl rand -base64 32 > secrets/master_key
-sudo chown -R 10001 data secrets && sudo chmod 400 secrets/master_key   # the container runs as uid 10001
 cp docker-compose.example.yml docker-compose.yml   # adjust BASE_URL, SMTP, proxy range
 docker compose up -d
 docker compose logs andon | grep "SETUP CODE"      # open /setup and enter the code
@@ -29,6 +28,10 @@ The same tags go to the private `git.arianw.de/shrippen/andon`.
 publishes `1.2.3`, `1.2` and `1`; set `ANDON_TAG=1.2` in `.env` to
 pin production to a release line. Keep `secrets/master_key` safe and
 separate from backups: without it the database can't be opened.
+
+The container starts as root, hands `/data` to `PUID:PGID` (default
+`10001:10001`) and reads the secret files, then runs Andon as that
+user. No `chown` needed on the host.
 
 ## Develop
 
@@ -42,9 +45,11 @@ Layers: `web → services → repos | sources | outbound → db | drivers`. See 
 
 ## Operator CLI
 
+Run as the same user (`-u` = your `PUID`), so no files end up owned by root.
+
 ```sh
-docker compose exec andon andon backup /data/backups
-docker compose exec andon andon rotate-key /run/secrets/new_master_key
+docker compose exec -u 10001 andon andon backup /data/backups
+docker compose exec -u 10001 andon andon rotate-key /run/secrets/new_master_key
 ```
 
 `rotate-key` also writes `andon.db.rekeyed` under the new key; the
