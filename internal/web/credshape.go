@@ -78,11 +78,18 @@ func formSecret(r *http.Request, service enums.ServiceType) (string, error) {
 	switch shape {
 	case credNone:
 		return "", nil
-	case credSingle, credICal, credPassword:
+	case credPassword:
 		return r.FormValue("secret"), nil
+	case credSingle, credICal:
+		// Tokens and URLs never hold edge whitespace; a pasted one often does.
+		return strings.TrimSpace(r.FormValue("secret")), nil
 	}
 
-	a, b := r.FormValue("secret_a"), r.FormValue("secret_b")
+	// User names, IDs and keys are trimmed, a password is kept as typed.
+	a, b := strings.TrimSpace(r.FormValue("secret_a")), r.FormValue("secret_b")
+	if shape != credUserPass || a == "" {
+		b = strings.TrimSpace(b)
+	}
 	switch {
 	case a == "" && b == "":
 		return "", nil

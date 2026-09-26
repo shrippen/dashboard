@@ -28,6 +28,12 @@ func TestFormSecretShapes(t *testing.T) {
 		{enums.ServiceGateway, url.Values{"secret_b": {"unifi-key"}}, "unifi-key"},
 		{enums.ServiceKimai, url.Values{"secret": {"tok"}}, "tok"},
 		{enums.ServiceScrutiny, url.Values{"secret": {"ignored"}}, ""},
+		// Pasted tokens lose stray whitespace; passwords keep theirs.
+		{enums.ServiceKintsugi, url.Values{"secret": {" tok\n"}}, "tok"},
+		{enums.ServiceProxmox, url.Values{"secret_a": {"root@pam!andon "}, "secret_b": {"\t1234-uuid\r\n"}}, "root@pam!andon=1234-uuid"},
+		{enums.ServiceGateway, url.Values{"secret_b": {"unifi-key\n"}}, "unifi-key"},
+		{enums.ServiceAdGuard, url.Values{"secret_a": {" admin"}, "secret_b": {" pw "}}, "admin: pw "},
+		{enums.ServicePihole, url.Values{"secret": {" pw "}}, " pw "},
 	}
 	for _, c := range cases {
 		r, _ := http.NewRequest(http.MethodPost, "/", strings.NewReader(c.form.Encode()))
