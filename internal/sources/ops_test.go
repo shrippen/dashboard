@@ -37,6 +37,24 @@ monitor_cert_days_remaining{monitor_name="Shop",monitor_type="http",monitor_url=
 	}
 }
 
+// A reverse proxy that sends /metrics to its login page must fail the
+// fetch, not report an instance without monitors.
+func TestKumaRejectsLoginRedirect(t *testing.T) {
+	login := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("<html><body>Sign in</body></html>"))
+	}))
+	defer login.Close()
+	kuma := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, login.URL+"/auth/resource/x", http.StatusFound)
+	}))
+	defer kuma.Close()
+
+	_, err := sources.KumaData{}.Fetch(context.Background(), sources.Ctx{URL: kuma.URL, Secret: "key", VerifyTLS: true})
+	if err == nil {
+		t.Fatal("expected an error for a login redirect")
+	}
+}
+
 func TestProxmoxReadsNodesGuestsBackups(t *testing.T) {
 	mux := http.NewServeMux()
 	reply := func(path, body string) {

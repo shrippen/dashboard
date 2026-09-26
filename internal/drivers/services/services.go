@@ -14,6 +14,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -289,16 +290,35 @@ type KumaApi struct {
 	Verify bool
 }
 
-// Metrics returns the raw /metrics text.
+// Metrics returns the raw /metrics text. Redirects are not followed: a
+// reverse proxy that sends /metrics to its login page would otherwise
+// answer 200 with HTML, which reads as an instance without monitors.
 func (a KumaApi) Metrics(ctx context.Context) (string, error) {
 	auth := base64.StdEncoding.EncodeToString([]byte(":" + a.Key))
-	text, err := httpclient.GetText(ctx, strings.TrimRight(a.URL, "/")+"/metrics", httpclient.Options{
-		Headers: map[string]string{"Authorization": "Basic " + auth}, SkipVerify: !a.Verify,
+	resp, err := httpclient.Request(ctx, http.MethodGet, strings.TrimRight(a.URL, "/")+"/metrics", httpclient.Options{
+		Headers: map[string]string{"Authorization": "Basic " + auth}, SkipVerify: !a.Verify, NoRedirect: true,
 	})
 	if err != nil {
 		return "", ApiError{err.Error()}
 	}
-	return text, nil
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= http.StatusMultipleChoices && resp.StatusCode < http.StatusBadRequest {
+		target, _ := url.Parse(resp.Header.Get("Location"))
+		host := ""
+		if target != nil {
+			host = target.Hostname()
+		}
+		return "", ApiError{"redirected to " + host + " (login in front of /metrics?)"}
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		return "", ApiError{fmt.Sprintf("HTTP %d", resp.StatusCode)}
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, httpclient.MaxBody))
+	if err != nil {
+		return "", ApiError{"read failed"}
+	}
+	return string(body), nil
 }
 
 // ── Proxmox VE ──
