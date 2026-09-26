@@ -3,30 +3,54 @@
 {{define "widgets/kimai_timer"}}
 {{with $slot := index .Frag.Slots "live"}}{{template "widget-slot-state" $slot}}{{end}}
 {{with $v := .Frag.View}}{{if $v.Today}}
-<p class="kpi"><span class="kpi-label">{{t "timer.today"}}</span> <b class="kpi-value">{{$v.Today}} h</b></p>
-<ul class="timer-list">
-  {{range $v.Active}}
-  <li class="is-running">
-    <span><b>{{.Project}}</b> · {{.Activity}}<small class="muted"> {{.Customer}}</small></span>
-    <span class="timer-clock">{{.Elapsed}}</span>
-    {{if $.Ctx.CSRF}}<form hx-post="/widget-fragments/{{$.PlacementID}}/kimai" hx-target="closest .card-body" hx-swap="innerHTML">
-      <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-      <input type="hidden" name="action" value="stop"><input type="hidden" name="sheet" value="{{.ID}}">
-      <button type="submit" class="ghost">{{t "timer.stop"}}</button>
-    </form>{{end}}
-  </li>
+{{$lang := print $.Ctx.Locale}}
+<div class="kl">
+  <div class="kl-head">
+    <span class="label">{{if $v.Running}}{{t "timer.running"}}{{else}}{{t "timer.idle"}}{{end}}</span>
+    <a class="kl-ib" href="{{$v.URL}}/{{$lang}}/timesheet/create" target="_blank" rel="noopener noreferrer" aria-label="{{t "timer.add"}}" title="{{t "timer.add"}}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+    <a class="kl-ib" href="{{$v.URL}}/{{$lang}}/reporting/" target="_blank" rel="noopener noreferrer" aria-label="{{t "timer.stats"}}" title="{{t "timer.stats"}}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 20v-6M12 20V9M18 20V4"/></svg></a>
+  </div>
+  {{with $v.Running}}
+  <div class="kl-clock"><span class="kl-time" data-begin="{{.Begin}}" role="timer">{{.Elapsed}}</span>{{with .Customer}}<span class="kl-cust">{{.}}</span>{{end}}</div>
+  <b class="kl-proj">{{.Project}} · {{.Activity}}</b>
+  {{else}}
+  <div class="kl-clock is-idle"><span class="kl-time">0:00:00</span></div>
   {{end}}
-  {{range $v.Recent}}
-  <li>
-    <span>{{.Project}} · {{.Activity}}<small class="muted"> {{.Customer}}</small></span>
-    {{if $.Ctx.CSRF}}<form hx-post="/widget-fragments/{{$.PlacementID}}/kimai" hx-target="closest .card-body" hx-swap="innerHTML">
-      <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-      <input type="hidden" name="action" value="start"><input type="hidden" name="project" value="{{.ProjectID}}"><input type="hidden" name="activity" value="{{.ActivityID}}">
-      <button type="submit" class="ghost">{{t "timer.start"}}</button>
-    </form>{{end}}
-  </li>
+  <p class="kl-sums">{{with $v.Running}}{{with .Since}}{{t "timer.since" "time" .}} · {{end}}{{end}}{{t "timer.today"}} {{$v.Today}} · {{t "timer.week"}} {{$v.Week}}</p>
+  <div class="kl-day" role="img" aria-label="{{t "timer.day"}}: {{$v.Today}}">
+    {{range $v.DaySegs}}<i style="--l:{{.L}}%;--w:{{.W}}%"{{if .Run}} data-run{{end}}></i>{{end}}
+    <b style="--l:{{$v.DayNow}}%"></b>
+  </div>
+  <div class="kl-ticks" aria-hidden="true">{{range $v.DayTicks}}<span style="--l:{{.Pos}}%">{{printf "%02d" .Hour}}</span>{{end}}</div>
+  {{with $r := $v.Running}}{{if $.Ctx.CSRF}}
+  <form class="kl-stop" hx-post="/widget-fragments/{{$.PlacementID}}/kimai" hx-target="closest .card-body" hx-swap="innerHTML">
+    <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+    <input type="hidden" name="action" value="stop"><input type="hidden" name="sheet" value="{{$r.ID}}">
+    <input name="note" placeholder="{{t "timer.note"}}" aria-label="{{t "timer.note"}}" autocomplete="off">
+    <button type="submit"><span class="kl-sq" aria-hidden="true"></span>{{t "timer.stop"}}</button>
+  </form>{{end}}{{end}}
+  {{with $v.Target}}<p class="kl-target"{{if $v.Over}} data-over{{end}}>{{if $v.Over}}{{t "timer.over" "time" $v.Left}}{{else}}{{t "timer.left" "time" $v.Left}}{{end}}</p>{{end}}
+  {{with $v.Recent}}
+  <span class="label">{{t "timer.recent"}}</span>
+  <ul class="kl-list">
+    {{range .}}
+    <li>
+      <span class="kl-color"{{with .Color}} style="--c:{{.}}"{{end}} aria-hidden="true"></span>
+      {{if $.Ctx.CSRF}}<form hx-post="/widget-fragments/{{$.PlacementID}}/kimai" hx-target="closest .card-body" hx-swap="innerHTML"{{if $v.Running}} hx-confirm="{{t "timer.switch" "name" (print .Project " · " .Activity)}}"{{end}}>
+        <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+        <input type="hidden" name="action" value="{{if $v.Running}}switch{{else}}start{{end}}">
+        <input type="hidden" name="project" value="{{.ProjectID}}"><input type="hidden" name="activity" value="{{.ActivityID}}">
+        {{with $v.Running}}<input type="hidden" name="sheet" value="{{.ID}}">{{end}}
+        <button type="submit" class="kl-play" aria-label="{{t "timer.play" "name" (print .Project " · " .Activity)}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button>
+      </form>{{end}}
+      <span class="kl-pair"><b>{{.Project}}</b><small>{{.Activity}}{{with .Customer}} · {{.}}{{end}}</small></span>
+    </li>
+    {{end}}
+  </ul>
   {{end}}
-</ul>
+</div>
 {{end}}{{end}}
 {{end}}
 

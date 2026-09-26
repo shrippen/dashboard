@@ -735,3 +735,40 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 .legend-list b { margin-left: auto; font-family: var(--font-mono); font-weight: 500; color: var(--fg0); }
 .strip-lg { height: 1rem; margin-bottom: .2rem; }
 .meters .progress-bar { height: 8px; border: 0; }
+
+/* ── Kimai Lite ── */
+.kl { display: flex; flex-direction: column; gap: .5rem; }
+.kl-head { display: flex; align-items: center; gap: .4rem; }
+.kl-head .label { margin-right: auto; }
+.kl-ib { width: 1.9rem; height: 1.9rem; display: inline-grid; place-items: center; border: 1px solid var(--bg1); color: var(--fg2); }
+.kl-ib:hover { border-color: var(--fg3); color: var(--fg0); }
+.kl-clock { display: flex; align-items: baseline; gap: .7rem; }
+.kl-time { font-family: var(--font-mono); font-weight: 500; font-size: 2.1rem; line-height: 1; color: var(--ok-text); font-variant-numeric: tabular-nums; }
+.kl-clock.is-idle .kl-time { color: var(--fg3); }
+.kl-cust { margin-left: auto; font-size: .82rem; color: var(--fg2); }
+.kl-proj { color: var(--fg0); font-size: .95rem; }
+.kl-sums { margin: 0; font-size: .78rem; color: var(--fg3); }
+.kl-day { position: relative; height: .85rem; background: var(--bg-hard); margin-top: .2rem; }
+.kl-day i { position: absolute; top: 0; bottom: 0; left: var(--l); width: var(--w); background: var(--aqua); }
+.kl-day i[data-run] { background: var(--yellow); }
+.kl-day b { position: absolute; top: -.2rem; bottom: -.2rem; left: var(--l); width: 2px; background: var(--fg0); }
+.kl-ticks { position: relative; height: .9rem; font-family: var(--font-mono); font-size: .6rem; color: var(--fg3); }
+.kl-ticks span { position: absolute; left: var(--l); transform: translateX(-50%); }
+.kl-ticks span:first-child { transform: none; }
+.kl-ticks span:last-child { transform: translateX(-100%); }
+.kl-stop { display: flex; gap: .4rem; margin: 0; }
+.kl-stop input { flex: 1; margin: 0; padding: .4rem .6rem; font-size: .82rem; }
+.kl-stop button { margin: 0; display: inline-flex; align-items: center; gap: .45rem; background: var(--yellow); color: var(--bg-void); padding: .4rem .8rem; }
+.kl-stop button:hover { background: var(--fg0); }
+.kl-sq { width: .55rem; height: .55rem; background: var(--bg-void); }
+.kl-target { margin: 0; font-size: .78rem; color: var(--fg2); }
+.kl-target[data-over] { color: var(--warn-text); }
+.kl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .15rem; }
+.kl-list li { display: flex; align-items: center; gap: .55rem; min-height: 2.4rem; }
+.kl-list form { margin: 0; }
+.kl-color { width: 4px; align-self: stretch; background: var(--c, var(--bg2)); }
+.kl-play { margin: 0; width: 1.9rem; height: 1.9rem; display: inline-grid; place-items: center; padding: 0; background: var(--bg-hard); color: var(--warn-text); }
+.kl-play:hover { background: var(--yellow); color: var(--bg-void); }
+.kl-pair { display: flex; flex-direction: column; min-width: 0; }
+.kl-pair b { font-weight: 600; font-size: .85rem; color: var(--fg0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kl-pair small { font-size: .74rem; color: var(--fg3); }

@@ -521,10 +521,13 @@ func DemoBlacklist() *BlacklistDataset {
 // DemoKimaiLive is the demo live Kimai view: one timer running.
 func DemoKimaiLive(now time.Time) *KimaiLive {
 	begin := now.Add(-47 * time.Minute)
-	return &KimaiLive{URL: "https://kimai.demo", TodayMin: 312,
-		Active: []KimaiTimer{{ID: 901, ProjectID: 3, ActivityID: 7, Project: "Relaunch", Activity: "Entwicklung", Customer: "Acme GmbH", Begin: begin}},
+	day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	at := func(h, m int) time.Time { return day.Add(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute) }
+	return &KimaiLive{URL: "https://kimai.demo", TodayMin: 312, WeekMin: 1590,
+		Active: []KimaiTimer{{ID: 901, ProjectID: 3, ActivityID: 7, Project: "Relaunch", Activity: "Entwicklung", Customer: "Acme GmbH", Color: "#d3869b", Begin: begin}},
 		Recent: []KimaiTimer{
-			{ProjectID: 3, ActivityID: 7, Project: "Relaunch", Activity: "Entwicklung", Customer: "Acme GmbH"},
-			{ProjectID: 5, ActivityID: 2, Project: "Wartung", Activity: "Support", Customer: "Beta AG"},
-		}}
+			{ProjectID: 3, ActivityID: 7, Project: "Relaunch", Activity: "Entwicklung", Customer: "Acme GmbH", Color: "#d3869b"},
+			{ProjectID: 5, ActivityID: 2, Project: "Wartung", Activity: "Support", Customer: "Beta AG", Color: "#8ec07c"},
+		},
+		Today: []KimaiSpan{{Begin: at(9, 5), End: at(11, 40)}, {Begin: at(12, 15), End: at(13, 5)}}}
 }

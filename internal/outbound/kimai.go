@@ -15,6 +15,13 @@ func KimaiStart(ctx context.Context, baseURL, token string, verifyTLS bool, proj
 	return err
 }
 
+// KimaiDescribe sets a timesheet's description.
+func KimaiDescribe(ctx context.Context, baseURL, token string, verifyTLS bool, timesheetID int64, description string) error {
+	api := services.KimaiApi{URL: baseURL, Token: token, Verify: verifyTLS}
+	_, err := api.Send(ctx, http.MethodPatch, "timesheets/"+strconv.FormatInt(timesheetID, 10), map[string]any{"description": description})
+	return err
+}
+
 // KimaiStop stops one running timesheet.
 func KimaiStop(ctx context.Context, baseURL, token string, verifyTLS bool, timesheetID int64) error {
 	api := services.KimaiApi{URL: baseURL, Token: token, Verify: verifyTLS}

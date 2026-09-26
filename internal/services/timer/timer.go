@@ -29,27 +29,54 @@ var ErrNotTimer = errors.New("timer.not_timer")
 type Action string
 
 const (
-	ActionStart Action = "start"
-	ActionStop  Action = "stop"
+	ActionStart  Action = "start"
+	ActionStop   Action = "stop"
+	ActionSwitch Action = "switch"
 )
 
-// Run starts (project, activity) or stops (sheet) a timer behind a tile.
-func Run(ctx context.Context, d *sql.DB, who *access.Principal, placementID int64, action Action, project, activity, sheet int64, ip string) error {
+// Request is what a tile button asks for: start (project, activity),
+// stop (sheet, with an optional note as description) or switch (stop
+// sheet, then start the pair).
+type Request struct {
+	Action            Action
+	Project, Activity int64
+	Sheet             int64
+	Note              string
+}
+
+// Run starts, stops or switches a timer behind a tile.
+func Run(ctx context.Context, d *sql.DB, who *access.Principal, placementID int64, req Request, ip string) error {
 	conn, secret, err := target(d, who, placementID)
 	if err != nil {
 		return err
 	}
-	switch action {
+	stop := func() error {
+		if req.Sheet <= 0 {
+			return ErrNotTimer
+		}
+		if req.Note != "" {
+			if err := outbound.KimaiDescribe(ctx, conn.URL, secret, conn.VerifyTLS, req.Sheet, req.Note); err != nil {
+				return err
+			}
+		}
+		return outbound.KimaiStop(ctx, conn.URL, secret, conn.VerifyTLS, req.Sheet)
+	}
+	start := func() error {
+		if req.Project <= 0 || req.Activity <= 0 {
+			return ErrNotTimer
+		}
+		return outbound.KimaiStart(ctx, conn.URL, secret, conn.VerifyTLS, req.Project, req.Activity)
+	}
+
+	switch req.Action {
 	case ActionStart:
-		if project <= 0 || activity <= 0 {
-			return ErrNotTimer
-		}
-		err = outbound.KimaiStart(ctx, conn.URL, secret, conn.VerifyTLS, project, activity)
+		err = start()
 	case ActionStop:
-		if sheet <= 0 {
-			return ErrNotTimer
+		err = stop()
+	case ActionSwitch:
+		if err = stop(); err == nil {
+			err = start()
 		}
-		err = outbound.KimaiStop(ctx, conn.URL, secret, conn.VerifyTLS, sheet)
 	default:
 		return ErrNotTimer
 	}
@@ -57,7 +84,7 @@ func Run(ctx context.Context, d *sql.DB, who *access.Principal, placementID int6
 		return err
 	}
 	svcdata.Forget(conn.ID)
-	return auditsvc.Log(d, &who.UserID, "kimai."+string(action), strconv.FormatInt(max(project, sheet), 10), ip, nil)
+	return auditsvc.Log(d, &who.UserID, "kimai."+string(req.Action), strconv.FormatInt(max(req.Project, req.Sheet), 10), ip, nil)
 }
 
 // target resolves the tile's connection and the viewer's secret for it.

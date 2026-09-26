@@ -344,7 +344,22 @@
   }
 
   // ── Clocks ──
+  // Kimai Lite: running timers count up from their begin.
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+
+  function tickTimers() {
+    [].forEach.call(d.querySelectorAll(".kl-time[data-begin]"), function (el) {
+      var begin = Date.parse(el.getAttribute("data-begin"));
+      if (isNaN(begin)) {
+        return;
+      }
+      var s = Math.max(0, Math.floor((Date.now() - begin) / 1000));
+      el.textContent = Math.floor(s / 3600) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60);
+    });
+  }
+
   function tick() {
+    tickTimers();
     [].forEach.call(d.querySelectorAll(".clock"), function (el) {
       var zone = el.getAttribute("data-tz");
       var locale = el.getAttribute("data-locale") || undefined;

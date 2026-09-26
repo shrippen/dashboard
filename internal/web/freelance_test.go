@@ -24,6 +24,9 @@ func TestKimaiTimerStops(t *testing.T) {
 	var mu sync.Mutex
 	var writes []string
 	begin := time.Now().Add(-time.Hour).Format(time.RFC3339)
+	now := time.Now()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+	sheetBegin, sheetEnd := midnight.Add(time.Minute).Format(time.RFC3339), midnight.Add(61*time.Minute).Format(time.RFC3339)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/timesheets/active", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`[{"id": 77, "begin": "` + begin + `", "project": {"id": 3, "name": "Relaunch", "customer": {"name": "Acme"}}, "activity": {"id": 7, "name": "Dev"}}]`))
@@ -31,14 +34,17 @@ func TestKimaiTimerStops(t *testing.T) {
 	mux.HandleFunc("GET /api/timesheets/recent", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
 	mux.HandleFunc("GET /api/timesheets", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Total-Pages", "1")
-		w.Write([]byte(`[{"duration": 3600}]`))
+		w.Write([]byte(`[{"duration": 3600, "begin": "` + sheetBegin + `", "end": "` + sheetEnd + `"}]`))
 	})
-	mux.HandleFunc("PATCH /api/timesheets/{id}/stop", func(w http.ResponseWriter, r *http.Request) {
+	record := func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
-		writes = append(writes, r.URL.Path)
+		writes = append(writes, r.Method+" "+r.URL.Path)
 		mu.Unlock()
 		w.Write([]byte(`{}`))
-	})
+	}
+	mux.HandleFunc("PATCH /api/timesheets/{id}/stop", record)
+	mux.HandleFunc("PATCH /api/timesheets/{id}", record)
+	mux.HandleFunc("POST /api/timesheets", record)
 	kimai := httptest.NewServer(mux)
 	defer kimai.Close()
 
@@ -54,13 +60,17 @@ func TestKimaiTimerStops(t *testing.T) {
 	placement := string(regexp.MustCompile(`/placements/(\d+)/unplace`).FindSubmatch(mustGet(t, srv, client, boardURL+"?edit"))[1])
 
 	frag := string(awaitFragment(t, srv, client, placement, "Relaunch"))
-	if !strings.Contains(frag, `name="sheet" value="77"`) || !strings.Contains(frag, "2:00 h") {
+	if !strings.Contains(frag, `name="sheet" value="77"`) || !strings.Contains(frag, "2:00") || !strings.Contains(frag, `data-begin=`) {
 		t.Fatalf("fragment:\n%s", frag)
 	}
 
-	resp = postForm(t, client, srv.URL+"/widget-fragments/"+placement+"/kimai", url.Values{"csrf": {csrf}, "action": {"stop"}, "sheet": {"77"}})
-	if resp.StatusCode != http.StatusOK || len(writes) != 1 || writes[0] != "/api/timesheets/77/stop" {
+	resp = postForm(t, client, srv.URL+"/widget-fragments/"+placement+"/kimai", url.Values{"csrf": {csrf}, "action": {"stop"}, "sheet": {"77"}, "note": {"Backup umgebaut"}})
+	if resp.StatusCode != http.StatusOK || len(writes) != 2 || writes[0] != "PATCH /api/timesheets/77" || writes[1] != "PATCH /api/timesheets/77/stop" {
 		t.Fatalf("stop: %d %v", resp.StatusCode, writes)
+	}
+	resp = postForm(t, client, srv.URL+"/widget-fragments/"+placement+"/kimai", url.Values{"csrf": {csrf}, "action": {"switch"}, "sheet": {"77"}, "project": {"3"}, "activity": {"7"}})
+	if resp.StatusCode != http.StatusOK || len(writes) != 4 || writes[2] != "PATCH /api/timesheets/77/stop" || writes[3] != "POST /api/timesheets" {
+		t.Fatalf("switch: %d %v", resp.StatusCode, writes)
 	}
 	if r := postForm(t, client, srv.URL+"/widget-fragments/"+placement+"/kimai", url.Values{"csrf": {csrf}, "action": {"start"}}); r.StatusCode != http.StatusForbidden {
 		t.Fatalf("start without ids: %d", r.StatusCode)

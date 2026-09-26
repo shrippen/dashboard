@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"dashboard/internal/services/access"
@@ -33,7 +34,9 @@ func (d Deps) handleKimaiTimer(w http.ResponseWriter, r *http.Request) {
 		n, _ := strconv.ParseInt(r.FormValue(name), 10, 64)
 		return n
 	}
-	err = timer.Run(r.Context(), d.DB, ctx.Who, id, timer.Action(r.FormValue("action")), num("project"), num("activity"), num("sheet"), ClientIP(r))
+	req := timer.Request{Action: timer.Action(r.FormValue("action")), Project: num("project"), Activity: num("activity"),
+		Sheet: num("sheet"), Note: strings.TrimSpace(r.FormValue("note"))}
+	err = timer.Run(r.Context(), d.DB, ctx.Who, id, req, ClientIP(r))
 	if errors.Is(err, timer.ErrNotTimer) {
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return

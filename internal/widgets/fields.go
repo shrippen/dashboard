@@ -96,7 +96,7 @@ var fieldsByType = map[string][]Field{
 	"deadlines":        {{Key: "days", Input: InputNumber, Default: 45}},
 	"trend":            {sel("metric", "revenue_ytd", "revenue_ytd", "open_amount", "month_min"), {Key: "days", Input: InputNumber, Default: 90}},
 	"updates":          {{Key: "limit", Input: InputNumber, Default: 20}},
-	"kimai_timer":      {},
+	"kimai_timer":      {{Key: "week_hours", Input: InputNumber}},
 	"conn_health":      {{Key: "limit", Input: InputNumber, Default: 4}},
 	"invoice_aging":    {},
 	"heatmap":          {},

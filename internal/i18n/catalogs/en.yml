@@ -184,6 +184,7 @@ edit:
   preview: Preview
   confirm_delete: Really delete?
 field:
+  week_hours: Weekly target (hours)
   timezone: Time zone
   since_hour: Since yesterday from (hour)
   mobile: On phones
@@ -2135,6 +2136,19 @@ backup:
   unknown: unknown
   none: No backup tools connected.
 timer:
+  running: running
+  idle: nothing running
+  week: Week
+  since: 'since {time}'
+  note: Description
+  recent: Recent
+  add: Add entry in Kimai
+  stats: Reports in Kimai
+  left: '{time} left to the weekly target'
+  over: '{time} over the weekly target'
+  switch: 'Stop the running entry and start {name}?'
+  play: 'Start {name}'
+  day: Booked today
   today: Today
   start: Start
   stop: Stop

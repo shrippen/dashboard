@@ -184,6 +184,7 @@ edit:
   preview: Vorschau
   confirm_delete: Wirklich löschen?
 field:
+  week_hours: Wochenziel (Stunden)
   timezone: Zeitzone
   since_hour: Seit gestern ab (Uhr)
   mobile: Auf dem Handy
@@ -2136,6 +2137,19 @@ backup:
   unknown: unbekannt
   none: Keine Backup-Werkzeuge verbunden.
 timer:
+  running: läuft
+  idle: nichts läuft
+  week: Woche
+  since: 'seit {time}'
+  note: Beschreibung
+  recent: Zuletzt
+  add: Eintrag in Kimai anlegen
+  stats: Auswertung in Kimai
+  left: 'noch {time} bis zum Wochenziel'
+  over: '{time} über dem Wochenziel'
+  switch: 'Laufenden Eintrag stoppen und {name} starten?'
+  play: '{name} starten'
+  day: Heute gebucht
   today: Heute
   start: Starten
   stop: Stoppen
