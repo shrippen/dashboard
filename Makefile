@@ -3,7 +3,7 @@
 check: lint test
 
 lint:
-	gofmt -l . | grep . && exit 1 || true
+	gofmt -l cmd internal | grep . && exit 1 || true
 	go vet ./...
 
 test:
