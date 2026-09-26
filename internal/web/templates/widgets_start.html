@@ -140,15 +140,18 @@
     <h2 class="greet-title">{{t (print "greeting." $v.Part)}},<br>{{$v.Name}}.</h2>
     <p class="greet-sub">{{if $v.OpenHints}}<a href="/hints">{{t "greeting.open" "n" $v.OpenHints}}</a>{{else}}{{t "greeting.calm"}}{{end}}</p>
   </div>
-  {{if $v.Days}}
+  {{if $v.HasWeather}}{{with $slot := index $.Frag.Slots "weather"}}
   <div class="greet-box greet-weather">
     <span class="greet-label">{{t "greeting.weather"}}{{with $v.Label}} · {{.}}{{end}}</span>
+    {{template "widget-slot-state" $slot}}
+    {{if $v.Days}}
     <div class="greet-now"><b>{{num $v.Temp 0}}°</b><span>{{t (printf "weather.%s" (weatherKind $v.Code))}} · {{t "greeting.wind" "n" (num $v.Wind 0)}}</span></div>
     <ol class="forecast">
       {{range $v.Days}}<li><small>{{day .Day}}</small><span class="forecast-bar"><i style="--h:{{.Height}}%"></i></span><b>{{num .Max 0}}°</b><small>{{num .Min 0}}°</small></li>{{end}}
     </ol>
+    {{end}}
   </div>
-  {{end}}
+  {{end}}{{end}}
   <div class="greet-box greet-since">
     <span class="greet-label">{{t "greeting.since" "hour" $v.SinceHour}}</span>
     <ul>

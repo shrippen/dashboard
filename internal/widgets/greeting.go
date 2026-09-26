@@ -109,7 +109,8 @@ func greetingView(cfgAny any, results map[string]any, _ ViewCtx) map[string]any 
 	if err != nil {
 		loc = time.Local
 	}
-	out := map[string]any{"Part": dayPart(time.Now().In(loc).Hour()), "Label": cfg.Label, "Timezone": cfg.Timezone, "SinceHour": cfg.SinceHour}
+	out := map[string]any{"Part": dayPart(time.Now().In(loc).Hour()), "Label": cfg.Label, "Timezone": cfg.Timezone, "SinceHour": cfg.SinceHour,
+		"HasWeather": cfg.Lat != 0 || cfg.Lon != 0}
 
 	if w, ok := results["weather"].(*sources.WeatherResult); ok && w != nil {
 		out["Temp"], out["Code"], out["Wind"], out["Days"] = w.Temp, w.Code, w.Wind, forecast(w.Days)

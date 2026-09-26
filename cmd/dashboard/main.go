@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	// The image has no zoneinfo; clocks and greetings need Europe/Berlin & co.
+	_ "time/tzdata"
 
 	"dashboard/internal/crypto"
 	"dashboard/internal/db"
