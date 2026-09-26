@@ -226,6 +226,11 @@ func Create(d *sql.DB, who *access.Principal, spaceID int64, service enums.Servi
 			}
 			secretEnc = enc
 		}
+		// Personal: the token entered here is the creator's own, not shared.
+		var ownEnc []byte
+		if mode == enums.CredentialPersonal {
+			ownEnc, secretEnc = secretEnc, nil
+		}
 		var secretAt time.Time
 		if secretEnc != nil {
 			secretAt = time.Now().UTC()
@@ -241,6 +246,11 @@ func Create(d *sql.DB, who *access.Principal, spaceID int64, service enums.Servi
 			return err
 		}
 		id = conn.ID
+		if ownEnc != nil {
+			if err := content.SetCredential(tx, conn.ID, who.UserID, ownEnc); err != nil {
+				return err
+			}
+		}
 		return audit.Log(tx, &who.UserID, "connection.created", conn.Name, "", nil)
 	})
 	return id, err
@@ -278,6 +288,9 @@ func Update(d *sql.DB, who *access.Principal, connID int64, name, url string, mo
 			conn.Name = n
 		}
 		conn.URL = strings.TrimRight(strings.TrimSpace(url), "/")
+		if err := keepEditorToken(tx, who, conn, mode); err != nil {
+			return err
+		}
 		conn.CredentialMode = mode
 		conn.VerifyTLS = tls == TLSVerify
 		if options != nil {
@@ -288,8 +301,9 @@ func Update(d *sql.DB, who *access.Principal, connID int64, name, url string, mo
 			if err != nil {
 				return err
 			}
-			conn.SecretEnc = enc
-			conn.SecretAt = time.Now().UTC()
+			if err := storeSecret(tx, who, conn, enc); err != nil {
+				return err
+			}
 			if err := audit.Log(tx, &who.UserID, "connection.secret_changed", conn.Name, "", nil); err != nil {
 				return err
 			}
@@ -299,6 +313,31 @@ func Update(d *sql.DB, who *access.Principal, connID int64, name, url string, mo
 		}
 		return audit.Log(tx, &who.UserID, "connection.updated", conn.Name, "", nil)
 	})
+}
+
+// storeSecret keeps a token where the connection's mode reads it: on the
+// connection when shared, as the editor's own token when personal.
+func storeSecret(tx *sql.Tx, who *access.Principal, conn *model.Connection, enc []byte) error {
+	if conn.CredentialMode == enums.CredentialPersonal {
+		return content.SetCredential(tx, conn.ID, who.UserID, enc)
+	}
+	conn.SecretEnc = enc
+	conn.SecretAt = time.Now().UTC()
+	return nil
+}
+
+// keepEditorToken: a shared connection switched to personal would leave
+// its editor without a token; the shared one becomes theirs unless they
+// already have their own.
+func keepEditorToken(tx *sql.Tx, who *access.Principal, conn *model.Connection, mode enums.CredentialMode) error {
+	if mode != enums.CredentialPersonal || conn.CredentialMode == enums.CredentialPersonal || len(conn.SecretEnc) == 0 {
+		return nil
+	}
+	own, err := content.Credential(tx, conn.ID, who.UserID)
+	if err != nil || own != nil {
+		return err
+	}
+	return content.SetCredential(tx, conn.ID, who.UserID, conn.SecretEnc)
 }
 
 // SetOptions replaces a connection's service-specific options (e.g. the
