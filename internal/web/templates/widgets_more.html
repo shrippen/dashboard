@@ -87,12 +87,12 @@
 
 {{define "widgets/glances_chart"}}
 {{with $slot := index .Frag.Slots "history"}}{{template "widget-slot-state" $slot}}{{end}}
-{{with $v := .Frag.View}}{{if $v.Path}}
-<p class="kpi"><span class="kpi-label">{{t (printf "opt.%s" $v.Metric)}}</span>
-  <b class="kpi-value">{{if eq $v.Metric "load"}}{{num $v.Now 2}}{{else}}{{num $v.Now 0}} %{{end}}</b></p>
-<svg class="chart spark-lg" viewBox="0 0 {{$v.W}} {{$v.H}}" preserveAspectRatio="none" role="img" aria-label="{{t (printf "opt.%s" $v.Metric)}}">
-  <path class="trend-line" d="{{$v.Path}}"/>
-</svg>
+{{with $v := .Frag.View}}{{if $v.Bars}}
+<div class="tile-head"><b class="tile-value">{{if eq $v.Metric "load"}}{{num $v.Now 2}}{{else}}{{num $v.Now 0}} %{{end}}</b><span class="tile-sub">{{t (printf "opt.%s" $v.Metric)}}</span></div>
+<div class="bars" role="img" aria-label="{{t (printf "opt.%s" $v.Metric)}}: {{if eq $v.Metric "load"}}{{num $v.Now 2}}{{else}}{{num $v.Now 0}} %{{end}}">
+  {{range $v.Bars}}<i style="--h:{{.H}}%"{{with .Tier}} data-tier="{{.}}"{{end}}></i>{{end}}
+</div>
+<p class="tile-foot"><span>{{ago $v.First}}</span><span>{{ago $v.Last}}</span></p>
 {{end}}{{end}}
 {{end}}
 

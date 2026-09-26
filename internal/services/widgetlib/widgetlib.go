@@ -26,6 +26,7 @@ import (
 	data "dashboard/internal/repos/data"
 	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/connections"
 	"dashboard/internal/services/hints"
 	"dashboard/internal/services/history"
 	"dashboard/internal/services/linkstatus"
@@ -545,6 +546,13 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		}
 		frag.Slots[widgets.GreetingSlot] = Slot{Data: g}
 	}
+	if kind.Extra == widgets.ExtraConnHealth {
+		strips, err := connections.Strips(d, who, widgets.ConnHealthDays, time.Now().UTC())
+		if err != nil {
+			return nil, err
+		}
+		frag.Slots[widgets.ConnHealthSlot] = Slot{Data: connStrips(strips)}
+	}
 	if kind.Extra == widgets.ExtraHistory {
 		h, err := history.Load(d, widget.SpaceID, 0, time.Now().UTC())
 		if err != nil {
@@ -748,3 +756,15 @@ func greetingData(d *sql.DB, who *access.Principal, cfg widgets.GreetingConfig) 
 
 // greetingChanges caps the timeline a greeting reads.
 const greetingChanges = 200
+
+// connStrips hands connection strips to the widget layer.
+func connStrips(strips []connections.Strip) []widgets.ConnStrip {
+	out := make([]widgets.ConnStrip, len(strips))
+	for i, s := range strips {
+		out[i] = widgets.ConnStrip{Name: s.Name, Service: s.Service, FailPct: s.FailPct}
+		for _, d := range s.Days {
+			out[i].Days = append(out[i].Days, widgets.ConnDayState{Day: d.Day, OK: d.OK, Fail: d.Fail})
+		}
+	}
+	return out
+}

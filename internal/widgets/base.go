@@ -49,6 +49,9 @@ const (
 	// since yesterday evening to the view as results["greeting"]
 	// (*GreetingData).
 	ExtraGreeting Extra = "greeting"
+	// ExtraConnHealth hands the viewer's connection strips to the view as
+	// results["connhealth"] ([]ConnStrip).
+	ExtraConnHealth Extra = "connhealth"
 )
 
 // Category groups widget types for the library UI.

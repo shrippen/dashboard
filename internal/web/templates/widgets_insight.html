@@ -182,14 +182,13 @@
 {{end}}
 
 {{define "widgets/backups"}}
-<div class="table-wrap"><table class="table">
-  <thead><tr><th>{{t "col.item"}}</th><th>{{t "col.tool"}}</th><th>{{t "col.last"}}</th><th>{{t "col.state"}}</th></tr></thead>
-  <tbody>
+{{with .Frag.View.Rows}}
+<div class="strip strip-lg" role="img" aria-label="{{t "wtype.backups.name"}}">{{range .}}<i data-state="{{if eq (print .State) "ok"}}ok{{else if eq (print .State) "failed"}}bad{{else}}mid{{end}}" title="{{.Item}}"></i>{{end}}</div>
+{{end}}
+<ul class="legend-list">
   {{range .Frag.View.Rows}}
-  <tr><td>{{.Item}}</td><td class="muted">{{t (print "service." .Tool)}}</td>
-    <td>{{if .Last.IsZero}}–{{else}}{{ago .Last}}{{end}}</td>
-    <td><span class="pill" data-state="{{if eq (print .State) "ok"}}ok{{else if eq (print .State) "failed"}}fail{{else}}warn{{end}}">{{t (print "backup." .State)}}</span></td></tr>
-  {{else}}<tr><td colspan="4" class="muted">{{t "backup.none"}}</td></tr>{{end}}
-  </tbody>
-</table></div>
+  <li><span class="sq" data-tier="{{if eq (print .State) "ok"}}green{{else if eq (print .State) "failed"}}red{{else}}yellow{{end}}" aria-hidden="true"></span>{{.Item}} <small class="muted">{{t (print "service." .Tool)}} · {{t (print "backup." .State)}}</small>
+    <b>{{if .Last.IsZero}}–{{else}}{{ago .Last}}{{end}}</b></li>
+  {{else}}<li class="muted">{{t "backup.none"}}</li>{{end}}
+</ul>
 {{end}}

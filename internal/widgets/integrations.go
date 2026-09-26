@@ -109,7 +109,7 @@ func init() {
 	simple("grocy", enums.ServiceGrocy, datasetView)
 	simple("dwd", enums.ServiceDWD, datasetView)
 	simple("github", enums.ServiceGitHub, datasetView)
-	simple("speedtest", enums.ServiceSpeedtest, datasetView)
+	simple("speedtest", enums.ServiceSpeedtest, speedView)
 
 	Register(WidgetType{Key: "energy", Decode: decodeEnergy, Template: "widgets/energy", Category: CategoryInsight,
 		Service: enums.ServiceTibber, RefreshS: integrationTTL, View: energyView,

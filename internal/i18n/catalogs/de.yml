@@ -359,6 +359,12 @@ category:
   start: Startseite
   insight: Auswertung
 wtype:
+  conn_health:
+    name: Verbindungen
+    desc: 'Wie viele Verbindungen gesund sind; die wackeligen als Streifen der letzten 14 Tage.'
+  invoice_aging:
+    name: Offene Rechnungen nach Alter
+    desc: 'Offene Rechnungen aus Invoice Ninja, gestapelt nach Tagen über Fälligkeit.'
   greeting:
     name: Begrüßung
     desc: 'Gruß, Datum und Uhr, Wetter und was sich seit gestern Abend geändert hat.'
@@ -2333,3 +2339,14 @@ greeting:
   nothing: Nichts Neues.
   wind: 'Wind {n} km/h'
   weather: Wetter
+health:
+  healthy: 'gesund · {days} Tage'
+  fail_pct: '{pct} % Fehlerquote'
+  all_ok: Alle Verbindungen ohne Fehler.
+aging:
+  count: '{n} offene Rechnungen'
+  current: nicht fällig
+  d30: 1–30 Tage über
+  d60: 31–60 Tage über
+  older: über 60 Tage
+  none: Keine offenen Rechnungen.

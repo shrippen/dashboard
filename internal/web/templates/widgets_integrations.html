@@ -69,11 +69,15 @@
 
 {{define "widgets/speedtest"}}
 {{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
-{{with .Frag.View.Data}}
-<p class="kpi"><span class="kpi-label">↓ Mbit/s</span> <b class="kpi-value">{{num .Down 0}}</b></p>
-<p class="kpi"><span class="kpi-label">↑ Mbit/s</span> <b class="kpi-value">{{num .Up 0}}</b></p>
-<p class="small muted">{{num .Ping 0}} ms · {{ago .At}}</p>
-{{end}}
+{{with $v := .Frag.View}}{{with $d := $v.Data}}
+<div class="meters">
+  <div class="progress"><div class="progress-head"><span>↓ {{num $d.Down 0}} Mbit/s</span><span>{{if $d.ExpectDown}}{{pct $v.DownPct}}{{end}}</span></div>
+    {{if $d.ExpectDown}}<div class="progress-bar"><i style="--p:{{barPct $v.DownPct}}%" data-tier="{{if lt $v.DownPct 0.8}}yellow{{else}}green{{end}}"></i></div>{{end}}</div>
+  <div class="progress"><div class="progress-head"><span>↑ {{num $d.Up 0}} Mbit/s</span><span>{{if $d.ExpectUp}}{{pct $v.UpPct}}{{end}}</span></div>
+    {{if $d.ExpectUp}}<div class="progress-bar"><i style="--p:{{barPct $v.UpPct}}%" data-tier="{{if lt $v.UpPct 0.8}}yellow{{else}}green{{end}}"></i></div>{{end}}</div>
+</div>
+<p class="tile-foot"><span>{{num $d.Ping 0}} ms</span><span>{{ago $d.At}}</span></p>
+{{end}}{{end}}
 {{end}}
 
 {{define "widgets/energy"}}
@@ -128,4 +132,33 @@
 {{define "widgets/week_story"}}
 {{with .Frag.View.Lines}}<ul class="plain-list">{{range .}}<li>{{tt (print "week." .Key) .Params}}</li>{{end}}</ul>
 {{else}}<p class="small muted">{{t "week.empty"}}</p>{{end}}
+{{end}}
+
+{{/* Connection health: healthy count, the troubled ones as day strips. */}}
+{{define "widgets/conn_health"}}
+{{with $v := .Frag.View}}
+<div class="tile-head"><b class="tile-value">{{$v.Healthy}} / {{$v.Total}}</b><span class="tile-sub">{{t "health.healthy" "days" $v.Days}}</span></div>
+{{range $v.Rows}}
+<div class="strip-row">
+  <span class="strip-name">{{.Name}}</span>
+  <span class="strip" role="img" aria-label="{{.Name}}: {{t "health.fail_pct" "pct" .FailPct}}">{{range .Cells}}<i data-state="{{.State}}" title="{{day .Title}}"></i>{{end}}</span>
+  <span class="strip-pct">{{.FailPct}} %</span>
+</div>
+{{else}}<p class="tile-sub">{{t "health.all_ok"}}</p>{{end}}
+<p class="tile-foot"><a href="/connections">{{t "nav.connections"}} →</a></p>
+{{end}}
+{{end}}
+
+{{/* Open invoices stacked by how overdue they are. */}}
+{{define "widgets/invoice_aging"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{if $v.Count}}
+<div class="tile-head"><b class="tile-value">{{money $v.Total}}</b><span class="tile-sub">{{t "aging.count" "n" $v.Count}}</span></div>
+<div class="stack" role="img" aria-label="{{range $v.Bands}}{{if .Count}}{{t (print "aging." .Key)}} {{money .Amount}}; {{end}}{{end}}">
+  {{range $v.Bands}}{{if .Pct}}<i style="--w:{{.Pct}}%" data-tier="{{.Tier}}"></i>{{end}}{{end}}
+</div>
+<ul class="legend-list">
+  {{range $v.Bands}}{{if .Count}}<li><span class="sq" data-tier="{{.Tier}}" aria-hidden="true"></span>{{t (print "aging." .Key)}}<b>{{money .Amount}}</b></li>{{end}}{{end}}
+</ul>
+{{else}}<p class="tile-sub">{{t "aging.none"}}</p>{{end}}{{end}}
 {{end}}

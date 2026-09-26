@@ -89,3 +89,57 @@ func SetHygiene(d *sql.DB, who *access.Principal, connID int64, expires string, 
 		return audit.Log(tx, &who.UserID, "connection.hygiene", conn.Name, "", nil)
 	})
 }
+
+// DayState is one day of a connection's health strip.
+type DayState struct {
+	Day      string
+	OK, Fail int
+}
+
+// Strip is one connection's recent days, oldest first, with one entry
+// per calendar day (days without fetches have zero counts).
+type Strip struct {
+	Name, Service string
+	FailPct       int
+	Days          []DayState
+}
+
+// Strips returns the day-by-day health of every connection who can see,
+// over the last days (the connection health tile).
+func Strips(d *sql.DB, who *access.Principal, days int, now time.Time) ([]Strip, error) {
+	list, err := Listing(d, who, enums.RightView)
+	if err != nil {
+		return nil, err
+	}
+	first := now.AddDate(0, 0, -days+1)
+	since := first.Format(time.DateOnly)
+
+	var out []Strip
+	err = db.WithRead(d, func(tx *sql.Tx) error {
+		for _, c := range list {
+			raw, err := data.DaysSince(tx, c.ID, since)
+			if err != nil {
+				return err
+			}
+			byDay := map[string]data.ConnDay{}
+			ok, fail := 0, 0
+			for _, r := range raw {
+				byDay[r.Day] = r
+				ok, fail = ok+r.OK, fail+r.Fail
+			}
+
+			strip := Strip{Name: c.Name, Service: string(c.Service)}
+			if ok+fail > 0 {
+				strip.FailPct = fail * 100 / (ok + fail)
+			}
+			for i := range days {
+				day := first.AddDate(0, 0, i).Format(time.DateOnly)
+				r := byDay[day]
+				strip.Days = append(strip.Days, DayState{Day: day, OK: r.OK, Fail: r.Fail})
+			}
+			out = append(out, strip)
+		}
+		return nil
+	})
+	return out, err
+}

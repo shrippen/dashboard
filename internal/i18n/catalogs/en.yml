@@ -359,6 +359,12 @@ category:
   start: Start page
   insight: Insights
 wtype:
+  conn_health:
+    name: Connections
+    desc: 'How many connections are healthy; the shaky ones as strips of the last 14 days.'
+  invoice_aging:
+    name: Open invoices by age
+    desc: 'Open Invoice Ninja invoices, stacked by days past due.'
   greeting:
     name: Greeting
     desc: 'Greeting, date and clock, weather and what changed since last evening.'
@@ -2332,3 +2338,14 @@ greeting:
   nothing: Nothing new.
   wind: 'Wind {n} km/h'
   weather: Weather
+health:
+  healthy: 'healthy · {days} days'
+  fail_pct: '{pct} % failure rate'
+  all_ok: All connections without errors.
+aging:
+  count: '{n} open invoices'
+  current: not due
+  d30: 1–30 days overdue
+  d60: 31–60 days overdue
+  older: over 60 days
+  none: No open invoices.

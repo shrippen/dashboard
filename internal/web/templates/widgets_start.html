@@ -61,11 +61,20 @@
 {{define "widgets/sysinfo"}}
 {{with $slot := index .Frag.Slots "stats"}}{{template "widget-slot-state" $slot}}
 {{with $s := $slot.Data}}
-<div class="sysinfo-tile">
-  <p>{{t "sys.cpu"}}: {{num $s.CPU 0}} % · {{t "sys.mem"}}: {{num $s.Mem 0}} % · {{t "sys.swap"}}: {{num $s.Swap 0}} % · {{t "sys.load"}}: {{num $s.Load 2}}</p>
-  <ul>{{range $s.Disks}}<li>{{.Mount}}: {{num .Percent 0}} %</li>{{end}}</ul>
+<div class="meters">
+  {{template "meter" dict "L" (t "sys.cpu") "V" $s.CPU}}
+  {{template "meter" dict "L" (t "sys.mem") "V" $s.Mem}}
+  {{template "meter" dict "L" (t "sys.swap") "V" $s.Swap}}
+  {{range $s.Disks}}{{template "meter" dict "L" .Mount "V" .Percent}}{{end}}
 </div>
+<p class="tile-foot"><span>{{t "sys.load"}} {{num $s.Load 2}}</span></p>
 {{end}}{{end}}
+{{end}}
+
+{{/* One labelled percent meter; "V" is 0–100. */}}
+{{define "meter"}}
+<div class="progress"><div class="progress-head"><span>{{.L}}</span><span>{{num .V 0}} %</span></div>
+  <div class="progress-bar"><i style="--p:{{num .V 0}}%" data-tier="{{if ge .V 80.0}}red{{else if ge .V 60.0}}yellow{{else}}green{{end}}"></i></div></div>
 {{end}}
 
 {{define "widgets/public_ip"}}

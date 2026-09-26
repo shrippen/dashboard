@@ -28,6 +28,9 @@ func decodeGlancesChart(raw map[string]any) any {
 
 // glancesChartView scales samples into the trend chart's box; percent
 // metrics keep a fixed 0–100 axis so a quiet host looks quiet.
+// glancesBars caps the bars of the load chart.
+const glancesBars = 36
+
 func glancesChartView(_ any, results map[string]any, _ ViewCtx) map[string]any {
 	data, ok := results["history"].(*sources.GlancesHistory)
 	if !ok || len(data.Samples) < 2 {
@@ -49,7 +52,11 @@ func glancesChartView(_ any, results map[string]any, _ ViewCtx) map[string]any {
 		y := trendHeight - (min(s.Value, high)-low)/(high-low)*(trendHeight-2*chartMargin) - chartMargin
 		coords[i] = formatPoint(float64(i)*step, y)
 	}
-	return map[string]any{"Path": "M" + joinPoints(coords), "Now": now, "High": high, "Metric": data.Metric,
+	values := make([]float64, len(data.Samples))
+	for i, s := range data.Samples {
+		values[i] = s.Value
+	}
+	return map[string]any{"Path": "M" + joinPoints(coords), "Bars": barsOf(values, glancesBars, high), "Now": now, "High": high, "Metric": data.Metric,
 		"W": trendWidth, "H": trendHeight, "First": data.Samples[0].At, "Last": data.Samples[len(data.Samples)-1].At}
 }
 

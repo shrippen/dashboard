@@ -52,3 +52,29 @@ func PruneConnStats(q db.Queryer, before string) error {
 	_, err := q.Exec("DELETE FROM conn_stats WHERE day < ?", before)
 	return err
 }
+
+// ConnDay is one day of a connection's fetch outcomes.
+type ConnDay struct {
+	Day      string
+	OK, Fail int
+}
+
+// DaysSince lists a connection's days from since on, oldest first; days
+// without fetches are missing.
+func DaysSince(q db.Queryer, connID int64, since string) ([]ConnDay, error) {
+	rows, err := q.Query("SELECT day, ok, fail FROM conn_stats WHERE connection_id = ? AND day >= ? ORDER BY day", connID, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []ConnDay
+	for rows.Next() {
+		var d ConnDay
+		if err := rows.Scan(&d.Day, &d.OK, &d.Fail); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
