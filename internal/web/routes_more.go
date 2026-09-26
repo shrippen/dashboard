@@ -79,7 +79,13 @@ func (d Deps) handleCredentials(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = d.Page(w, ctx, "credentials", http.StatusOK, map[string]any{"Items": items})
+	signIns := map[int64]*signIn{}
+	for _, item := range items {
+		signIns[item.ID] = d.signInOf(item)
+	}
+	_ = d.Page(w, ctx, "credentials", http.StatusOK, map[string]any{
+		"Items": items, "SignIn": signIns, "Connected": r.URL.Query().Has("connected"), "Error": r.URL.Query().Get("error"),
+	})
 }
 
 // credentialAction runs a personal-credential change and returns to the list.

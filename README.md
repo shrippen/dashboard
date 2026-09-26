@@ -33,6 +33,15 @@ The container starts as root, hands `/data` to `PUID:PGID` (default
 `10001:10001`) and reads the secret files, then runs Andon as that
 user. No `chown` needed on the host.
 
+## Sign in instead of a token
+
+Home Assistant, Nextcloud, Jellyfin (Quick Connect), Gitea, Snipe-IT and
+Tailscale can also sign in from the connection page, next to the token
+field. Gitea and Snipe-IT need an OAuth client created once in the service
+with the redirect URL shown there (`BASE_URL/connections/connect/callback`);
+Tailscale needs an OAuth client with `devices:core:read`. Renewing tokens
+(Gitea, Snipe-IT, Tailscale) are refreshed by Andon itself.
+
 ## Develop
 
 ```sh

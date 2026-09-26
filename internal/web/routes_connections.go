@@ -7,6 +7,7 @@ import (
 
 	"andon/internal/enums"
 	"andon/internal/services/access"
+	"andon/internal/services/connect"
 	"andon/internal/services/connections"
 	"andon/internal/services/hooks"
 	"andon/internal/services/porting"
@@ -23,6 +24,10 @@ func (d Deps) RegisterConnectionRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /connections/{id}/delete", d.handleConnectionDelete)
 	mux.HandleFunc("POST /connections/{id}/test", d.handleConnectionTest)
 	mux.HandleFunc("POST /connections/{id}/hygiene", d.handleConnectionHygiene)
+	mux.HandleFunc("POST /connections/{id}/connect", d.handleConnectStart)
+	mux.HandleFunc("POST /connections/{id}/oauth-client", d.handleOAuthClient)
+	mux.HandleFunc("GET "+connect.CallbackPath, d.handleConnectCallback)
+	mux.HandleFunc("GET "+pollPath, d.handleConnectPoll)
 }
 
 func (d Deps) handleConnectionsList(w http.ResponseWriter, r *http.Request) {
@@ -126,9 +131,17 @@ func (d Deps) handleConnectionEditForm(w http.ResponseWriter, r *http.Request) {
 	values := map[string]any{
 		"Conn": conn, "Services": serviceOptions, "IsNew": false,
 		"OptionsYAML": porting.DumpMap(conn.Options), "Error": r.URL.Query().Get("error"),
+		"SignIn": d.signInOf(conn),
 	}
 	if hooks.Accepts(conn.Service) {
 		values["HookURL"], _ = hooks.URL(d.Settings.BaseURL, conn.ID)
+	}
+	// Just signed in: show right away whether the service answers.
+	if r.URL.Query().Has("connected") {
+		if result, err := connections.Test(r.Context(), d.DB, ctx.Who, id); err == nil {
+			values["TestResult"] = result
+		}
+		values["Connected"] = true
 	}
 	if r.URL.Query().Has("welcome") {
 		if result, err := connections.Test(r.Context(), d.DB, ctx.Who, id); err == nil {
@@ -220,6 +233,7 @@ func (d Deps) handleConnectionTest(w http.ResponseWriter, r *http.Request) {
 	_ = d.Page(w, ctx, "connection_form", http.StatusOK, map[string]any{
 		"Conn": conn, "Services": serviceOptions, "IsNew": false,
 		"OptionsYAML": porting.DumpMap(conn.Options), "Error": r.URL.Query().Get("error"), "TestResult": result,
+		"SignIn": d.signInOf(conn),
 	})
 }
 

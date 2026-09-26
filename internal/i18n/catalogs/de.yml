@@ -189,7 +189,7 @@ field:
   mobile: Auf dem Handy
   max_hours: Höchstalter (Stunden)
   points: Messpunkte
-  ical_url: iCal-Adresse
+  ical_url: 'Kalender-Adresse (öffentliche iCal-Adresse)'
   fields: Felder
   entries: Einträge
   country: Land
@@ -678,13 +678,13 @@ history:
   sections: Abschnitte
   restore: Wiederherstellen
 conn:
-  options_hint_calendar: 'Private iCal-Adresse als Token eintragen (wird verschlüsselt); URL = eine beliebige Adresse des Kalenders. Termine, deren Titel einen Kimai-Kunden oder ein Projekt nennt, werden mit den Buchungen verglichen.'
+  options_hint_calendar: 'Öffentlicher Kalender: nur die iCal-Adresse. Privater Kalender: die geheime iCal-Adresse ins Feld „Private iCal-Adresse“ (wird verschlüsselt), oben eine beliebige Adresse des Kalenders. Termine, deren Titel einen Kimai-Kunden oder ein Projekt nennt, werden mit den Buchungen verglichen.'
   about_calendar: 'Termine gegen Zeitbuchungen'
-  options_hint_tailscale: 'URL https://api.tailscale.com (Token = API-Zugriffstoken) oder die Headscale-URL (Token = API-Schlüssel, headscale apikeys create). Optionen: tailnet: example.com (Tailscale, sonst Standard-Tailnet).'
+  options_hint_tailscale: 'URL https://api.tailscale.com (Token = API-Zugriffstoken, Admin-Konsole → Einstellungen → Schlüssel; läuft nach höchstens 90 Tagen ab) oder die Headscale-URL (Token = API-Schlüssel, headscale apikeys create). Optionen: tailnet: example.com (Tailscale, sonst Standard-Tailnet).'
   about_tailscale: 'Geräte, Schlüsselablauf, Updates'
-  options_hint_gateway: 'Optionen: kind: opnsense | pfsense | unifi. OPNsense: Token = key:secret eines API-Schlüssels. pfSense: REST-API-Paket, Token = API-Schlüssel. UniFi: Integrations-API-Schlüssel (Einstellungen → Control Plane → Integrationen), URL der Konsole.'
+  options_hint_gateway: 'Optionen: kind: opnsense | pfsense | unifi. OPNsense: Token = key:secret eines API-Schlüssels. pfSense: REST-API-Paket, Token = API-Schlüssel. UniFi: Integrations-API-Schlüssel (Einstellungen → Control Plane → Integrationen), URL der Konsole. Bei pfSense und UniFi das Feld „API-Key“ leer lassen und den Schlüssel ins Feld „API-Secret“.'
   about_gateway: 'WAN, Geräte, Firmware-Updates'
-  options_hint_mediaserver: 'Optionen: kind: jellyfin | plex (Standard jellyfin). Token = Jellyfin-API-Schlüssel (Dashboard → API-Schlüssel) bzw. X-Plex-Token.'
+  options_hint_mediaserver: 'Optionen: kind: jellyfin | plex (Standard jellyfin). Token = Jellyfin-API-Schlüssel (Dashboard → API-Schlüssel, nur Admins) bzw. X-Plex-Token des Server-Besitzers.'
   about_mediaserver: 'Laufende Streams, Bibliothek'
   options_hint_arr: 'Keine Optionen. Token = API-Schlüssel (Einstellungen → Allgemein). Sonarr oder Radarr wird erkannt.'
   about_arr: 'Gesundheit, Warteschlange, Kommendes'
@@ -717,6 +717,8 @@ conn:
   cred_pass: 'App- oder API-Passwort'
   cred_key: 'API-Key'
   cred_secret: 'API-Secret'
+  ical_private: 'Private iCal-Adresse'
+  cred_tokenid: 'Token-ID'
   pick: 'Welchen Dienst willst du verbinden? Danach: Adresse und Token, Test, passende Widgets.'
   about_kimai: 'Zeiterfassung: Stunden, Projekte, Budgets'
   about_invoiceninja: 'Rechnungen, Zahlungen, Ausgaben'
@@ -752,13 +754,13 @@ conn:
   about_jsonapi: 'Beliebige JSON-Schnittstelle, eigene Felder'
   options_hint_jsonapi: 'URL einer JSON-Antwort, Token optional. Optionen (YAML): header: X-Api-Key (sonst Authorization: Bearer <Token>); fields: [{label: Warteschlange, path: stats.queue, warn: 10, critical: 50}] für Kennzahlen und Hinweise; list: {path: jobs, columns: [name, state], limit: 10} für eine Tabelle. Widget „Eigene Integration“ zeigt beides; eigene Regeln prüfen jedes Feld.'
   options_hint_pihole: Keine Optionen. Token = App-Passwort (Pi-hole v6) bzw. API-Token (v5).
-  options_hint_adguard: Keine Optionen. Token = benutzer:passwort.
-  options_hint_nextcloud: 'Keine Optionen. Token = serverinfo-Token (occ config:app:set serverinfo token --value …) oder admin:app-passwort.'
+  options_hint_adguard: Keine Optionen. Benutzername und Passwort des AdGuard-Home-Kontos.
+  options_hint_nextcloud: 'Keine Optionen. Benutzername und App-Passwort eines Admin-Kontos (Einstellungen → Sicherheit → App-Passwort). Alternativ Benutzername leer lassen und den serverinfo-Token ins Passwortfeld (occ config:app:set serverinfo token --value …).'
   options_hint_sabnzbd: Keine Optionen. Token = API-Schlüssel (Konfiguration → Allgemein).
   options_hint_gluetun: 'URL des Control-Servers (http://gluetun:8000). Optionen: country: Sweden (erwartetes Ausgangsland). Token = API-Schlüssel, falls gesetzt.'
   options_hint_domains: 'URL = eine Adresse der Domain. Optionen: domains: [example.org, example.de]. Kein Token. .de nennt kein Ablaufdatum.'
   options_hint_blacklist: 'URL = Mailserver (dessen IPv4-Adressen werden geprüft). Optionen: ips: [1.2.3.4], zones: [zen.spamhaus.org]. Kein Token.'
-  options_hint_truenas: Keine Optionen. Token = API-Schlüssel (Benutzer → API-Schlüssel). Nutzt die WebSocket-API, ältere Versionen REST.
+  options_hint_truenas: 'Keine Optionen. Token = API-Schlüssel (Anmeldedaten → Benutzer → API-Schlüssel) eines Nutzers mit der Rolle „Readonly Admin“. Nutzt die WebSocket-API, ältere Versionen REST.'
   options_hint_komodo: Keine Optionen. API-Key und -Secret aus Komodo (nur lesend genügt).
   options_hint_pangolin: 'URL der Integration-API inkl. /v1 (z. B. https://api.pangolin.example.org/v1). Optionen: org: <Organisations-ID>. Token = Integration-API-Schlüssel.'
   options_hint_authentik: Keine Optionen. Token = API-Token eines Kontos mit Leserechten auf Ereignisse und Benutzer.
@@ -768,22 +770,23 @@ conn:
   hook_hint: 'In PG Back Web je Ereignis (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) und Backup einen Webhook anlegen: Methode POST, diese URL, Body wie unten mit Ereignis und Backup-Name. Die URL ist geheim.'
   options_hint_linkwarden: 'collections: [Homelab, Werkzeuge] – Sammlungen, die mit den Link-Kacheln dieses Bereichs abgeglichen werden (leer = alle). Token = Zugriffstoken (Einstellungen → Zugriffstoken).'
   options_hint_sure: Keine Optionen nötig. Token = API-Schlüssel mit Leserecht (Einstellungen → API-Schlüssel).
-  options_hint_homeassistant: Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.
+  options_hint_homeassistant: 'Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Es hat alle Rechte seines Nutzers: am besten ein eigener Nutzer ohne Admin-Rechte. Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.'
   options_hint_freshrss: 'Keine Optionen nötig. Benutzername und API-Passwort aus FreshRSS → Profil → API-Passwort; dort muss API-Zugriff erlaubt sein.'
   options_hint_gitea: Keine Optionen nötig. Token = Zugriffstoken mit Leserechten (read:user, read:issue, read:repository, read:notification).
   options_hint_borgbackup: Keine Optionen nötig. Token = API-Token bbs_tok_… (Einstellungen → API).
   options_hint_scrutiny: Keine Optionen, kein Token nötig.
-  options_hint_immich: Keine Optionen nötig. Token = API-Schlüssel (Konto → API-Schlüssel); Statistik und Jobs brauchen einen Admin-Schlüssel.
-  options_hint_umami: 'Keine Optionen nötig. Token = benutzer:passwort (selbst gehostet) oder API-Schlüssel (Umami Cloud).'
+  options_hint_immich: 'Keine Optionen nötig. Token = API-Schlüssel (Konto-Einstellungen → API-Schlüssel). Berechtigungen: server.storage (Pflicht); optional server.statistics und job.read (nur mit Schlüssel eines Admin-Kontos) sowie server.versionCheck für Update-Hinweise.'
+  options_hint_umami: 'Keine Optionen nötig. Selbst gehostet: Benutzername und Passwort eines Umami-Kontos. Umami Cloud: Benutzername leer lassen und den API-Schlüssel ins Passwortfeld.'
   options_hint_uptimekuma: Keine Optionen nötig. Token = API-Schlüssel aus Uptime Kuma (Einstellungen → API-Schlüssel).
-  options_hint_proxmox: 'Keine Optionen nötig. Token = user@pam!name=uuid, Rechte: PVEAuditor, für Updates Sys.Audit.'
-  options_hint_paperless: 'Token aus Paperless (Profil → API-Auth-Token). Optional invoice_types: [Rechnung] – Dokumenttypen, die mit Invoice-Ninja-Ausgaben abgeglichen werden; Betrag aus einem Geld-Feld. Optional contract_tag: Vertrag – Verträge mit Feldern „Vertragsende“ und „Kündigungsfrist“ (sonst aus dem Text).'
+  options_hint_proxmox: 'Keine Optionen nötig. Token-ID (z. B. root@pam!andon) und Secret aus Datacenter → Berechtigungen → API-Token. Rolle PVEAuditor auf Pfad /; bei „Privilege Separation“ die Rolle dem Token selbst geben. Update-Hinweise brauchen Sys.Audit.'
+  options_hint_paperless: 'Token = API-Auth-Token (Profil → API-Auth-Token). Rechte folgen dem Nutzer: Dokumente, Dokumenttypen, Tags, Korrespondenten und benutzerdefinierte Felder ansehen; Systemstatus und Aufgaben brauchen ein Admin-Konto. Optional invoice_types: [Rechnung] – Dokumenttypen, die mit Invoice-Ninja-Ausgaben abgeglichen werden; Betrag aus einem Geld-Feld. Optional contract_tag: Vertrag – Verträge mit Feldern „Vertragsende“ und „Kündigungsfrist“ (sonst aus dem Text).'
   options_hint_certs: 'hosts: [shop.example.org, mail.example.org:993] – geprüft werden URL-Host und diese Hosts. Mit auto: true zusätzlich alle https-Kacheln und Pangolin-Ressourcen. Kein Token nötig.'
   lead: Verbindungen zu Diensten. Tokens werden verschlüsselt gespeichert und nie wieder angezeigt.
   new: Neue Verbindung
   credentials: Zugangsdaten
   mode_hint: Geteilt = ein Token für alle. Persönlich = jeder hinterlegt sein eigenes.
   token_hint: Leer lassen bei persönlichen Zugangsdaten.
+  no_login: Dieser Dienst braucht keine Zugangsdaten.
   test: Testen
   empty: Noch keine Verbindungen.
   secret_set: Token hinterlegt
@@ -794,11 +797,11 @@ conn:
   shared_warning: Geteilte Zugangsdaten bedeuten geteilte Daten. Wer ein Widget auf dieser Verbindung sehen darf, sieht, was dieses Token sieht.
   delete: Verbindung löschen
   options: Optionen (YAML)
-  options_hint_kimai: 'all_users: true zählt Zeiten aller Benutzer (Token braucht das Recht).'
-  options_hint_invoiceninja: 'currency: EUR · home_country_id: 276 (Deutschland)'
-  options_hint_snipeit: Keine Optionen nötig.
-  options_hint_dawarich: 'areas: {"Muster GmbH Büro": {customer_id: 12}, "Home": {home: true}} – Area-Namen aus Dawarich, customer_id aus Kimai.'
-  options_hint_glances: 'api_version: 4'
+  options_hint_kimai: 'Token = API-Token (Profil → API-Zugang). Rechte folgen der Kimai-Rolle: eigene Zeiten, Kunden, Projekte und Tätigkeiten ansehen genügt. Timer starten und Zeiten als exportiert markieren brauchen Schreibrechte auf Zeiteinträge. Optionen: all_users: true zählt Zeiten aller Benutzer (Rolle muss fremde Zeiten sehen dürfen).'
+  options_hint_invoiceninja: 'Token = API-Token (Einstellungen → Kontoverwaltung → API-Tokens). Rechte folgen dem Nutzer des Tokens: Kunden, Rechnungen, Angebote, Zahlungen, Ausgaben und Lieferanten ansehen; Rechnungsentwürfe aus Kimai brauchen zusätzlich „Rechnungen erstellen“. Optionen: currency: EUR · home_country_id: 276 (Deutschland).'
+  options_hint_snipeit: 'Keine Optionen nötig. Token = persönlicher API-Schlüssel (Benutzermenü → API-Schlüssel verwalten). Rechte folgen dem Nutzer: Assets, Lizenzen und Verbrauchsmaterial ansehen.'
+  options_hint_dawarich: 'Token = API-Schlüssel (Konto → Einstellungen). Optionen: areas: {"Muster GmbH Büro": {customer_id: 12}, "Home": {home: true}} – Area-Namen aus Dawarich, customer_id aus Kimai.'
+  options_hint_glances: 'Token nur, wenn der Glances-Webserver mit Passwort läuft. Optionen: api_version: 4 (Standard) oder 3 für ältere Glances.'
 mode:
   shared: Geteilt
   personal: Persönlich
@@ -2572,6 +2575,8 @@ audit_action:
     export: 'Buchhaltung exportiert'
     payment: 'Zahlung zugeordnet'
   connection:
+    connected: 'Beim Dienst angemeldet'
+    oauth_client: 'OAuth-Client eingetragen'
     created: 'Verbindung angelegt'
     deleted: 'Verbindung gelöscht'
     hygiene: 'Token-Pflege geändert'
@@ -2649,3 +2654,31 @@ audit_action:
     deleted: 'Benutzer gelöscht'
     registered: 'Benutzer registriert'
     role_set: 'Rolle geändert'
+
+connect:
+  token: Zugangsdaten eintragen
+  title: Anmelden
+  button: 'Mit {service} anmelden'
+  after_save: Nach dem Speichern kannst du dich hier auch direkt beim Dienst anmelden, statt ein Token einzutragen.
+  done: Angemeldet. Andon nutzt jetzt den Zugang aus der Anmeldung.
+  how_homeassistant: Du meldest dich bei Home Assistant an und erlaubst den Zugriff. Andon legt dann in deinem Profil ein langlebiges Token „Andon …“ an. In Home Assistant ist nichts einzurichten.
+  how_nextcloud: Nextcloud öffnet sich in einem neuen Tab. Nach der Anmeldung legt Nextcloud ein App-Passwort für Andon an (Einstellungen → Sicherheit). Die Serverinfo braucht ein Admin-Konto.
+  how_mediaserver: Andon zeigt einen Code, den du in Jellyfin unter Profil → Quick Connect eingibst. Quick Connect muss im Dashboard eingeschaltet sein. Alle Sitzungen sieht nur ein Admin-Konto.
+  how_gitea: Einmalig in Gitea eine OAuth2-Anwendung anlegen (Einstellungen → Anwendungen) mit der Weiterleitungs-URL unten und Client-ID und Secret hier eintragen. Danach meldet sich jeder mit seinem Gitea-Konto an; Andon fragt nur Lesezugriff auf Benutzer, Repositories, Issues und Benachrichtigungen an.
+  how_snipeit: Einmalig in Snipe-IT einen OAuth-Client anlegen (Einstellungen → OAuth) mit der Weiterleitungs-URL unten und Client-ID und Secret hier eintragen. Danach meldet sich jeder mit seinem Snipe-IT-Konto an; die Rechte folgen dem Konto.
+  how_tailscale: In der Tailscale-Admin-Konsole einen OAuth-Client mit dem Scope devices:core:read anlegen (Einstellungen → OAuth-Clients) und Client-ID und Secret hier eintragen. Andon holt sich damit selbst kurzlebige Tokens; nichts läuft nach 90 Tagen ab.
+  redirect_uri: 'Weiterleitungs-URL:'
+  client_id: Client-ID
+  client_secret: Client-Secret
+  client_save: Client speichern
+  client_set: Client eingetragen
+  client_missing: Anmelden geht, sobald ein Verwalter den OAuth-Client dieser Verbindung eingetragen hat.
+  code_hint: 'Gib diesen Code in Jellyfin ein (Profil → Quick Connect):'
+  link_hint: Melde dich im neuen Tab an und erlaube den Zugriff. Diese Seite geht danach von selbst weiter.
+  open_login: Anmeldung öffnen
+  waiting: Warte auf die Bestätigung …
+  no_client: Erst den OAuth-Client eintragen.
+  flow: Die Anmeldung ist abgelaufen oder gehört zu einer anderen Sitzung. Bitte neu starten.
+  unsupported: Dieser Dienst kann sich nicht anmelden, nur per Token.
+grant:
+  expired: Die Anmeldung ist abgelaufen. Bitte bei der Verbindung neu anmelden.

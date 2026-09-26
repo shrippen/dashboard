@@ -894,3 +894,11 @@ button.kl-ib { margin: 0; padding: 0; background: none; cursor: pointer; }
 .kuma-bad[data-state="fail"]::before { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-right: .35rem; background: var(--red); }
 .kuma-bad[data-state="warn"]::before { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-right: .35rem; background: var(--yellow); }
 .kuma-problems small { color: var(--fg3); font-family: var(--font-mono); font-size: .68rem; }
+
+/* Connection access: token and sign-in side by side, equal. */
+.cred-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; margin-top: .6rem; }
+.cred-way { border: 1px solid var(--bg2); background: var(--bg-panel); padding: .9rem 1rem; display: flex; flex-direction: column; gap: .4rem; }
+.cred-way h3 { margin: 0; font-size: 1rem; }
+.cred-way button { align-self: flex-start; }
+.ok { color: var(--ok-text); }
+.connect-code { font-family: var(--font-mono); font-size: 2rem; letter-spacing: .3em; color: var(--fg0); }

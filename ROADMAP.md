@@ -25,6 +25,7 @@ Das Projekt ist vollständig von Python auf **Go** umgestellt (Zielplattform: Ra
 | Benachrichtigungen | Apprise, Digest-Mail (SMTP), Wochenrückblick mit optionaler LLM-Zusammenfassung, iCal |
 | Trends, Prognosen | Snapshots, Verlauf, Saisonvergleich, Jahresprognose, Liquidität |
 | Betrieb | CLI `backup`, `rotate-key`, `import`; Demo-Modus; Icons-Dienst |
+| Anmelden statt Token | Home Assistant, Nextcloud, Jellyfin, Gitea, Snipe-IT, Tailscale: gleichwertig neben dem Token; ablaufende Tokens erneuert Andon (`oauth_grants`) |
 | Produktivbetrieb | **offen:** Parallelbetrieb neben Dashy und Umstieg (manuell, Abschnitt 7.4) |
 
 **Abweichungen vom Plan:** Übersetzungen als YAML-Kataloge mit Schlüsseln (unverändert vom Python-Stand übernommen). Das mitgelieferte Theme liegt in `internal/web/templates/` (Builtin, eingebettet). Board-Vorlagen/Revisionen speichern den Board- bzw. Widget-eigenen Zustand, nicht die bereichsübergreifende YAML-Form aus `porting.py`.

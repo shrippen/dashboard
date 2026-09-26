@@ -54,6 +54,8 @@ func mustParse() *template.Template {
 		"mainRuns":    mainRuns,
 		"credShape":   func(s enums.ServiceType) string { return string(credShapeOf(s)) },
 		"asset":       asset,
+		"defaultURL":  defaultURL,
+		"canSignIn":   canSignIn,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }

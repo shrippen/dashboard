@@ -47,6 +47,8 @@
   <main>
     <h1>{{t "nav.credentials"}}</h1>
     <p class="muted">{{t "cred.lead"}}</p>
+    {{if .Connected}}<p class="ok">{{t "connect.done"}}</p>{{end}}
+    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
     <div class="table-wrap"><table class="table">
       <tr><th>{{t "field.connection"}}</th><th>{{t "field.url"}}</th><th>{{t "cred.state"}}</th><th></th></tr>
       {{range .Items}}
@@ -59,16 +61,30 @@
             <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
             {{$shape := credShape .Service}}
             {{if eq $shape "userpass"}}
-              <input name="secret_a" autocomplete="off" required placeholder="{{t "conn.cred_user"}}" aria-label="{{t "conn.cred_user"}}">
+              <input name="secret_a" autocomplete="off" placeholder="{{t "conn.cred_user"}}" aria-label="{{t "conn.cred_user"}}">
               <input name="secret_b" type="password" autocomplete="off" required placeholder="{{t "conn.cred_pass"}}" aria-label="{{t "conn.cred_pass"}}">
+            {{else if eq $shape "tokenid"}}
+              <input name="secret_a" autocomplete="off" placeholder="{{t "conn.cred_tokenid"}}" aria-label="{{t "conn.cred_tokenid"}}">
+              <input name="secret_b" type="password" autocomplete="off" required placeholder="{{t "conn.cred_secret"}}" aria-label="{{t "conn.cred_secret"}}">
             {{else if eq $shape "keysecret"}}
-              <input name="secret_a" autocomplete="off" required placeholder="{{t "conn.cred_key"}}" aria-label="{{t "conn.cred_key"}}">
+              <input name="secret_a" autocomplete="off" placeholder="{{t "conn.cred_key"}}" aria-label="{{t "conn.cred_key"}}">
               <input name="secret_b" type="password" autocomplete="off" required placeholder="{{t "conn.cred_secret"}}" aria-label="{{t "conn.cred_secret"}}">
             {{else}}
-              <input name="secret" type="password" autocomplete="off" required placeholder="{{t "field.token"}}" aria-label="{{t "field.token"}}">
+              {{$label := t "field.token"}}{{if eq $shape "ical"}}{{$label = t "conn.ical_private"}}{{else if eq $shape "password"}}{{$label = t "field.password"}}{{end}}
+              <input name="secret" type="password" autocomplete="off" required placeholder="{{$label}}" aria-label="{{$label}}">
             {{end}}
             <button type="submit" class="ghost">{{t "action.save"}}</button>
           </form>
+          {{$item := .}}
+          {{with index $.SignIn .ID}}
+            {{if or (not .NeedsClient) .HasClient}}
+            <form method="post" action="/connections/{{$item.ID}}/connect" class="inline-form" hx-boost="false">
+              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+              <input type="hidden" name="back" value="/me/credentials">
+              <button type="submit" class="ghost">{{t "connect.button" "service" (t (print "service." $item.Service))}}</button>
+            </form>
+            {{else}}<p class="small muted">{{t "connect.client_missing"}}</p>{{end}}
+          {{end}}
           <p class="small muted">{{t (print "conn.options_hint_" .Service)}}</p>
           {{if .HasMine}}
           <form method="post" action="/me/credentials/{{.ID}}/delete" class="inline-form">

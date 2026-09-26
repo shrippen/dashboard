@@ -83,3 +83,26 @@ func TestConnectionTwoPartCredential(t *testing.T) {
 		t.Fatalf("expected key:secret fields for komodo:\n%s", form)
 	}
 }
+
+// TestNoTokenFieldWithoutAuth: services that need no credentials (e.g.
+// Scrutiny) show neither a token field nor the shared/personal choice.
+func TestNoTokenFieldWithoutAuth(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	form := string(mustGet(t, srv, client, "/connections/new?service=scrutiny"))
+	for _, field := range []string{`name="secret"`, `name="mode"`} {
+		if strings.Contains(form, field) {
+			t.Fatalf("scrutiny form offers %s:\n%s", field, form)
+		}
+	}
+	kimai := string(mustGet(t, srv, client, "/connections/new?service=kimai"))
+	if !strings.Contains(kimai, `name="secret"`) {
+		t.Fatal("kimai form lost its token field")
+	}
+	// Where to create the token is said while setting up, not only when editing.
+	if !strings.Contains(kimai, "API-Token (Profil → API-Zugang)") {
+		t.Fatalf("kimai setup lacks the token hint:\n%s", kimai)
+	}
+}

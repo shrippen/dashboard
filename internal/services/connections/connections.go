@@ -429,6 +429,9 @@ func DropMine(d *sql.DB, who *access.Principal, connID int64) error {
 	defer svcdata.Forget(connID) // cached data may be stale now
 
 	return db.WithTx(d, func(tx *sql.Tx) error {
+		if err := content.RemoveGrant(tx, connID, who.UserID); err != nil {
+			return err
+		}
 		return content.RemoveCredential(tx, connID, who.UserID)
 	})
 }

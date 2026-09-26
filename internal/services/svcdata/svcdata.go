@@ -253,6 +253,19 @@ func Get(ctx context.Context, d *sql.DB, sourceKey string, params map[string]any
 		return Result{}, err
 	}
 
+	// Signed-in connections: the stored grant becomes a current token, but
+	// only when a fetch will actually happen.
+	if sctx.Secret == sources.GrantMarker && (fresh != Stored || stored(key).Pending) {
+		token, err := grantToken(ctx, d, conn, owner)
+		if errors.Is(err, ErrMissingCredential) {
+			return Result{}, err
+		}
+		if err != nil {
+			return Result{FetchedAt: time.Now().UTC(), Error: err.Error()}, nil
+		}
+		sctx.Secret = token
+	}
+
 	if fresh == Stored {
 		result := stored(key)
 		if result.Pending {

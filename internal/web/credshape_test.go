@@ -1,4 +1,4 @@
-package web
+package web_test
 
 import (
 	"net/http"
@@ -7,52 +7,58 @@ import (
 	"testing"
 
 	"andon/internal/enums"
+	"andon/internal/web"
 )
 
-func TestCredShapeOf(t *testing.T) {
+// TestFormSecretShapes: two-part credentials are joined the way each
+// driver expects, e.g. Proxmox "user@pam!andon=uuid".
+func TestFormSecretShapes(t *testing.T) {
 	cases := []struct {
 		service enums.ServiceType
-		want    credShape
+		form    url.Values
+		want    string
 	}{
-		{enums.ServiceFreshRSS, credUserPass},
-		{enums.ServiceMail, credUserPass},
-		{enums.ServiceKomodo, credKeySecret},
-		{enums.ServiceKimai, credSingle},
+		{enums.ServiceProxmox, url.Values{"secret_a": {"root@pam!andon"}, "secret_b": {"1234-uuid"}}, "root@pam!andon=1234-uuid"},
+		{enums.ServiceAdGuard, url.Values{"secret_a": {"admin"}, "secret_b": {"pw"}}, "admin:pw"},
+		{enums.ServiceUmami, url.Values{"secret_a": {"admin"}, "secret_b": {"pw"}}, "admin:pw"},
+		{enums.ServiceUmami, url.Values{"secret_a": {""}, "secret_b": {"cloud-key"}}, "cloud-key"},
+		{enums.ServiceNextcloud, url.Values{"secret_a": {"arian"}, "secret_b": {"app-pw"}}, "arian:app-pw"},
+		{enums.ServiceNextcloud, url.Values{"secret_b": {"serverinfo-token"}}, "serverinfo-token"},
+		{enums.ServiceGateway, url.Values{"secret_a": {"key"}, "secret_b": {"secret"}}, "key:secret"},
+		{enums.ServiceGateway, url.Values{"secret_b": {"unifi-key"}}, "unifi-key"},
+		{enums.ServiceKimai, url.Values{"secret": {"tok"}}, "tok"},
+		{enums.ServiceScrutiny, url.Values{"secret": {"ignored"}}, ""},
 	}
 	for _, c := range cases {
-		if got := credShapeOf(c.service); got != c.want {
-			t.Errorf("credShapeOf(%s) = %s, want %s", c.service, got, c.want)
+		r, _ := http.NewRequest(http.MethodPost, "/", strings.NewReader(c.form.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		if got := web.FormSecret(r, c.service); got != c.want {
+			t.Errorf("%s: got %q, want %q", c.service, got, c.want)
 		}
 	}
 }
 
-func formRequest(t *testing.T, values url.Values) *http.Request {
-	t.Helper()
-	r, err := http.NewRequest(http.MethodPost, "/", strings.NewReader(values.Encode()))
-	if err != nil {
-		t.Fatal(err)
-	}
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	return r
-}
+// TestSetupScreensGuide: fixed API addresses are filled in, Proxmox asks
+// for token ID and secret, the calendar names its fields by what goes in.
+func TestSetupScreensGuide(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
 
-func TestFormSecretJoinsTwoPartCredential(t *testing.T) {
-	r := formRequest(t, url.Values{"secret_a": {"bob"}, "secret_b": {"pw123"}})
-	if got := formSecret(r, enums.ServiceFreshRSS); got != "bob:pw123" {
-		t.Fatalf("formSecret: %q", got)
+	github := string(mustGet(t, srv, client, "/connections/new?service=github"))
+	if !strings.Contains(github, `value="https://api.github.com"`) {
+		t.Fatalf("github URL not prefilled:\n%s", github)
 	}
-}
-
-func TestFormSecretSingleField(t *testing.T) {
-	r := formRequest(t, url.Values{"secret": {"tok"}})
-	if got := formSecret(r, enums.ServiceKimai); got != "tok" {
-		t.Fatalf("formSecret: %q", got)
+	proxmox := string(mustGet(t, srv, client, "/connections/new?service=proxmox"))
+	if !strings.Contains(proxmox, "Token-ID") || !strings.Contains(proxmox, `name="secret_b"`) {
+		t.Fatalf("proxmox lacks token ID and secret fields:\n%s", proxmox)
 	}
-}
-
-func TestFormSecretBothPartsEmptyMeansUnchanged(t *testing.T) {
-	r := formRequest(t, url.Values{})
-	if got := formSecret(r, enums.ServiceFreshRSS); got != "" {
-		t.Fatalf("formSecret: %q, want empty", got)
+	pihole := string(mustGet(t, srv, client, "/connections/new?service=pihole"))
+	if !strings.Contains(pihole, `<label for="secret">Passwort</label>`) {
+		t.Fatalf("pi-hole asks for a token instead of its password:\n%s", pihole)
+	}
+	calendar := string(mustGet(t, srv, client, "/connections/new?service=calendar"))
+	if !strings.Contains(calendar, "Private iCal-Adresse") {
+		t.Fatalf("calendar fields not named:\n%s", calendar)
 	}
 }

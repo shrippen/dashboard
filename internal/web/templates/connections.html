@@ -46,6 +46,7 @@
   <main>
     <h1>{{if .IsNew}}{{t "action.create"}}{{else}}{{t "action.edit"}}{{end}} — {{t "nav.connections"}}</h1>
     {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+    {{if .Connected}}<p class="ok">{{t "connect.done"}}</p>{{end}}
     {{if .TestResult}}
       <p class="{{if not .TestResult.Ok}}error{{end}}">
         {{if .TestResult.Ok}}✓ OK{{if .TestResult.Version}} ({{.TestResult.Version}}){{end}}{{else}}✗ {{.TestResult.Message}}{{end}}
@@ -65,12 +66,16 @@
         </select>
       {{end}}
 
+      {{$shape := ""}}{{if .IsNew}}{{$shape = credShape .Service}}{{else}}{{$shape = credShape .Conn.Service}}{{end}}
       <label for="name">{{t "field.name"}}</label>
       <input id="name" name="name" value="{{if .Conn}}{{.Conn.Name}}{{end}}" required>
 
-      <label for="url">{{t "field.url"}}</label>
-      <input id="url" name="url" type="url" value="{{if .Conn}}{{.Conn.URL}}{{end}}" required>
+      <label for="url">{{if eq $shape "ical"}}{{t "conn.ical_url"}}{{else}}{{t "field.url"}}{{end}}</label>
+      <input id="url" name="url" type="url" value="{{if .Conn}}{{.Conn.URL}}{{else}}{{defaultURL .Service}}{{end}}" required>
 
+      {{if eq $shape "none"}}
+      <p class="small muted">{{t "conn.no_login"}}</p>
+      {{else}}
       <label for="mode">{{t "conn.credentials"}}</label>
       <select id="mode" name="mode">
         <option value="shared" {{if .Conn}}{{if eq (print .Conn.Mode) "shared"}}selected{{end}}{{end}}>{{t "mode.shared"}}</option>
@@ -78,12 +83,20 @@
       </select>
       <p class="small muted">{{t "conn.mode_hint"}} {{t "conn.shared_warning"}}</p>
 
+      {{/* Two equal ways to give Andon access: a token, or signing in. */}}
+      <div class="cred-ways">
+      <div class="cred-way">
+      <h3>{{t "connect.token"}}</h3>
       {{$keep := ""}}{{if .Conn}}{{if .Conn.HasSecret}}{{$keep = t "conn.secret_keep"}}{{end}}{{end}}
-      {{$shape := ""}}{{if .IsNew}}{{$shape = credShape .Service}}{{else}}{{$shape = credShape .Conn.Service}}{{end}}
       {{if eq $shape "userpass"}}
         <label for="secret_a">{{t "conn.cred_user"}}</label>
         <input id="secret_a" name="secret_a" autocomplete="off" placeholder="{{$keep}}">
         <label for="secret_b">{{t "conn.cred_pass"}}</label>
+        <input id="secret_b" name="secret_b" type="password" autocomplete="off" placeholder="{{$keep}}">
+      {{else if eq $shape "tokenid"}}
+        <label for="secret_a">{{t "conn.cred_tokenid"}}</label>
+        <input id="secret_a" name="secret_a" autocomplete="off" placeholder="{{if $keep}}{{$keep}}{{else}}root@pam!andon{{end}}">
+        <label for="secret_b">{{t "conn.cred_secret"}}</label>
         <input id="secret_b" name="secret_b" type="password" autocomplete="off" placeholder="{{$keep}}">
       {{else if eq $shape "keysecret"}}
         <label for="secret_a">{{t "conn.cred_key"}}</label>
@@ -91,10 +104,36 @@
         <label for="secret_b">{{t "conn.cred_secret"}}</label>
         <input id="secret_b" name="secret_b" type="password" autocomplete="off" placeholder="{{$keep}}">
       {{else}}
-        <label for="secret">{{t "field.token"}}</label>
+        <label for="secret">{{if eq $shape "ical"}}{{t "conn.ical_private"}}{{else if eq $shape "password"}}{{t "field.password"}}{{else}}{{t "field.token"}}{{end}}</label>
         <input id="secret" name="secret" type="password" autocomplete="off" placeholder="{{$keep}}">
       {{end}}
       <p class="small muted">{{t "conn.token_hint"}}</p>
+      </div>
+      {{if .SignIn}}
+      <div class="cred-way">
+        <h3>{{t "connect.title"}}</h3>
+        <p class="small muted">{{t (print "connect.how_" .Conn.Service)}}</p>
+        {{if .SignIn.NeedsClient}}
+          {{if .SignIn.HasClient}}<p><span class="pill" data-state="ok">{{t "connect.client_set"}}</span></p>{{end}}
+          {{if ne .SignIn.Method "client"}}<p class="small muted">{{t "connect.redirect_uri"}} <code>{{.SignIn.Callback}}</code></p>{{end}}
+          <label for="client_id">{{t "connect.client_id"}}</label>
+          <input id="client_id" name="client_id" form="oauth-client-form" autocomplete="off">
+          <label for="client_secret">{{t "connect.client_secret"}}</label>
+          <input id="client_secret" name="client_secret" type="password" form="oauth-client-form" autocomplete="off">
+          <button type="submit" class="ghost" form="oauth-client-form">{{t "connect.client_save"}}</button>
+        {{end}}
+        {{if or (not .SignIn.NeedsClient) .SignIn.HasClient}}
+          <button type="submit" form="connect-form">{{t "connect.button" "service" (t (print "service." .Conn.Service))}}</button>
+        {{end}}
+      </div>
+      {{else if .IsNew}}{{if canSignIn .Service}}
+      <div class="cred-way">
+        <h3>{{t "connect.title"}}</h3>
+        <p class="small muted">{{t "connect.after_save"}}</p>
+      </div>
+      {{end}}{{end}}
+      </div>
+      {{end}}
       {{if not .IsNew}}<p class="small muted">{{t (print "conn.options_hint_" .Conn.Service)}}</p>{{end}}
 
       <label for="tls">TLS</label>
@@ -105,6 +144,17 @@
 
       <button type="submit">{{t "action.save"}}</button>
     </form>
+    {{if .SignIn}}
+    {{/* Sign-in leaves for the service's own page: no soft page change. */}}
+    <form id="connect-form" method="post" action="/connections/{{.Conn.ID}}/connect" hx-boost="false">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+    </form>
+    {{if .SignIn.NeedsClient}}
+    <form id="oauth-client-form" method="post" action="/connections/{{.Conn.ID}}/oauth-client">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+    </form>
+    {{end}}
+    {{end}}
 
     {{if .HookURL}}
       <h2>{{t "conn.hook"}}</h2>
@@ -181,6 +231,36 @@
     <div class="type-grid">
       {{range .Services}}<a class="type-card" href="/connections/new?service={{.}}"><b>{{t (print "service." .)}}</b><small>{{t (print "conn.about_" .)}}</small></a>{{end}}
     </div>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{/* Waiting for a sign-in in another tab (Nextcloud) or on another device
+     (Jellyfin code); the poll answers with HX-Redirect when done. */}}
+{{define "connect_wait"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "connect.title"}} · Andon</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main>
+    <h1>{{t "connect.title"}}</h1>
+    {{if .Step.Code}}
+      <p>{{t "connect.code_hint"}}</p>
+      <p class="connect-code">{{.Step.Code}}</p>
+    {{end}}
+    {{if .Step.Link}}
+      <p>{{t "connect.link_hint"}}</p>
+      <p><a class="btn" href="{{.Step.Link}}" target="_blank" rel="noopener">{{t "connect.open_login"}}</a></p>
+    {{end}}
+    <p class="muted" hx-get="{{.PollURL}}" hx-trigger="every 2s" hx-swap="none">{{t "connect.waiting"}}</p>
+    <p><a href="{{.Back}}">{{t "action.cancel"}}</a></p>
   </main>
 </body>
 </html>
