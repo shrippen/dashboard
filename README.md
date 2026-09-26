@@ -17,10 +17,17 @@ Plan and decisions: [ROADMAP.md](ROADMAP.md) (German). Working rules: [agent.md]
 
 ```sh
 mkdir -p secrets data && openssl rand -base64 32 > secrets/master_key
+sudo chown -R 10001 data secrets && sudo chmod 400 secrets/master_key   # the container runs as uid 10001
 cp docker-compose.example.yml docker-compose.yml   # adjust BASE_URL, SMTP, proxy range
+docker login git.arianw.de                         # while the package is private
 docker compose up -d
 docker compose logs dashboard | grep "SETUP CODE"  # open /setup and enter the code
 ```
+
+Images: `latest` follows `main` (development state). A tag `v1.2.3`
+publishes `1.2.3`, `1.2` and `1`; set `DASHBOARD_TAG=1.2` in `.env` to
+pin production to a release line. Keep `secrets/master_key` safe and
+separate from backups: without it the database can't be opened.
 
 ## Develop
 

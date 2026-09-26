@@ -1,6 +1,8 @@
 services:
   dashboard:
-    image: git.arianw.de/shrippen/dashboard:latest
+    # latest = current development state (main); for production pin a
+    # release: 1.2.3 (exact), 1.2 (patches) or 1 (minor updates).
+    image: git.arianw.de/shrippen/dashboard:${DASHBOARD_TAG:-latest}
     restart: unless-stopped
     volumes:
       - ./data:/data
