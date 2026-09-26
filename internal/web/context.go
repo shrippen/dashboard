@@ -29,6 +29,7 @@ type Ctx struct {
 	CSRF   string
 	Method enums.AuthMethod
 	Locale enums.Locale
+	Path   string // request path, marks the current menu entry
 }
 
 // ErrLoginRequired is turned into a redirect to /login by the caller.
@@ -91,13 +92,13 @@ func (d Deps) Context(r *http.Request) (Ctx, error) {
 		return Ctx{}, err
 	}
 	if info == nil {
-		return Ctx{Locale: i18n.Pick(r.Header.Get("Accept-Language"))}, nil
+		return Ctx{Locale: i18n.Pick(r.Header.Get("Accept-Language")), Path: r.URL.Path}, nil
 	}
 	locale := i18n.Pick(r.Header.Get("Accept-Language"))
 	if info.Principal != nil {
 		locale = info.Principal.Locale
 	}
-	return Ctx{Who: info.Principal, CSRF: info.CSRF, Method: info.Method, Locale: locale}, nil
+	return Ctx{Who: info.Principal, CSRF: info.CSRF, Method: info.Method, Locale: locale, Path: r.URL.Path}, nil
 }
 
 // Require builds a Ctx and enforces that the caller is fully logged in

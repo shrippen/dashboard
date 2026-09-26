@@ -145,7 +145,11 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 }
 .app-links a:hover { color: var(--fg0); }
 .app-links a[aria-current="page"], .app-links a.cur { color: var(--warn-text); }
-.nav-count { font-size: .62rem; letter-spacing: 0; padding: 0 .35rem; background: var(--blue); color: var(--bg-void); font-weight: 500; }
+/* The current page is underlined; a menu shows it on its summary too. */
+.app-links a[aria-current="page"], .app-links a.cur, .menu:has(a[aria-current="page"]) > summary { box-shadow: inset 0 -2px 0 currentColor; }
+.menu:has(a[aria-current="page"]) > summary { color: var(--warn-text); }
+.menu-list a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .3em; color: var(--fg0); }
+.nav-count { display: inline-block; font-size: .62rem; letter-spacing: 0; padding: 0 .35rem; background: var(--blue); color: var(--bg-void); font-weight: 500; }
 .nav-count[data-level="20"] { background: var(--yellow); }
 .nav-count[data-level="30"] { background: var(--red); }
 .app-side { margin-left: auto; display: flex; align-items: center; gap: 1.2rem; }

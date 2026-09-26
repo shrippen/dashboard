@@ -37,6 +37,7 @@ func mustParse() *template.Template {
 		"ago":       func(any) string { return "" },
 		"clockDate": func(string) string { return "" },
 		"tt":        func(string, map[string]any) string { return "" },
+		"here":      func(string) bool { return false },
 		"fragment":  func(*tileBody) (template.HTML, error) { return "", nil },
 
 		// barPct/tier are locale-independent (plain numbers/CSS keywords),
@@ -165,6 +166,8 @@ func (d Deps) Page(w http.ResponseWriter, ctx Ctx, name string, status int, valu
 		"pct":       func(v float64) string { return i18n.Num(v*pctScale, locale, 0) + " %" },
 		"ago":       func(v any) string { return i18n.Ago(asTimePtr(v), locale) },
 		"clockDate": func(tz string) string { return clockDate(tz, locale) },
+		// here tells whether the page lies at or below path (menu underline).
+		"here": func(path string) bool { return underPath(ctx.Path, path) },
 		// tt translates with typed params ({"$money": 12.5} -> "12,50 €").
 		"tt": func(key string, params map[string]any) string {
 			return i18n.T(key, locale, i18n.Typed(params, locale))
@@ -257,6 +260,12 @@ func firstOr[T any](vals []T, def T) T {
 		return vals[0]
 	}
 	return def
+}
+
+// underPath reports whether cur is path or a page below it
+// (/connections/new belongs to /connections, /connectionsx does not).
+func underPath(cur, path string) bool {
+	return cur == path || strings.HasPrefix(cur, path+"/")
 }
 
 // asTimePtr turns a slot's OkAt (a zero time.Time when unset) into the

@@ -66,9 +66,9 @@
   {{if .Who}}
     <nav class="app-links" aria-label="{{t "nav.main"}}">
       {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.CurBoard}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
-      <a href="/hints">{{t "nav.hints"}}{{if .HintOpen}}<span class="nav-count" data-level="{{.HintLevel}}">{{.HintOpen}}</span>{{end}}</a>
-      <a href="/billing">{{t "nav.billing"}}</a>
-      <a href="/timeline">{{t "nav.timeline"}}</a>
+      <a href="/hints"{{if here "/hints"}} aria-current="page"{{end}}>{{t "nav.hints"}}{{if .HintOpen}}<span class="nav-count" data-level="{{.HintLevel}}">{{.HintOpen}}</span>{{end}}</a>
+      <a href="/billing"{{if here "/billing"}} aria-current="page"{{end}}>{{t "nav.billing"}}</a>
+      <a href="/timeline"{{if here "/timeline"}} aria-current="page"{{end}}>{{t "nav.timeline"}}</a>
     </nav>
     <div class="app-side">
       <button type="button" class="nav-search" data-open="palette" aria-keyshortcuts="Control+K">{{t "palette.open"}} <kbd>Ctrl K</kbd></button>
@@ -76,28 +76,28 @@
         <summary>{{t "nav.setup"}}</summary>
         <div class="menu-list">
           <a href="/boards/new">+ {{t "board.new"}}</a>
-          <a href="/widgets">{{t "nav.library"}}</a>
-          <a href="/connections">{{t "nav.connections"}}</a>
-          <a href="/spaces/settings">{{t "nav.space_settings"}}</a>
-          <a href="/teams">{{t "nav.teams"}}</a>
-          <a href="/themes">{{t "nav.themes"}}</a>
-          <a href="/import">{{t "nav.import"}}</a>
+          <a href="/widgets"{{if here "/widgets"}} aria-current="page"{{end}}>{{t "nav.library"}}</a>
+          <a href="/connections"{{if here "/connections"}} aria-current="page"{{end}}>{{t "nav.connections"}}</a>
+          <a href="/spaces/settings"{{if here "/spaces/settings"}} aria-current="page"{{end}}>{{t "nav.space_settings"}}</a>
+          <a href="/teams"{{if here "/teams"}} aria-current="page"{{end}}>{{t "nav.teams"}}</a>
+          <a href="/themes"{{if here "/themes"}} aria-current="page"{{end}}>{{t "nav.themes"}}</a>
+          <a href="/import"{{if here "/import"}} aria-current="page"{{end}}>{{t "nav.import"}}</a>
           {{if .Who.IsAdmin}}
           <hr>
-          <a href="/admin/users">{{t "nav.admin_users"}}</a>
-          <a href="/admin/settings">{{t "nav.admin_settings"}}</a>
-          <a href="/admin/audit">{{t "nav.audit"}}</a>
+          <a href="/admin/users"{{if here "/admin/users"}} aria-current="page"{{end}}>{{t "nav.admin_users"}}</a>
+          <a href="/admin/settings"{{if here "/admin/settings"}} aria-current="page"{{end}}>{{t "nav.admin_settings"}}</a>
+          <a href="/admin/audit"{{if here "/admin/audit"}} aria-current="page"{{end}}>{{t "nav.audit"}}</a>
           {{end}}
         </div>
       </details>
       <details class="menu">
         <summary class="name">{{.Who.Name}}{{with .Onboarding}}{{if .Open}}<span class="nav-count" title="{{t "welcome.title"}}">{{.Done}}/{{len .Steps}}</span>{{end}}{{end}}</summary>
         <div class="menu-list">
-          <a href="/welcome">{{t "welcome.title"}}{{with .Onboarding}}{{if .Open}} <span class="nav-count">{{.Done}}/{{len .Steps}}</span>{{end}}{{end}}</a>
-          <a href="/me/profile">{{t "nav.profile"}}</a>
-          <a href="/me/security">{{t "nav.security"}}</a>
-          <a href="/me/credentials">{{t "nav.credentials"}}</a>
-          <a href="/me/notify">{{t "nav.notify"}}</a>
+          <a href="/welcome"{{if here "/welcome"}} aria-current="page"{{end}}>{{t "welcome.title"}}{{with .Onboarding}}{{if .Open}} <span class="nav-count">{{.Done}}/{{len .Steps}}</span>{{end}}{{end}}</a>
+          <a href="/me/profile"{{if here "/me/profile"}} aria-current="page"{{end}}>{{t "nav.profile"}}</a>
+          <a href="/me/security"{{if here "/me/security"}} aria-current="page"{{end}}>{{t "nav.security"}}</a>
+          <a href="/me/credentials"{{if here "/me/credentials"}} aria-current="page"{{end}}>{{t "nav.credentials"}}</a>
+          <a href="/me/notify"{{if here "/me/notify"}} aria-current="page"{{end}}>{{t "nav.notify"}}</a>
           <hr>
           <form method="post" action="/me/locale">
             <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
