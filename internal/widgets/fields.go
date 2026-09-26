@@ -28,6 +28,7 @@ const (
 	InputLinks   Input = "links"   // one "title | url | icon" per line
 	InputHeaders Input = "headers" // one "Name: value" per line
 	InputSecret  Input = "secret"  // write-only: stored encrypted, never shown
+	InputPlace   Input = "place"   // search by name; stores place, lat and lon
 )
 
 const (
@@ -73,8 +74,8 @@ var fieldsByType = map[string][]Field{
 	},
 	"rss":     {{Key: "url", Input: InputText, Required: true}, {Key: "limit", Input: InputNumber, Default: 8}, {Key: "summary", Input: InputCheck}},
 	"clock":   {{Key: "timezones", Input: InputList, Default: []any{defaultTimezone}}, {Key: "seconds", Input: InputCheck}, {Key: "date", Input: InputCheck, Default: true}},
-	"weather": {{Key: "label", Input: InputText}, {Key: "lat", Input: InputNumber, Required: true}, {Key: "lon", Input: InputNumber, Required: true}},
-	"greeting": {{Key: "label", Input: InputText}, {Key: "lat", Input: InputNumber}, {Key: "lon", Input: InputNumber},
+	"weather": {{Key: "label", Input: InputText}, {Key: placeKey, Input: InputPlace, Required: true}},
+	"greeting": {{Key: "label", Input: InputText}, {Key: placeKey, Input: InputPlace},
 		{Key: "timezone", Input: InputText, Default: defaultTimezone}, {Key: "since_hour", Input: InputNumber, Default: greetingSinceHour}},
 	"iframe":        {{Key: "url", Input: InputText, Required: true}, {Key: "height", Input: InputNumber, Default: 320}},
 	"note":          {{Key: "text", Input: InputArea}},
@@ -171,11 +172,20 @@ func FieldsOf(key string) []Field {
 // FormValue is one field with its current value, ready for a form.
 type FormValue struct {
 	Field
-	Name  string // form name, "cfg.url"
-	Label string // catalog suffix of the label, "url" or "info"
-	Text  string // value as text
-	On    bool   // checkbox state
+	Name     string // form name, "cfg.url"
+	Label    string // catalog suffix of the label, "url" or "info"
+	Text     string // value as text
+	On       bool   // checkbox state
+	Lat, Lon string // place: its coordinates
 }
+
+// A place field stores the picked name and its coordinates side by side,
+// e.g. place: "Weimar, Thüringen, Deutschland", lat: 50.98, lon: 11.33.
+const (
+	placeKey = "place"
+	latKey   = "lat"
+	lonKey   = "lon"
+)
 
 func lookup(config map[string]any, dotted string) (any, bool) {
 	parts := strings.Split(dotted, ".")
@@ -237,7 +247,11 @@ func FormValues(key string, config map[string]any) []FormValue {
 		case InputSecret:
 			text = ""
 		}
-		out = append(out, FormValue{Field: f, Name: FormPrefix + f.Key, Label: label, Text: text, On: on})
+		value := FormValue{Field: f, Name: FormPrefix + f.Key, Label: label, Text: text, On: on}
+		if f.Input == InputPlace {
+			value.Lat, value.Lon = textOf(config[latKey]), textOf(config[lonKey])
+		}
+		out = append(out, value)
 	}
 	return out
 }
@@ -297,6 +311,12 @@ func ParseForm(key string, get func(name string) string) map[string]any {
 			set(config, f.Key, parseLinks(raw))
 		case InputSecret:
 			set(config, f.Key, raw)
+		case InputPlace:
+			lat, errLat := strconv.ParseFloat(strings.TrimSpace(get(FormPrefix+latKey)), 64)
+			lon, errLon := strconv.ParseFloat(strings.TrimSpace(get(FormPrefix+lonKey)), 64)
+			if errLat == nil && errLon == nil {
+				config[placeKey], config[latKey], config[lonKey] = raw, lat, lon
+			}
 		case InputHeaders:
 			if raw == secretClear {
 				set(config, f.Key, raw)

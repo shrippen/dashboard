@@ -11,6 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.notify"}}</h1>
+    {{template "intro" dict "Page" "notify" "Chapter" "notify" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
 
     <div class="card">

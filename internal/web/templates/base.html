@@ -24,6 +24,33 @@
 <script src="{{asset "code-editor.js"}}" defer></script>
 {{end}}
 
+{{/* "What is this?" box on a main page until closed (routes_welcome.go);
+     dict Page, Chapter (welcome page anchor), O (.Onboarding), CSRFField, CSRF. */}}
+{{define "intro"}}{{if .O}}{{if not (index .O.Seen .Page)}}
+<aside class="intro" aria-label="{{t "intro.title"}}">
+  <div><b>{{t "intro.title"}}</b> {{t (print "intro." .Page)}} <a href="/welcome#c-{{.Chapter}}">{{t "intro.more"}}</a></div>
+  <form method="post" action="/welcome/intro/{{.Page}}" hx-post="/welcome/intro/{{.Page}}" hx-target="closest .intro" hx-swap="outerHTML">
+    <input type="hidden" name="{{.CSRFField}}" value="{{.CSRF}}">
+    <button type="submit" class="ghost" aria-label="{{t "intro.close"}}" title="{{t "intro.close"}}">×</button>
+  </form>
+</aside>
+{{end}}{{end}}{{end}}
+
+{{/* Place search: typing lists places (/places), a pick fills the hidden
+     name and coordinates (andon.js setupPlacePick). Shared by connection
+     and tile forms; dict ID, Place, Lat, Lon, PlaceName, LatName, LonName. */}}
+{{define "place_pick"}}
+<div class="place-pick">
+  <input id="{{.ID}}" name="place_q" type="search" autocomplete="off" placeholder="{{t "conn.place_search"}}" value="{{.Place}}"
+         hx-get="/places" hx-trigger="input changed delay:300ms" hx-target="next .place-results" hx-params="place_q">
+  <div class="place-results"></div>
+  <input type="hidden" name="{{.PlaceName}}" value="{{.Place}}" data-place-field="place">
+  <input type="hidden" name="{{.LatName}}" value="{{.Lat}}" data-place-field="lat">
+  <input type="hidden" name="{{.LonName}}" value="{{.Lon}}" data-place-field="lon">
+  <p class="small muted" data-place-coords>{{if .Lat}}{{.Lat}}, {{.Lon}}{{end}}</p>
+</div>
+{{end}}
+
 {{/* Brand mark (docs/icon.svg), the andon paper lantern: frame and lattice
      follow --accent, the lit panel --yellow, so it reads in dark and light
      themes. */}}
@@ -64,8 +91,9 @@
         </div>
       </details>
       <details class="menu">
-        <summary class="name">{{.Who.Name}}</summary>
+        <summary class="name">{{.Who.Name}}{{with .Onboarding}}{{if .Open}}<span class="nav-count" title="{{t "welcome.title"}}">{{.Done}}/{{len .Steps}}</span>{{end}}{{end}}</summary>
         <div class="menu-list">
+          <a href="/welcome">{{t "welcome.title"}}{{with .Onboarding}}{{if .Open}} <span class="nav-count">{{.Done}}/{{len .Steps}}</span>{{end}}{{end}}</a>
           <a href="/me/profile">{{t "nav.profile"}}</a>
           <a href="/me/security">{{t "nav.security"}}</a>
           <a href="/me/credentials">{{t "nav.credentials"}}</a>

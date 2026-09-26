@@ -68,3 +68,22 @@ func TestLinksAndHeadersForm(t *testing.T) {
 		t.Fatalf("headers: %#v", h)
 	}
 }
+
+// TestPlaceField: weather asks for a place; the pick stores its name and
+// coordinates as numbers, and the form shows both again.
+func TestPlaceField(t *testing.T) {
+	form := map[string]string{"cfg.place": "Weimar, Thüringen, Deutschland", "cfg.lat": "50.9803", "cfg.lon": "11.32903"}
+	config := ParseForm("weather", func(name string) string { return form[name] })
+	if config["place"] != "Weimar, Thüringen, Deutschland" || config["lat"] != 50.9803 || config["lon"] != 11.32903 {
+		t.Fatalf("config: %v", config)
+	}
+	for _, v := range FormValues("weather", config) {
+		if v.Input == InputPlace {
+			if v.Text != "Weimar, Thüringen, Deutschland" || v.Lat != "50.9803" || v.Lon != "11.32903" {
+				t.Fatalf("form value: %+v", v)
+			}
+			return
+		}
+	}
+	t.Fatal("weather has no place field")
+}

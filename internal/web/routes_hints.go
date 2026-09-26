@@ -14,6 +14,7 @@ import (
 	"andon/internal/services/assist"
 	"andon/internal/services/hints"
 	historysvc "andon/internal/services/history"
+	"andon/internal/services/onboarding"
 )
 
 // RegisterHintRoutes wires the hints overview page, snooze/ack/reopen
@@ -53,6 +54,7 @@ func (d Deps) handleHintsPage(w http.ResponseWriter, r *http.Request) {
 		d.handleAuthError(w, r, err)
 		return
 	}
+	_ = onboarding.Visit(d.DB, ctx.Who, "hints") // a checklist step: seen the hints once
 	found, err := hints.Active(d.DB, ctx.Who, enums.SeverityInfo, nil, 0)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

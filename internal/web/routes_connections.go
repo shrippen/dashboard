@@ -15,6 +15,7 @@ import (
 	"andon/internal/services/connect"
 	"andon/internal/services/connections"
 	"andon/internal/services/hooks"
+	"andon/internal/services/places"
 	"andon/internal/services/porting"
 	"andon/internal/widgets"
 )
@@ -29,6 +30,7 @@ func (d Deps) RegisterConnectionRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /connections/{id}/delete", d.handleConnectionDelete)
 	mux.HandleFunc("POST /connections/{id}/test", d.handleConnectionTest)
 	mux.HandleFunc("POST /connections/{id}/check", d.handleConnectionCheck)
+	mux.HandleFunc("GET /places", d.handlePlaces)
 	mux.HandleFunc("POST /connections/{id}/hygiene", d.handleConnectionHygiene)
 	mux.HandleFunc("POST /connections/{id}/connect", d.handleConnectStart)
 	mux.HandleFunc("POST /connections/{id}/oauth-client", d.handleOAuthClient)
@@ -345,4 +347,21 @@ func (d Deps) handleConnectionCheck(w http.ResponseWriter, r *http.Request) {
 		result = connections.TestResult{Message: errKey(err)}
 	}
 	_ = d.Page(w, ctx, "conn_check", http.StatusOK, map[string]any{"Result": result, "Name": name})
+}
+
+// handlePlaces answers the place search of a setup form with matching
+// places to pick from.
+func (d Deps) handlePlaces(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	query := r.URL.Query().Get("place_q")
+	found, err := places.Search(r.Context(), query, ctx.Locale)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	_ = d.Page(w, ctx, "place_results", http.StatusOK, map[string]any{"Places": found, "Query": query})
 }

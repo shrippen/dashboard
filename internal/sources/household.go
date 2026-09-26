@@ -105,6 +105,10 @@ func (SpeedtestData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return data, nil
 	}
 
+	if asStr(sctx.Options["kind"]) == speedMySpeed {
+		return mySpeed(ctx, sctx, data)
+	}
+
 	// v1 API with token; the old open endpoint reports Mbit/s directly.
 	api := services.BearerApi(sctx.URL, sctx.Secret, sctx.TLS())
 	if sctx.Secret != "" {
@@ -123,6 +127,76 @@ func (SpeedtestData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	}
 	r := asMap(asMap(body)["data"])
 	data.Down, data.Up, data.Ping, data.At = asFloat(r["download"]), asFloat(r["upload"]), asFloat(r["ping"]), parseTime(r["created_at"])
+	return data, nil
+}
+
+// ── MySpeed ──
+//
+// MySpeed (github.com/gnmyt/MySpeed) keeps its tests in /api/speedtests,
+// newest first, Mbit/s and ms; its expected speeds are config values.
+
+const (
+	speedMySpeed = "myspeed"
+	// mySpeedRecent is how many tests are read to find a successful one.
+	mySpeedRecent = "5"
+)
+
+// mySpeedTimes are the layouts MySpeed stores "created" in (per database).
+var mySpeedTimes = []string{time.RFC3339, "2006-01-02 15:04:05.000 -07:00", "2006-01-02 15:04:05"}
+
+// mySpeedHeaders send the password like MySpeed's own UI: URL-encoded in
+// x-password, and plain in password where it is Latin-1.
+func mySpeedHeaders(password string) map[string]string {
+	headers := map[string]string{"Accept": "application/json"}
+	if password == "" {
+		return headers
+	}
+	headers["x-password"] = url.QueryEscape(password)
+	latin1 := true
+	for _, r := range password {
+		latin1 = latin1 && r <= 0xFF
+	}
+	if latin1 {
+		headers["password"] = password
+	}
+	return headers
+}
+
+func mySpeed(ctx context.Context, sctx Ctx, data *SpeedtestDataset) (any, error) {
+	opts := httpclient.Options{Headers: mySpeedHeaders(sctx.Secret), SkipVerify: !sctx.VerifyTLS}
+	opts.Params = url.Values{"limit": {mySpeedRecent}}
+	body, _, err := httpclient.GetJSON(ctx, joinPath(sctx.URL, "api/speedtests"), opts)
+	if err != nil {
+		return nil, newSourceError("%v", err)
+	}
+	for _, raw := range asList(body) {
+		r := asMap(raw)
+		if asStr(r["error"]) != "" {
+			continue // failed run: keep looking for the last real measurement
+		}
+		data.Down, data.Up, data.Ping = asFloat(r["download"]), asFloat(r["upload"]), asFloat(r["ping"])
+		for _, layout := range mySpeedTimes {
+			if at, err := time.Parse(layout, asStr(r["created"])); err == nil {
+				data.At = at.UTC()
+				break
+			}
+		}
+		break
+	}
+
+	// Expected speeds: the options win, else MySpeed's own settings.
+	if data.ExpectDown == 0 || data.ExpectUp == 0 {
+		opts.Params = nil
+		if config, _, err := httpclient.GetJSON(ctx, joinPath(sctx.URL, "api/config"), opts); err == nil {
+			c := asMap(config)
+			if data.ExpectDown == 0 {
+				data.ExpectDown = asFloat(c["download"])
+			}
+			if data.ExpectUp == 0 {
+				data.ExpectUp = asFloat(c["upload"])
+			}
+		}
+	}
 	return data, nil
 }
 

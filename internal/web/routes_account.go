@@ -31,7 +31,7 @@ func (d Deps) loginAfter(w http.ResponseWriter, r *http.Request, email, password
 		return
 	}
 	d.setSession(w, result.Token)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, startPath, http.StatusSeeOther)
 }
 
 func (d Deps) handleInviteForm(w http.ResponseWriter, r *http.Request) {

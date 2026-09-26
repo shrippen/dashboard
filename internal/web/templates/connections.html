@@ -11,6 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.connections"}}</h1>
+    {{template "intro" dict "Page" "connections" "Chapter" "connections" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p><a class="link-btn" href="/connections/new">+ {{t "action.create"}}</a></p>
     <div class="table-wrap"><table class="table">
       <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th>{{t "conn.health"}}</th><th>{{t "conn.token_age"}}</th><th></th></tr>
@@ -57,17 +58,20 @@
       </p>
     {{end}}
 
+    {{if not .IsNew}}{{template "service_about" .Conn.Service}}{{end}}
     <form method="post" action="{{if .IsNew}}/connections{{else}}/connections/{{.Conn.ID}}/edit{{end}}">
       <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
 
       {{if .IsNew}}
         <p><b>{{t (print "service." .Service)}}</b> · <a href="/connections/new">{{t "conn.other_service"}}</a></p>
+        {{template "service_about" .Service}}
         <p class="small muted">{{t (print "conn.options_hint_" .Service)}}</p>
         <input type="hidden" name="service" value="{{.Service}}">
         <label for="space_id">{{t "field.space"}}</label>
         <select id="space_id" name="space_id" required>
           {{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
         </select>
+        <p class="small muted">{{t "conn.space_hint"}}</p>
       {{end}}
 
       {{$shape := ""}}{{if .IsNew}}{{$shape = credShape .Service}}{{else}}{{$shape = credShape .Conn.Service}}{{end}}
@@ -79,8 +83,17 @@
 
       {{$opts := dict}}{{if .Conn}}{{$opts = .Conn.Options}}{{end}}
       {{range setupFields (or .Service .Conn.Service)}}
+        {{if eq .Kind "place"}}
+        <label for="place_q">{{t .Label}}</label>
+        {{template "place_pick" dict "ID" "place_q" "Place" (optText $opts "place") "Lat" (optText $opts "lat") "Lon" (optText $opts "lon") "PlaceName" "opt_place" "LatName" "opt_lat" "LonName" "opt_lon"}}
+        {{else if eq .Kind "select"}}
+        <label for="opt_{{.Key}}">{{t .Label}}</label>
+        {{$v := optText $opts .Key}}
+        <select id="opt_{{.Key}}" name="opt_{{.Key}}">{{range .Choices}}<option value="{{.}}"{{if eq . $v}} selected{{end}}>{{t (print "conn.choice_" .)}}</option>{{end}}</select>
+        {{else}}
         <label for="opt_{{.Key}}">{{t .Label}}</label>
         <input id="opt_{{.Key}}" name="opt_{{.Key}}" value="{{with index $opts .Key}}{{.}}{{end}}" required>
+        {{end}}
       {{end}}
 
       {{if eq $shape "none"}}
@@ -114,7 +127,7 @@
         <label for="secret_b">{{t "conn.cred_secret"}}</label>
         <input id="secret_b" name="secret_b" type="password" autocomplete="off" placeholder="{{$keep}}">
       {{else}}
-        <label for="secret">{{if eq $shape "ical"}}{{t "conn.ical_private"}}{{else if eq $shape "password"}}{{t "field.password"}}{{else}}{{t "field.token"}}{{end}}</label>
+        <label for="secret">{{if eq $shape "ical"}}{{t "conn.ical_private"}}{{else if eq $shape "password"}}{{t "field.password"}}{{else}}{{t (secretLabel (or .Service .Conn.Service))}}{{end}}</label>
         <input id="secret" name="secret" type="password" autocomplete="off" placeholder="{{$keep}}">
       {{end}}
       <p class="small muted">{{t "conn.token_hint"}}</p>
@@ -325,3 +338,9 @@
 
 {{/* Result of a connection test run from the overview. */}}
 {{define "conn_check"}}<div class="toast-msg" data-state="{{if .Result.Ok}}ok{{else}}error{{end}}"><b>{{.Name}}</b> {{if .Result.Ok}}✓ OK{{with .Result.Version}} ({{.}}){{end}}{{else}}✗ {{t .Result.Message}}{{end}}</div>{{end}}
+
+{{/* What the service is, and where the project lives. */}}
+{{define "service_about"}}<p class="service-about">{{t (print "conn.what_" .)}}{{with projectURL .}} <a href="{{.}}" target="_blank" rel="noopener">{{t "conn.project_site"}} ↗</a>{{end}}{{range alsoLinks .}} · <a href="{{.URL}}" target="_blank" rel="noopener">{{.Name}} ↗</a>{{end}}</p>{{end}}
+
+{{/* Places matching the search, see /places. */}}
+{{define "place_results"}}{{range .Places}}<button type="button" class="place-hit" data-place="{{.Label}}" data-lat="{{.Lat}}" data-lon="{{.Lon}}">{{.Label}}</button>{{else}}{{if .Query}}<p class="small muted">{{t "conn.place_none"}}</p>{{end}}{{end}}{{end}}

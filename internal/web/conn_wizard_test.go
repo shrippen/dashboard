@@ -98,6 +98,9 @@ func TestNoTokenFieldWithoutAuth(t *testing.T) {
 		}
 	}
 	kimai := string(mustGet(t, srv, client, "/connections/new?service=kimai"))
+	if !strings.Contains(kimai, "Wem die Verbindung gehört") {
+		t.Fatalf("space choice is not explained:\n%s", kimai)
+	}
 	// New connections start with personal credentials.
 	if !regexp.MustCompile(`<option value="personal"\s+selected>`).MatchString(kimai) {
 		t.Fatalf("personal is not the default:\n%s", kimai)
@@ -131,5 +134,76 @@ func TestPangolinOrgField(t *testing.T) {
 	edit := string(mustGet(t, srv, client, resp.Header.Get("Location")))
 	if !strings.Contains(edit, `name="opt_org" value="home"`) {
 		t.Fatalf("organisation not stored:\n%s", edit)
+	}
+}
+
+// TestSetupScreensDescribeService: every setup screen says what the
+// service is, and hosted projects link their website.
+func TestSetupScreensDescribeService(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	pick := string(mustGet(t, srv, client, "/connections/new"))
+	for _, m := range regexp.MustCompile(`href="/connections/new\?service=([a-z]+)"`).FindAllStringSubmatch(pick, -1) {
+		form := string(mustGet(t, srv, client, "/connections/new?service="+m[1]))
+		if strings.Contains(form, "conn.what_") {
+			t.Errorf("%s: no description", m[1])
+		}
+	}
+	kimai := string(mustGet(t, srv, client, "/connections/new?service=kimai"))
+	if !strings.Contains(kimai, `href="https://www.kimai.org"`) {
+		t.Fatalf("kimai lacks its project link:\n%s", kimai)
+	}
+}
+
+// TestDWDPlaceSearch: the DWD setup form offers a place search whose pick
+// fills hidden coordinates, stored as numbers.
+func TestDWDPlaceSearch(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	form := string(mustGet(t, srv, client, "/connections/new?service=dwd"))
+	for _, want := range []string{`hx-get="/places"`, `name="opt_lat"`, `name="opt_lon"`, `name="opt_place"`} {
+		if !strings.Contains(form, want) {
+			t.Fatalf("dwd form lacks %s:\n%s", want, form)
+		}
+	}
+	space := regexp.MustCompile(`<option value="(\d+)">`).FindStringSubmatch(form)[1]
+	noFollow := *client
+	noFollow.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	resp := postForm(t, &noFollow, srv.URL+"/connections", url.Values{"csrf": {csrfToken(t, srv, client)}, "space_id": {space},
+		"service": {"dwd"}, "name": {"Wetter"}, "url": {"https://api.brightsky.dev"}, "tls": {"verify"},
+		"opt_place": {"Weimar, Thüringen, Deutschland"}, "opt_lat": {"50.9803"}, "opt_lon": {"11.32903"}})
+	edit := string(mustGet(t, srv, client, resp.Header.Get("Location")))
+	if !strings.Contains(edit, "lat: 50.9803") || !strings.Contains(edit, `value="Weimar, Thüringen, Deutschland"`) {
+		t.Fatalf("place not stored as numbers:\n%s", edit)
+	}
+}
+
+// TestPlaceSearchReused: the tile editor for weather and the Tibber setup
+// form search places like the DWD form.
+func TestPlaceSearchReused(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	for _, path := range []string{"/widgets/new?type=weather", "/connections/new?service=tibber"} {
+		if page := string(mustGet(t, srv, client, path)); !strings.Contains(page, `hx-get="/places"`) {
+			t.Errorf("%s has no place search", path)
+		}
+	}
+}
+
+// TestSpeedtestKind: the speedtest setup form asks which tool measures.
+func TestSpeedtestKind(t *testing.T) {
+	srv, client, code := newTestServer(t)
+	setupAdmin(t, srv, client, code)
+	login(t, srv, client)
+
+	form := string(mustGet(t, srv, client, "/connections/new?service=speedtest"))
+	if !strings.Contains(form, `<select id="opt_kind" name="opt_kind"`) || !strings.Contains(form, `value="myspeed"`) {
+		t.Fatalf("no choice between Speedtest Tracker and MySpeed:\n%s", form)
 	}
 }

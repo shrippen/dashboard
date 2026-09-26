@@ -102,7 +102,7 @@ func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login/totp", http.StatusSeeOther)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, startPath, http.StatusSeeOther)
 }
 
 func (d Deps) handleTOTPForm(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +133,7 @@ func (d Deps) handleTOTPSubmit(w http.ResponseWriter, r *http.Request) {
 			map[string]any{"Token": cookie.Value, "Error": "Code ungültig."})
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, startPath, http.StatusSeeOther)
 }
 
 func (d Deps) handleLogout(w http.ResponseWriter, r *http.Request) {

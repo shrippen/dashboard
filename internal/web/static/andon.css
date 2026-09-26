@@ -125,7 +125,7 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
   text-decoration: none;
 }
 .app-brand .mark {
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   flex: 0 0 auto;
 }
 .mark { color: var(--accent); fill: currentColor; }
@@ -917,3 +917,32 @@ button.kl-ib { margin: 0; padding: 0; background: none; cursor: pointer; }
 @keyframes toast-life { 0% { opacity: 0; transform: translateY(.5rem); } 6%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .toast-msg { animation: toast-fade 8s steps(1, end) forwards; } }
 @keyframes toast-fade { to { visibility: hidden; } }
+.service-about { color: var(--fg2); max-width: 60rem; }
+
+/* Place search: hits listed under the field, one click picks. */
+.place-results { display: flex; flex-direction: column; gap: 0; }
+.place-hit { text-align: left; text-transform: none; letter-spacing: normal; margin: 0; width: 100%; background: var(--bg-panel); color: var(--fg1); border: 1px solid var(--bg2); border-top: 0; padding: .45rem .7rem; font: inherit; cursor: pointer; }
+.place-hit:hover, .place-hit:focus-visible { background: var(--bg1); }
+
+/* Onboarding: page intros and the welcome page. */
+.intro { display: flex; gap: .8rem; align-items: flex-start; justify-content: space-between; background: var(--bg-panel);
+  border: 1px solid var(--bg2); border-left: 4px solid var(--yellow); padding: .7rem .9rem; margin: .4rem 0 1.2rem; max-width: 60rem; }
+.intro form { margin: 0; }
+.intro button { padding: 0 .5rem; font-size: 1.2rem; line-height: 1; }
+.welcome .lead { color: var(--fg2); max-width: 60rem; }
+.flow-map { display: flex; flex-direction: column; gap: .6rem; margin: .6rem 0 1.4rem; }
+.flow-row { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.flow-node { border: 1px solid var(--bg2); background: var(--bg-panel); color: var(--fg1); padding: .45rem .8rem; text-decoration: none; }
+a.flow-node:hover { border-color: var(--accent); }
+.flow-node.hl { border-color: var(--yellow); }
+.flow-arrow { color: var(--warn-text); }
+.checklist { list-style: none; padding: 0; margin: .4rem 0 1rem; display: flex; flex-direction: column; gap: .5rem; max-width: 60rem; }
+.checklist li { display: grid; grid-template-columns: 1.6rem 1fr auto; gap: .6rem; align-items: start; background: var(--bg-panel); border: 1px solid var(--bg2); padding: .6rem .8rem; }
+.checklist li[data-done="true"] { opacity: .7; }
+.checklist p { margin: .15rem 0 0; }
+.check-mark { font-size: 1.1rem; color: var(--ok-text); }
+.chapters { display: flex; flex-direction: column; gap: .4rem; max-width: 60rem; margin-bottom: 1.2rem; }
+.chapters details { background: var(--bg-panel); border: 1px solid var(--bg2); padding: .5rem .8rem; }
+.chapters summary { cursor: pointer; font-weight: 600; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.menu summary .nav-count, .menu-list .nav-count { margin-left: .35rem; }

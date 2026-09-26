@@ -594,6 +594,24 @@
     d.addEventListener("htmx:afterSwap", function (e) { retryPending(e.target); });
   }
 
+  // ── Place search in setup forms: a pick fills name and coordinates ──
+  function setupPlacePick() {
+    d.addEventListener("click", function (e) {
+      var hit = e.target.closest && e.target.closest(".place-hit");
+      if (!hit) {
+        return;
+      }
+      var box = hit.closest(".place-pick");
+      var set = function (field, value) { box.querySelector('[data-place-field="' + field + '"]').value = value; };
+      set("place", hit.getAttribute("data-place"));
+      set("lat", hit.getAttribute("data-lat"));
+      set("lon", hit.getAttribute("data-lon"));
+      box.querySelector('input[type="search"]').value = hit.getAttribute("data-place");
+      box.querySelector("[data-place-coords]").textContent = hit.getAttribute("data-lat") + ", " + hit.getAttribute("data-lon");
+      box.querySelector(".place-results").innerHTML = "";
+    });
+  }
+
   // ── Soft page changes: htmx swaps the body (hx-boost), this syncs the rest ──
   //
   //   click ─► GET via htmx ─► beforeSwap: non-HTML (download) or kiosk page
@@ -743,6 +761,7 @@
     setupPalette();
     setupClicks();
     setupConfirm();
+    setupPlacePick();
     setupBoost();
     window.setInterval(tick, CLOCK_TICK_MS);
   });

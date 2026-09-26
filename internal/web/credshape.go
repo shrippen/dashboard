@@ -2,7 +2,9 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"andon/internal/enums"
@@ -97,13 +99,27 @@ func formSecret(r *http.Request, service enums.ServiceType) (string, error) {
 // setupField is a connection option the setup form asks for directly,
 // because the service does not work without it.
 type setupField struct {
-	Key   string // option key, form field "opt_<key>"
-	Label string // catalog key
+	Key     string    // option key, form field "opt_<key>"
+	Label   string    // catalog key
+	Kind    fieldKind // how the form asks for it
+	Choices []string  // fieldSelect: values, labelled "conn.choice_<value>"
 }
+
+// fieldKind is how the setup form asks for an option.
+type fieldKind string
+
+const (
+	fieldText   fieldKind = "text"
+	fieldPlace  fieldKind = "place"  // search by name, stores place, lat and lon
+	fieldSelect fieldKind = "select" // one of Choices, the first is the default
+)
 
 // setupFields are those options per service, e.g. Pangolin's organisation.
 var setupFields = map[enums.ServiceType][]setupField{
-	enums.ServicePangolin: {{Key: "org", Label: "conn.pangolin_org"}},
+	enums.ServicePangolin:  {{Key: "org", Label: "conn.pangolin_org", Kind: fieldText}},
+	enums.ServiceDWD:       {{Key: "place", Label: "conn.place", Kind: fieldPlace}},
+	enums.ServiceTibber:    {{Key: "place", Label: "conn.place", Kind: fieldPlace}},
+	enums.ServiceSpeedtest: {{Key: "kind", Label: "conn.speed_tool", Kind: fieldSelect, Choices: []string{"tracker", "myspeed"}}},
 }
 
 func setupFieldsOf(service enums.ServiceType) []setupField {
@@ -123,6 +139,10 @@ func formOptions(r *http.Request, service enums.ServiceType, options map[string]
 	}
 	changed := false
 	for _, f := range fields {
+		if f.Kind == fieldPlace {
+			changed = formPlace(r, out) || changed
+			continue
+		}
 		if _, sent := r.Form["opt_"+f.Key]; !sent {
 			continue
 		}
@@ -137,4 +157,49 @@ func formOptions(r *http.Request, service enums.ServiceType, options map[string]
 		return nil
 	}
 	return out
+}
+
+// formPlace takes a picked place into options: its name and coordinates as
+// numbers (a text "50,98" would read as 5098). It reports whether the form
+// carried a place at all.
+func formPlace(r *http.Request, options map[string]any) bool {
+	if _, sent := r.Form["opt_lat"]; !sent {
+		return false
+	}
+	lat, errLat := strconv.ParseFloat(strings.TrimSpace(r.FormValue("opt_lat")), 64)
+	lon, errLon := strconv.ParseFloat(strings.TrimSpace(r.FormValue("opt_lon")), 64)
+	if errLat != nil || errLon != nil {
+		delete(options, "lat")
+		delete(options, "lon")
+		delete(options, "place")
+		return true
+	}
+	options["lat"], options["lon"] = lat, lon
+	options["place"] = strings.TrimSpace(r.FormValue("opt_place"))
+	return true
+}
+
+// optText shows an option as form text: "Weimar", 50.9803; "" when unset.
+func optText(options map[string]any, key string) string {
+	switch v := options[key].(type) {
+	case nil:
+		return ""
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	default:
+		return fmt.Sprint(v)
+	}
+}
+
+// secretLabels name the single secret field where "API token" would be
+// wrong, e.g. MySpeed takes a password.
+var secretLabels = map[enums.ServiceType]string{
+	enums.ServiceSpeedtest: "conn.secret_speedtest",
+}
+
+func secretLabel(service enums.ServiceType) string {
+	if key, ok := secretLabels[service]; ok {
+		return key
+	}
+	return "field.token"
 }

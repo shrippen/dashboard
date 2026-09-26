@@ -11,6 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "settings.title"}}</h1>
+    {{template "intro" dict "Page" "spaces" "Chapter" "spaces" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "settings.lead"}}</p>
     {{if .Saved}}<p class="pill" data-state="ok">{{t "saved"}}</p>{{end}}
     <form method="post" action="/spaces/{{.SpaceID}}/settings">

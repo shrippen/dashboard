@@ -17,6 +17,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.themes"}}</h1>
+    {{template "intro" dict "Page" "themes" "Chapter" "themes" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "themes.lead"}}</p>
     {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
     <div class="table-wrap"><table class="table">

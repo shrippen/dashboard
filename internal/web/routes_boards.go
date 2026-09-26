@@ -51,7 +51,11 @@ func (d Deps) handleHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/boards/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+	target := "/boards/" + strconv.FormatInt(id, 10)
+	if r.URL.Query().Has("edit") {
+		target += "?edit" // e.g. the welcome checklist: "put a tile on a board"
+	}
+	http.Redirect(w, r, target, http.StatusSeeOther)
 }
 
 func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {

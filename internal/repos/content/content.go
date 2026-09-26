@@ -1003,3 +1003,16 @@ func inClause(format string, ids []int64) (string, []any) {
 func sprintfIn(format string, placeholders []string) string {
 	return strings.Replace(format, "%s", strings.Join(placeholders, ","), 1)
 }
+
+// PlacedIn counts the tiles placed on boards of the given spaces.
+func PlacedIn(q db.Queryer, spaceIDs []int64) (int, error) {
+	if len(spaceIDs) == 0 {
+		return 0, nil
+	}
+	query, args := inClause(`SELECT COUNT(*) FROM placements p
+		JOIN sections s ON s.id = p.section_id JOIN boards b ON b.id = s.board_id
+		WHERE b.space_id IN (%s)`, spaceIDs)
+	var n int
+	err := q.QueryRow(query, args...).Scan(&n)
+	return n, err
+}

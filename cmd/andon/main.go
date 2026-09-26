@@ -117,6 +117,7 @@ func main() {
 	deps.RegisterPortingRoutes(mux)
 	deps.RegisterSpaceRoutes(mux)
 	deps.RegisterMoreRoutes(mux)
+	deps.RegisterWelcomeRoutes(mux)
 	deps.RegisterPasskeyRoutes(mux)
 	deps.RegisterHookRoutes(mux)
 	deps.RegisterBillingRoutes(mux)

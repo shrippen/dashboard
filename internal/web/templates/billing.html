@@ -11,6 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.billing"}}</h1>
+    {{template "intro" dict "Page" "billing" "Chapter" "freelance" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "billing.lead"}}</p>
     {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
     {{with .Created}}<p class="pill" data-state="ok">{{t "billing.created" "number" .}}</p>{{end}}

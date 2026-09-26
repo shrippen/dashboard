@@ -11,6 +11,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.teams"}}</h1>
+    {{template "intro" dict "Page" "teams" "Chapter" "spaces" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "teams.lead"}}</p>
     {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
 

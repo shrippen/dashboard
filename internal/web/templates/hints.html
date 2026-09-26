@@ -12,6 +12,7 @@
   <main>
     {{if not .Embed}}
     <h1>{{t "hints.title"}}</h1>
+    {{template "intro" dict "Page" "hints" "Chapter" "hints" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "hints.lead"}}</p>
     <p class="small">{{if .ByValue}}<a href="/hints">{{t "hints.sort_level"}}</a>{{else}}<a href="/hints?sort=value">{{t "hints.sort_value"}}</a>{{end}}</p>
     {{with .Noisy}}<details class="card"><summary>{{t "hints.noisy" "count" (len .)}}</summary>

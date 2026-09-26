@@ -13,6 +13,7 @@ import (
 	"andon/internal/enums"
 	"andon/internal/i18n"
 	"andon/internal/services/access"
+	"andon/internal/services/onboarding"
 	"andon/internal/services/themes"
 )
 
@@ -48,6 +49,7 @@ func mustParse() *template.Template {
 		"clockNow":    func(tz string) string { return clockNow(tz, clockMinutes) },
 		"clockNowSec": func(tz string) string { return clockNow(tz, clockSeconds) },
 		"dict":        dict,
+		"list":        func(items ...string) []string { return items },
 		"monogram":    monogram,
 		"deref":       func(p *enums.TeamRole) enums.TeamRole { return *p },
 		"dataURI":     dataURI,
@@ -57,6 +59,10 @@ func mustParse() *template.Template {
 		"defaultURL":  defaultURL,
 		"canSignIn":   canSignIn,
 		"setupFields": setupFieldsOf,
+		"projectURL":  projectURL,
+		"optText":     optText,
+		"secretLabel": secretLabel,
+		"alsoLinks":   alsoLinksOf,
 	}
 	return template.Must(template.New("root").Funcs(funcs).ParseFS(templateFiles, "templates/*.html"))
 }
@@ -171,6 +177,14 @@ func (d Deps) Page(w http.ResponseWriter, ctx Ctx, name string, status int, valu
 	}
 	if ctx.Who != nil {
 		d.addNav(data, ctx.Who)
+		// Menu progress and page intros (see routes_welcome.go).
+		if _, ok := data["Onboarding"]; !ok {
+			state, err := onboarding.Load(d.DB, ctx.Who)
+			if err != nil {
+				state = onboarding.State{} // templates read it; no intros, no progress
+			}
+			data["Onboarding"] = state
+		}
 	}
 	if _, ok := data["ThemeURL"]; !ok {
 		url, err := d.themeURL(ctx.Who, nil, nil)

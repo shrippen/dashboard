@@ -12,6 +12,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "timeline.title"}}</h1>
+    {{template "intro" dict "Page" "timeline" "Chapter" "freelance" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "timeline.lead" "days" .Days}}</p>
     <ol class="timeline">
       {{range .Entries}}

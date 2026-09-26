@@ -55,6 +55,7 @@
   {{template "header" .}}
   <main>
     <h1>{{t "nav.library"}}</h1>
+    {{template "intro" dict "Page" "library" "Chapter" "tiles" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
     <p class="muted">{{t "library.lead"}}</p>
     <div class="gal-tools">
       <input type="search" id="gal-q" placeholder="{{t "library.search"}}" aria-label="{{t "library.search"}}">
@@ -123,6 +124,7 @@
       <header class="gal-head">
         {{if .Dest.Section}}<span class="label">{{t "gallery.into"}} {{.Dest.Board}} › {{.Dest.Section}}</span>{{end}}
         <h1>{{t "gallery.title"}}</h1>
+    {{template "intro" dict "Page" "gallery" "Chapter" "tiles" "O" .Onboarding "CSRFField" .CSRFField "CSRF" .Ctx.CSRF}}
         <p class="muted">{{if .Reuse}}{{t "gallery.lead_both"}}{{else}}{{t "gallery.lead"}}{{end}}</p>
         <div class="gal-tools">
           <input type="search" id="gal-q" placeholder="{{t "gallery.search"}}" aria-label="{{t "gallery.search"}}">
@@ -260,6 +262,8 @@
             <input id="{{.Name}}" name="{{.Name}}" type="number" step="any" value="{{.Text}}"{{if .Required}} required{{end}}>
           {{else if eq (print .Input) "secret"}}
             <input id="{{.Name}}" name="{{.Name}}" type="password" autocomplete="off" value="">
+          {{else if eq (print .Input) "place"}}
+            {{template "place_pick" dict "ID" .Name "Place" .Text "Lat" .Lat "Lon" .Lon "PlaceName" .Name "LatName" "cfg.lat" "LonName" "cfg.lon"}}
           {{else if eq (print .Input) "connection"}}
             <select id="{{.Name}}" name="{{.Name}}">{{$v := .Text}}<option value="">–</option>{{range $.AllConns}}<option value="{{.Key}}"{{if eq .Key $v}} selected{{end}}>{{.Name}}</option>{{end}}</select>
           {{else}}

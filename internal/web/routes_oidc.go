@@ -47,7 +47,11 @@ func (d Deps) handleOIDCCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	d.setSession(w, token)
-	http.Redirect(w, r, safeNext(result.Next), http.StatusSeeOther)
+	next := result.Next
+	if next == "" {
+		next = startPath
+	}
+	http.Redirect(w, r, safeNext(next), http.StatusSeeOther)
 }
 
 func (d Deps) handleOIDCLink(w http.ResponseWriter, r *http.Request) {

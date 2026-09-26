@@ -1,0 +1,77 @@
+{{/* Onboarding: how Andon fits together, a checklist that ticks itself,
+     and the concepts in short chapters (routes_welcome.go). */}}
+{{define "welcome"}}
+<!doctype html>
+<html lang="{{.Ctx.Locale}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{t "welcome.title"}} · Andon</title>
+  {{template "style" .}}
+</head>
+<body>
+  {{template "header" .}}
+  <main class="welcome">
+    <h1>{{t "welcome.title"}}</h1>
+    <p class="lead">{{t "welcome.lead"}}</p>
+
+    <h2>{{t "welcome.map_title"}}</h2>
+    <div class="flow-map" role="img" aria-label="{{t "welcome.map_alt"}}">
+      <div class="flow-row">
+        <span class="flow-node">{{t "welcome.node_services"}}</span><span class="flow-arrow" aria-hidden="true">→</span>
+        <a class="flow-node" href="#c-connections">{{t "welcome.node_connections"}}</a><span class="flow-arrow" aria-hidden="true">→</span>
+        <a class="flow-node" href="#c-tiles">{{t "welcome.node_tiles"}}</a><span class="flow-arrow" aria-hidden="true">→</span>
+        <a class="flow-node" href="#c-boards">{{t "welcome.node_boards"}}</a>
+      </div>
+      <div class="flow-row">
+        <span class="flow-node">{{t "welcome.node_rules"}}</span><span class="flow-arrow" aria-hidden="true">→</span>
+        <a class="flow-node hl" href="#c-hints">{{t "welcome.node_hints"}}</a><span class="flow-arrow" aria-hidden="true">→</span>
+        <a class="flow-node" href="#c-notify">{{t "welcome.node_notify"}}</a>
+      </div>
+    </div>
+
+    {{with .Onboarding}}
+    {{if .Dismissed}}
+      <form method="post" action="/welcome/resume" class="inline-form">
+        <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+        <button type="submit" class="ghost">{{t "welcome.resume"}}</button>
+      </form>
+    {{else}}
+      <h2>{{t "welcome.steps_title"}} <span class="nav-count">{{.Done}}/{{len .Steps}}</span></h2>
+      <ol class="checklist">
+        {{range .Steps}}
+        <li data-done="{{.Done}}">
+          <span class="check-mark" aria-hidden="true">{{if .Done}}✓{{else}}○{{end}}</span>
+          <div>
+            <b>{{t (print "welcome.step_" .Key)}}</b>{{if .Done}} <span class="sr-only">({{t "welcome.done"}})</span>{{end}}
+            <p class="small muted">{{t (print "welcome.step_" .Key "_why")}}</p>
+          </div>
+          {{if not .Done}}<a class="link-btn" href="{{.Target}}">{{t "welcome.go"}} →</a>{{end}}
+        </li>
+        {{end}}
+      </ol>
+      <form method="post" action="/welcome/dismiss" class="inline-form">
+        <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
+        <button type="submit" class="ghost">{{t "welcome.dismiss"}}</button>
+      </form>
+    {{end}}
+    {{end}}
+
+    <h2>{{t "welcome.concepts_title"}}</h2>
+    <div class="chapters">
+      {{range $c := list "spaces" "connections" "tiles" "boards" "hints" "notify" "freelance" "themes" "security"}}
+      <details id="c-{{$c}}">
+        <summary>{{t (print "welcome.c_" $c)}}</summary>
+        <p>{{t (print "welcome.c_" $c "_text")}}</p>
+      </details>
+      {{end}}
+    </div>
+
+    <form method="post" action="/welcome/intros" class="inline-form">
+      <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+      <button type="submit" class="ghost">{{t "welcome.intros_again"}}</button>
+    </form>
+  </main>
+</body>
+</html>
+{{end}}

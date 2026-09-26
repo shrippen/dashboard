@@ -118,5 +118,5 @@ func (d Deps) handlePasskeyLoginFinish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	d.setSession(w, token)
-	writeRawJSON(w, http.StatusOK, []byte(`{"redirect":"/"}`))
+	writeRawJSON(w, http.StatusOK, []byte(`{"redirect":"`+startPath+`"}`))
 }

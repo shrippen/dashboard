@@ -68,7 +68,7 @@ func TestInviteMailAcceptLogin(t *testing.T) {
 		t.Fatalf("expected invite form for new@x.de:\n%s", body)
 	}
 	resp = postForm(t, guest, srv.URL+path, url.Values{"name": {"Neu"}, "password": {"another-long-password"}, "locale": {"de"}})
-	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "/" {
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "/start" {
 		t.Fatalf("expected login redirect after accept, got %d %s", resp.StatusCode, resp.Header.Get("Location"))
 	}
 
