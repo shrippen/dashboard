@@ -93,8 +93,22 @@ func kimaiTimer(raw any) KimaiTimer {
 	project, activity := asMap(m["project"]), asMap(m["activity"])
 	t := KimaiTimer{ID: asInt64(m["id"]), ProjectID: refID(m["project"]), ActivityID: refID(m["activity"]),
 		Project: asStr(project["name"]), Activity: asStr(activity["name"]), Customer: asStr(asMap(project["customer"])["name"])}
-	t.Begin, _ = time.Parse(time.RFC3339, asStr(m["begin"]))
+	t.Begin = kimaiTime(asStr(m["begin"]))
 	return t
+}
+
+// kimaiTimeLayouts: Kimai writes "2026-09-26T13:04:00+0200" (no colon in
+// the offset), which RFC3339 rejects.
+var kimaiTimeLayouts = []string{"2006-01-02T15:04:05-0700", time.RFC3339}
+
+// kimaiTime parses a Kimai timestamp; zero if it is none.
+func kimaiTime(s string) time.Time {
+	for _, layout := range kimaiTimeLayouts {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t
+		}
+	}
+	return time.Time{}
 }
 
 func init() {

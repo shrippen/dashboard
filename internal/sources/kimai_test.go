@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"dashboard/internal/sources"
 )
@@ -81,5 +82,31 @@ func TestKimaiTestReadsVersion(t *testing.T) {
 	}
 	if m := out.(map[string]any); m["version"] != "2.30.0" {
 		t.Fatalf("expected version 2.30.0, got %+v", m)
+	}
+}
+
+// Kimai writes timestamps with a colon-less offset ("…+0200"); a running
+// timer must still know when it began.
+func TestKimaiLiveParsesKimaiTimestamps(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/timesheets/active", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`[{"id": 7, "begin": "2026-09-26T13:04:00+0200", "project": {"id": 1, "name": "Server"}, "activity": {"id": 2, "name": "Wartung"}}]`))
+	})
+	mux.HandleFunc("/api/timesheets/recent", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
+	mux.HandleFunc("/api/timesheets", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Total-Pages", "1")
+		w.Write([]byte(`[]`))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	out, err := sources.KimaiLiveSource{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "tok", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	live := out.(*sources.KimaiLive)
+	want := time.Date(2026, 9, 26, 11, 4, 0, 0, time.UTC)
+	if len(live.Active) != 1 || !live.Active[0].Begin.Equal(want) {
+		t.Fatalf("active: %+v", live.Active)
 	}
 }
