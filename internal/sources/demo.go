@@ -531,3 +531,12 @@ func DemoKimaiLive(now time.Time) *KimaiLive {
 		},
 		Today: []KimaiSpan{{Begin: at(9, 5), End: at(11, 40)}, {Begin: at(12, 15), End: at(13, 5)}}}
 }
+
+// DemoKimaiCatalog is the demo add-entry choice: two projects, one global
+// and one project activity.
+func DemoKimaiCatalog() *KimaiCatalog {
+	return &KimaiCatalog{
+		Projects:   []KimaiPick{{ID: 3, Name: "Relaunch", Customer: "Acme GmbH"}, {ID: 5, Name: "Wartung", Customer: "Beta AG"}},
+		Activities: []KimaiActivityPick{{ID: 7, Name: "Entwicklung"}, {ID: 2, Name: "Support", ProjectID: 5}},
+	}
+}

@@ -26,6 +26,7 @@ func (d Deps) RegisterBoardRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /widget-fragments/{id}", d.handleWidgetFragment)
 	mux.HandleFunc("POST /widget-fragments/{id}/toggle", d.handleHassToggle)
 	mux.HandleFunc("POST /widget-fragments/{id}/kimai", d.handleKimaiTimer)
+	mux.HandleFunc("GET /widget-fragments/{id}/kimai/new", d.handleKimaiNew)
 	mux.HandleFunc("POST /boards/{id}/arrange", d.handleArrange)
 	mux.HandleFunc("POST /boards/{id}/fold/{sectionID}", d.handleFold)
 	mux.HandleFunc("POST /boards/{id}/show/{placementID}", d.handleShow)

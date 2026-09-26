@@ -772,3 +772,9 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 .kl-pair { display: flex; flex-direction: column; min-width: 0; }
 .kl-pair b { font-weight: 600; font-size: .85rem; color: var(--fg0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kl-pair small { font-size: .74rem; color: var(--fg3); }
+.kl-new label { margin: .3rem 0 .15rem; }
+.kl-new select, .kl-new input { margin: 0; }
+.kl-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.kl-actions { display: flex; gap: .5rem; margin-top: .4rem; }
+.kl-actions button { margin: 0; }
+button.kl-ib { margin: 0; padding: 0; background: none; cursor: pointer; }

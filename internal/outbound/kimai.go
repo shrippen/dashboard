@@ -15,6 +15,18 @@ func KimaiStart(ctx context.Context, baseURL, token string, verifyTLS bool, proj
 	return err
 }
 
+// KimaiCreate books a finished timesheet; begin and end are local times
+// ("2026-09-26T09:05:00"), as Kimai reads them in the user's timezone.
+func KimaiCreate(ctx context.Context, baseURL, token string, verifyTLS bool, projectID, activityID int64, begin, end, description string) error {
+	api := services.KimaiApi{URL: baseURL, Token: token, Verify: verifyTLS}
+	body := map[string]any{"project": projectID, "activity": activityID, "begin": begin, "end": end}
+	if description != "" {
+		body["description"] = description
+	}
+	_, err := api.Send(ctx, http.MethodPost, "timesheets", body)
+	return err
+}
+
 // KimaiDescribe sets a timesheet's description.
 func KimaiDescribe(ctx context.Context, baseURL, token string, verifyTLS bool, timesheetID int64, description string) error {
 	api := services.KimaiApi{URL: baseURL, Token: token, Verify: verifyTLS}

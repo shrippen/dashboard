@@ -2137,13 +2137,18 @@ backup:
   unknown: unbekannt
   none: Keine Backup-Werkzeuge verbunden.
 timer:
+  project: Projekt
+  activity: Tätigkeit
+  begin: Beginn
+  end: Ende
+  bad_range: Das Ende muss nach dem Beginn liegen.
   running: läuft
   idle: nichts läuft
   week: Woche
   since: 'seit {time}'
   note: Beschreibung
   recent: Zuletzt
-  add: Eintrag in Kimai anlegen
+  add: Eintrag hinzufügen
   stats: Auswertung in Kimai
   left: 'noch {time} bis zum Wochenziel'
   over: '{time} über dem Wochenziel'

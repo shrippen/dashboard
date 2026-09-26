@@ -7,8 +7,8 @@
 <div class="kl">
   <div class="kl-head">
     <span class="label">{{if $v.Running}}{{t "timer.running"}}{{else}}{{t "timer.idle"}}{{end}}</span>
-    <a class="kl-ib" href="{{$v.URL}}/{{$lang}}/timesheet/create" target="_blank" rel="noopener noreferrer" aria-label="{{t "timer.add"}}" title="{{t "timer.add"}}">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+    {{if $.Ctx.CSRF}}<button type="button" class="kl-ib" hx-get="/widget-fragments/{{$.PlacementID}}/kimai/new" hx-target="closest .card-body" hx-swap="innerHTML" aria-label="{{t "timer.add"}}" title="{{t "timer.add"}}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>{{end}}
     <a class="kl-ib" href="{{$v.URL}}/{{$lang}}/reporting/" target="_blank" rel="noopener noreferrer" aria-label="{{t "timer.stats"}}" title="{{t "timer.stats"}}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 20v-6M12 20V9M18 20V4"/></svg></a>
   </div>
@@ -52,6 +52,37 @@
   {{end}}
 </div>
 {{end}}{{end}}
+{{end}}
+
+{{/* Kimai Lite's add-entry form; replaces the tile body until saved or
+     cancelled. Activities of other projects are hidden by dashboard.js. */}}
+{{define "kimai_new"}}
+<form class="kl kl-new" hx-post="/widget-fragments/{{.PlacementID}}/kimai" hx-target="closest .card-body" hx-swap="innerHTML">
+  <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
+  <input type="hidden" name="action" value="create">
+  <div class="kl-head"><span class="label">{{t "timer.add"}}</span></div>
+  {{with .Error}}<p class="error">{{t .}}</p>{{end}}
+  <label for="kl-p-{{.PlacementID}}">{{t "timer.project"}}</label>
+  <select id="kl-p-{{.PlacementID}}" name="project" data-kimai-project required>
+    {{$p := .Req.Project}}
+    {{range .Catalog.Projects}}<option value="{{.ID}}"{{if eq .ID $p}} selected{{end}}>{{if .Customer}}{{.Customer}} · {{end}}{{.Name}}</option>{{end}}
+  </select>
+  <label for="kl-a-{{.PlacementID}}">{{t "timer.activity"}}</label>
+  <select id="kl-a-{{.PlacementID}}" name="activity" data-kimai-activity required>
+    {{$a := .Req.Activity}}
+    {{range .Catalog.Activities}}<option value="{{.ID}}" data-project="{{if .ProjectID}}{{.ProjectID}}{{end}}"{{if eq .ID $a}} selected{{end}}>{{.Name}}</option>{{end}}
+  </select>
+  <div class="kl-range">
+    <div><label for="kl-b-{{.PlacementID}}">{{t "timer.begin"}}</label><input id="kl-b-{{.PlacementID}}" name="begin" type="datetime-local" value="{{.Req.Begin}}" required></div>
+    <div><label for="kl-e-{{.PlacementID}}">{{t "timer.end"}}</label><input id="kl-e-{{.PlacementID}}" name="end" type="datetime-local" value="{{.Req.End}}" required></div>
+  </div>
+  <label for="kl-n-{{.PlacementID}}">{{t "timer.note"}}</label>
+  <input id="kl-n-{{.PlacementID}}" name="note" value="{{.Req.Note}}" autocomplete="off">
+  <div class="kl-actions">
+    <button type="submit">{{t "action.save"}}</button>
+    <button type="button" class="ghost" hx-get="/widget-fragments/{{.PlacementID}}" hx-target="closest .card-body" hx-swap="innerHTML">{{t "action.cancel"}}</button>
+  </div>
+</form>
 {{end}}
 
 {{define "widgets/heatmap"}}

@@ -44,7 +44,20 @@ func TestKimaiTimerStops(t *testing.T) {
 	}
 	mux.HandleFunc("PATCH /api/timesheets/{id}/stop", record)
 	mux.HandleFunc("PATCH /api/timesheets/{id}", record)
-	mux.HandleFunc("POST /api/timesheets", record)
+	var created string
+	mux.HandleFunc("POST /api/timesheets", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		mu.Lock()
+		created = string(body)
+		mu.Unlock()
+		record(w, r)
+	})
+	mux.HandleFunc("GET /api/projects", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`[{"id": 3, "name": "Relaunch", "parentTitle": "Acme"}]`))
+	})
+	mux.HandleFunc("GET /api/activities", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`[{"id": 7, "name": "Dev", "project": null}, {"id": 8, "name": "Review", "project": 3}]`))
+	})
 	kimai := httptest.NewServer(mux)
 	defer kimai.Close()
 
@@ -74,6 +87,29 @@ func TestKimaiTimerStops(t *testing.T) {
 	}
 	if r := postForm(t, client, srv.URL+"/widget-fragments/"+placement+"/kimai", url.Values{"csrf": {csrf}, "action": {"start"}}); r.StatusCode != http.StatusForbidden {
 		t.Fatalf("start without ids: %d", r.StatusCode)
+	}
+
+	// "+" opens the add form with Kimai's projects and activities.
+	form := string(mustGet(t, srv, client, "/widget-fragments/"+placement+"/kimai/new"))
+	if !strings.Contains(form, "Acme · Relaunch") || !strings.Contains(form, `data-project="3"`) || !strings.Contains(form, `name="begin" type="datetime-local"`) {
+		t.Fatalf("add form:\n%s", form)
+	}
+	entry := url.Values{"csrf": {csrf}, "action": {"create"}, "project": {"3"}, "activity": {"8"}, "note": {"Review"}}
+	entry.Set("begin", "2026-09-26T10:00")
+	entry.Set("end", "2026-09-26T09:00")
+	resp, err := client.PostForm(srv.URL+"/widget-fragments/"+placement+"/kimai", entry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(body), "Das Ende muss nach dem Beginn liegen.") || len(writes) != 4 {
+		t.Fatalf("bad range: %v\n%s", writes, body)
+	}
+	entry.Set("end", "2026-09-26T11:30")
+	postForm(t, client, srv.URL+"/widget-fragments/"+placement+"/kimai", entry)
+	if len(writes) != 5 || !strings.Contains(created, `"begin":"2026-09-26T10:00:00"`) || !strings.Contains(created, `"end":"2026-09-26T11:30:00"`) || !strings.Contains(created, `"activity":8`) {
+		t.Fatalf("create: %v %s", writes, created)
 	}
 }
 

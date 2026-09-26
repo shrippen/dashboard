@@ -466,6 +466,37 @@
     }, true);
   }
 
+  // ── Kimai Lite add form: offer only the chosen project's and global activities ──
+  function filterActivities(form) {
+    var project = form.querySelector("[data-kimai-project]");
+    var activity = form.querySelector("[data-kimai-activity]");
+    if (!project || !activity) {
+      return;
+    }
+    var firstShown = null;
+    [].forEach.call(activity.options, function (o) {
+      var owner = o.getAttribute("data-project");
+      o.hidden = owner !== "" && owner !== project.value;
+      if (!o.hidden && !firstShown) {
+        firstShown = o;
+      }
+    });
+    if (activity.selectedOptions.length && activity.selectedOptions[0].hidden && firstShown) {
+      firstShown.selected = true;
+    }
+  }
+
+  function setupKimaiForm() {
+    d.addEventListener("change", function (e) {
+      if (e.target.matches && e.target.matches("[data-kimai-project]")) {
+        filterActivities(e.target.form);
+      }
+    });
+    d.addEventListener("htmx:afterSettle", function () {
+      [].forEach.call(d.querySelectorAll("form.kl-new"), filterActivities);
+    });
+  }
+
   // ── Wall display: fullscreen on first tap, rotate boards, dim at night ──
   var KIOSK_DIM_CHECK_MS = 60000;
 
@@ -522,6 +553,7 @@
     setupAutosubmit();
     setupMenus();
     setupHintPop();
+    setupKimaiForm();
     setupKiosk();
     setupOffline();
     setupSearch();

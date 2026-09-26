@@ -35,8 +35,12 @@ func (d Deps) handleKimaiTimer(w http.ResponseWriter, r *http.Request) {
 		return n
 	}
 	req := timer.Request{Action: timer.Action(r.FormValue("action")), Project: num("project"), Activity: num("activity"),
-		Sheet: num("sheet"), Note: strings.TrimSpace(r.FormValue("note"))}
+		Sheet: num("sheet"), Note: strings.TrimSpace(r.FormValue("note")), Begin: r.FormValue("begin"), End: r.FormValue("end")}
 	err = timer.Run(r.Context(), d.DB, ctx.Who, id, req, ClientIP(r))
+	if errors.Is(err, timer.ErrBadRange) {
+		d.renderKimaiNew(w, r, ctx, id, req, err.Error())
+		return
+	}
 	if errors.Is(err, timer.ErrNotTimer) {
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
@@ -46,6 +50,42 @@ func (d Deps) handleKimaiTimer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	d.renderFragment(w, r, ctx, id, svcdata.Force)
+}
+
+// newEntryStep rounds the add-entry form's default times (5 minutes).
+const newEntryStep = 5 * time.Minute
+
+// formTimeLayout is what a datetime-local input sends and shows.
+const formTimeLayout = "2006-01-02T15:04"
+
+// handleKimaiNew swaps a Kimai Lite tile for its add-entry form: the
+// last hour, ending now.
+func (d Deps) handleKimaiNew(w http.ResponseWriter, r *http.Request) {
+	ctx, err := d.Require(r)
+	if err != nil {
+		d.handleAuthError(w, r, err)
+		return
+	}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	end := time.Now().Truncate(newEntryStep)
+	d.renderKimaiNew(w, r, ctx, id, timer.Request{Begin: end.Add(-time.Hour).Format(formTimeLayout), End: end.Format(formTimeLayout)}, "")
+}
+
+func (d Deps) renderKimaiNew(w http.ResponseWriter, r *http.Request, ctx Ctx, id int64, req timer.Request, errKey string) {
+	catalog, err := timer.Catalog(r.Context(), d.DB, ctx.Who, id)
+	if errors.Is(err, timer.ErrNotTimer) {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	_ = d.Page(w, ctx, "kimai_new", http.StatusOK, map[string]any{"PlacementID": id, "Catalog": catalog, "Req": req, "Error": errKey, "ThemeURL": ""})
 }
 
 // RegisterBillingRoutes wires invoice drafts and the tax year package.
