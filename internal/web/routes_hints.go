@@ -3,7 +3,9 @@ package web
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"dashboard/internal/enums"
@@ -20,6 +22,7 @@ func (d Deps) RegisterHintRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /hints/{id}/snooze", d.handleHintAct(hints.ActionSnooze))
 	mux.HandleFunc("POST /hints/{id}/reopen", d.handleHintAct(hints.ActionReopen))
 	mux.HandleFunc("GET /hints/{id}/detail", d.handleHintDetail)
+	mux.HandleFunc("GET /connections/{id}/hints", d.handleConnHints)
 	mux.HandleFunc("POST /hints/{id}/advice", d.handleHintAdvice)
 	mux.HandleFunc("POST /hints/{id}/note", d.handleHintWorkflow(hintNote))
 	mux.HandleFunc("POST /hints/{id}/assign", d.handleHintWorkflow(hintAssign))
@@ -100,7 +103,7 @@ func (d Deps) handleHintAct(action hints.Action) http.HandlerFunc {
 			d.handleBoardError(w, r, err)
 			return
 		}
-		http.Redirect(w, r, "/hints", http.StatusSeeOther)
+		http.Redirect(w, r, backTo(r, "/hints"), http.StatusSeeOther)
 	}
 }
 
@@ -171,4 +174,36 @@ func (d Deps) handleHintWorkflow(step hintStep) http.HandlerFunc {
 		}
 		http.Redirect(w, r, "/hints#hint-"+strconv.FormatInt(id, 10), http.StatusSeeOther)
 	}
+}
+
+// handleConnHints renders the open hints of one connection as a small
+// fragment (the popover behind a link tile's hint badge).
+func (d Deps) handleConnHints(w http.ResponseWriter, r *http.Request) {
+	ctx, id, ok := d.hintRequest(w, r)
+	if !ok {
+		return
+	}
+	found, err := hints.ForConnection(d.DB, ctx.Who, id)
+	if err != nil {
+		d.handleBoardError(w, r, err)
+		return
+	}
+	_ = d.Page(w, ctx, "hint_pop", http.StatusOK, map[string]any{"Hints": found})
+}
+
+// backTo returns the page a form was sent from when the form asks for it
+// (back=referer) and the referer is this site; fallback otherwise. Only
+// the path is kept, so the redirect can never leave the site.
+func backTo(r *http.Request, fallback string) string {
+	if r.FormValue("back") != "referer" {
+		return fallback
+	}
+	ref, err := url.Parse(r.Referer())
+	if err != nil || ref.Host != r.Host || !strings.HasPrefix(ref.Path, "/") || strings.HasPrefix(ref.Path, "//") {
+		return fallback
+	}
+	if ref.RawQuery != "" {
+		return ref.Path + "?" + ref.RawQuery
+	}
+	return ref.Path
 }

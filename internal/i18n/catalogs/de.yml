@@ -545,6 +545,8 @@ sys:
   swap: Swap
   load: Last (5 min)
 hints:
+  later: Später
+  badge: '{n} offene Hinweise – anklicken zum Anzeigen'
   sort_value: 'Nach Geldwert sortieren'
   sort_level: 'Nach Dringlichkeit sortieren'
   noisy: '{count} Regeln melden fast nur, was du wegklickst'

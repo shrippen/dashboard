@@ -418,6 +418,39 @@
     });
   }
 
+  // ── Hint badge on a link tile: show that connection's hints instead of following the link ──
+  var HINT_POP_WIDTH = 360, HINT_POP_GAP = 6, HINT_POP_MARGIN = 8;
+
+  function setupHintPop() {
+    var pop = d.createElement("div");
+    pop.className = "hint-pop";
+    pop.setAttribute("popover", "");
+    d.body.appendChild(pop);
+
+    d.addEventListener("click", function (e) {
+      var badge = e.target.closest && e.target.closest(".launch-hints[data-hints]");
+      if (!badge) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+
+      fetch(badge.getAttribute("data-hints"), { credentials: "same-origin" })
+        .then(function (r) { return r.ok ? r.text() : ""; })
+        .then(function (html) {
+          // Server-rendered html/template output from our own origin.
+          pop.innerHTML = html;
+          var box = badge.getBoundingClientRect();
+          var left = Math.min(box.left, window.innerWidth - HINT_POP_WIDTH - HINT_POP_MARGIN);
+          pop.style.top = Math.round(box.bottom + HINT_POP_GAP) + "px";
+          pop.style.left = Math.round(Math.max(HINT_POP_MARGIN, left)) + "px";
+          if (pop.showPopover) {
+            pop.showPopover();
+          }
+        });
+    }, true);
+  }
+
   // ── Wall display: fullscreen on first tap, rotate boards, dim at night ──
   var KIOSK_DIM_CHECK_MS = 60000;
 
@@ -473,6 +506,7 @@
   d.addEventListener("DOMContentLoaded", function () {
     setupAutosubmit();
     setupMenus();
+    setupHintPop();
     setupKiosk();
     setupOffline();
     setupSearch();

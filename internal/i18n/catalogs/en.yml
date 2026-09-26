@@ -545,6 +545,8 @@ sys:
   swap: Swap
   load: Load (5 min)
 hints:
+  later: Later
+  badge: '{n} open hints – click to show'
   sort_value: 'Sort by money'
   sort_level: 'Sort by urgency'
   noisy: '{count} rules mostly report what you dismiss'

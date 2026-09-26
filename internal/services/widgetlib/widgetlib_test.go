@@ -14,7 +14,9 @@ import (
 	"dashboard/internal/model"
 	"dashboard/internal/repos/content"
 	"dashboard/internal/repos/users"
+	"dashboard/internal/rules"
 	"dashboard/internal/services/access"
+	"dashboard/internal/services/hints"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
@@ -225,5 +227,38 @@ func TestLiveModeMixesWithBackground(t *testing.T) {
 	}
 	if !frag.Slots["kimai"].Pending {
 		t.Fatalf("peer slot fetched on view: %+v", frag.Slots["kimai"])
+	}
+}
+
+// TestLinkCountsHintsOfSameHost: a link tile without an info connection
+// shows the hints of the connection that serves the same host.
+func TestLinkCountsHintsOfSameHost(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "host@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	conn := &model.Connection{SpaceID: space.ID, Key: "paperless", Name: "Paperless", Service: string(enums.ServicePaperless),
+		URL: "https://pl.example.org", CredentialMode: enums.CredentialShared, VerifyTLS: true, CreatedAt: time.Now().UTC()}
+	if err := content.AddConnection(d, conn); err != nil {
+		t.Fatalf("add connection: %v", err)
+	}
+	finding := rules.Finding{Fingerprint: "inbox", Rule: "paperless.inbox", Severity: enums.SeverityWarn, Message: "paperless.inbox",
+		Sources: []string{string(enums.ServicePaperless)}}
+	if _, err := hints.Sync(d, space.ID, nil, &conn.ID, []string{"paperless.inbox"}, []rules.Finding{finding}); err != nil {
+		t.Fatalf("sync: %v", err)
+	}
+
+	id, err := widgetlib.Create(d, who, space.ID, "link", "Paperless", map[string]any{"url": "https://pl.example.org/documents"}, nil, nil)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	w, _, _ := widgetlib.Detail(d, who, id)
+	frag, err := widgetlib.Load(context.Background(), d, who, w, svcdata.Cached)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	if frag.HintCount != 1 || frag.HintConn != conn.ID {
+		t.Fatalf("hint count %d on connection %d, want 1 on %d", frag.HintCount, frag.HintConn, conn.ID)
 	}
 }

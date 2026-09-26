@@ -310,6 +310,23 @@ func CountFor(d *sql.DB, who *access.Principal, connID int64) (int, enums.Severi
 	return count, top, err
 }
 
+// ForConnection lists the open hints of one connection, most severe
+// first (the hint badge on a link tile).
+func ForConnection(d *sql.DB, who *access.Principal, connID int64) ([]View, error) {
+	all, err := Active(d, who, enums.SeverityInfo, nil, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	var out []View
+	for _, v := range all {
+		if v.ConnectionID != nil && *v.ConnectionID == connID {
+			out = append(out, v)
+		}
+	}
+	return out, nil
+}
+
 // Summary counts open hints per severity level.
 func Summary(d *sql.DB, who *access.Principal) (map[enums.Severity]int, error) {
 	counts := map[enums.Severity]int{enums.SeverityInfo: 0, enums.SeverityWarn: 0, enums.SeverityCritical: 0}

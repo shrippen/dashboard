@@ -434,17 +434,39 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .kpi-delta[data-trend="up"] { color: var(--ok-text); }
 .kpi-delta[data-trend="down"] { color: var(--danger-text); }
 
-/* ── hints ── */
-.hints { list-style: none; margin: 0; padding: 0; }
-.hint { display: flex; gap: .7rem; padding: .75rem 0; border-bottom: 1px solid var(--bg2); }
-.hint:last-child { border-bottom: 0; }
-.hint::before { content: ""; width: 3px; align-self: stretch; flex: 0 0 auto; background: var(--blue); }
-.hint[data-tier="red"]::before { background: var(--red); }
-.hint[data-tier="yellow"]::before { background: var(--yellow); }
-.hint-main { flex: 1; display: flex; flex-direction: column; gap: .3rem; }
+/* ── hints ("Lage"): severity bands, one row per hint ── */
+.hint-group { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .6rem; }
+.hint-group-head { display: flex; align-items: center; gap: .5rem; margin: 0; padding: .45rem 0 .35rem; border-bottom: 1px solid var(--bg1);
+  font-family: var(--font-heading); font-weight: 700; font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; color: var(--fg0); }
+.hint-group-head .sq { width: .5rem; height: .5rem; background: var(--blue); }
+.hint-group[data-tier="red"] .sq { background: var(--red); }
+.hint-group[data-tier="yellow"] .sq { background: var(--yellow); }
+.hint-group-count { margin-left: auto; font-family: var(--font-mono); font-weight: 400; font-size: .7rem; color: var(--fg3); }
+.hints { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+.hint { display: flex; flex-direction: column; gap: .3rem; padding: .55rem .7rem .6rem; background: var(--bg-panel); border-top: 2px solid var(--blue);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
+.dsec:not(.is-bare) .hint { background: var(--bg-hard); }
+.hint[data-tier="red"] { border-top-color: var(--red); }
+.hint[data-tier="yellow"] { border-top-color: var(--yellow); }
+.hint-meta { display: flex; gap: .6rem; justify-content: space-between; font-family: var(--font-mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg3); }
+.hint-title { color: var(--fg0); font-weight: 600; font-size: .9rem; line-height: 1.35; text-decoration: none; }
+.hint-title:hover { color: var(--blue); }
+.hint-due { font-family: var(--font-mono); font-size: .72rem; color: var(--orange); }
+.hint-actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.hint-actions form { margin: 0; }
+.hint-go { font-family: var(--font-heading); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; background: var(--yellow); color: var(--bg-void); padding: .25rem .6rem; text-decoration: none; }
+.hint-go:hover { background: var(--fg0); }
+.hint-actions button.ghost { margin: 0; padding: .2rem .55rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--fg2); }
+.hint-empty { color: var(--fg2); font-size: .85rem; list-style: none; margin: 0; }
+.hint-all { margin: .3rem 0 0; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; }
+.hint-pop { position: fixed; inset: auto; margin: 0; width: min(360px, calc(100vw - 16px)); max-height: 60vh; overflow: auto;
+  padding: .6rem; background: var(--bg-hard); color: var(--fg1); border: 1px solid var(--bg2); border-top: 3px solid var(--yellow); }
+.hint-pop .hint { background: var(--bg-panel); }
+/* hints page and detail (hints.html) keep these */
 .hint-level { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: var(--blue); }
 .hint[data-tier="red"] .hint-level { color: var(--danger-text); }
 .hint[data-tier="yellow"] .hint-level { color: var(--warn-text); }
+.hint-main { flex: 1; display: flex; flex-direction: column; gap: .3rem; }
 .hint-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0; }
 .hint-ack { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
 .hint-ack input { flex: 1 1 12rem; margin: 0; }
@@ -456,12 +478,7 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .hint-main details summary { cursor: pointer; color: var(--fg3); font-family: var(--font-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; list-style: none; }
 .hint-main details summary::-webkit-details-marker { display: none; }
 .hint-main details p { margin: .4rem 0 0; color: var(--fg2); font-size: .84rem; }
-.hint-due { font-family: var(--font-mono); font-size: .76rem; color: var(--orange); white-space: nowrap; }
-.hint-actions { display: flex; gap: .6rem; margin-top: .1rem; align-items: center; }
-.hint-actions form { margin: 0; }
-.hint-actions a, .hint-actions button.ghost { font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--blue); text-decoration: none; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
-.hint-actions a:hover, .hint-actions button.ghost:hover { color: var(--orange); }
-.hint-empty { color: var(--fg2); font-size: .85rem; list-style: none; }
+.hint-actions a, .hint-actions button.ghost:not(:hover) { text-decoration: none; }
 
 /* ── progress ── */
 .meters { display: flex; flex-direction: column; }

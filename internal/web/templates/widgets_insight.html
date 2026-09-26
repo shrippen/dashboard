@@ -128,23 +128,45 @@
 {{else}}<p class="slot-note">{{t "trend.collecting"}}</p>{{end}}
 {{end}}
 
+{{/* Hints widget ("Lage"): open hints in severity bands, each with its
+     own action and a "later" that snoozes for a day and returns here. */}}
 {{define "widgets/hints"}}
-<ul class="hints">
-{{range .Frag.View.Hints}}
-  <li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
-    <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
-    <div class="hint-main">
-      <b>{{.Title}}</b>
-      <details><summary>{{t "hints.why"}}</summary><p>{{.Why}}</p>
-        <p class="muted">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}</p></details>
-    </div>
-    {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
-    {{if .ActionURL}}<div class="hint-actions"><a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a></div>{{end}}
-  </li>
-{{else}}<li class="hint-empty">{{t "hints.none"}}</li>
+{{range .Frag.View.Groups}}
+<section class="hint-group" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}">
+  <h4 class="hint-group-head"><span class="sq" aria-hidden="true"></span>{{t (print "severity." .Severity.Key)}}<span class="hint-group-count">{{len .Hints}}</span></h4>
+  <ul class="hints">
+    {{range .Hints}}{{template "hint-item" dict "H" . "R" $}}{{end}}
+  </ul>
+</section>
+{{else}}<p class="hint-empty">{{t "hints.none"}}</p>
 {{end}}
+<p class="hint-all"><a href="/hints">{{t "hints.all"}} →</a></p>
+{{end}}
+
+{{/* One hint row; "R" is the fragment root (CSRF). */}}
+{{define "hint-item"}}
+{{$r := .R}}{{with .H}}
+<li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
+  <div class="hint-meta"><span>{{range $i, $s := .Sources}}{{if $i}} · {{end}}{{t (print "service." $s)}}{{end}}</span><span>{{ago .FirstSeen}}</span></div>
+  <a class="hint-title" href="/hints#hint-{{.ID}}">{{.Title}}</a>
+  {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
+  <div class="hint-actions">
+    {{if .ActionURL}}<a class="hint-go" href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a>{{end}}
+    {{if $r.Ctx.CSRF}}<form method="post" action="/hints/{{.ID}}/snooze">
+      <input type="hidden" name="{{$r.CSRFField}}" value="{{$r.Ctx.CSRF}}">
+      <input type="hidden" name="days" value="1"><input type="hidden" name="back" value="referer">
+      <button type="submit" class="ghost">{{t "hints.later"}}</button>
+    </form>{{end}}
+  </div>
+</li>
+{{end}}
+{{end}}
+
+{{/* Popover behind a link tile's hint badge. */}}
+{{define "hint_pop"}}
+<ul class="hints">
+  {{range .Hints}}{{template "hint-item" dict "H" . "R" $}}{{else}}<li class="hint-empty">{{t "hints.none"}}</li>{{end}}
 </ul>
-<p class="small"><a href="/hints">{{t "hints.all"}}</a></p>
 {{end}}
 
 {{/* Topic widgets (updates): open hints of one rule group, compact. */}}

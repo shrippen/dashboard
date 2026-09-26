@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -325,6 +326,7 @@ type Fragment struct {
 	Slots     map[string]Slot
 	HintCount int
 	HintLevel enums.Severity
+	HintConn  int64 // connection the hint count belongs to, 0 = none
 	View      map[string]any
 }
 
@@ -358,6 +360,46 @@ func infoConnection(q db.Queryer, who *access.Principal, widget *model.Widget, k
 		found, err := content.ConnectionByKey(q, spaceID, key)
 		if err != nil || found != nil {
 			return found, err
+		}
+	}
+	return nil, nil
+}
+
+// linkHost returns the lower-case host of a link tile's URL, or "".
+func linkHost(cfg any) string {
+	link, ok := cfg.(widgets.LinkConfig)
+	if !ok {
+		return ""
+	}
+	u, err := url.Parse(link.URL)
+	if err != nil {
+		return ""
+	}
+	return strings.ToLower(u.Hostname())
+}
+
+// hostConnection finds the connection serving host (pl.example.org →
+// the Paperless connection), in the widget's space first. A link tile
+// without an info connection counts that connection's hints.
+func hostConnection(q db.Queryer, who *access.Principal, widget *model.Widget, host string) (*model.Connection, error) {
+	spaceIDs := []int64{widget.SpaceID}
+	for spaceID := range who.Spaces {
+		if spaceID != widget.SpaceID {
+			spaceIDs = append(spaceIDs, spaceID)
+		}
+	}
+	slices.Sort(spaceIDs[1:])
+
+	for _, spaceID := range spaceIDs {
+		list, err := content.Connections(q, []int64{spaceID})
+		if err != nil {
+			return nil, err
+		}
+		for _, c := range list {
+			u, err := url.Parse(c.URL)
+			if err == nil && strings.EqualFold(u.Hostname(), host) {
+				return c, nil
+			}
 		}
 	}
 	return nil, nil
@@ -399,9 +441,10 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	cfg, _ := widgets.Decode(widget.Type, util.OpenSecrets(widget.Config))
 	frag := &Fragment{WidgetID: widget.ID, Type: widget.Type, Title: widget.Title, Config: cfg, Slots: map[string]Slot{}}
 
-	var conn, infoConn *model.Connection
+	var conn, infoConn, hostConn *model.Connection
 	var settings map[string]any
 	infoKey := infoKeyOf(cfg)
+	host := linkHost(cfg)
 	err := db.WithRead(d, func(tx *sql.Tx) error {
 		if widget.ConnectionID != nil {
 			c, err := content.Connection(tx, *widget.ConnectionID)
@@ -416,6 +459,13 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 				return err
 			}
 			infoConn = c
+		}
+		if conn == nil && infoConn == nil && host != "" {
+			c, err := hostConnection(tx, who, widget, host)
+			if err != nil {
+				return err
+			}
+			hostConn = c
 		}
 		space, err := content.Space(tx, widget.SpaceID)
 		if err != nil {
@@ -461,12 +511,15 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	if infoConn != nil {
 		serviceConn = infoConn
 	}
+	if serviceConn == nil {
+		serviceConn = hostConn
+	}
 	if serviceConn != nil {
 		count, level, err := hints.CountFor(d, who, serviceConn.ID)
 		if err != nil {
 			return nil, err
 		}
-		frag.HintCount, frag.HintLevel = count, level
+		frag.HintCount, frag.HintLevel, frag.HintConn = count, level, serviceConn.ID
 	}
 
 	if kind.Extra == widgets.ExtraPoints && conn != nil {
@@ -522,7 +575,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		if err != nil {
 			return nil, err
 		}
-		frag.View = map[string]any{"Hints": views}
+		frag.View = map[string]any{"Hints": views, "Groups": hintGroups(views)}
 	}
 
 	return frag, nil
@@ -627,4 +680,30 @@ func Preview(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int6
 	}
 	w := &model.Widget{SpaceID: spaceID, Type: typeKey, Title: title, Config: config, ConnectionID: connID}
 	return Load(ctx, d, who, w, svcdata.Cached)
+}
+
+// HintGroup is one severity band of the hints widget, highest first.
+type HintGroup struct {
+	Severity enums.Severity
+	Hints    []hints.View
+}
+
+// hintGroups splits hints into severity bands, keeping their order:
+//
+//	[warn a, crit b, info c, warn d]  →  crit [b] · warn [a d] · info [c]
+func hintGroups(views []hints.View) []HintGroup {
+	levels := []enums.Severity{enums.SeverityCritical, enums.SeverityWarn, enums.SeverityInfo}
+	var out []HintGroup
+	for _, level := range levels {
+		group := HintGroup{Severity: level}
+		for _, v := range views {
+			if v.Severity.Key() == level.Key() {
+				group.Hints = append(group.Hints, v)
+			}
+		}
+		if len(group.Hints) > 0 {
+			out = append(out, group)
+		}
+	}
+	return out
 }
