@@ -24,9 +24,10 @@
 <script src="{{asset "code-editor.js"}}" defer></script>
 {{end}}
 
-{{/* Brand mark (docs/icon.svg): frame and tiles follow --accent, the
-     signal tile --yellow, so it reads in dark and light themes. */}}
-{{define "mark"}}<svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="7" width="42" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="9" y="12" width="8" height="11" rx="1.5"/><rect x="20" y="12" width="8" height="11" rx="1.5"/><rect class="sig" x="31" y="12" width="8" height="11" rx="1.5"/><rect x="9" y="26" width="8" height="10" rx="1.5"/><rect x="20" y="26" width="8" height="10" rx="1.5"/><rect x="31" y="26" width="8" height="10" rx="1.5"/></svg>{{end}}
+{{/* Brand mark (docs/icon.svg), the andon paper lantern: frame and lattice
+     follow --accent, the lit panel --yellow, so it reads in dark and light
+     themes. */}}
+{{define "mark"}}<svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect class="sig" x="24" y="16.5" width="11" height="11.5"/><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="5" width="22" height="34" rx="2.5"/><line x1="13" y1="16.5" x2="35" y2="16.5"/><line x1="13" y1="28" x2="35" y2="28"/><line x1="24" y1="5" x2="24" y2="39"/><line x1="15" y1="39" x2="13" y2="44"/><line x1="33" y1="39" x2="35" y2="44"/></g></svg>{{end}}
 
 {{/* App header: boards and the evaluation pages up front, setup and the
      account behind two menus (native <details>, no script needed). */}}
