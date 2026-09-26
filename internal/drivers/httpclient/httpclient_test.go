@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"andon/internal/drivers/httpclient"
@@ -93,5 +94,26 @@ func TestEgressGuardAllows(t *testing.T) {
 	_, _, err := httpclient.GetJSON(context.Background(), srv.URL, httpclient.Options{})
 	if err != nil {
 		t.Fatalf("expected allowed request to succeed, got %v", err)
+	}
+}
+
+// TestTransportErrorsNameTheCause: a failed request says why (unknown
+// host, refused, bad certificate) instead of a bare "request failed".
+func TestTransportErrorsNameTheCause(t *testing.T) {
+	closed := httptest.NewServer(http.NotFoundHandler())
+	closed.Close()
+	selfSigned := httptest.NewTLSServer(http.NotFoundHandler())
+	defer selfSigned.Close()
+
+	cases := []struct{ url, want string }{
+		{"http://api.nowhere.invalid/v1", "dns: api.nowhere.invalid"},
+		{closed.URL, "connection refused"},
+		{selfSigned.URL, "tls certificate"},
+	}
+	for _, c := range cases {
+		_, _, err := httpclient.GetJSON(context.Background(), c.url, httpclient.Options{})
+		if err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%s: got %v, want %q", c.url, err, c.want)
+		}
 	}
 }

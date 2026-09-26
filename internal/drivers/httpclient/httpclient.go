@@ -16,6 +16,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"syscall"
 	"time"
 )
 
@@ -125,12 +126,31 @@ func Request(ctx context.Context, method, rawURL string, opts Options) (*http.Re
 
 	resp, err := client.Do(req)
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			return nil, HttpError{"timeout"}
-		}
-		return nil, HttpError{"request failed"}
+		return nil, transportError(err, u.Hostname())
 	}
 	return resp, nil
+}
+
+// transportError names why a request failed without the raw error, which
+// may carry the full URL: "dns: api.example.org", "connection refused:
+// 10.0.0.5", "tls certificate: …".
+func transportError(err error, host string) HttpError {
+	var dnsErr *net.DNSError
+	var certErr *tls.CertificateVerificationError
+	var unknownCA x509.UnknownAuthorityError
+	var hostnameErr x509.HostnameError
+	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		return HttpError{"timeout: " + host}
+	case errors.As(err, &dnsErr):
+		return HttpError{"dns: " + host}
+	case errors.Is(err, syscall.ECONNREFUSED):
+		return HttpError{"connection refused: " + host}
+	case errors.As(err, &unknownCA), errors.As(err, &hostnameErr), errors.As(err, &certErr):
+		return HttpError{"tls certificate: " + host}
+	default:
+		return HttpError{"request failed: " + host}
+	}
 }
 
 // GetJSON performs a guarded GET and decodes a JSON body, returning the
