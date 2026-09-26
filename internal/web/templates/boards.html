@@ -226,10 +226,10 @@
       {{with index $b.Bodies .PlacementID}}
       {{/* Rendered with the page; htmx only refreshes. */}}
       {{$every := ""}}{{if $.T.RefreshS}}{{$every = print "every " $.T.RefreshS "s"}}{{end}}
-      {{$trigger := $every}}{{if .Load}}{{$trigger = "load"}}{{if $every}}{{$trigger = print "load, " $every}}{{end}}{{end}}
-      <div class="card-body"{{if $trigger}} hx-get="{{$frag}}" hx-trigger="{{$trigger}}" hx-swap="innerHTML"{{end}}>{{fragment .}}</div>
+      {{$trigger := "retry"}}{{if .Load}}{{$trigger = "load, retry"}}{{end}}{{with $every}}{{$trigger = print $trigger ", " .}}{{end}}
+      <div class="card-body" hx-get="{{$frag}}" hx-trigger="{{$trigger}}" hx-swap="innerHTML">{{fragment .}}</div>
       {{else}}
-      <div class="card-body" hx-get="{{$frag}}" hx-trigger="load{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
+      <div class="card-body" hx-get="{{$frag}}" hx-trigger="load, retry{{if .RefreshS}}, every {{.RefreshS}}s{{end}}" hx-swap="innerHTML">
         <span class="loading">{{t "widget.loading"}}</span>
       </div>
       {{end}}

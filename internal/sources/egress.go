@@ -59,7 +59,7 @@ func ApplyNetwork(policy NetworkPolicy) error {
 			return true
 		}
 		for _, addr := range addrs {
-			if !allowedAddr(addr, nets, policy.Public) {
+			if !allowedAddr(addr, nets, policy) {
 				return false
 			}
 		}
@@ -68,8 +68,8 @@ func ApplyNetwork(policy NetworkPolicy) error {
 	return nil
 }
 
-func allowedAddr(addr net.IP, nets []*net.IPNet, public bool) bool {
-	if public && isGlobal(addr) {
+func allowedAddr(addr net.IP, nets []*net.IPNet, policy NetworkPolicy) bool {
+	if policy.Public && isGlobal(addr) {
 		return true
 	}
 	for _, n := range nets {
@@ -80,7 +80,7 @@ func allowedAddr(addr net.IP, nets []*net.IPNet, public bool) bool {
 	return false
 }
 
-// isGlobal mirrors Python's ip_address.is_global: routable, not private.
+// isGlobal: routable on the internet, not private, loopback or link-local.
 func isGlobal(ip net.IP) bool {
 	return ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast()
 }

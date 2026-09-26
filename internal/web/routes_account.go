@@ -30,7 +30,7 @@ func (d Deps) loginAfter(w http.ResponseWriter, r *http.Request, email, password
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	SetSessionCookie(w, result.Token, d.Settings.SecureCookies())
+	d.setSession(w, result.Token)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

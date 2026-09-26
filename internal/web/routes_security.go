@@ -44,9 +44,14 @@ func (d Deps) securityPage(w http.ResponseWriter, ctx Ctx, status int, extra map
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	required, err := auth.TOTPRequired(d.DB, ctx.Who, ctx.Method)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	values := map[string]any{
 		"Profile": profile, "Sessions": sessions, "Tokens": tokens, "OIDCLabel": oidc.Button(d.DB, d.Settings),
-		"Passkeys": keys,
+		"Passkeys": keys, "TOTPRequired": required,
 	}
 	for k, v := range extra {
 		values[k] = v

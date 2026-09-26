@@ -1,9 +1,11 @@
 package web
 
 import (
+	"cmp"
 	"errors"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -65,8 +67,163 @@ func (d Deps) handleHintsPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = d.Page(w, ctx, "hints", http.StatusOK, map[string]any{"Hints": found, "ByValue": byValue, "Noisy": noisy})
+	filter := hintFilter{Level: r.URL.Query().Get("level"), Source: r.URL.Query().Get("source"), ByValue: byValue}
+	_ = d.Page(w, ctx, "hints", http.StatusOK, map[string]any{
+		"Groups": groupHints(filter.apply(found)), "Levels": levelCounts(found, filter), "Sources": sourceCounts(found, filter),
+		"Filter": filter, "Total": len(found), "ByValue": byValue, "Noisy": noisy,
+	})
 }
+
+// hintsShown is how many hints of one rule stay open; the rest fold away.
+const hintsShown = 5
+
+// hintLevels are the severity filters, highest first.
+var hintLevels = []struct {
+	Key string
+	Min enums.Severity
+}{{"critical", enums.SeverityCritical}, {"warn", enums.SeverityWarn}, {"info", enums.SeverityInfo}}
+
+// hintFilter narrows the hints page: ?level=critical&source=kimai.
+type hintFilter struct {
+	Level, Source string
+	ByValue       bool
+}
+
+// levelOf names a severity band: "critical", "warn" or "info".
+func levelOf(s enums.Severity) string {
+	for _, l := range hintLevels {
+		if s >= l.Min {
+			return l.Key
+		}
+	}
+	return hintLevels[len(hintLevels)-1].Key
+}
+
+// hintAxis names the filter a count leaves out, so a chip shows what
+// picking it would give.
+type hintAxis int
+
+const (
+	axisNone hintAxis = iota
+	axisLevel
+	axisSource
+)
+
+func (f hintFilter) keep(v hints.View, skip hintAxis) bool {
+	if skip != axisLevel && f.Level != "" && levelOf(v.Severity) != f.Level {
+		return false
+	}
+	return skip == axisSource || f.Source == "" || slices.Contains(v.Sources, f.Source)
+}
+
+func (f hintFilter) apply(all []hints.View) []hints.View {
+	var out []hints.View
+	for _, v := range all {
+		if f.keep(v, axisNone) {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
+// Link is the page URL with one filter changed ("" clears it).
+func (f hintFilter) Link(key, value string) string {
+	q := url.Values{}
+	level, source := f.Level, f.Source
+	if key == "level" {
+		level = value
+	} else {
+		source = value
+	}
+	if level != "" {
+		q.Set("level", level)
+	}
+	if source != "" {
+		q.Set("source", source)
+	}
+	if f.ByValue {
+		q.Set("sort", sortByValue)
+	}
+	if len(q) == 0 {
+		return "/hints"
+	}
+	return "/hints?" + q.Encode()
+}
+
+// hintCount is one filter chip: its key and how many hints it would show.
+type hintCount struct {
+	Key string
+	N   int
+}
+
+// levelCounts counts per severity under the current source filter.
+func levelCounts(all []hints.View, f hintFilter) []hintCount {
+	n := map[string]int{}
+	for _, v := range all {
+		if f.keep(v, axisLevel) {
+			n[levelOf(v.Severity)]++
+		}
+	}
+	var out []hintCount
+	for _, l := range hintLevels {
+		if n[l.Key] > 0 {
+			out = append(out, hintCount{l.Key, n[l.Key]})
+		}
+	}
+	return out
+}
+
+// sourceCounts counts per service under the current level filter, most first.
+func sourceCounts(all []hints.View, f hintFilter) []hintCount {
+	n := map[string]int{}
+	for _, v := range all {
+		if !f.keep(v, axisSource) {
+			continue
+		}
+		for _, s := range v.Sources {
+			n[s]++
+		}
+	}
+	out := make([]hintCount, 0, len(n))
+	for k, c := range n {
+		out = append(out, hintCount{k, c})
+	}
+	slices.SortFunc(out, func(a, b hintCount) int { return cmp.Or(b.N-a.N, strings.Compare(a.Key, b.Key)) })
+	return out
+}
+
+// hintGroup is one rule's hints; Rest folds away below the first few.
+type hintGroup struct {
+	Rule     string
+	Severity enums.Severity
+	Shown    []hints.View
+	Rest     []hints.View
+}
+
+// groupHints keeps the given order and gathers each rule's hints where the
+// rule first appears: 40 "invoice missing" hints become one group.
+func groupHints(views []hints.View) []hintGroup {
+	var out []hintGroup
+	at := map[string]int{}
+	for _, v := range views {
+		i, ok := at[v.Rule]
+		if !ok {
+			i = len(out)
+			at[v.Rule] = i
+			out = append(out, hintGroup{Rule: v.Rule, Severity: v.Severity})
+		}
+		g := &out[i]
+		if len(g.Shown) < hintsShown {
+			g.Shown = append(g.Shown, v)
+			continue
+		}
+		g.Rest = append(g.Rest, v)
+	}
+	return out
+}
+
+// Count is the group's size.
+func (g hintGroup) Count() int { return len(g.Shown) + len(g.Rest) }
 
 // hintRequest parses the path id and checks CSRF for posts.
 func (d Deps) hintRequest(w http.ResponseWriter, r *http.Request) (Ctx, int64, bool) {

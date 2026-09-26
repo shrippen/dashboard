@@ -15,8 +15,8 @@
       <tr><th>{{t "audit.who"}}</th><th>{{t "audit.action"}}</th><th>{{t "audit.target"}}</th><th></th></tr>
       {{range .Entries}}
       <tr>
-        <td class="small">{{if .UserID}}#{{.UserID}}{{else}}—{{end}}</td>
-        <td>{{.Action}}</td>
+        <td class="small">{{or .Who "—"}}</td>
+        <td title="{{.Action}}">{{t (print "audit_action." .Action)}}</td>
         <td>{{.Target}}</td>
         <td class="small muted">{{ago .At}}</td>
       </tr>

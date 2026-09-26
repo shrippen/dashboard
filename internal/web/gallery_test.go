@@ -111,7 +111,7 @@ func nextVersion(t *testing.T, v string) string {
 }
 
 // A tile arrives with the page, so the board doesn't grow as fragments
-// load; a note has nothing to refresh and asks for no fragment at all.
+// load; a note has nothing to refresh and asks for no fragment on load.
 func TestBoardRendersTilesWithPage(t *testing.T) {
 	srv, client, code := newTestServer(t)
 	setupAdmin(t, srv, client, code)
@@ -136,7 +136,7 @@ func TestBoardRendersTilesWithPage(t *testing.T) {
 
 	page := string(mustGet(t, srv, client, boardURL))
 	tile := regexp.MustCompile(`(?s)<div class="tile-slot w-note".*?</article>`).FindString(page)
-	if !strings.Contains(tile, "Inline body") || strings.Contains(tile, "hx-get") {
+	if !strings.Contains(tile, "Inline body") || strings.Contains(tile, `hx-trigger="load`) {
 		t.Fatalf("expected the note rendered inline without a fragment request:\n%s", tile)
 	}
 }

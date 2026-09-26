@@ -13,7 +13,7 @@ const slugMax = 60
 var (
 	nonAlnum = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 	// diacritics strips combining marks left behind by a compatibility
-	// decomposition, approximating Python's unicodedata NFKD + ASCII-drop.
+	// decomposition ("ä" → "a" + U+0308 → "a").
 	diacritics = regexp.MustCompile(`[\x{0300}-\x{036f}]`)
 )
 

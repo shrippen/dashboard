@@ -56,7 +56,7 @@ func (a TrueNASApi) Open(ctx context.Context) (*TrueNASSession, error) {
 	u.Scheme = map[string]string{"https": "wss", "http": "ws"}[u.Scheme]
 	dialCtx, cancel := context.WithTimeout(ctx, rpcTimeout)
 	defer cancel()
-	conn, resp, err := websocket.Dial(dialCtx, u.String(), &websocket.DialOptions{HTTPClient: httpclient.ClientTLS(rpcTimeout, !a.Verify)})
+	conn, resp, err := websocket.Dial(dialCtx, u.String(), &websocket.DialOptions{HTTPClient: httpclient.ClientTLS(rpcTimeout, httpclient.TLSOf(a.Verify))})
 	if err != nil {
 		if resp != nil && resp.StatusCode == notFound {
 			return &TrueNASSession{api: a}, nil
@@ -91,7 +91,7 @@ func (s *TrueNASSession) Call(ctx context.Context, method string) (any, error) {
 	if !ok {
 		return nil, ApiError{"unsupported: " + method}
 	}
-	return fetchJSON(ctx, joinURL(s.api.URL, "api/v2.0/"+path), map[string]string{"Authorization": "Bearer " + s.api.Key}, nil, !s.api.Verify)
+	return fetchJSON(ctx, joinURL(s.api.URL, "api/v2.0/"+path), map[string]string{"Authorization": "Bearer " + s.api.Key}, nil, httpclient.TLSOf(s.api.Verify))
 }
 
 func (s *TrueNASSession) rpc(ctx context.Context, method string, params []any, out any) error {
@@ -143,7 +143,7 @@ func (a KomodoApi) Read(ctx context.Context, request string, params map[string]a
 	if params == nil {
 		params = map[string]any{}
 	}
-	return postJSON(ctx, joinURL(a.URL, "read/"+request), map[string]string{"X-Api-Key": key, "X-Api-Secret": secret}, params, !a.Verify)
+	return postJSON(ctx, joinURL(a.URL, "read/"+request), map[string]string{"X-Api-Key": key, "X-Api-Secret": secret}, params, httpclient.TLSOf(a.Verify))
 }
 
 // ── Pangolin ──
@@ -156,7 +156,7 @@ type PangolinApi struct {
 
 // Get performs one GET against <base>/<path> and returns its "data".
 func (a PangolinApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	body, err := fetchJSON(ctx, joinURL(a.URL, path), map[string]string{"Authorization": "Bearer " + a.Key, "Accept": "application/json"}, params, !a.Verify)
+	body, err := fetchJSON(ctx, joinURL(a.URL, path), map[string]string{"Authorization": "Bearer " + a.Key, "Accept": "application/json"}, params, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return nil, err
 	}
@@ -173,5 +173,5 @@ type AuthentikApi struct {
 
 // Get performs one GET against /api/v3/<path>.
 func (a AuthentikApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/v3/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, params, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/v3/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, params, httpclient.TLSOf(a.Verify))
 }

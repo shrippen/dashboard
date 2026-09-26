@@ -90,7 +90,7 @@ func Check(ctx context.Context, d *sql.DB) error {
 				return
 			}
 			up, ms := status.Outcome()
-			if err := data.RecordStatus(d, c.widgetID, today, up, ms); err != nil {
+			if err := data.RecordStatus(d, c.widgetID, today, data.Check{Up: up, MS: ms}); err != nil {
 				mu.Lock()
 				if firstErr == nil {
 					firstErr = err

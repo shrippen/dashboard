@@ -618,6 +618,10 @@ sys:
   swap: Swap
   load: Last (5 min)
 hints:
+  filter: Filter
+  all_levels: Alle
+  all_sources: Alle Dienste
+  more_of_rule: '{count} weitere'
   later: Später
   badge: '{n} offene Hinweise – anklicken zum Anzeigen'
   sort_value: 'Nach Geldwert sortieren'
@@ -663,6 +667,8 @@ severity:
   warn: Warnung
   critical: Kritisch
 library:
+  search: 'Suchen: Titel, Typ, Bereich'
+  links: Links
   lead: Einmal eingerichtete Widgets, beliebig oft platzierbar.
   uses: Verwendet
   copy: Als Kopie übernehmen
@@ -903,6 +909,7 @@ scope:
   read: Lesen (API)
   embed: Einbetten
 security:
+  totp_required: 'Die Instanz verlangt für Admins einen zweiten Faktor. Richte ihn ein, um weiterzumachen.'
   passkeys: Passkeys
   no_passkeys: Keine Passkeys.
   passkey_add: Passkey hinzufügen
@@ -2559,3 +2566,86 @@ gallery:
   rows_2: 2 Reihen
   add_to: 'Zu „{section}“ hinzufügen'
   preview_hint: So sitzt die Kachel zwischen ihren Nachbarn.
+audit_action:
+  billing:
+    draft: 'Rechnungsentwurf angelegt'
+    export: 'Buchhaltung exportiert'
+    payment: 'Zahlung zugeordnet'
+  connection:
+    created: 'Verbindung angelegt'
+    deleted: 'Verbindung gelöscht'
+    hygiene: 'Token-Pflege geändert'
+    options: 'Verbindungsoptionen geändert'
+    secret_changed: 'Zugangsdaten geändert'
+    updated: 'Verbindung geändert'
+  credential:
+    set: 'Persönliche Zugangsdaten gesetzt'
+  hass:
+    toggle: 'Home Assistant geschaltet'
+  invite:
+    accepted: 'Einladung angenommen'
+    created: 'Einladung verschickt'
+    revoked: 'Einladung zurückgezogen'
+  kimai:
+    create: 'Kimai-Eintrag angelegt'
+    start: 'Kimai-Timer gestartet'
+    stop: 'Kimai-Timer gestoppt'
+    switch: 'Kimai-Timer gewechselt'
+  login:
+    failed: 'Anmeldung fehlgeschlagen'
+    oidc: 'Anmeldung über OIDC'
+    passkey: 'Anmeldung mit Passkey'
+    password: 'Anmeldung mit Passwort'
+  logout: 'Abgemeldet'
+  mail:
+    read: 'Mail gelesen'
+    to_paperless: 'Mail an Paperless übergeben'
+  notify:
+    channel_added: 'Benachrichtigungskanal angelegt'
+  oidc:
+    account_created: 'Konto über OIDC angelegt'
+    linked: 'OIDC verknüpft'
+    linked_by_email: 'OIDC über E-Mail verknüpft'
+    reapplied: 'OIDC-Rollen neu angewendet'
+    saved: 'OIDC-Einstellungen gespeichert'
+  passkey:
+    added: 'Passkey hinzugefügt'
+    removed: 'Passkey entfernt'
+  password:
+    changed: 'Passwort geändert'
+  reset:
+    admin_link: 'Rücksetzlink durch Admin erstellt'
+    done: 'Passwort zurückgesetzt'
+    requested: 'Passwort-Rücksetzung angefordert'
+  settings:
+    dawarich_shared: 'Dawarich-Freigabe geändert'
+    iframe: 'Iframe-Ziele geändert'
+    network: 'Netzwerk-Einstellungen geändert'
+    registration: 'Registrierung geändert'
+    security: 'Sicherheitseinstellungen geändert'
+  setup:
+    admin_created: 'Erster Admin angelegt'
+  share:
+    granted: 'Freigabe erteilt'
+    revoked: 'Freigabe entzogen'
+  space:
+    settings: 'Bereichseinstellungen geändert'
+  team:
+    created: 'Team angelegt'
+    deleted: 'Team gelöscht'
+    member_removed: 'Mitglied entfernt'
+    member_set: 'Mitglied gesetzt'
+  theme:
+    created: 'Theme angelegt'
+  token:
+    created: 'API-Token erstellt'
+    revoked: 'API-Token widerrufen'
+  totp:
+    disabled: 'Zweiter Faktor ausgeschaltet'
+    enabled: 'Zweiter Faktor eingerichtet'
+  user:
+    active_set: 'Konto aktiviert/deaktiviert'
+    breakglass: 'Notzugang benutzt'
+    deleted: 'Benutzer gelöscht'
+    registered: 'Benutzer registriert'
+    role_set: 'Rolle geändert'

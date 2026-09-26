@@ -201,11 +201,6 @@ func KimaiSummaryOf(data *sources.KimaiDataset, today time.Time, hoursPerDay flo
 	}
 }
 
-// KimaiLast12MonthsBillable sums billable minutes over the trailing year.
-func KimaiLast12MonthsBillable(data *sources.KimaiDataset, today time.Time) int {
-	return KimaiMinutesBetween(data, today.AddDate(0, 0, -365), today, HoursBillable)
-}
-
 func round(f float64) float64 {
 	if f < 0 {
 		return float64(int64(f - 0.5))

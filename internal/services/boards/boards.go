@@ -1010,12 +1010,9 @@ func ResetOverlay(d *sql.DB, who *access.Principal, boardID int64) error {
 
 // ── Revisions ──
 //
-// Simplification vs. the Python service: snapshots store this board's own
-// sections/placements as JSON directly, not the cross-space YAML shape
-// app/services/porting.py's board_dict produces. Restoring a revision from
-// this dashboard's own history works the same either way; only importing a
-// revision's widget references from a *different* space (porting.resolve)
-// is not implemented yet.
+// Snapshots store this board's own sections/placements as JSON, not the
+// portable YAML of porting.ExportBoard: a revision restores within this
+// dashboard, it doesn't move widgets across spaces.
 
 type snapshotSection struct {
 	Title     string  `json:"title"`
@@ -1185,24 +1182,6 @@ func Restore(d *sql.DB, who *access.Principal, boardID, revisionID int64) error 
 			return err
 		}
 		return snapshot(tx, who, board)
-	})
-}
-
-// EnsureEditable raises ErrDenied unless who has EDIT on the board.
-func EnsureEditable(d *sql.DB, who *access.Principal, boardID int64) error {
-	return db.WithTx(d, func(tx *sql.Tx) error {
-		board, err := content.Board(tx, boardID)
-		if err != nil {
-			return err
-		}
-		if board == nil {
-			return ErrNotFound
-		}
-		granted, err := boardRight(tx, who, board)
-		if err != nil {
-			return err
-		}
-		return access.Need(granted, enums.RightEdit)
 	})
 }
 

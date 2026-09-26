@@ -52,6 +52,7 @@
           <button type="submit">{{t "security.confirm"}}</button>
         </form>
       {{else}}
+        {{if .TOTPRequired}}<p class="error">{{t "security.totp_required"}}</p>{{end}}
         <form method="post" action="/me/security/totp/begin">
           <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
           <button type="submit">{{t "security.enable"}}</button>

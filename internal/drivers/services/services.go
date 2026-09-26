@@ -42,16 +42,16 @@ type ApiMissing struct{ msg string }
 
 func (e ApiMissing) Error() string { return e.msg }
 
-func fetchJSON(ctx context.Context, rawURL string, headers map[string]string, params url.Values, skipVerify bool) (any, error) {
-	body, _, err := fetchJSONWithHeaders(ctx, rawURL, headers, params, skipVerify)
+func fetchJSON(ctx context.Context, rawURL string, headers map[string]string, params url.Values, mode httpclient.TLS) (any, error) {
+	body, _, err := fetchJSONWithHeaders(ctx, rawURL, headers, params, mode)
 	return body, err
 }
 
 // fetchJSONWithHeaders is like fetchJSON but also returns the response
 // headers, needed for paging (X-Total-Pages) and version headers.
-func fetchJSONWithHeaders(ctx context.Context, rawURL string, headers map[string]string, params url.Values, skipVerify bool) (any, http.Header, error) {
+func fetchJSONWithHeaders(ctx context.Context, rawURL string, headers map[string]string, params url.Values, mode httpclient.TLS) (any, http.Header, error) {
 	body, respHeaders, err := httpclient.GetJSON(ctx, rawURL, httpclient.Options{
-		Headers: headers, Params: params, SkipVerify: skipVerify,
+		Headers: headers, Params: params, SkipVerify: mode == httpclient.TLSSkip,
 	})
 	if err != nil {
 		if isNotFound(err) {
@@ -91,7 +91,7 @@ func (a KimaiApi) headers() map[string]string {
 
 // Get performs one GET against /api/<path>.
 func (a KimaiApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	return fetchJSON(ctx, a.URL+"/api/"+path, a.headers(), params, !a.Verify)
+	return fetchJSON(ctx, a.URL+"/api/"+path, a.headers(), params, httpclient.TLSOf(a.Verify))
 }
 
 // Pages follows Kimai's X-Total-Pages paging and returns every item.
@@ -102,7 +102,7 @@ func (a KimaiApi) Pages(ctx context.Context, path string, params url.Values) ([]
 		query.Set("page", strconv.Itoa(page))
 		query.Set("size", strconv.Itoa(kimaiPage))
 
-		body, headers, err := fetchJSONWithHeaders(ctx, a.URL+"/api/"+path, a.headers(), query, !a.Verify)
+		body, headers, err := fetchJSONWithHeaders(ctx, a.URL+"/api/"+path, a.headers(), query, httpclient.TLSOf(a.Verify))
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +137,7 @@ func (a NinjaApi) headers() map[string]string {
 
 // Version pings the API and returns its X-App-Version header.
 func (a NinjaApi) Version(ctx context.Context) (string, error) {
-	_, headers, err := fetchJSONWithHeaders(ctx, a.URL+"/api/v1/ping", a.headers(), nil, !a.Verify)
+	_, headers, err := fetchJSONWithHeaders(ctx, a.URL+"/api/v1/ping", a.headers(), nil, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return "", err
 	}
@@ -152,7 +152,7 @@ func (a NinjaApi) Pages(ctx context.Context, entity string, params url.Values) (
 		query.Set("per_page", strconv.Itoa(ninjaPage))
 		query.Set("page", strconv.Itoa(page))
 
-		body, err := fetchJSON(ctx, a.URL+"/api/v1/"+entity, a.headers(), query, !a.Verify)
+		body, err := fetchJSON(ctx, a.URL+"/api/v1/"+entity, a.headers(), query, httpclient.TLSOf(a.Verify))
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +188,7 @@ func (a SnipeApi) headers() map[string]string {
 
 // Get performs one GET against /api/v1/<path>.
 func (a SnipeApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	return fetchJSON(ctx, a.URL+"/api/v1/"+path, a.headers(), params, !a.Verify)
+	return fetchJSON(ctx, a.URL+"/api/v1/"+path, a.headers(), params, httpclient.TLSOf(a.Verify))
 }
 
 // Rows follows Snipe-IT's limit/offset paging and returns every "rows" entry.
@@ -244,7 +244,7 @@ func (a GlancesApi) Get(ctx context.Context, path string) (any, error) {
 	if version == 0 {
 		version = defaultGlancesAPIVersion
 	}
-	return fetchJSON(ctx, fmt.Sprintf("%s/api/%d/%s", strings.TrimRight(a.URL, "/"), version, path), a.headers(), nil, !a.Verify)
+	return fetchJSON(ctx, fmt.Sprintf("%s/api/%d/%s", strings.TrimRight(a.URL, "/"), version, path), a.headers(), nil, httpclient.TLSOf(a.Verify))
 }
 
 // ── Dawarich ──
@@ -259,13 +259,13 @@ type DawarichApi struct {
 func (a DawarichApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
 	query := cloneValues(params)
 	query.Set("api_key", a.Token)
-	return fetchJSON(ctx, a.URL+"/api/v1/"+path, map[string]string{"Accept": "application/json"}, query, !a.Verify)
+	return fetchJSON(ctx, a.URL+"/api/v1/"+path, map[string]string{"Accept": "application/json"}, query, httpclient.TLSOf(a.Verify))
 }
 
 // Version calls /api/v1/health and returns its X-Dawarich-Version header.
 func (a DawarichApi) Version(ctx context.Context) (string, error) {
 	query := url.Values{"api_key": {a.Token}}
-	_, headers, err := fetchJSONWithHeaders(ctx, a.URL+"/api/v1/health", nil, query, !a.Verify)
+	_, headers, err := fetchJSONWithHeaders(ctx, a.URL+"/api/v1/health", nil, query, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return "", err
 	}
@@ -334,7 +334,7 @@ type ProxmoxApi struct {
 // Get returns the "data" member of /api2/json/<path>.
 func (a ProxmoxApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
 	body, err := fetchJSON(ctx, strings.TrimRight(a.URL, "/")+"/api2/json/"+path,
-		map[string]string{"Authorization": "PVEAPIToken=" + a.Token}, params, !a.Verify)
+		map[string]string{"Authorization": "PVEAPIToken=" + a.Token}, params, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +355,7 @@ type PaperlessApi struct {
 func (a PaperlessApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
 	return fetchJSON(ctx, strings.TrimRight(a.URL, "/")+"/api/"+path, map[string]string{
 		"Authorization": "Token " + a.Token, "Accept": "application/json",
-	}, params, !a.Verify)
+	}, params, httpclient.TLSOf(a.Verify))
 }
 
 // ── TLS certificates ──

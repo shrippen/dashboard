@@ -25,7 +25,7 @@ const (
 	day    = 24 * time.Hour
 )
 
-// backgroundJobs is the fixed job list (ports app/services/jobs.py).
+// backgroundJobs is the fixed job list.
 func backgroundJobs(database *sql.DB, cfg settings.Settings) []scheduler.Job {
 	return []scheduler.Job{
 		{Name: analysis.JobName, Interval: time.Duration(cfg.AnalysisMinutes) * minute, Start: scheduler.AtStart, Run: func(ctx context.Context) error {
@@ -67,6 +67,9 @@ func housekeeping(database *sql.DB) error {
 		return err
 	}
 	if err := analysis.PruneHistory(database, time.Now().UTC()); err != nil {
+		return err
+	}
+	if err := analysis.PrunePoints(database, time.Now().UTC()); err != nil {
 		return err
 	}
 	return db.WithTx(database, func(tx *sql.Tx) error { return audit.Prune(tx) })

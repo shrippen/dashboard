@@ -159,7 +159,7 @@ func Create(ctx context.Context, d *sql.DB, who *access.Principal, spaceID, cust
 	for _, l := range draft.Lines {
 		lines = append(lines, outbound.NinjaLine{Product: l.Product, Notes: l.Notes, Quantity: l.Hours, Cost: l.Rate})
 	}
-	number, err := outbound.NinjaDraftInvoice(ctx, p.ninja.URL, ninjaSecret, p.ninja.VerifyTLS, draft.ClientKey, lines)
+	number, err := outbound.NinjaDraftInvoice(ctx, outbound.Target{URL: p.ninja.URL, Token: ninjaSecret, VerifyTLS: p.ninja.VerifyTLS}, draft.ClientKey, lines)
 	if err != nil {
 		return "", err
 	}
@@ -169,8 +169,9 @@ func Create(ctx context.Context, d *sql.DB, who *access.Principal, spaceID, cust
 		if err != nil {
 			return number, err
 		}
+		kimai := outbound.Target{URL: p.kimai.URL, Token: kimaiSecret, VerifyTLS: p.kimai.VerifyTLS}
 		for _, id := range draft.SheetIDs {
-			if err := outbound.KimaiMarkExported(ctx, p.kimai.URL, kimaiSecret, p.kimai.VerifyTLS, id); err != nil {
+			if err := outbound.KimaiMarkExported(ctx, kimai, id); err != nil {
 				return number, err
 			}
 		}

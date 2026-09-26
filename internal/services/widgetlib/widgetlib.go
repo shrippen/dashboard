@@ -1,9 +1,7 @@
-// Package widgetlib is the widget library: create, change, delete widgets.
-// Loading a widget's live data (running its queries against a source) is a
-// separate, not-yet-ported concern (app/services/widgets.py's other half);
-// this package only manages the widget rows themselves.
+// Package widgetlib is the widget library: create, change, delete widgets,
+// and load one's data for display.
 //
-//	placement ──► widget ──► type.Queries(config) ──► (not yet: svcdata.Get)
+//	placement ──► widget ──► type.Queries(config) ──► svcdata.Get ──► type.View
 //	    │            │
 //	 board right   widget right (view)
 package widgetlib
@@ -317,8 +315,7 @@ type Slot struct {
 }
 
 // Fragment is a widget's live view: its queries' results shaped by its
-// type's View function, plus its connection's hint badge. Ports the
-// display half of Python's app/services/widgets.py ("load").
+// type's View function, plus its connection's hint badge.
 type Fragment struct {
 	WidgetID  int64
 	Type      string
@@ -510,7 +507,10 @@ func load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		conn = demoConn(kind.Service)
 	}
 
-	live := widgets.LiveData(kind, widget.Config)
+	own := svcdata.Stored
+	if widgets.LiveData(kind, widget.Config) {
+		own = svcdata.Cached
+	}
 	peerOptions := map[string]map[string]any{}
 	for _, q := range kind.Queries(cfg) {
 		var target *model.Connection
@@ -539,7 +539,7 @@ func load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 			frag.Slots[q.Name] = demoQuery(ctx, sourceFor(q, target), q.Params)
 			continue
 		}
-		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, integrationFreshness(q, target, live, fresh))
+		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, integrationFreshness(q, target, own, fresh))
 	}
 
 	serviceConn := conn
@@ -636,12 +636,14 @@ func load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 // e.g. Kimai hours next to Ninja revenue) always stays background, so
 // one widget can mix both. Sources without a connection (status ping,
 // feeds, weather) keep their own cache; Force always fetches.
-func integrationFreshness(q widgets.Query, target *model.Connection, live bool, fresh svcdata.Freshness) svcdata.Freshness {
+// own is the freshness for the widget's own connection: Cached when the
+// widget is live, else Stored.
+func integrationFreshness(q widgets.Query, target *model.Connection, own, fresh svcdata.Freshness) svcdata.Freshness {
 	if target == nil || fresh != svcdata.Cached {
 		return fresh
 	}
-	if live && q.Conn != widgets.ConnPeer {
-		return svcdata.Cached
+	if q.Conn != widgets.ConnPeer {
+		return own
 	}
 	return svcdata.Stored
 }
@@ -700,10 +702,8 @@ func loadPoints(d *sql.DB, conn *model.Connection, userID int64, metric string, 
 	return out, err
 }
 
-// snapshot stores a revision of a widget's own fields. Simplification vs.
-// app/services/porting.py: this is the widget's own JSON, not the
-// cross-space YAML shape porting.widget_dict produces (see the same note
-// on services/boards.snapshot).
+// snapshot stores a revision of a widget's own fields as JSON (see the
+// same note on boards.snapshot).
 func snapshot(q db.Queryer, who *access.Principal, w *model.Widget) error {
 	raw, err := json.Marshal(map[string]any{"title": w.Title, "type": w.Type, "config": w.Config})
 	if err != nil {

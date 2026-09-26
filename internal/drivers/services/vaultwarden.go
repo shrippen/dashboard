@@ -41,7 +41,7 @@ func (a VaultwardenApi) Users(ctx context.Context) (any, error) {
 	if cookie == "" {
 		return nil, ApiError{"login failed"}
 	}
-	return fetchJSON(ctx, joinURL(a.URL, "admin/users"), map[string]string{"Cookie": cookie, "Accept": "application/json"}, nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "admin/users"), map[string]string{"Cookie": cookie, "Accept": "application/json"}, nil, httpclient.TLSOf(a.Verify))
 }
 
 // Version reads the server version ("" if the endpoint is missing).

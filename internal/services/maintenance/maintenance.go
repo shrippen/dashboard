@@ -1,19 +1,16 @@
 // Package maintenance is the operator toolkit behind the CLI: backup and
-// master-key rotation. Ports the same-named halves of
-// app/services/maintenance.py; the import half (YAML/Dashy conf.yml into a
-// personal space) is not ported — it needs app/services/porting.py, which
-// isn't ported either (see the boards/widgetlib snapshot() comments for
-// the same gap). Python's key rotation also re-encrypts a stored OIDC
-// client secret; Go keeps that in settings.OIDCClientSecret (an env var),
-// so there is nothing to rotate there.
+// master-key rotation. The OIDC client secret is an env var
+// (settings.OIDCClientSecret), so key rotation has nothing to do there.
 package maintenance
 
 import (
 	"archive/tar"
 	"compress/gzip"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"time"
@@ -26,13 +23,19 @@ import (
 	"dashboard/internal/repos/users"
 )
 
+// assetDirs are the DATA_DIR folders that exist only on disk: uploaded
+// and cached icons, theme fonts.
+var assetDirs = []string{"icons", "themes"}
+
 // Backup writes a consistent copy of the SQLite database (SQLite's own
-// VACUUM INTO, so it's safe against concurrent writers) as a tar.gz under
-// targetDir. Returns the archive's path.
+// VACUUM INTO, so it's safe against concurrent writers) plus dataDir's
+// asset folders as a tar.gz under targetDir. Returns the archive's path.
 //
-// Python's backup also packs an icons/ directory; Go has no icons service
-// yet (not ported), so this only ever contains dashboard.db.
-func Backup(d *sql.DB, dbPath, targetDir string) (string, error) {
+//	dashboard-20260926-120000.tar.gz
+//	├── dashboard.db
+//	├── icons/…
+//	└── themes/…
+func Backup(d *sql.DB, dbPath, targetDir, dataDir string) (string, error) {
 	if err := os.MkdirAll(targetDir, 0o750); err != nil {
 		return "", err
 	}
@@ -45,13 +48,54 @@ func Backup(d *sql.DB, dbPath, targetDir string) (string, error) {
 	}
 	defer os.Remove(copyPath)
 
-	if err := archiveOne(copyPath, "dashboard.db", archivePath); err != nil {
+	out, err := os.Create(archivePath)
+	if err != nil {
 		return "", err
 	}
-	return archivePath, nil
+	defer out.Close()
+	gz := gzip.NewWriter(out)
+	tw := tar.NewWriter(gz)
+
+	if err := addFile(tw, copyPath, "dashboard.db"); err != nil {
+		return "", err
+	}
+	for _, dir := range assetDirs {
+		if err := addTree(tw, dataDir, dir); err != nil {
+			return "", err
+		}
+	}
+	if err := tw.Close(); err != nil {
+		return "", err
+	}
+	return archivePath, gz.Close()
 }
 
-func archiveOne(sourcePath, arcname, archivePath string) error {
+// addTree archives root/dir recursively as dir/…; a missing dir (or no
+// dataDir) adds nothing.
+func addTree(tw *tar.Writer, root, dir string) error {
+	if root == "" {
+		return nil
+	}
+	base := filepath.Join(root, dir)
+	if _, err := os.Stat(base); errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return filepath.WalkDir(base, func(path string, e fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if e.IsDir() {
+			return nil
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		return addFile(tw, path, filepath.ToSlash(rel))
+	})
+}
+
+func addFile(tw *tar.Writer, sourcePath, arcname string) error {
 	info, err := os.Stat(sourcePath)
 	if err != nil {
 		return err
@@ -62,18 +106,7 @@ func archiveOne(sourcePath, arcname, archivePath string) error {
 	}
 	defer source.Close()
 
-	out, err := os.Create(archivePath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	gz := gzip.NewWriter(out)
-	defer gz.Close()
-	tw := tar.NewWriter(gz)
-	defer tw.Close()
-
-	if err := tw.WriteHeader(&tar.Header{Name: arcname, Size: info.Size(), Mode: 0o640}); err != nil {
+	if err := tw.WriteHeader(&tar.Header{Name: arcname, Size: info.Size(), Mode: 0o640, ModTime: info.ModTime()}); err != nil {
 		return err
 	}
 	_, err = io.Copy(tw, source)

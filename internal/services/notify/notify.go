@@ -321,7 +321,7 @@ func Dispatch(ctx context.Context, d *sql.DB, cfg settings.Settings) (int, error
 		if quiet && muted {
 			continue
 		}
-		n, err := dispatchUser(ctx, d, cfg, u.ID, quiet, repeatHours(u.Prefs))
+		n, err := dispatchUser(ctx, d, cfg, u.ID, windowOf(quiet), repeatHours(u.Prefs))
 		if err != nil {
 			return sent, err
 		}
@@ -340,13 +340,29 @@ func repeatHours(prefs map[string]any) int {
 	return int(n)
 }
 
+// pushWindow is whether a user's quiet hours are on right now.
+type pushWindow int
+
+const (
+	windowOpen  pushWindow = iota // everything may be pushed
+	windowQuiet                   // critical hints only
+)
+
+// windowOf maps quietNow's answer.
+func windowOf(quiet bool) pushWindow {
+	if quiet {
+		return windowQuiet
+	}
+	return windowOpen
+}
+
 // due decides whether a hint is pushed now.
 //
 //	never sent                      → yes (in quiet hours: critical only)
 //	sent, critical, not flapping,
 //	older than repeat hours         → yes, again
-func due(h hints.View, last time.Time, quiet bool, repeat int, now time.Time) bool {
-	if quiet && h.Severity < enums.SeverityCritical {
+func due(h hints.View, last time.Time, window pushWindow, repeat int, now time.Time) bool {
+	if window == windowQuiet && h.Severity < enums.SeverityCritical {
 		return false
 	}
 	if last.IsZero() {
@@ -371,7 +387,7 @@ func subscribed(c *model.NotifyChannel, h hints.View) bool {
 	return false
 }
 
-func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID int64, quiet bool, repeat int) (int, error) {
+func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID int64, window pushWindow, repeat int) (int, error) {
 	who, err := access.Load(d, userID)
 	if err != nil {
 		return 0, err
@@ -407,7 +423,7 @@ func dispatchUser(ctx context.Context, d *sql.DB, cfg settings.Settings, userID 
 			if err != nil {
 				return err
 			}
-			if due(h, last, quiet, repeat, now) {
+			if due(h, last, window, repeat, now) {
 				fresh = append(fresh, h)
 			}
 		}

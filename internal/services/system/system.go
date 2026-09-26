@@ -114,9 +114,6 @@ func SetNetwork(d *sql.DB, who *access.Principal, policy sources.NetworkPolicy, 
 
 // ── Generic settings ──
 
-// Get reads one settings object ({} when unset).
-func Get(q db.Queryer, key string) (map[string]any, error) { return misc.Setting(q, key) }
-
 // Put stores one settings object. Admin only.
 func Put(d *sql.DB, who *access.Principal, key string, value map[string]any, ip string) error {
 	if !who.IsAdmin() {

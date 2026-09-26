@@ -148,7 +148,7 @@ func Forward(ctx context.Context, d *sql.DB, who *access.Principal, mailConnID i
 		title = invoiceOf(reads[uid]).Title()
 	}
 	for _, f := range files {
-		if _, err := outbound.PaperlessUpload(ctx, paperless.URL, token, paperless.VerifyTLS, f.Name, title, f.Content); err != nil {
+		if _, err := outbound.PaperlessUpload(ctx, outbound.Target{URL: paperless.URL, Token: token, VerifyTLS: paperless.VerifyTLS}, f.Name, title, f.Content); err != nil {
 			return 0, err
 		}
 	}

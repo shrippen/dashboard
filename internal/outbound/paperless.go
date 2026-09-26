@@ -8,6 +8,6 @@ import (
 
 // PaperlessUpload hands one file to Paperless for consumption and returns
 // its task id.
-func PaperlessUpload(ctx context.Context, baseURL, token string, verifyTLS bool, filename, title string, content []byte) (string, error) {
-	return services.PaperlessApi{URL: baseURL, Token: token, Verify: verifyTLS}.Upload(ctx, filename, title, content)
+func PaperlessUpload(ctx context.Context, to Target, filename, title string, content []byte) (string, error) {
+	return services.PaperlessApi{URL: to.URL, Token: to.Token, Verify: to.VerifyTLS}.Upload(ctx, filename, title, content)
 }

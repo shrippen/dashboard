@@ -153,7 +153,7 @@ func Book(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64, 
 		return err
 	}
 	amount := min(match.Txn.Amount, match.Invoice.Balance)
-	if err := outbound.NinjaPayment(ctx, b.ninja.URL, token, b.ninja.VerifyTLS, clientKey, match.Invoice.Key, amount,
+	if err := outbound.NinjaPayment(ctx, outbound.Target{URL: b.ninja.URL, Token: token, VerifyTLS: b.ninja.VerifyTLS}, clientKey, match.Invoice.Key, amount,
 		match.Day.Format(time.DateOnly), match.Txn.Name); err != nil {
 		return err
 	}

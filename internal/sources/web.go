@@ -1,5 +1,5 @@
 // Package sources: generic web sources shared by start widgets — status
-// checks, feeds, weather, system stats, public IP. Ports app/sources/web.py.
+// checks, feeds, weather, system stats, public IP.
 package sources
 
 import (

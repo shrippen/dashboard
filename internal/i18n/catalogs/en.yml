@@ -618,6 +618,10 @@ sys:
   swap: Swap
   load: Load (5 min)
 hints:
+  filter: Filter
+  all_levels: All
+  all_sources: All services
+  more_of_rule: '{count} more'
   later: Later
   badge: '{n} open hints – click to show'
   sort_value: 'Sort by money'
@@ -663,6 +667,8 @@ severity:
   warn: Warning
   critical: Critical
 library:
+  search: 'Search: title, type, space'
+  links: Links
   lead: Widgets set up once, placeable any number of times.
   uses: Used
   copy: Take over as copy
@@ -903,6 +909,7 @@ scope:
   read: Read (API)
   embed: Embed
 security:
+  totp_required: 'This instance requires a second factor for admins. Set it up to continue.'
   passkeys: Passkeys
   no_passkeys: No passkeys.
   passkey_add: Add passkey
@@ -2558,3 +2565,86 @@ gallery:
   rows_2: 2 rows
   add_to: 'Add to “{section}”'
   preview_hint: How the tile sits among its neighbours.
+audit_action:
+  billing:
+    draft: 'Invoice draft created'
+    export: 'Accounting exported'
+    payment: 'Payment matched'
+  connection:
+    created: 'Connection created'
+    deleted: 'Connection deleted'
+    hygiene: 'Token care changed'
+    options: 'Connection options changed'
+    secret_changed: 'Credentials changed'
+    updated: 'Connection changed'
+  credential:
+    set: 'Personal credentials set'
+  hass:
+    toggle: 'Home Assistant switched'
+  invite:
+    accepted: 'Invite accepted'
+    created: 'Invite sent'
+    revoked: 'Invite revoked'
+  kimai:
+    create: 'Kimai entry created'
+    start: 'Kimai timer started'
+    stop: 'Kimai timer stopped'
+    switch: 'Kimai timer switched'
+  login:
+    failed: 'Sign-in failed'
+    oidc: 'Signed in via OIDC'
+    passkey: 'Signed in with passkey'
+    password: 'Signed in with password'
+  logout: 'Signed out'
+  mail:
+    read: 'Mail read'
+    to_paperless: 'Mail sent to Paperless'
+  notify:
+    channel_added: 'Notification channel added'
+  oidc:
+    account_created: 'Account created via OIDC'
+    linked: 'OIDC linked'
+    linked_by_email: 'OIDC linked by email'
+    reapplied: 'OIDC roles reapplied'
+    saved: 'OIDC settings saved'
+  passkey:
+    added: 'Passkey added'
+    removed: 'Passkey removed'
+  password:
+    changed: 'Password changed'
+  reset:
+    admin_link: 'Reset link created by admin'
+    done: 'Password reset'
+    requested: 'Password reset requested'
+  settings:
+    dawarich_shared: 'Dawarich sharing changed'
+    iframe: 'Iframe origins changed'
+    network: 'Network settings changed'
+    registration: 'Registration changed'
+    security: 'Security settings changed'
+  setup:
+    admin_created: 'First admin created'
+  share:
+    granted: 'Share granted'
+    revoked: 'Share revoked'
+  space:
+    settings: 'Space settings changed'
+  team:
+    created: 'Team created'
+    deleted: 'Team deleted'
+    member_removed: 'Member removed'
+    member_set: 'Member set'
+  theme:
+    created: 'Theme created'
+  token:
+    created: 'API token created'
+    revoked: 'API token revoked'
+  totp:
+    disabled: 'Second factor turned off'
+    enabled: 'Second factor set up'
+  user:
+    active_set: 'Account (de)activated'
+    breakglass: 'Break-glass access used'
+    deleted: 'User deleted'
+    registered: 'User registered'
+    role_set: 'Role changed'

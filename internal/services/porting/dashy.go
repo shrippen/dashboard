@@ -13,6 +13,7 @@ import (
 	"dashboard/internal/services/spaces"
 	"dashboard/internal/services/themes"
 	"dashboard/internal/services/util"
+	"dashboard/internal/widgets"
 )
 
 // Dashy conf.yml → our import document. Items become link widgets, known
@@ -72,7 +73,7 @@ func DashyToDoc(text string) (map[string]any, *Report, error) {
 	}
 	report := &Report{}
 	appConfig := mapOf(raw["appConfig"])
-	defaultStatus := truthy(appConfig["statusCheck"])
+	defaultStatus := statusOf(truthy(appConfig["statusCheck"]))
 
 	for _, key := range ignoredAppConfig {
 		if _, ok := appConfig[key]; ok {
@@ -201,7 +202,15 @@ func codes(raw string) []any {
 	return out
 }
 
-func dashyItem(entry map[string]any, defaultStatus bool, report *Report) map[string]any {
+// statusOf maps Dashy's statusCheck flag to a link's status mode.
+func statusOf(check bool) widgets.StatusMode {
+	if check {
+		return widgets.StatusHTTP
+	}
+	return widgets.StatusOff
+}
+
+func dashyItem(entry map[string]any, defaultStatus widgets.StatusMode, report *Report) map[string]any {
 	url := str(entry, "url")
 	title := str(entry, "title")
 	if title == "" {
@@ -212,13 +221,9 @@ func dashyItem(entry map[string]any, defaultStatus bool, report *Report) map[str
 		return nil
 	}
 
-	status := defaultStatus
+	statusMode, target := defaultStatus, string(enums.LinkNewTab)
 	if v, ok := entry["statusCheck"].(bool); ok {
-		status = v
-	}
-	statusMode, target := "off", string(enums.LinkNewTab)
-	if status {
-		statusMode = "http"
+		statusMode = statusOf(v)
 	}
 	if str(entry, "target") == string(enums.LinkSameTab) {
 		target = string(enums.LinkSameTab)
@@ -231,7 +236,7 @@ func dashyItem(entry map[string]any, defaultStatus bool, report *Report) map[str
 
 	config := map[string]any{
 		"url": url, "description": str(entry, "description"), "icon": icon, "target": target,
-		"status": statusMode, "status_url": str(entry, "statusCheckUrl"),
+		"status": string(statusMode), "status_url": str(entry, "statusCheckUrl"),
 		"accept": codes(str(entry, "statusCheckAcceptCodes")), "insecure": truthy(entry["statusCheckAllowInsecure"]),
 		"hotkey": str(entry, "hotkey"),
 	}

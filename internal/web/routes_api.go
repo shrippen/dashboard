@@ -137,7 +137,7 @@ func (d Deps) handleEmbedHints(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = d.Page(w, Ctx{Who: who, Locale: who.Locale}, "hints", http.StatusOK, map[string]any{"Hints": found, "Embed": true})
+	_ = d.Page(w, Ctx{Who: who, Locale: who.Locale}, "hints", http.StatusOK, map[string]any{"Groups": groupHints(found), "Embed": true})
 }
 
 func (d Deps) handleEmbedBoard(w http.ResponseWriter, r *http.Request) {

@@ -13,41 +13,6 @@ import (
 
 // ── Cache ──
 
-// Cache returns one cache entry by key, or nil.
-func Cache(q db.Queryer, key string) (*model.CacheEntry, error) {
-	var c model.CacheEntry
-	var fetchedAt string
-	var okAt, data, errText sql.NullString
-
-	err := q.QueryRow(
-		"SELECT key, source, fetched_at, ok_at, data, error FROM cache WHERE key = ?", key,
-	).Scan(&c.Key, &c.Source, &fetchedAt, &okAt, &data, &errText)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	if c.FetchedAt, err = db.ParseTime(fetchedAt); err != nil {
-		return nil, err
-	}
-	if okAt.Valid {
-		t, err := db.ParseTime(okAt.String)
-		if err != nil {
-			return nil, err
-		}
-		c.OkAt = &t
-	}
-	c.Error = errText.String
-	if data.Valid {
-		c.Data = map[string]any{}
-		if err := db.FromJSON(data.String, &c.Data); err != nil {
-			return nil, err
-		}
-	}
-	return &c, nil
-}
-
 // PutCache inserts or replaces one cache entry.
 func PutCache(q db.Queryer, c *model.CacheEntry) error {
 	var dataText any
@@ -311,12 +276,6 @@ func UpdateHint(q db.Queryer, h *model.Hint) error {
 	return err
 }
 
-// RemoveHint deletes a hint.
-func RemoveHint(q db.Queryer, hintID int64) error {
-	_, err := q.Exec("DELETE FROM hints WHERE id = ?", hintID)
-	return err
-}
-
 // Marks returns the hint marks visible to userID (team-wide plus their own)
 // for the given hints.
 func Marks(q db.Queryer, hintIDs []int64, userID int64) ([]*model.HintMark, error) {
@@ -500,19 +459,6 @@ func AddChannel(q db.Queryer, c *model.NotifyChannel) error {
 	}
 	c.ID = id
 	return nil
-}
-
-// UpdateChannel writes back a channel's mutable fields.
-func UpdateChannel(q db.Queryer, c *model.NotifyChannel) error {
-	sources, err := db.ToJSON(orEmptySlice(c.Sources))
-	if err != nil {
-		return err
-	}
-	_, err = q.Exec(
-		"UPDATE notify_channels SET name=?, min_severity=?, enabled=?, sources=? WHERE id=?",
-		c.Name, c.MinSeverity, c.Enabled, sources, c.ID,
-	)
-	return err
 }
 
 // UpdateChannelSecret rewrites a channel's encrypted URL (key rotation

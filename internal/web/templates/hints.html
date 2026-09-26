@@ -21,42 +21,32 @@
         <a href="/spaces/{{.SpaceID}}/settings">{{t "hints.noisy_adjust"}}</a></li>{{end}}</ul>
     </details>{{end}}
     {{end}}
-    <ul class="hints">
-      {{range .Hints}}
-      <li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
-        <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
-        <div class="hint-main">
-          <b>{{.Title}}</b>{{if .Value}} <span class="pill">{{money .Value .Currency}}</span>{{end}}
-          {{if or .Assignee (ne (print .Work) "open") .Flapping}}<p class="hint-tags">
-            {{with .Assignee}}<span class="pill">{{t "hints.assigned_to" "name" .}}</span>{{end}}
-            {{if ne (print .Work) "open"}}<span class="pill" data-state="{{if eq (print .Work) "done"}}ok{{else}}reviewing{{end}}">{{t (print "hints.work_" .Work)}}</span>{{end}}
-            {{if .Flapping}}<span class="pill" data-state="warn" title="{{t "hints.flapping_hint"}}">{{t "hints.flapping"}}</span>{{end}}
-          </p>{{end}}
-          <details><summary>{{t "hints.why"}}</summary><p>{{.Why}}</p>
-            <p class="muted small">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}{{if .Sources}} · {{range $i, $s := .Sources}}{{if $i}}, {{end}}{{$s}}{{end}}{{end}}</p></details>
-          <div class="hint-actions">
-            {{if .ActionURL}}<a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a>{{end}}
-            {{if not $.Embed}}
-            <form method="post" action="/hints/{{.ID}}/ack" class="hint-ack">
-              <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-              <input type="hidden" name="days" value="7">
-              <input name="note" maxlength="500" placeholder="{{t "hints.note_optional"}}" aria-label="{{t "hints.note"}}">
-              <button type="submit" class="ghost">{{t "hints.ack"}}</button>
-              <button type="submit" class="ghost" formaction="/hints/{{.ID}}/snooze">{{t "hints.snooze"}}</button>
-            </form>
-            {{end}}
-          </div>
-          {{if not $.Embed}}
-          <details class="hint-more">
-            <summary>{{t "hints.more"}}</summary>
-            <div hx-get="/hints/{{.ID}}/detail" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"><span class="loading">{{t "widget.loading"}}</span></div>
-          </details>
-          {{end}}
-        </div>
-        {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
-      </li>
-      {{else}}<li class="hint-empty">{{t "hints.none"}}</li>{{end}}
-    </ul>
+    {{if not .Embed}}
+    <nav class="hint-filters" aria-label="{{t "hints.filter"}}">
+      <div class="chips">
+        <a class="chip" href="{{.Filter.Link "level" ""}}"{{if not .Filter.Level}} aria-current="true"{{end}}>{{t "hints.all_levels"}}</a>
+        {{range .Levels}}<a class="chip" data-tier="{{.Key}}" href="{{$.Filter.Link "level" .Key}}"{{if eq .Key $.Filter.Level}} aria-current="true"{{end}}>{{t (print "severity." .Key)}} <span>{{.N}}</span></a>{{end}}
+      </div>
+      {{if gt (len .Sources) 1}}<div class="chips">
+        <a class="chip" href="{{.Filter.Link "source" ""}}"{{if not .Filter.Source}} aria-current="true"{{end}}>{{t "hints.all_sources"}}</a>
+        {{range .Sources}}<a class="chip" href="{{$.Filter.Link "source" .Key}}"{{if eq .Key $.Filter.Source}} aria-current="true"{{end}}>{{t (print "service." .Key)}} <span>{{.N}}</span></a>{{end}}
+      </div>{{end}}
+    </nav>
+    {{end}}
+    {{range .Groups}}
+    <section class="hint-rule" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}">
+      {{if not $.Embed}}<h2 class="hint-group-head"><span class="sq" aria-hidden="true"></span>{{t (print "rule_name." .Rule)}}<span class="hint-group-count">{{.Count}}</span></h2>{{end}}
+      <ul class="hints">
+        {{range .Shown}}{{template "hint_item" dict "H" . "P" $}}{{end}}
+      </ul>
+      {{with .Rest}}
+      <details class="hint-rest">
+        <summary>{{t "hints.more_of_rule" "count" (len .)}}</summary>
+        <ul class="hints">{{range .}}{{template "hint_item" dict "H" . "P" $}}{{end}}</ul>
+      </details>
+      {{end}}
+    </section>
+    {{else}}<ul class="hints"><li class="hint-empty">{{t "hints.none"}}</li></ul>{{end}}
   </main>
 </body>
 </html>
@@ -104,3 +94,39 @@
 {{define "hint_advice"}}
 {{if .Error}}<p class="error">{{t .Error}}</p>{{else}}<p class="advice">{{.Text}}</p><p class="small muted">{{t "assist.caveat"}}</p>{{end}}
 {{end}}
+
+{{/* One hint card; P is the page. */}}
+{{define "hint_item"}}{{$p := .P}}{{with .H}}
+      <li class="hint" data-tier="{{if ge .Severity 30}}red{{else if ge .Severity 20}}yellow{{else}}blue{{end}}" id="hint-{{.ID}}">
+        <span class="hint-level">{{if ge .Severity 30}}{{t "severity.critical"}}{{else if ge .Severity 20}}{{t "severity.warn"}}{{else}}{{t "severity.info"}}{{end}}</span>
+        <div class="hint-main">
+          <div class="hint-head"><b>{{.Title}}</b>{{if .Value}}<span class="pill">{{money .Value .Currency}}</span>{{end}}</div>
+          {{if or .Assignee (ne (print .Work) "open") .Flapping}}<p class="hint-tags">
+            {{with .Assignee}}<span class="pill">{{t "hints.assigned_to" "name" .}}</span>{{end}}
+            {{if ne (print .Work) "open"}}<span class="pill" data-state="{{if eq (print .Work) "done"}}ok{{else}}reviewing{{end}}">{{t (print "hints.work_" .Work)}}</span>{{end}}
+            {{if .Flapping}}<span class="pill" data-state="warn" title="{{t "hints.flapping_hint"}}">{{t "hints.flapping"}}</span>{{end}}
+          </p>{{end}}
+          <details><summary>{{t "hints.why"}}</summary><p>{{.Why}}</p>
+            <p class="muted small">{{.SpaceName}} · {{t "hints.since" "when" (ago .FirstSeen)}}{{if .Sources}} · {{range $i, $s := .Sources}}{{if $i}}, {{end}}{{t (print "service." $s)}}{{end}}{{end}}</p></details>
+          <div class="hint-actions">
+            {{if .ActionURL}}<a href="{{.ActionURL}}" target="_blank" rel="noopener noreferrer">{{if .ActionLabel}}{{.ActionLabel}}{{else}}{{t "action.open"}}{{end}}</a>{{end}}
+            {{if not $p.Embed}}
+            <form method="post" action="/hints/{{.ID}}/ack" class="hint-ack">
+              <input type="hidden" name="{{$p.CSRFField}}" value="{{$p.Ctx.CSRF}}">
+              <input type="hidden" name="days" value="7">
+              <input name="note" maxlength="500" placeholder="{{t "hints.note_optional"}}" aria-label="{{t "hints.note"}}">
+              <button type="submit" class="ghost">{{t "hints.ack"}}</button>
+              <button type="submit" class="ghost" formaction="/hints/{{.ID}}/snooze">{{t "hints.snooze"}}</button>
+            </form>
+            {{end}}
+          </div>
+          {{if not $p.Embed}}
+          <details class="hint-more">
+            <summary>{{t "hints.more"}}</summary>
+            <div hx-get="/hints/{{.ID}}/detail" hx-trigger="toggle from:closest details once" hx-swap="innerHTML"><span class="loading">{{t "widget.loading"}}</span></div>
+          </details>
+          {{end}}
+        </div>
+        {{if .Due}}<span class="hint-due">{{day .Due}}</span>{{end}}
+      </li>
+{{end}}{{end}}

@@ -7,8 +7,7 @@ import (
 
 // Small, forgiving readers for the loosely-typed JSON these APIs return
 // (a field that is usually a number might arrive as a numeric string, a
-// nested object might be a bare id, etc.) — mirrors the Python sources'
-// defensive .get() chains.
+// nested object might be a bare id, etc.).
 
 func asMap(v any) map[string]any {
 	m, _ := v.(map[string]any)

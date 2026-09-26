@@ -46,7 +46,7 @@ func (d Deps) handleOIDCCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	SetSessionCookie(w, token, d.Settings.SecureCookies())
+	d.setSession(w, token)
 	http.Redirect(w, r, safeNext(result.Next), http.StatusSeeOther)
 }
 

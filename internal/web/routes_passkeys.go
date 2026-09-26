@@ -117,6 +117,6 @@ func (d Deps) handlePasskeyLoginFinish(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusUnauthorized, key)
 		return
 	}
-	SetSessionCookie(w, token, d.Settings.SecureCookies())
+	d.setSession(w, token)
 	writeRawJSON(w, http.StatusOK, []byte(`{"redirect":"/"}`))
 }

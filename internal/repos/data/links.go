@@ -65,10 +65,16 @@ type DayStatus struct {
 	MsSum    int
 }
 
+// Check is one status check's outcome.
+type Check struct {
+	Up bool
+	MS int
+}
+
 // RecordStatus adds one check result to today's row.
-func RecordStatus(q db.Queryer, widgetID int64, day string, up bool, ms int) error {
-	ok, fail := 0, 1
-	if up {
+func RecordStatus(q db.Queryer, widgetID int64, day string, check Check) error {
+	ok, fail, ms := 0, 1, check.MS
+	if check.Up {
 		ok, fail = 1, 0
 	}
 	_, err := q.Exec(`INSERT INTO link_status (widget_id, day, ok, fail, ms_sum) VALUES (?,?,?,?,?)

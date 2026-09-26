@@ -244,11 +244,27 @@ func Client(timeout time.Duration) *http.Client {
 	return &http.Client{Timeout: timeout, Transport: guardedTransport{http.DefaultTransport}}
 }
 
+// TLS says whether a request checks the server's certificate.
+type TLS int
+
+const (
+	TLSVerify TLS = iota // check it (the default)
+	TLSSkip              // accept self-signed homelab certificates
+)
+
+// TLSOf maps a connection's "verify TLS" setting.
+func TLSOf(verify bool) TLS {
+	if verify {
+		return TLSVerify
+	}
+	return TLSSkip
+}
+
 // ClientTLS is Client with TLS verification switchable per connection
 // (self-signed homelab certificates).
-func ClientTLS(timeout time.Duration, skipVerify bool) *http.Client {
+func ClientTLS(timeout time.Duration, mode TLS) *http.Client {
 	base := http.DefaultTransport.(*http.Transport).Clone()
-	base.TLSClientConfig = &tls.Config{InsecureSkipVerify: skipVerify} //nolint:gosec // opt-in per connection
+	base.TLSClientConfig = &tls.Config{InsecureSkipVerify: mode == TLSSkip} //nolint:gosec // opt-in per connection
 	return &http.Client{Timeout: timeout, Transport: guardedTransport{base}}
 }
 

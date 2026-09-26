@@ -473,33 +473,6 @@ func ByID(d *sql.DB, connID int64) (*model.Connection, error) {
 	return conn, err
 }
 
-// AllRaw returns every connection, for internal jobs.
-func AllRaw(d *sql.DB) ([]*model.Connection, error) {
-	var out []*model.Connection
-	err := db.WithTx(d, func(tx *sql.Tx) error {
-		var err error
-		out, err = content.AllConnections(tx)
-		return err
-	})
-	return out, err
-}
-
-// CredentialUsers returns the user ids with a personal credential on conn.
-func CredentialUsers(d *sql.DB, connID int64) ([]int64, error) {
-	var out []int64
-	err := db.WithTx(d, func(tx *sql.Tx) error {
-		creds, err := content.Credentials(tx, connID)
-		if err != nil {
-			return err
-		}
-		for _, c := range creds {
-			out = append(out, c.UserID)
-		}
-		return nil
-	})
-	return out, err
-}
-
 func orEmpty(m map[string]any) map[string]any {
 	if m == nil {
 		return map[string]any{}

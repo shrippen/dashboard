@@ -64,9 +64,9 @@ func (d Deps) handleBoardView(w http.ResponseWriter, r *http.Request) {
 // boardMode reads ?edit, ?layout and ?view=compact.
 type boardMode struct{ edit, layer, compact bool }
 
-func modeOf(r *http.Request, canEdit bool) boardMode {
+func modeOf(r *http.Request) boardMode {
 	q := r.URL.Query()
-	return boardMode{edit: q.Has("edit") && canEdit, layer: q.Has("layout"), compact: q.Get("view") == compactView}
+	return boardMode{edit: q.Has("edit"), layer: q.Has("layout"), compact: q.Get("view") == compactView}
 }
 
 // renderBoard shows board {id}. With an embed token the page drops the
@@ -87,7 +87,8 @@ func (d Deps) renderBoard(w http.ResponseWriter, r *http.Request, ctx Ctx, embed
 	if embed {
 		view.CanEdit = false
 	}
-	mode := modeOf(r, view.CanEdit)
+	mode := modeOf(r)
+	mode.edit = mode.edit && view.CanEdit
 	searchEngine := ""
 	if !embed {
 		if profile, err := accounts.GetProfile(d.DB, ctx.Who); err == nil {
@@ -259,6 +260,8 @@ func (d Deps) handleAuthError(w http.ResponseWriter, r *http.Request, err error)
 	switch {
 	case errors.Is(err, ErrTOTPPending):
 		http.Redirect(w, r, "/login/totp", http.StatusSeeOther)
+	case errors.Is(err, ErrTOTPSetup):
+		http.Redirect(w, r, "/me/security?totp_required", http.StatusSeeOther)
 	case errors.Is(err, ErrLoginRequired):
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	case errors.Is(err, ErrCSRFFailed):

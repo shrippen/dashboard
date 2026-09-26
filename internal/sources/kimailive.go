@@ -93,7 +93,7 @@ func (KimaiLiveSource) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	out.WeekMin = out.TodayMin
 	for _, raw := range week {
 		m := asMap(raw)
-		minutes := int(asFloat(m["duration"])) / secondsPerMin
+		minutes := int(round(asFloat(m["duration"]) / secondsPerMin)) // as the Kimai dataset does
 		out.WeekMin += minutes
 
 		begin, end := kimaiTime(asStr(m["begin"])), kimaiTime(asStr(m["end"]))

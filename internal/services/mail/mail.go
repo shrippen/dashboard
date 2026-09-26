@@ -132,9 +132,6 @@ func Render(to string, locale enums.Locale, subject string, paragraphs []string,
 // Send queues a rendered mail.
 func Send(m outbound.Mail) { outbound.Deliver(current(), m) }
 
-// SendNow delivers a rendered mail synchronously (admin test mail).
-func SendNow(m outbound.Mail) error { return outbound.SendMail(current(), m) }
-
 // BaseURL returns the configured external URL (for links in mails).
 func BaseURL() string { return current().BaseURL }
 

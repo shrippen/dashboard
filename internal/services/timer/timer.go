@@ -66,22 +66,23 @@ func Run(ctx context.Context, d *sql.DB, who *access.Principal, placementID int6
 	if err != nil {
 		return err
 	}
+	to := outbound.Target{URL: conn.URL, Token: secret, VerifyTLS: conn.VerifyTLS}
 	stop := func() error {
 		if req.Sheet <= 0 {
 			return ErrNotTimer
 		}
 		if req.Note != "" {
-			if err := outbound.KimaiDescribe(ctx, conn.URL, secret, conn.VerifyTLS, req.Sheet, req.Note); err != nil {
+			if err := outbound.KimaiDescribe(ctx, to, req.Sheet, req.Note); err != nil {
 				return err
 			}
 		}
-		return outbound.KimaiStop(ctx, conn.URL, secret, conn.VerifyTLS, req.Sheet)
+		return outbound.KimaiStop(ctx, to, req.Sheet)
 	}
 	start := func() error {
 		if req.Project <= 0 || req.Activity <= 0 {
 			return ErrNotTimer
 		}
-		return outbound.KimaiStart(ctx, conn.URL, secret, conn.VerifyTLS, req.Project, req.Activity)
+		return outbound.KimaiStart(ctx, to, req.Project, req.Activity)
 	}
 
 	create := func() error {
@@ -93,7 +94,7 @@ func Run(ctx context.Context, d *sql.DB, who *access.Principal, placementID int6
 		if req.Project <= 0 || req.Activity <= 0 {
 			return ErrNotTimer
 		}
-		return outbound.KimaiCreate(ctx, conn.URL, secret, conn.VerifyTLS, req.Project, req.Activity,
+		return outbound.KimaiCreate(ctx, to, req.Project, req.Activity,
 			begin.Format(kimaiTime), end.Format(kimaiTime), req.Note)
 	}
 

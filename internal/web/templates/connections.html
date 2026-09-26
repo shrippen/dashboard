@@ -13,16 +13,16 @@
     <h1>{{t "nav.connections"}}</h1>
     <p><a class="link-btn" href="/connections/new">+ {{t "action.create"}}</a></p>
     <div class="table-wrap"><table class="table">
-      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th>{{t "conn.health"}}</th><th>{{t "conn.token_age"}}</th><th></th><th></th></tr>
+      <tr><th>{{t "field.name"}}</th><th>{{t "field.service"}}</th><th>{{t "field.url"}}</th><th>{{t "conn.health"}}</th><th>{{t "conn.token_age"}}</th><th></th></tr>
       {{range .Connections}}
       <tr>
         <td>{{.Name}}</td>
-        <td>{{.Service}}</td>
-        <td>{{.URL}}</td>
+        <td>{{t (print "service." .Service)}}</td>
+        <td class="small">{{.URL}}</td>
         <td>{{template "conn_health" .Health}}</td>
-        <td>{{if not .SecretAt.IsZero}}{{ago .SecretAt}}{{else}}–{{end}}{{with .SecretExpires}}<br><small class="muted">{{t "conn.expires"}} {{day .}}</small>{{end}}</td>
-        <td><a class="link-btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a></td>
-        <td><a class="link-btn" href="/shares/connection/{{.ID}}">{{t "share.title"}}</a></td>
+        <td class="nowrap small">{{if not .SecretAt.IsZero}}{{ago .SecretAt}}{{else}}–{{end}}{{with .SecretExpires}}<br><small class="muted">{{t "conn.expires"}} {{day .}}</small>{{end}}</td>
+        <td class="row-actions nowrap"><a class="link-btn" href="/connections/{{.ID}}/edit">{{t "action.edit"}}</a>
+          <a class="link-btn" href="/shares/connection/{{.ID}}">{{t "share.title"}}</a></td>
       </tr>
       {{end}}
     </table></div>

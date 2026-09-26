@@ -36,10 +36,9 @@ type Settings struct {
 	AnthropicAPIKey string
 
 	// AppriseAPIURL points at an existing Apprise API instance (e.g.
-	// https://apprise.example.lan). Go has no in-process Apprise library
-	// like Python does, so notify sends an HTTP POST to /notify there
-	// with the user's own apprise:// URLs in the request body, instead
-	// of bundling a second Apprise container.
+	// https://apprise.example.lan). There is no Apprise library for Go, so
+	// notify sends an HTTP POST to /notify there with the user's own
+	// apprise:// URLs in the request body.
 	AppriseAPIURL string
 
 	OIDCIssuer       string

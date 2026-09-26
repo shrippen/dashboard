@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"dashboard/internal/drivers/httpclient"
 	"dashboard/internal/enums"
 )
 
@@ -34,6 +35,9 @@ type Ctx struct {
 	Params    map[string]any
 	Events    []Pushed // push sources only, oldest first
 }
+
+// TLS is the connection's certificate check for driver calls.
+func (c Ctx) TLS() httpclient.TLS { return httpclient.TLSOf(c.VerifyTLS) }
 
 // Pushed is one event a service sent to the dashboard's webhook.
 type Pushed struct {
@@ -71,15 +75,6 @@ func Get(key string) (Source, error) {
 		return nil, fmt.Errorf("sources: unknown source %q", key)
 	}
 	return s, nil
-}
-
-// All returns every registered source, for the analysis job's fan-out.
-func All() map[string]Source {
-	out := make(map[string]Source, len(registry))
-	for k, v := range registry {
-		out[k] = v
-	}
-	return out
 }
 
 // dataAliases are services whose dataset source has another key.

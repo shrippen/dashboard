@@ -106,7 +106,7 @@ func (SpeedtestData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	}
 
 	// v1 API with token; the old open endpoint reports Mbit/s directly.
-	api := services.BearerApi(sctx.URL, sctx.Secret, sctx.VerifyTLS)
+	api := services.BearerApi(sctx.URL, sctx.Secret, sctx.TLS())
 	if sctx.Secret != "" {
 		body, err := api.Get(ctx, "api/v1/results/latest", nil)
 		if err != nil {
@@ -162,7 +162,7 @@ func (GrocyData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	api := services.HeaderApi(sctx.URL, "GROCY-API-KEY", secret, sctx.VerifyTLS)
+	api := services.HeaderApi(sctx.URL, "GROCY-API-KEY", secret, sctx.TLS())
 	stock, err := api.Get(ctx, "api/stock/volatile", url.Values{"due_soon_days": {grocyDueDays}})
 	if err != nil {
 		return nil, fetchError(err)
@@ -234,7 +234,7 @@ func (DWDData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return nil, newSourceError("options lat/lon missing")
 	}
 	params := url.Values{"lat": {fmtCoord(lat)}, "lon": {fmtCoord(lon)}}
-	body, err := services.BearerApi(sctx.URL, "", sctx.VerifyTLS).Get(ctx, "alerts", params)
+	body, err := services.BearerApi(sctx.URL, "", sctx.TLS()).Get(ctx, "alerts", params)
 	if err != nil {
 		return nil, fetchError(err)
 	}
@@ -280,7 +280,7 @@ func (GitHubData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if isDemo(sctx) {
 		return DemoGitHub(time.Now().UTC()), nil
 	}
-	api := services.BearerApi(sctx.URL, sctx.Secret, sctx.VerifyTLS)
+	api := services.BearerApi(sctx.URL, sctx.Secret, sctx.TLS())
 	data := &GitHubDataset{URL: sctx.URL}
 	for _, raw := range asList(sctx.Options["repos"]) {
 		repo, err := loadRepo(ctx, api, asStr(raw))
@@ -371,7 +371,7 @@ func (TibberData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	body, err := services.BearerApi(sctx.URL, secret, sctx.VerifyTLS).Post(ctx, "", map[string]any{"query": tibberQuery})
+	body, err := services.BearerApi(sctx.URL, secret, sctx.TLS()).Post(ctx, "", map[string]any{"query": tibberQuery})
 	if err != nil {
 		return nil, fetchError(err)
 	}

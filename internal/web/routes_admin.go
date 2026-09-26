@@ -1,6 +1,7 @@
 package web
 
 import (
+	"cmp"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -169,6 +170,12 @@ func (d Deps) handleAdminInviteDelete(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// auditRow is an audit entry with its user's name ("" = system).
+type auditRow struct {
+	*model.AuditEntry
+	Who string
+}
+
 func (d Deps) handleAdminAudit(w http.ResponseWriter, r *http.Request) {
 	ctx, err := d.Require(r)
 	if err != nil {
@@ -180,5 +187,22 @@ func (d Deps) handleAdminAudit(w http.ResponseWriter, r *http.Request) {
 		d.pageError(w, ctx, err)
 		return
 	}
-	_ = d.Page(w, ctx, "admin_audit", http.StatusOK, map[string]any{"Entries": entries})
+	users, err := admin.Users(d.DB, ctx.Who)
+	if err != nil {
+		d.pageError(w, ctx, err)
+		return
+	}
+	names := map[int64]string{}
+	for _, u := range users {
+		names[u.ID] = u.Name
+	}
+	rows := make([]auditRow, 0, len(entries))
+	for _, e := range entries {
+		row := auditRow{AuditEntry: e}
+		if e.UserID != nil {
+			row.Who = cmp.Or(names[*e.UserID], "#"+strconv.FormatInt(*e.UserID, 10))
+		}
+		rows = append(rows, row)
+	}
+	_ = d.Page(w, ctx, "admin_audit", http.StatusOK, map[string]any{"Entries": rows})
 }

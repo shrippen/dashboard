@@ -40,7 +40,7 @@ type PiholeSession struct {
 // Open logs in to Pi-hole v6; on a v5 system (no /api/auth) it returns a
 // session that uses the legacy API instead.
 func (a PiholeApi) Open(ctx context.Context) (*PiholeSession, error) {
-	body, err := postJSON(ctx, joinURL(a.URL, "api/auth"), nil, map[string]string{"password": a.Password}, !a.Verify)
+	body, err := postJSON(ctx, joinURL(a.URL, "api/auth"), nil, map[string]string{"password": a.Password}, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		if strings.Contains(err.Error(), "HTTP 404") {
 			return &PiholeSession{api: a}, nil
@@ -60,13 +60,13 @@ func (s *PiholeSession) Legacy() bool { return s.sid == "" }
 
 // Get reads one v6 endpoint, e.g. "stats/summary".
 func (s *PiholeSession) Get(ctx context.Context, path string) (any, error) {
-	return fetchJSON(ctx, joinURL(s.api.URL, "api/"+path), map[string]string{"X-FTL-SID": s.sid}, nil, !s.api.Verify)
+	return fetchJSON(ctx, joinURL(s.api.URL, "api/"+path), map[string]string{"X-FTL-SID": s.sid}, nil, httpclient.TLSOf(s.api.Verify))
 }
 
 // Summary reads the v5 summary.
 func (s *PiholeSession) Summary(ctx context.Context) (any, error) {
 	query := url.Values{"summaryRaw": {""}, "auth": {s.api.Password}}
-	return fetchJSON(ctx, joinURL(s.api.URL, "admin/api.php"), nil, query, !s.api.Verify)
+	return fetchJSON(ctx, joinURL(s.api.URL, "admin/api.php"), nil, query, httpclient.TLSOf(s.api.Verify))
 }
 
 // Close ends a v6 session: Pi-hole allows only a few at once.
@@ -91,7 +91,7 @@ type AdGuardApi struct {
 
 // Get reads /control/<path>.
 func (a AdGuardApi) Get(ctx context.Context, path string) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "control/"+path), basicAuth(a.Secret), nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "control/"+path), basicAuth(a.Secret), nil, httpclient.TLSOf(a.Verify))
 }
 
 func basicAuth(secret string) map[string]string {
@@ -116,7 +116,7 @@ func (a NextcloudApi) ServerInfo(ctx context.Context) (any, error) {
 		headers["NC-Token"] = a.Secret
 	}
 	query := url.Values{"format": {"json"}, "skipApps": {"false"}, "skipUpdate": {"false"}}
-	body, err := fetchJSON(ctx, joinURL(a.URL, "ocs/v2.php/apps/serverinfo/api/v1/info"), headers, query, !a.Verify)
+	body, err := fetchJSON(ctx, joinURL(a.URL, "ocs/v2.php/apps/serverinfo/api/v1/info"), headers, query, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (a SabnzbdApi) Mode(ctx context.Context, mode string, params url.Values) (a
 	query.Set("mode", mode)
 	query.Set("output", "json")
 	query.Set("apikey", a.Key)
-	return fetchJSON(ctx, joinURL(a.URL, "api"), nil, query, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api"), nil, query, httpclient.TLSOf(a.Verify))
 }
 
 // ── Gluetun ──
@@ -154,7 +154,7 @@ func (a GluetunApi) Get(ctx context.Context, path string) (any, error) {
 	if a.Key != "" {
 		headers = map[string]string{"X-API-Key": a.Key}
 	}
-	return fetchJSON(ctx, joinURL(a.URL, "v1/"+path), headers, nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "v1/"+path), headers, nil, httpclient.TLSOf(a.Verify))
 }
 
 // ── DNSBL ──

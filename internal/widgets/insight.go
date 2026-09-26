@@ -159,12 +159,15 @@ type TrendConfig struct {
 	Days   int
 }
 
+// MaxTrendDays is the longest span a trend shows; older daily points go.
+const MaxTrendDays = 730
+
 func decodeTrend(raw map[string]any) any {
 	metric := TrendMetric(asString(raw["metric"]))
 	if metric == "" {
 		metric = TrendOpenAmount
 	}
-	return TrendConfig{Metric: metric, Days: clampInt(asInt(raw["days"], 90), 7, 730)}
+	return TrendConfig{Metric: metric, Days: clampInt(asInt(raw["days"], 90), 7, MaxTrendDays)}
 }
 
 // DeadlinesConfig is the "deadlines" widget's config.
@@ -507,9 +510,8 @@ type budgetRow struct {
 	Pct  float64
 }
 
-// kimaiBudgets mirrors the Python insight.py "_budgets" helper: money
-// budgets use their running total, monthly time budgets are recomputed
-// from this month's timesheets.
+// kimaiBudgets: money budgets use their running total, monthly time
+// budgets are recomputed from this month's timesheets.
 func kimaiBudgets(data *sources.KimaiDataset, today time.Time) []budgetRow {
 	var rows []budgetRow
 	for _, p := range data.Projects {

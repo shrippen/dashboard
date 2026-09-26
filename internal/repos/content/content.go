@@ -454,16 +454,6 @@ func WidgetUses(q db.Queryer, widgetID int64) (int, error) {
 	return n, err
 }
 
-// WidgetsOnConnection returns every widget attached to a connection.
-func WidgetsOnConnection(q db.Queryer, connID int64) ([]*model.Widget, error) {
-	rows, err := q.Query("SELECT "+widgetCols+" FROM widgets WHERE connection_id = ?", connID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	return scanWidgets(rows)
-}
-
 // AddWidget inserts a new widget.
 func AddWidget(q db.Queryer, w *model.Widget) error {
 	config, err := db.ToJSON(orEmpty(w.Config))

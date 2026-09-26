@@ -3,8 +3,8 @@
 //
 //	t("hint.kimai.timer_long", enums.LocaleEN, map[string]any{"hours": 11}) -> "Timer running for 11 h"
 //
-// Locale-aware formatting here is a deliberately simplified stand-in for
-// Python's Babel: correct for de/en, not full CLDR.
+// Locale-aware formatting is deliberately simple: correct for de/en, not
+// full CLDR.
 package i18n
 
 import (
@@ -187,11 +187,6 @@ func Num(value float64, locale enums.Locale, digits int) string {
 	return groupedDecimal(value, locale, digits)
 }
 
-// Pct formats a ratio (0..1) as a percentage.
-func Pct(value float64, locale enums.Locale) string {
-	return groupedDecimal(value*100, locale, 0) + "%"
-}
-
 // groupedDecimal formats value with thousands grouping and the locale's
 // decimal separator (",", "." for de; "." for en).
 func groupedDecimal(value float64, locale enums.Locale, digits int) string {
@@ -279,17 +274,6 @@ var germanWeekdays = map[time.Weekday]string{
 	time.Friday: "Fr", time.Saturday: "Sa", time.Sunday: "So",
 }
 
-// Moment formats a timestamp as a short localized date+time, or "" for nil.
-func Moment(value *time.Time, locale enums.Locale) string {
-	if value == nil {
-		return ""
-	}
-	if locale == enums.LocaleDE {
-		return value.Format("02.01.06 15:04")
-	}
-	return value.Format("1/2/06 3:04 PM")
-}
-
 // Ago formats the (signed) duration between value and now as a relative
 // phrase, e.g. "in 3 days" / "vor 3 Tagen".
 func Ago(value *time.Time, locale enums.Locale) string {
@@ -297,12 +281,14 @@ func Ago(value *time.Time, locale enums.Locale) string {
 		return ""
 	}
 	d := time.Until(*value)
-	future := d > 0
-	if !future {
+	when := past
+	if d > 0 {
+		when = future
+	} else {
 		d = -d
 	}
 	unit, n := roundUnit(d)
-	return relativePhrase(n, unit, future, locale)
+	return relativePhrase(n, unit, when, locale)
 }
 
 func roundUnit(d time.Duration) (string, int) {
@@ -331,13 +317,21 @@ var germanUnits = map[string][2]string{
 	"month": {"Monat", "Monaten"}, "year": {"Jahr", "Jahren"},
 }
 
-func relativePhrase(n int, unit string, future bool, locale enums.Locale) string {
+// tense says whether a relative phrase points back ("vor") or ahead ("in").
+type tense int
+
+const (
+	past tense = iota
+	future
+)
+
+func relativePhrase(n int, unit string, when tense, locale enums.Locale) string {
 	if locale == enums.LocaleDE {
 		word := germanUnits[unit][0]
 		if n != 1 {
 			word = germanUnits[unit][1]
 		}
-		if future {
+		if when == future {
 			return fmt.Sprintf("in %d %s", n, word)
 		}
 		return fmt.Sprintf("vor %d %s", n, word)
@@ -347,7 +341,7 @@ func relativePhrase(n int, unit string, future bool, locale enums.Locale) string
 	if n != 1 {
 		word += "s"
 	}
-	if future {
+	if when == future {
 		return fmt.Sprintf("in %d %s", n, word)
 	}
 	return fmt.Sprintf("%d %s ago", n, word)

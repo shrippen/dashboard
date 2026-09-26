@@ -39,7 +39,7 @@ func addUser(t *testing.T, q db.Queryer, email string, role enums.InstanceRole) 
 	return u
 }
 
-// TestPersonalSpacesAreIsolated mirrors Python's test_personal_spaces_are_isolated:
+// TestPersonalSpacesAreIsolated:
 // another user has no right at all on someone else's personal space.
 func TestPersonalSpacesAreIsolated(t *testing.T) {
 	q := openTestDB(t)
@@ -63,8 +63,7 @@ func TestPersonalSpacesAreIsolated(t *testing.T) {
 	}
 }
 
-// TestAdminCannotReadPersonalContent mirrors Python's
-// test_admin_cannot_read_personal_content: an instance admin gets NONE on
+// TestAdminCannotReadPersonalContent: an instance admin gets NONE on
 // another user's personal space, never MANAGE.
 func TestAdminCannotReadPersonalContent(t *testing.T) {
 	q := openTestDB(t)
@@ -96,7 +95,7 @@ func addTeamSpace(t *testing.T, q db.Queryer, name string) (*model.Team, *model.
 	return team, sp
 }
 
-// TestTeamRoles mirrors Python's test_team_roles: viewers cannot edit or
+// TestTeamRoles: viewers cannot edit or
 // create, editors and owners can edit.
 func TestTeamRoles(t *testing.T) {
 	q := openTestDB(t)
@@ -128,7 +127,7 @@ func TestTeamRoles(t *testing.T) {
 	}
 }
 
-// TestMinTeamRoleHidesWidget mirrors Python's test_min_team_role_hides_widget:
+// TestMinTeamRoleHidesWidget:
 // a resource restricted to owners is invisible to a viewer even though the
 // viewer has USE on the team space itself.
 func TestMinTeamRoleHidesWidget(t *testing.T) {
@@ -152,7 +151,7 @@ func TestMinTeamRoleHidesWidget(t *testing.T) {
 	}
 }
 
-// TestShareGrantsAccessAcrossSpaces mirrors Python's test_share_board_with_user:
+// TestShareGrantsAccessAcrossSpaces:
 // an explicit VIEW share lets a user see a board in someone else's personal
 // space, but not edit it.
 func TestShareGrantsAccessAcrossSpaces(t *testing.T) {

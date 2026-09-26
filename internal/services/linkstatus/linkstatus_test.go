@@ -53,7 +53,7 @@ func TestCheckBarsAndDownDays(t *testing.T) {
 
 	// Three earlier days without a single success, then today.
 	for i := 1; i <= 3; i++ {
-		if err := data.RecordStatus(d, dead, today.AddDate(0, 0, -i).Format("2006-01-02"), false, 0); err != nil {
+		if err := data.RecordStatus(d, dead, today.AddDate(0, 0, -i).Format("2006-01-02"), data.Check{}); err != nil {
 			t.Fatal(err)
 		}
 	}

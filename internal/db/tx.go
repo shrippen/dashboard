@@ -14,7 +14,7 @@ type Queryer interface {
 }
 
 // WithTx runs fn as one unit of work: commit on success, roll back on error
-// or panic. Mirrors the Python app's session_scope.
+// or panic.
 func WithTx(d *sql.DB, fn func(*sql.Tx) error) error {
 	tx, err := d.Begin()
 	if err != nil {

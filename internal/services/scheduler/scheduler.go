@@ -6,8 +6,6 @@
 //	every 5 min   digest mails
 //	hourly        housekeeping (sessions, cache, hints, audit)
 //	daily         retry icons that failed to download
-//
-// Ports app/services/scheduler.py + app/services/jobs.py.
 package scheduler
 
 import (

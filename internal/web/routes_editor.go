@@ -1,11 +1,18 @@
 package web
 
 import (
-	"dashboard/internal/model"
+	"cmp"
 	"net/http"
+	"slices"
 	"strconv"
 
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+
+	"dashboard/internal/model"
+
 	"dashboard/internal/enums"
+	"dashboard/internal/i18n"
 	"dashboard/internal/services/access"
 	"dashboard/internal/services/boards"
 	"dashboard/internal/services/connections"
@@ -288,7 +295,38 @@ func (d Deps) handleWidgetLibrary(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = d.Page(w, ctx, "widgets", http.StatusOK, map[string]any{"Widgets": lib, "Spaces": access.EditableSpaces(ctx.Who)})
+	_ = d.Page(w, ctx, "widgets", http.StatusOK, map[string]any{"Groups": libraryGroups(ctx, lib), "Count": len(lib),
+		"Spaces": access.EditableSpaces(ctx.Who)})
+}
+
+// libraryGroup is one topic of the library ("" = links), A–Z by name.
+type libraryGroup struct {
+	Topic widgets.Topic
+	Tiles []galleryTile
+}
+
+// libraryGroups sorts the library like the gallery: by topic, links last.
+func libraryGroups(ctx Ctx, lib []widgetlib.Ref) []libraryGroup {
+	sorter := collate.New(language.Make(string(ctx.Locale)), collate.IgnoreCase)
+	byTopic := map[widgets.Topic][]galleryTile{}
+	for _, ref := range lib {
+		tile := galleryTile{Ref: ref, Name: cmp.Or(ref.Title, i18n.T("wtype."+ref.Type+".name", ctx.Locale, nil))}
+		topic := widgets.TopicOf(ref.Type)
+		if ref.Type == linkType {
+			topic = ""
+		}
+		byTopic[topic] = append(byTopic[topic], tile)
+	}
+	var out []libraryGroup
+	for _, topic := range append(slices.Clone(widgets.Topics), "") {
+		tiles := byTopic[topic]
+		if len(tiles) == 0 {
+			continue
+		}
+		slices.SortFunc(tiles, func(a, b galleryTile) int { return sorter.CompareString(a.Name, b.Name) })
+		out = append(out, libraryGroup{Topic: topic, Tiles: tiles})
+	}
+	return out
 }
 
 // widgetTarget is where a new widget goes after saving: a board section

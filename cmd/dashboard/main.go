@@ -55,7 +55,7 @@ func main() {
 	}
 	defer database.Close()
 
-	if handled, code := runCLI(os.Args, database, cfg.DBPath()); handled {
+	if handled, code := runCLI(os.Args, database, cfg.DBPath(), cfg.DataDir); handled {
 		os.Exit(code)
 	}
 

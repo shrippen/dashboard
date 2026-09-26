@@ -3,7 +3,6 @@
 package web
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -37,6 +36,12 @@ var ErrLoginRequired = errors.New("web: login required")
 
 // ErrTOTPPending means the session exists but still needs its second factor.
 var ErrTOTPPending = errors.New("web: totp pending")
+
+// ErrTOTPSetup means TOTP is forced for admins and this one hasn't set it up.
+var ErrTOTPSetup = errors.New("web: totp setup required")
+
+// totpSetupPaths stay reachable while TOTP setup is required.
+var totpSetupPaths = []string{"/me/security", "/logout"}
 
 // ErrCSRFFailed means the request's CSRF token was missing or wrong.
 var ErrCSRFFailed = errors.New("web: csrf failed")
@@ -115,7 +120,28 @@ func (d Deps) Require(r *http.Request) (Ctx, error) {
 	if err := d.checkCSRF(r, ctx.CSRF); err != nil {
 		return Ctx{}, err
 	}
+	if err := d.checkTOTPSetup(r, ctx); err != nil {
+		return Ctx{}, err
+	}
 	return ctx, nil
+}
+
+// checkTOTPSetup keeps an admin who must still set up TOTP on the
+// security page.
+func (d Deps) checkTOTPSetup(r *http.Request, ctx Ctx) error {
+	for _, p := range totpSetupPaths {
+		if strings.HasPrefix(r.URL.Path, p) {
+			return nil
+		}
+	}
+	required, err := auth.TOTPRequired(d.DB, ctx.Who, ctx.Method)
+	if err != nil {
+		return err
+	}
+	if required {
+		return ErrTOTPSetup
+	}
+	return nil
 }
 
 func (d Deps) checkCSRF(r *http.Request, expected string) error {
@@ -161,39 +187,18 @@ func (d Deps) tokenPrincipal(r *http.Request, scope enums.TokenScope) (*access.P
 	return auth.PrincipalForToken(d.DB, secret, scope)
 }
 
-// IsHTMX reports whether the request came from an HTMX element.
-func IsHTMX(r *http.Request) bool { return r.Header.Get("HX-Request") == "true" }
-
-// SetSessionCookie writes the session cookie for token.
-func SetSessionCookie(w http.ResponseWriter, token string, secure bool) {
+// setSession writes the session cookie for token.
+func (d Deps) setSession(w http.ResponseWriter, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name: CookieName, Value: token, Path: "/", HttpOnly: true,
-		Secure: secure, SameSite: http.SameSiteLaxMode,
+		Secure: d.Settings.SecureCookies(), SameSite: http.SameSiteLaxMode,
 	})
 }
 
-// ClearSessionCookie removes the session cookie.
-func ClearSessionCookie(w http.ResponseWriter, secure bool) {
+// clearSession removes the session cookie.
+func (d Deps) clearSession(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name: CookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true,
-		Secure: secure, SameSite: http.SameSiteLaxMode,
+		Secure: d.Settings.SecureCookies(), SameSite: http.SameSiteLaxMode,
 	})
-}
-
-// ctxKey is an unexported type so context values never collide across
-// packages.
-type ctxKey int
-
-const requestCtxKey ctxKey = 0
-
-// WithCtx stores a Ctx on the request context, for handlers reached via
-// middleware to retrieve with FromRequest.
-func WithCtx(r *http.Request, c Ctx) *http.Request {
-	return r.WithContext(context.WithValue(r.Context(), requestCtxKey, c))
-}
-
-// FromRequest retrieves a Ctx stored by WithCtx, if any.
-func FromRequest(r *http.Request) (Ctx, bool) {
-	c, ok := r.Context().Value(requestCtxKey).(Ctx)
-	return c, ok
 }

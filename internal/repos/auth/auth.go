@@ -298,16 +298,6 @@ func OpenInvites(q db.Queryer) ([]*model.Invite, error) {
 	return out, rows.Err()
 }
 
-// Invite returns one invite by id, or nil.
-func Invite(q db.Queryer, inviteID int64) (*model.Invite, error) {
-	row := q.QueryRow("SELECT "+inviteCols+" FROM invites WHERE id = ?", inviteID)
-	inv, err := scanInvite(row)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	return inv, err
-}
-
 // AddInvite inserts a new invite.
 func AddInvite(q db.Queryer, inv *model.Invite) error {
 	teams, err := db.ToJSON(orEmptySlice(inv.Teams))

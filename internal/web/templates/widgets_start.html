@@ -31,7 +31,7 @@
 {{define "widgets/clock"}}
 <div class="clock-tile">
   {{range .Frag.Config.Timezones}}
-    <div class="clock-zone"><span class="muted small">{{.}}</span> <strong>{{clockNow . $.Frag.Config.Seconds}}</strong>
+    <div class="clock-zone"><span class="muted small">{{.}}</span> <strong>{{if $.Frag.Config.Seconds}}{{clockNowSec .}}{{else}}{{clockNow .}}{{end}}</strong>
       {{if $.Frag.Config.Date}}<span class="muted small">{{clockDate .}}</span>{{end}}
     </div>
   {{end}}
@@ -141,7 +141,7 @@
 {{$v := .Frag.View}}
 <div class="greet">
   <div class="greet-hello">
-    <p class="clock greet-when" data-tz="{{$v.Timezone}}" data-locale="{{.Ctx.Locale}}"><span class="clock-date">{{clockDate $v.Timezone}}</span> · <span class="clock-time">{{clockNow $v.Timezone false}}</span></p>
+    <p class="clock greet-when" data-tz="{{$v.Timezone}}" data-locale="{{.Ctx.Locale}}"><span class="clock-date">{{clockDate $v.Timezone}}</span> · <span class="clock-time">{{clockNow $v.Timezone}}</span></p>
     <h2 class="greet-title">{{t (print "greeting." $v.Part)}},<br>{{$v.Name}}.</h2>
     <p class="greet-sub">{{if $v.OpenHints}}<a href="/hints">{{t "greeting.open" "n" $v.OpenHints}}</a>{{else}}{{t "greeting.calm"}}{{end}}</p>
   </div>

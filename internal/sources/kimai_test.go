@@ -110,3 +110,27 @@ func TestKimaiLiveParsesKimaiTimestamps(t *testing.T) {
 		t.Fatalf("active: %+v", live.Active)
 	}
 }
+
+// The week total rounds each entry like the Kimai dataset does (to the
+// nearest minute), so Kimai Lite and the week tile show the same sum.
+func TestKimaiLiveWeekRoundsLikeDataset(t *testing.T) {
+	begin := time.Now().Format("2006-01-02T15:04:05-0700")
+	sheet := `{"begin": "` + begin + `", "end": "` + begin + `", "duration": 100}`
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/timesheets/active", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
+	mux.HandleFunc("/api/timesheets/recent", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`[]`)) })
+	mux.HandleFunc("/api/timesheets", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Total-Pages", "1")
+		w.Write([]byte(`[` + sheet + `,` + sheet + `,` + sheet + `]`))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	out, err := sources.KimaiLiveSource{}.Fetch(context.Background(), sources.Ctx{URL: srv.URL, Secret: "tok", VerifyTLS: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if live := out.(*sources.KimaiLive); live.WeekMin != 6 {
+		t.Fatalf("week: %d minutes, want 6", live.WeekMin)
+	}
+}

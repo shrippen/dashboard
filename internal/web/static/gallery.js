@@ -1,4 +1,4 @@
-/* Gallery: filter cards by search text and "only my connections",
+/* Gallery and library: filter cards by search text and "only my connections",
    open the reuse dialog of a set-up tile. */
 (function () {
   "use strict";
@@ -8,11 +8,12 @@
   // filter hides cards that don't match, then groups left empty.
   function filter() {
     var q = d.getElementById("gal-q").value.trim().toLowerCase();
-    var mine = d.getElementById("gal-mine").checked;
+    var box = d.getElementById("gal-mine");
+    var mine = box ? box.checked : false;
     var any = false;
     [].forEach.call(d.querySelectorAll(".gal-group"), function (group) {
       var shown = 0;
-      [].forEach.call(group.querySelectorAll(".gal-card"), function (card) {
+      [].forEach.call(group.querySelectorAll("[data-q]"), function (card) {
         var hit = (!q || (card.getAttribute("data-q") || "").toLowerCase().indexOf(q) >= 0) &&
           (!mine || card.hasAttribute("data-mine"));
         card.hidden = !hit;
@@ -30,7 +31,10 @@
       return;
     }
     q.addEventListener("input", filter);
-    d.getElementById("gal-mine").addEventListener("change", filter);
+    var box = d.getElementById("gal-mine");
+    if (box) {
+      box.addEventListener("change", filter);
+    }
 
     d.addEventListener("click", function (e) {
       var opener = e.target.closest("[data-open]");

@@ -45,7 +45,7 @@ func Toggle(ctx context.Context, d *sql.DB, who *access.Principal, placementID i
 	if err != nil {
 		return err
 	}
-	if err := outbound.HassToggle(ctx, conn.URL, secret, conn.VerifyTLS, entityID); err != nil {
+	if err := outbound.HassToggle(ctx, outbound.Target{URL: conn.URL, Token: secret, VerifyTLS: conn.VerifyTLS}, entityID); err != nil {
 		return err
 	}
 	svcdata.Forget(conn.ID)

@@ -7,8 +7,7 @@
 //
 // The widgets service runs the queries (with access checks and caching)
 // and hands the results to the template. Config validation happens per
-// type via Decode, which mirrors Python's pydantic model_validate: known
-// fields only, sane zero-value defaults.
+// type via Decode: known fields only, sane zero-value defaults.
 package widgets
 
 import (
@@ -23,7 +22,7 @@ type ConnUse string
 const (
 	// ConnNone is "" (Go's zero value for a string type), not "none": a
 	// Query built without setting Conn must default to "no connection
-	// needed", the same as Python's Query(conn=ConnUse.NONE) default.
+	// needed".
 	ConnNone   ConnUse = ""
 	ConnWidget ConnUse = "widget"
 	ConnInfo   ConnUse = "info"

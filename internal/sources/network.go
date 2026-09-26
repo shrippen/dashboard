@@ -57,7 +57,7 @@ func (TailscaleData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	api := services.BearerApi(sctx.URL, secret, sctx.VerifyTLS)
+	api := services.BearerApi(sctx.URL, secret, sctx.TLS())
 	now := time.Now().UTC()
 
 	u, _ := url.Parse(sctx.URL)
@@ -152,12 +152,12 @@ func (GatewayData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	var data *GatewayDataset
 	switch kind {
 	case gatewayPfSense:
-		data, err = pfSense(ctx, services.HeaderApi(sctx.URL, "X-API-Key", secret, sctx.VerifyTLS))
+		data, err = pfSense(ctx, services.HeaderApi(sctx.URL, "X-API-Key", secret, sctx.TLS()))
 	case gatewayUniFi:
-		data, err = uniFi(ctx, services.HeaderApi(sctx.URL, "X-API-KEY", secret, sctx.VerifyTLS))
+		data, err = uniFi(ctx, services.HeaderApi(sctx.URL, "X-API-KEY", secret, sctx.TLS()))
 	default:
 		kind = gatewayOPNsense
-		data, err = opnSense(ctx, services.BasicApi(sctx.URL, secret, sctx.VerifyTLS))
+		data, err = opnSense(ctx, services.BasicApi(sctx.URL, secret, sctx.TLS()))
 	}
 	if err != nil {
 		return nil, fetchError(err)

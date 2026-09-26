@@ -15,6 +15,7 @@ import (
 	"dashboard/internal/metrics"
 	data "dashboard/internal/repos/data"
 	"dashboard/internal/services/history"
+	"dashboard/internal/widgets"
 )
 
 func ownerID(owner *int64) int64 {
@@ -62,5 +63,12 @@ func recordHistory(d *sql.DB, sc *scope, now time.Time) (*metrics.History, error
 func PruneHistory(d *sql.DB, now time.Time) error {
 	return db.WithTx(d, func(tx *sql.Tx) error {
 		return data.PruneHistory(tx, now.AddDate(0, 0, -history.SeriesDays).Format(time.DateOnly), now.AddDate(-1, 0, 0))
+	})
+}
+
+// PrunePoints drops daily key figures older than the longest trend span.
+func PrunePoints(d *sql.DB, now time.Time) error {
+	return db.WithTx(d, func(tx *sql.Tx) error {
+		return data.PrunePoints(tx, now.AddDate(0, 0, -widgets.MaxTrendDays).Format(time.DateOnly))
 	})
 }

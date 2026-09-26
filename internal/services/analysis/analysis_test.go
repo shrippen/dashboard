@@ -271,3 +271,26 @@ func TestRunAllFetchesInParallel(t *testing.T) {
 		t.Fatalf("peak concurrent fetches = %d, want 2", peak)
 	}
 }
+
+// Daily key figures older than the longest trend span are dropped.
+func TestPrunePointsKeepsTrendSpan(t *testing.T) {
+	d := openTestDB(t)
+	now := time.Date(2026, 9, 26, 12, 0, 0, 0, time.UTC)
+	old, kept := now.AddDate(-3, 0, 0).Format(time.DateOnly), now.AddDate(-1, 0, 0).Format(time.DateOnly)
+	for _, day := range []string{old, kept} {
+		if err := data.PutPoint(d, "1:0", "open_amount", day, 1); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := analysis.PrunePoints(d, now); err != nil {
+		t.Fatal(err)
+	}
+	points, err := data.Points(d, "1:0", "open_amount", "2000-01-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(points) != 1 || points[0].Day != kept {
+		t.Fatalf("points: %+v", points)
+	}
+}

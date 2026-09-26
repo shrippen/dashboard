@@ -14,12 +14,12 @@ type NinjaLine struct {
 
 // NinjaDraftInvoice creates an invoice draft for a client (hashed v5 id)
 // and returns the new invoice's number.
-func NinjaDraftInvoice(ctx context.Context, baseURL, token string, verifyTLS bool, clientKey string, lines []NinjaLine) (string, error) {
+func NinjaDraftInvoice(ctx context.Context, to Target, clientKey string, lines []NinjaLine) (string, error) {
 	items := make([]map[string]any, 0, len(lines))
 	for _, l := range lines {
 		items = append(items, map[string]any{"product_key": l.Product, "notes": l.Notes, "quantity": l.Quantity, "cost": l.Cost})
 	}
-	body, err := services.NinjaApi{URL: baseURL, Token: token, Verify: verifyTLS}.Post(ctx, "invoices",
+	body, err := services.NinjaApi{URL: to.URL, Token: to.Token, Verify: to.VerifyTLS}.Post(ctx, "invoices",
 		map[string]any{"client_id": clientKey, "line_items": items})
 	if err != nil {
 		return "", err
@@ -31,8 +31,8 @@ func NinjaDraftInvoice(ctx context.Context, baseURL, token string, verifyTLS boo
 }
 
 // NinjaPayment records a payment of one invoice (hashed v5 ids).
-func NinjaPayment(ctx context.Context, baseURL, token string, verifyTLS bool, clientKey, invoiceKey string, amount float64, day, reference string) error {
-	_, err := services.NinjaApi{URL: baseURL, Token: token, Verify: verifyTLS}.Post(ctx, "payments", map[string]any{
+func NinjaPayment(ctx context.Context, to Target, clientKey, invoiceKey string, amount float64, day, reference string) error {
+	_, err := services.NinjaApi{URL: to.URL, Token: to.Token, Verify: to.VerifyTLS}.Post(ctx, "payments", map[string]any{
 		"client_id": clientKey, "amount": amount, "date": day, "transaction_reference": reference,
 		"invoices": []map[string]any{{"invoice_id": invoiceKey, "amount": amount}},
 	})

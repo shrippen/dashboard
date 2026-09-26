@@ -18,12 +18,12 @@ import (
 
 // Send runs one write against /api/<path> of Kimai.
 func (a KimaiApi) Send(ctx context.Context, method, path string, body any) (any, error) {
-	return sendJSON(ctx, method, a.URL+"/api/"+path, a.headers(), body, !a.Verify)
+	return sendJSON(ctx, method, a.URL+"/api/"+path, a.headers(), body, httpclient.TLSOf(a.Verify))
 }
 
 // Post creates one entity in Invoice Ninja, e.g. ("invoices", {...}).
 func (a NinjaApi) Post(ctx context.Context, entity string, body any) (any, error) {
-	return sendJSON(ctx, http.MethodPost, a.URL+"/api/v1/"+entity, a.headers(), body, !a.Verify)
+	return sendJSON(ctx, http.MethodPost, a.URL+"/api/v1/"+entity, a.headers(), body, httpclient.TLSOf(a.Verify))
 }
 
 // Upload sends one file to Paperless' consume endpoint; Paperless answers

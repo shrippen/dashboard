@@ -4,7 +4,7 @@
 
 {{define "widget-slot-state"}}
   {{if .Pending}}
-    <p class="slot-note">{{t "widget.pending"}}</p>
+    <p class="slot-note" data-pending>{{t "widget.pending"}}</p>
   {{else if .MissingCredential}}
     <p class="slot-note"><a href="/me/credentials">{{t "widget.setup_access" "name" .MissingCredential}}</a></p>
   {{else if and .Error (not .Data)}}

@@ -227,8 +227,8 @@ type Invite struct {
 	UsedAt    *time.Time
 }
 
-// InviteTeam is one team the invitee joins on acceptance (JSON shape kept
-// from the Python version: {"team": name, "role": role}).
+// InviteTeam is one team the invitee joins on acceptance, stored as
+// {"team": name, "role": role}.
 type InviteTeam struct {
 	Team string         `json:"team"`
 	Role enums.TeamRole `json:"role"`

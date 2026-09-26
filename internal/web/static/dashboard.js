@@ -549,7 +549,31 @@
     window.addEventListener("offline", function () { note.hidden = false; });
   }
 
+  // Tiles without stored data yet ask again shortly: the first fetch is
+  // already running in the background.
+  var RETRY_MS = 15000;
+
+  function retryPending(root) {
+    [].forEach.call(root.querySelectorAll("[data-pending]"), function (note) {
+      var body = note.closest(".card-body[hx-get]");
+      if (!body || body.hasAttribute("data-retrying") || typeof htmx === "undefined") {
+        return;
+      }
+      body.setAttribute("data-retrying", "");
+      window.setTimeout(function () {
+        body.removeAttribute("data-retrying");
+        htmx.trigger(body, "retry");
+      }, RETRY_MS);
+    });
+  }
+
+  function setupRetry() {
+    retryPending(d);
+    d.body.addEventListener("htmx:afterSwap", function (e) { retryPending(e.target); });
+  }
+
   d.addEventListener("DOMContentLoaded", function () {
+    setupRetry();
     setupAutosubmit();
     setupMenus();
     setupHintPop();

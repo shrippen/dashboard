@@ -73,6 +73,7 @@ input, select, textarea {
   font-size: .88rem;
   font-family: var(--font-sans);
 }
+input[type=checkbox], input[type=radio] { width: auto; flex: none; margin: 0; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--yellow); outline-offset: 1px; }
 textarea { min-height: 8rem; font-family: var(--font-mono); resize: vertical; }
 button {
@@ -458,6 +459,23 @@ button.ghost:hover, .link-btn:hover { color: var(--orange); border-color: var(--
 .hint-go { font-family: var(--font-heading); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; background: var(--yellow); color: var(--bg-void); padding: .25rem .6rem; text-decoration: none; }
 .hint-go:hover { background: var(--fg0); }
 .hint-actions button.ghost { margin: 0; padding: .2rem .55rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--fg2); }
+.hint-head { display: flex; flex-wrap: wrap; gap: .3rem .6rem; align-items: baseline; }
+.hint-head b { margin: 0; }
+.hint-filters { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0 1.4rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip { display: inline-flex; gap: .4rem; align-items: baseline; padding: .3rem .65rem; border: 1px solid var(--bg2); color: var(--fg1);
+  text-decoration: none; font-family: var(--font-mono); font-size: .74rem; }
+.chip span { color: var(--fg3); }
+.chip:hover { border-color: var(--fg3); }
+.chip[aria-current="true"] { border-color: var(--yellow); color: var(--fg0); background: var(--bg-panel); }
+.chip[data-tier="critical"] span { color: var(--danger-text); }
+.chip[data-tier="warn"] span { color: var(--warn-text); }
+.hint-rule { margin-bottom: 1.2rem; }
+.hint-rule .hint-group-head { font-size: 1rem; margin-bottom: .5rem; }
+.hint-rule[data-tier="red"] .sq { background: var(--red); }
+.hint-rule[data-tier="yellow"] .sq { background: var(--yellow); }
+.hint-rest > summary { cursor: pointer; margin: .4rem 0; font-family: var(--font-mono); font-size: .74rem; color: var(--blue); }
+.hint-rest > .hints { margin-top: .35rem; }
 .hint-empty { color: var(--fg2); font-size: .85rem; list-style: none; margin: 0; }
 .hint-all { margin: .3rem 0 0; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; }
 .hint-pop { position: fixed; inset: auto; margin: 0; width: min(360px, calc(100vw - 16px)); max-height: 60vh; overflow: auto;
@@ -649,6 +667,9 @@ main .cm-s-default .cm-qualifier, main .cm-s-default .cm-builtin { color: var(--
 main .cm-s-default .cm-error { color: var(--danger-text); }
 .inline-details { display: inline-block; }
 .inline-details summary { cursor: pointer; color: var(--blue); display: inline; }
+.nowrap { white-space: nowrap; }
+.row-actions.nowrap { flex-wrap: nowrap; }
+main > * + h2 { margin-top: 1.8rem; }
 .row-actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
 .row-actions form { margin: 0; }
 label.check { display: flex; gap: .5rem; align-items: center; }
@@ -675,7 +696,7 @@ main.gallery { max-width: 90rem; display: grid; grid-template-columns: 12rem min
 .gal-tools { display: flex; flex-wrap: wrap; gap: .6rem 1.2rem; align-items: center; margin-top: .4rem; }
 .gal-tools input[type=search] { flex: 1 1 18rem; max-width: 32rem; }
 .gal-tools label.check { margin: 0; }
-.gal-tools label.check input { width: auto; }
+main > .gal-tools { margin: 1rem 0 1.4rem; }
 .gal-group { margin-bottom: 2rem; scroll-margin-top: 1rem; }
 .gal-group > h2 { font-size: 1.15rem; padding-bottom: .4rem; margin-bottom: .8rem; border-bottom: 1px solid var(--bg2); }
 .gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; }
@@ -793,7 +814,8 @@ main.gallery { max-width: 90rem; display: grid; grid-template-columns: 12rem min
 .sq[data-tier="orange"] { background: var(--orange); }
 .legend-list { list-style: none; margin: .6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; font-size: .8rem; color: var(--fg2); }
 .legend-list li { display: flex; align-items: center; gap: .5rem; }
-.legend-list b { margin-left: auto; font-family: var(--font-mono); font-weight: 500; color: var(--fg0); }
+.legend-list b { margin-left: auto; font-family: var(--font-mono); font-weight: 500; color: var(--fg0); white-space: nowrap; }
+.legend-list li > small { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .strip-lg { height: 1rem; margin-bottom: .2rem; }
 .meters .progress-bar { height: 8px; border: 0; }
 

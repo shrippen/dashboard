@@ -45,7 +45,8 @@ func mustParse() *template.Template {
 		"tier":        tier,
 		"eqID":        func(a *int64, b int64) bool { return a != nil && *a == b },
 		"weatherKind": weatherKind,
-		"clockNow":    clockNow,
+		"clockNow":    func(tz string) string { return clockNow(tz, clockMinutes) },
+		"clockNowSec": func(tz string) string { return clockNow(tz, clockSeconds) },
 		"dict":        dict,
 		"monogram":    monogram,
 		"deref":       func(p *enums.TeamRole) enums.TeamRole { return *p },
@@ -111,16 +112,19 @@ func tier(ratio float64) string {
 
 // clockNow formats the current time in an IANA timezone ("" or unknown ->
 // server-local). Locale-independent (24h HH:MM[:SS]), unlike clockDate.
-func clockNow(tz string, seconds bool) string {
+func clockNow(tz, layout string) string {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		loc = time.Local
 	}
-	if seconds {
-		return time.Now().In(loc).Format("15:04:05")
-	}
-	return time.Now().In(loc).Format("15:04")
+	return time.Now().In(loc).Format(layout)
 }
+
+// Clock layouts: with or without seconds.
+const (
+	clockMinutes = "15:04"
+	clockSeconds = "15:04:05"
+)
 
 func clockDate(tz string, locale enums.Locale) string {
 	loc, err := time.LoadLocation(tz)

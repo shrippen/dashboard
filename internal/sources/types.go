@@ -1,9 +1,8 @@
 package sources
 
 // Normalized datasets: what widgets, metrics and rules actually consume,
-// after each service's raw API shape is flattened here. Typed structs
-// (rather than the Python sources' raw dicts) so the metrics/rules layer
-// gets compile-time field checks.
+// after each service's raw API shape is flattened here. Typed structs, so
+// the metrics/rules layer gets compile-time field checks.
 
 // ── Kimai ──
 

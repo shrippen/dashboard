@@ -27,12 +27,12 @@ func joinURL(base, path string) string {
 }
 
 // postJSON sends body as JSON and decodes the JSON answer.
-func postJSON(ctx context.Context, rawURL string, headers map[string]string, body any, skipVerify bool) (any, error) {
-	return sendJSON(ctx, http.MethodPost, rawURL, headers, body, skipVerify)
+func postJSON(ctx context.Context, rawURL string, headers map[string]string, body any, mode httpclient.TLS) (any, error) {
+	return sendJSON(ctx, http.MethodPost, rawURL, headers, body, mode)
 }
 
 // sendJSON sends body as JSON with any method; nil body sends none.
-func sendJSON(ctx context.Context, method, rawURL string, headers map[string]string, body any, skipVerify bool) (any, error) {
+func sendJSON(ctx context.Context, method, rawURL string, headers map[string]string, body any, mode httpclient.TLS) (any, error) {
 	raw, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func sendJSON(ctx context.Context, method, rawURL string, headers map[string]str
 	if body == nil {
 		raw = nil
 	}
-	resp, err := httpclient.Request(ctx, method, rawURL, httpclient.Options{Headers: all, Body: raw, SkipVerify: skipVerify})
+	resp, err := httpclient.Request(ctx, method, rawURL, httpclient.Options{Headers: all, Body: raw, SkipVerify: mode == httpclient.TLSSkip})
 	if err != nil {
 		return nil, ApiError{err.Error()}
 	}
@@ -73,7 +73,7 @@ type ScrutinyApi struct {
 
 // Summary returns /api/summary.
 func (a ScrutinyApi) Summary(ctx context.Context) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/summary"), nil, nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/summary"), nil, nil, httpclient.TLSOf(a.Verify))
 }
 
 // ── Immich ──
@@ -86,7 +86,7 @@ type ImmichApi struct {
 
 // Get performs one GET against /api/<path>.
 func (a ImmichApi) Get(ctx context.Context, path string) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/"+path), map[string]string{"x-api-key": a.Key, "Accept": "application/json"}, nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/"+path), map[string]string{"x-api-key": a.Key, "Accept": "application/json"}, nil, httpclient.TLSOf(a.Verify))
 }
 
 // ── Umami ──
@@ -104,7 +104,7 @@ func (a UmamiApi) headers(ctx context.Context) (map[string]string, error) {
 	if !login {
 		return map[string]string{"x-umami-api-key": a.Secret, "Accept": "application/json"}, nil
 	}
-	body, err := postJSON(ctx, joinURL(a.URL, "api/auth/login"), nil, map[string]string{"username": user, "password": pass}, !a.Verify)
+	body, err := postJSON(ctx, joinURL(a.URL, "api/auth/login"), nil, map[string]string{"username": user, "password": pass}, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (a UmamiApi) Open(ctx context.Context) (UmamiSession, error) {
 
 // Get performs one GET against /api/<path>.
 func (s UmamiSession) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	return fetchJSON(ctx, joinURL(s.api.URL, "api/"+path), s.headers, params, !s.api.Verify)
+	return fetchJSON(ctx, joinURL(s.api.URL, "api/"+path), s.headers, params, httpclient.TLSOf(s.api.Verify))
 }
 
 // ── FreshRSS (Google Reader API) ──
@@ -162,7 +162,7 @@ func (a FreshRSSApi) Open(ctx context.Context) (map[string]string, error) {
 
 // Get performs one GET against /api/greader.php/reader/api/0/<path>.
 func (a FreshRSSApi) Get(ctx context.Context, auth map[string]string, path string) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, greaderBase+"reader/api/0/"+path), auth, url.Values{"output": {"json"}}, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, greaderBase+"reader/api/0/"+path), auth, url.Values{"output": {"json"}}, httpclient.TLSOf(a.Verify))
 }
 
 // ── Gitea ──
@@ -175,7 +175,7 @@ type GiteaApi struct {
 
 // Get performs one GET against /api/v1/<path>.
 func (a GiteaApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "token " + a.Token, "Accept": "application/json"}, params, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "token " + a.Token, "Accept": "application/json"}, params, httpclient.TLSOf(a.Verify))
 }
 
 // ── Borg Backup Server ──
@@ -188,7 +188,7 @@ type BorgApi struct {
 
 // Get performs one GET against /api/v1/<path>.
 func (a BorgApi) Get(ctx context.Context, path string) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, nil, httpclient.TLSOf(a.Verify))
 }
 
 // ── Home Assistant ──
@@ -206,13 +206,13 @@ func (a HassApi) headers() map[string]string {
 
 // States returns every entity state (/api/states).
 func (a HassApi) States(ctx context.Context) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/states"), a.headers(), nil, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/states"), a.headers(), nil, httpclient.TLSOf(a.Verify))
 }
 
 // Call runs a service on one entity, e.g. ("switch", "toggle", "switch.fan").
 func (a HassApi) Call(ctx context.Context, domain, service, entityID string) error {
 	path := "api/services/" + url.PathEscape(domain) + "/" + url.PathEscape(service)
-	_, err := postJSON(ctx, joinURL(a.URL, path), a.headers(), map[string]string{"entity_id": entityID}, !a.Verify)
+	_, err := postJSON(ctx, joinURL(a.URL, path), a.headers(), map[string]string{"entity_id": entityID}, httpclient.TLSOf(a.Verify))
 	return err
 }
 
@@ -226,7 +226,7 @@ type SureApi struct {
 
 // Get performs one GET against /api/v1/<path>.
 func (a SureApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"X-Api-Key": a.Key, "Accept": "application/json"}, params, !a.Verify)
+	return fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"X-Api-Key": a.Key, "Accept": "application/json"}, params, httpclient.TLSOf(a.Verify))
 }
 
 // ── Linkwarden ──
@@ -239,7 +239,7 @@ type LinkwardenApi struct {
 
 // Get performs one GET against /api/v1/<path> and returns its "response".
 func (a LinkwardenApi) Get(ctx context.Context, path string, params url.Values) (any, error) {
-	body, err := fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, params, !a.Verify)
+	body, err := fetchJSON(ctx, joinURL(a.URL, "api/v1/"+path), map[string]string{"Authorization": "Bearer " + a.Token, "Accept": "application/json"}, params, httpclient.TLSOf(a.Verify))
 	if err != nil {
 		return nil, err
 	}

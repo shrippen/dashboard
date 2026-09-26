@@ -20,7 +20,7 @@ const cliUsage = `usage:
 
 // runCLI handles the operator subcommands (backup, rotate-key); ok=false
 // means argv wasn't one of them, so main should start the server instead.
-func runCLI(argv []string, database *sql.DB, dbPath string) (ok bool, exitCode int) {
+func runCLI(argv []string, database *sql.DB, dbPath, dataDir string) (ok bool, exitCode int) {
 	if len(argv) < 2 {
 		return false, 0
 	}
@@ -31,7 +31,7 @@ func runCLI(argv []string, database *sql.DB, dbPath string) (ok bool, exitCode i
 			fmt.Fprintln(os.Stderr, cliUsage)
 			return true, 2
 		}
-		archive, err := maintenance.Backup(database, dbPath, argv[2])
+		archive, err := maintenance.Backup(database, dbPath, argv[2], dataDir)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "backup:", err)
 			return true, 1

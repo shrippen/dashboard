@@ -90,7 +90,7 @@ func (d Deps) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SetSessionCookie(w, result.Token, d.Settings.SecureCookies())
+	d.setSession(w, result.Token)
 
 	if result.Step == auth.StepTOTP {
 		http.Redirect(w, r, "/login/totp", http.StatusSeeOther)
@@ -154,7 +154,7 @@ func (d Deps) handleLogout(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	ClearSessionCookie(w, d.Settings.SecureCookies())
+	d.clearSession(w)
 	// Drops the offline copies of boards along with the session.
 	w.Header().Set("Clear-Site-Data", `"cache", "storage"`)
 	http.Redirect(w, r, target, http.StatusSeeOther)

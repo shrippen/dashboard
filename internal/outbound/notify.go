@@ -1,9 +1,8 @@
 // Package outbound sends notifications through the user's own Apprise API
 // instance (https://github.com/caronc/apprise-api), reached over HTTP.
 //
-// Unlike Python, which links the apprise library in-process, Go has no
-// equivalent library: this calls the existing instance's stateless
-// POST /notify endpoint instead of bundling a second Apprise container.
+// There is no Apprise library for Go: this calls an Apprise API
+// instance's stateless POST /notify endpoint.
 package outbound
 
 import (

@@ -61,9 +61,9 @@ func (MediaServerData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	}
 	var data *MediaServerDataset
 	if asStr(sctx.Options["kind"]) == mediaPlex {
-		data, err = plex(ctx, services.HeaderApi(sctx.URL, "X-Plex-Token", secret, sctx.VerifyTLS))
+		data, err = plex(ctx, services.HeaderApi(sctx.URL, "X-Plex-Token", secret, sctx.TLS()))
 	} else {
-		data, err = jellyfin(ctx, services.HeaderApi(sctx.URL, "X-Emby-Token", secret, sctx.VerifyTLS))
+		data, err = jellyfin(ctx, services.HeaderApi(sctx.URL, "X-Emby-Token", secret, sctx.TLS()))
 	}
 	if err != nil {
 		return nil, fetchError(err)
@@ -177,7 +177,7 @@ func (ArrData) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := loadArr(ctx, services.HeaderApi(sctx.URL, "X-Api-Key", secret, sctx.VerifyTLS), time.Now().UTC())
+	data, err := loadArr(ctx, services.HeaderApi(sctx.URL, "X-Api-Key", secret, sctx.TLS()), time.Now().UTC())
 	if err != nil {
 		return nil, fetchError(err)
 	}

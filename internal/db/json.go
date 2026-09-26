@@ -23,18 +23,6 @@ func NullTimeStr(t *time.Time) any {
 	return TimeStr(*t)
 }
 
-// ScanTime parses a nullable TEXT timestamp scanned into ns (via sql.NullString).
-func ScanTime(ns *string) (*time.Time, error) {
-	if ns == nil {
-		return nil, nil
-	}
-	t, err := ParseTime(*ns)
-	if err != nil {
-		return nil, err
-	}
-	return &t, nil
-}
-
 // ToJSON marshals v for storage in a TEXT column. A nil map/slice becomes
 // "{}" or "[]" via the zero-value default passed by the caller.
 func ToJSON(v any) (string, error) {

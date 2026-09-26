@@ -34,7 +34,7 @@ func TestBackupProducesReadableArchive(t *testing.T) {
 	d, path := openTestDB(t)
 	target := t.TempDir()
 
-	archive, err := maintenance.Backup(d, path, target)
+	archive, err := maintenance.Backup(d, path, target, "")
 	if err != nil {
 		t.Fatalf("backup: %v", err)
 	}
@@ -113,5 +113,49 @@ func TestRotateKeyReEncryptsConnectionSecret(t *testing.T) {
 	defer reopened.Close()
 	if _, err := content.Connection(reopened, conn.ID); err != nil {
 		t.Fatalf("connection after rekey: %v", err)
+	}
+}
+
+// The archive carries uploaded icons and theme files next to the
+// database: they only exist on disk and are gone otherwise.
+func TestBackupIncludesAssets(t *testing.T) {
+	d, path := openTestDB(t)
+	dataDir := t.TempDir()
+	for _, f := range []string{"icons/ab/icon.png", "themes/7/Inter-600.woff2"} {
+		p := filepath.Join(dataDir, f)
+		if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte("x"), 0o640); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	archive, err := maintenance.Backup(d, path, t.TempDir(), dataDir)
+	if err != nil {
+		t.Fatalf("backup: %v", err)
+	}
+	f, err := os.Open(archive)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := map[string]bool{}
+	tr := tar.NewReader(gz)
+	for {
+		hdr, err := tr.Next()
+		if err != nil {
+			break
+		}
+		names[hdr.Name] = true
+	}
+	for _, want := range []string{"dashboard.db", "icons/ab/icon.png", "themes/7/Inter-600.woff2"} {
+		if !names[want] {
+			t.Errorf("missing %s in %v", want, names)
+		}
 	}
 }
