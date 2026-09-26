@@ -46,6 +46,9 @@ func (GlancesHistorySource) Fetch(ctx context.Context, sctx Ctx) (any, error) {
 		return nil, newSourceError("unknown metric %s", metric)
 	}
 	points := int(asFloat(sctx.Params["points"]))
+	if isDemo(sctx) {
+		return DemoGlancesHistory(time.Now(), metric, points), nil
+	}
 	api := services.GlancesApi{URL: sctx.URL, Token: sctx.Secret, Verify: sctx.VerifyTLS, Version: int(asFloat(sctx.Options["api_version"]))}
 	body, err := api.Get(ctx, target[0]+"/"+target[1]+"/history/"+strconv.Itoa(points))
 	if err != nil {

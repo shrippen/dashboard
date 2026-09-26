@@ -441,9 +441,9 @@ func TestConnectionsCreateEditDelete(t *testing.T) {
 	}
 }
 
-// placeTarget finds, via the board's edit mode and the library picker,
-// where to place the widget titled title: board path, section id, board
-// version and widget id.
+// placeTarget finds, via the board's edit mode and the gallery, where to
+// place the widget titled title: board path, section id, board version
+// and widget id.
 func placeTarget(t *testing.T, srv *httptest.Server, client *http.Client, title string) (string, string, string, string) {
 	t.Helper()
 	resp := getFollowingRedirect(t, srv, client, "/")
@@ -451,16 +451,16 @@ func placeTarget(t *testing.T, srv *httptest.Server, client *http.Client, title 
 	boardURL := resp.Request.URL.Path
 
 	board := mustGet(t, srv, client, boardURL+"?edit")
-	pick := regexp.MustCompile(`/sections/(\d+)/pick\?board_id=\d+&(?:amp;)?version=(\d+)`).FindSubmatch(board)
-	if pick == nil {
-		t.Fatalf("no library link in edit mode:\n%s", board)
+	add := regexp.MustCompile(`/widgets/new\?space=\d+&(?:amp;)?section=(\d+)&(?:amp;)?board=\d+&(?:amp;)?version=(\d+)`).FindSubmatch(board)
+	if add == nil {
+		t.Fatalf("no add link in edit mode:\n%s", board)
 	}
-	picker := mustGet(t, srv, client, "/sections/"+string(pick[1])+"/pick")
-	widget := regexp.MustCompile(`<td>` + regexp.QuoteMeta(title) + `</td>[\s\S]*?name="widget_id" value="(\d+)"`).FindSubmatch(picker)
+	gallery := mustGet(t, srv, client, strings.ReplaceAll(string(add[0]), "&amp;", "&"))
+	widget := regexp.MustCompile(`<b>` + regexp.QuoteMeta(title) + `</b>[\s\S]*?name="widget_id" value="(\d+)"`).FindSubmatch(gallery)
 	if widget == nil {
-		t.Fatalf("expected %q in the library picker:\n%s", title, picker)
+		t.Fatalf("expected %q in the gallery:\n%s", title, gallery)
 	}
-	return boardURL, string(pick[1]), string(pick[2]), string(widget[1])
+	return boardURL, string(add[1]), string(add[2]), string(widget[1])
 }
 
 // TestEditorCreateWidgetPlaceUnplace drives the editor flow end to end:

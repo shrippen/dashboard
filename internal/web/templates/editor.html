@@ -88,34 +88,116 @@
 {{if .Place}}<input type="hidden" name="version" value="{{.Version}}">{{end}}
 {{end}}
 
-{{define "widget_types"}}
+{{/* One page to add a tile: place a set-up one again or set up a new
+     one. Previews load when a card scrolls into view. */}}
+{{define "widget_gallery"}}
 <!doctype html>
 <html lang="{{.Ctx.Locale}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "edit.new_widget"}} · dashboard</title>
+  <title>{{t "gallery.title"}} · dashboard</title>
   {{template "style" .}}
+  {{template "htmx" .}}
+  <script src="/static/gallery.js" defer></script>
 </head>
 <body>
   {{template "header" .}}
-  <main>
-    <h1>{{t "edit.new_widget"}}</h1>
-    <p class="muted">{{t "widget.choose_type"}}</p>
-    {{range $cat := .Categories}}
-    <h2>{{t (print "category." $cat)}}</h2>
-    <div class="type-grid">
-      {{range $.Types}}{{if eq .Category $cat}}
-      <a class="type-card" href="/widgets/new?type={{.Key}}&space={{$.Target.SpaceID}}{{if $.Target.Place}}&section={{$.Target.SectionID}}&board={{$.Target.BoardID}}&version={{$.Target.Version}}{{end}}">
-        <b>{{t (print "wtype." .Key ".name")}}</b><small>{{t (print "wtype." .Key ".desc")}}</small>
-      </a>
-      {{end}}{{end}}
+  <main class="gallery">
+    <nav class="gal-nav" aria-label="{{t "gallery.topics"}}">
+      {{if .Tiles}}<a href="#set">{{t "gallery.existing"}}<span>{{len .Tiles}}</span></a>{{end}}
+      {{if .Links}}<a href="#set-links">{{t "gallery.existing_links"}}<span>{{len .Links}}</span></a>{{end}}
+      {{range .Topics}}<a href="#topic-{{.Topic}}">{{t (print "topic." .Topic)}}<span>{{len .Cards}}</span></a>{{end}}
+    </nav>
+
+    <div class="gal-main">
+      <header class="gal-head">
+        {{if .Dest.Section}}<span class="label">{{t "gallery.into"}} {{.Dest.Board}} › {{.Dest.Section}}</span>{{end}}
+        <h1>{{t "gallery.title"}}</h1>
+        <p class="muted">{{if .Reuse}}{{t "gallery.lead_both"}}{{else}}{{t "gallery.lead"}}{{end}}</p>
+        <div class="gal-tools">
+          <input type="search" id="gal-q" placeholder="{{t "gallery.search"}}" aria-label="{{t "gallery.search"}}">
+          <label class="check"><input type="checkbox" id="gal-mine"> {{t "gallery.mine"}}</label>
+        </div>
+      </header>
+
+      {{if .Tiles}}
+      <section id="set" class="gal-group" aria-labelledby="set-h">
+        <h2 id="set-h">{{t "gallery.existing"}}</h2>
+        <div class="gal-grid">
+        {{range .Tiles}}{{template "gal_tile" dict "T" . "P" $}}{{end}}
+        </div>
+      </section>
+      {{end}}
+
+      {{range .Topics}}
+      <section id="topic-{{.Topic}}" class="gal-group" aria-labelledby="topic-{{.Topic}}-h">
+        <h2 id="topic-{{.Topic}}-h">{{t (print "topic." .Topic)}}</h2>
+        <div class="gal-grid">
+        {{range .Cards}}
+          {{$svc := ""}}{{with .Kind.Service}}{{$svc = t (print "service." .)}}{{end}}
+          <article class="gal-card" data-q="{{.Name}} {{$svc}} {{.Desc}}"{{if or .ConnID (not .Kind.Service)}} data-mine{{end}}>
+            <div class="gal-preview" aria-hidden="true"><div class="gal-thumb" hx-get="/widget-sample/{{.Kind.Key}}?space={{$.Target.SpaceID}}{{with .ConnID}}&conn={{.}}{{end}}" hx-trigger="intersect once"></div></div>
+            <div class="gal-meta">
+              {{if .Kind.Service}}<span class="label">{{$svc}}
+                {{if .ConnID}}<span class="pill" data-state="ok">{{t "gallery.live"}}</span>{{else}}<span class="pill" data-state="warn">{{t "gallery.sample"}}</span>{{end}}</span>{{end}}
+              <b>{{.Name}}</b>
+              <small class="muted">{{.Desc}}</small>
+            </div>
+            <div class="gal-actions">
+              <a class="link-btn" href="/widgets/new?type={{.Kind.Key}}&space={{$.Target.SpaceID}}{{if $.Target.Place}}&section={{$.Target.SectionID}}&board={{$.Target.BoardID}}&version={{$.Target.Version}}{{end}}">{{t "gallery.setup"}}</a>
+              {{if and .Kind.Service (not .ConnID)}}<a class="small" href="/connections/new?service={{.Kind.Service}}">{{t "gallery.connect"}}</a>{{end}}
+            </div>
+          </article>
+        {{end}}
+        </div>
+      </section>
+      {{end}}
+      {{if .Links}}
+      <section id="set-links" class="gal-group gal-compact" aria-labelledby="set-links-h">
+        <h2 id="set-links-h">{{t "gallery.existing_links"}}</h2>
+        <div class="gal-grid">
+        {{range .Links}}{{template "gal_tile" dict "T" . "P" $}}{{end}}
+        </div>
+      </section>
+      {{end}}
+      <p class="gal-none muted" hidden>{{t "gallery.none"}}</p>
     </div>
-    {{end}}
   </main>
 </body>
 </html>
 {{end}}
+
+{{/* A set-up widget in the gallery with its reuse dialog; P is the page. */}}
+{{define "gal_tile"}}{{$p := .P}}{{with .T}}
+          {{$type := t (print "wtype." .Type ".name")}}
+          <article class="gal-card" data-q="{{.Name}} {{$type}}" data-mine>
+            <div class="gal-preview" aria-hidden="true"><div class="gal-thumb" hx-get="/widgets/{{.ID}}/preview" hx-trigger="intersect once"></div></div>
+            <div class="gal-meta">
+              <span class="label">{{$type}} · {{.Space.Name}}</span>
+              <b>{{.Name}}</b>
+              <small class="muted">{{if .Uses}}{{t "gallery.uses" "n" .Uses}}{{else}}{{t "gallery.unused"}}{{end}}</small>
+            </div>
+            <div class="gal-actions"><button type="button" data-open="reuse-{{.ID}}">{{t "gallery.add"}}</button></div>
+
+            <dialog id="reuse-{{.ID}}" class="gal-dialog" aria-labelledby="reuse-{{.ID}}-h">
+              <span class="label">{{t "gallery.existing"}} · {{$type}}</span>
+              <h2 id="reuse-{{.ID}}-h">{{.Name}}</h2>
+              <form method="post" action="/boards/{{$p.Target.BoardID}}/sections/{{$p.Target.SectionID}}/place">
+                <input type="hidden" name="{{$p.CSRFField}}" value="{{$p.Ctx.CSRF}}">
+                <input type="hidden" name="version" value="{{$p.Target.Version}}">
+                <input type="hidden" name="widget_id" value="{{.ID}}">
+                <button type="submit" class="gal-opt"><b>{{t "gallery.show_here"}}</b><small>{{t "gallery.show_here_hint"}}</small></button>
+              </form>
+              <form method="post" action="/widgets/{{.ID}}/copy">
+                <input type="hidden" name="{{$p.CSRFField}}" value="{{$p.Ctx.CSRF}}">
+                {{template "target_fields" $p.Target}}
+                <button type="submit" class="gal-opt"><b>{{t "gallery.copy"}}</b><small>{{t "gallery.copy_hint"}}</small></button>
+              </form>
+              <form method="dialog"><button type="submit" class="ghost">{{t "action.cancel"}}</button></form>
+            </dialog>
+          </article>
+{{end}}{{end}}
 
 {{define "widget_form"}}
 <!doctype html>
@@ -131,27 +213,30 @@
 <body>
   {{template "header" .}}
   <main>
-    <h1>{{t (print "wtype." .Kind.Key ".name")}}</h1>
-    <p class="muted">{{t (print "wtype." .Kind.Key ".desc")}}</p>
-    {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
-
     <div class="editor-split">
-      <form method="post" action="{{if .Widget}}/widgets/{{.Widget.ID}}/edit{{else}}/widgets{{end}}" class="card" id="widget-form"
+      <form method="post" action="{{if .Widget}}/widgets/{{.Widget.ID}}/edit{{else}}/widgets{{end}}" class="card wf" id="widget-form"
             hx-post="/widget-preview" hx-trigger="input changed delay:600ms from:#widget-form, load" hx-target="#preview" hx-swap="innerHTML">
+        {{if not .Widget}}<a class="label" href="/widgets/new?space={{.Target.SpaceID}}{{if .Target.Place}}&section={{.Target.SectionID}}&board={{.Target.BoardID}}&version={{.Target.Version}}{{end}}">← {{t "gallery.other"}}</a>{{end}}
+        <span class="label">{{t (print "topic." .Topic)}}{{with .Dest.Section}} · {{t "gallery.into"}} {{$.Dest.Board}} › {{.}}{{end}}</span>
+        <h1>{{t (print "wtype." .Kind.Key ".name")}}</h1>
+        <p class="muted">{{t (print "wtype." .Kind.Key ".desc")}}</p>
+        {{if .Error}}<p class="error">{{t .Error}}</p>{{end}}
+
         <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">
         <input type="hidden" name="type" value="{{.Kind.Key}}">
         {{template "target_fields" .Target}}
         {{if .Widget}}<input type="hidden" name="widget_version" value="{{.Widget.Version}}">{{end}}
 
-        <label for="title">{{t "field.title"}}</label>
-        <input id="title" name="title" value="{{.Title}}">
-
+        {{if or .NeedsConn .Fields}}
+        <fieldset>
+        <legend>{{t "gallery.data"}}</legend>
         {{if .NeedsConn}}
         <label for="connection_id">{{t "field.connection"}}</label>
         <select id="connection_id" name="connection_id">
           <option value="">–</option>
           {{range .Conns}}<option value="{{.ID}}"{{if eqID $.ConnID .ID}} selected{{end}}>{{.Name}} ({{.Service}})</option>{{end}}
         </select>
+        {{if .Kind.Service}}<p class="small muted">{{t "gallery.conn_hint"}}{{if not .Conns}} <a href="/connections/new?service={{.Kind.Service}}">{{t "gallery.connect"}}</a>{{end}}</p>{{end}}
         {{end}}
 
         {{range .Fields}}
@@ -181,25 +266,49 @@
           {{end}}
         {{end}}
 
+        </fieldset>
+        {{end}}
+
+        <fieldset>
+        <legend>{{t "gallery.display"}}</legend>
+        <label for="title">{{t "field.title"}}</label>
+        <input id="title" name="title" value="{{.Title}}">
+        {{if and .Target.Place (not .Widget)}}
+        <label for="rows">{{t "gallery.height"}}</label>
+        <select id="rows" name="rows">{{range $n := .RowOptions}}<option value="{{$n}}">{{t (print "gallery.rows_" $n)}}</option>{{end}}</select>
+        {{end}}
+        </fieldset>
+
+        <fieldset>
+        <legend>{{t "gallery.visibility"}}</legend>
         <label for="min_role">{{t "field.min_role"}}</label>
         <select id="min_role" name="min_role">
           <option value="">{{t "role.everyone"}}</option>
           {{range .TeamRoles}}<option value="{{.}}"{{if eq (print .) $.MinRole}} selected{{end}}>{{t (print "role." .)}}</option>{{end}}
         </select>
         <p class="small muted">{{t "field.min_role_hint"}}</p>
+        </fieldset>
 
         <div class="row-actions">
-          <button type="submit">{{t "action.save"}}</button>
+          <button type="submit">{{if and .Target.Place (not .Widget)}}{{with .Dest.Section}}{{t "gallery.add_to" "section" .}}{{else}}{{t "gallery.add"}}{{end}}{{else}}{{t "action.save"}}{{end}}</button>
           <a class="link-btn" href="{{.Target.Back}}">{{t "action.cancel"}}</a>
         </div>
       </form>
 
-      <aside class="theme-preview">
-        <h2>{{t "edit.preview"}}</h2>
-        <div class="dsec-body size-medium"><div class="tile-slot w-{{.Kind.Key}}">
-          {{if eq .Kind.Key "link"}}<div id="preview"></div>
-          {{else}}<article class="card"><h3 class="card-title">{{.Title}}</h3><div class="card-body" id="preview"></div></article>{{end}}
-        </div></div>
+      <aside class="theme-preview wf-preview" aria-labelledby="preview-h">
+        <div class="wf-preview-head">
+          <h2 id="preview-h">{{t "edit.preview"}}</h2>
+          {{if .Kind.Service}}<span class="pill src-live" data-state="ok">{{t "gallery.live"}}</span><span class="pill src-demo" data-state="warn">{{t "gallery.sample"}}</span>{{end}}
+        </div>
+        <div class="dsec-body size-{{or .Dest.Size "medium"}}">
+          {{if .Target.Place}}<div class="tile-slot gal-ghost" aria-hidden="true"></div><div class="tile-slot gal-ghost" aria-hidden="true"></div>{{end}}
+          <div class="tile-slot w-{{.Kind.Key}} wf-slot">
+            {{if eq .Kind.Key "link"}}<div id="preview"></div>
+            {{else}}<article class="card"><h3 class="card-title">{{.Title}}</h3><div class="card-body" id="preview"></div></article>{{end}}
+          </div>
+          {{if .Target.Place}}<div class="tile-slot gal-ghost" aria-hidden="true"></div>{{end}}
+        </div>
+        {{if .Target.Place}}<p class="small muted">{{t "gallery.preview_hint"}}</p>{{end}}
       </aside>
     </div>
 

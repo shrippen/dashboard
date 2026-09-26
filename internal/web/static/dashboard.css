@@ -662,6 +662,66 @@ label.check { display: flex; gap: .5rem; align-items: center; }
 .type-card:hover { border-left-color: var(--yellow); background: var(--bg-hard); }
 .type-card b { font-family: var(--font-heading); color: var(--fg0); }
 .type-card small { color: var(--fg3); }
+/* ── gallery ("Kachel hinzufügen") ── */
+main.gallery { max-width: 90rem; display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; align-items: start; }
+.gal-nav { position: sticky; top: 1rem; display: flex; flex-direction: column; gap: 2px; }
+.gal-nav a { display: flex; justify-content: space-between; gap: .5rem; padding: .4rem .6rem; border-left: 3px solid transparent;
+  color: var(--fg1); text-decoration: none; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: .03em; }
+.gal-nav a:hover { border-left-color: var(--yellow); background: var(--bg-panel); }
+.gal-nav span { font-family: var(--font-mono); font-size: .72rem; color: var(--fg3); }
+.gal-head { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.4rem; }
+.gal-head h1 { font-size: 2rem; }
+.gal-head .label { color: var(--warn-text); }
+.gal-tools { display: flex; flex-wrap: wrap; gap: .6rem 1.2rem; align-items: center; margin-top: .4rem; }
+.gal-tools input[type=search] { flex: 1 1 18rem; max-width: 32rem; }
+.gal-tools label.check { margin: 0; }
+.gal-tools label.check input { width: auto; }
+.gal-group { margin-bottom: 2rem; scroll-margin-top: 1rem; }
+.gal-group > h2 { font-size: 1.15rem; padding-bottom: .4rem; margin-bottom: .8rem; border-bottom: 1px solid var(--bg2); }
+.gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; }
+.gal-card { display: flex; flex-direction: column; background: var(--bg-panel); border: 1px solid var(--bg1); border-top: 3px solid var(--bg2); }
+.gal-card:hover { border-top-color: var(--yellow); }
+/* Previews are pictures of a tile: clipped, faded out, not clickable. */
+.gal-preview { position: relative; height: 10.5rem; overflow: hidden; padding: .8rem .9rem 0; background: var(--bg-hard); pointer-events: none; }
+.gal-preview::after { content: ""; position: absolute; inset: auto 0 0 0; height: 2.2rem; background: linear-gradient(transparent, var(--bg-hard)); }
+/* Rendered at 4/3 of the card width, shown at 3/4: wide tiles stay legible. */
+.gal-thumb { width: 133.33%; min-height: 133.33%; transform: scale(.75); transform-origin: top left; }
+.gal-thumb:empty { background: var(--bg1); opacity: .5; }
+.gal-compact .gal-preview { height: 4.8rem; }
+.gal-meta { display: flex; flex-direction: column; gap: .25rem; padding: .7rem .9rem 0; flex: 1; }
+.gal-meta .label { display: flex; gap: .5rem; align-items: center; justify-content: space-between; }
+.gal-meta b { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: .03em; color: var(--fg0); font-size: 1.02rem; }
+.gal-actions { display: flex; gap: .8rem; align-items: center; padding: .6rem .9rem .8rem; }
+.gal-actions button { margin: 0; padding: .35rem .8rem; }
+.gal-dialog { width: min(36rem, calc(100vw - 2rem)); background: var(--bg-hard); color: var(--fg1); border: 0; border-top: 4px solid var(--yellow); padding: 1.3rem 1.4rem; }
+.gal-dialog::backdrop { background: var(--scrim); }
+.gal-dialog h2 { font-size: 1.5rem; margin: .3rem 0 .6rem; }
+.gal-dialog form { margin: 0 0 .6rem; }
+.gal-opt { display: flex; flex-direction: column; gap: .2rem; width: 100%; margin: 0; text-align: left; background: var(--bg-panel);
+  color: var(--fg1); border: 1px solid var(--bg2); padding: .8rem 1rem; }
+.gal-opt:hover { background: var(--bg-panel); border-color: var(--yellow); }
+.gal-opt b { font-size: 1rem; color: var(--fg0); }
+.gal-opt small { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--fg2); font-size: .82rem; }
+@media (max-width: 800px) {
+  main.gallery { grid-template-columns: minmax(0, 1fr); }
+  .gal-nav { position: static; flex-direction: row; flex-wrap: wrap; }
+}
+
+/* Widget form: grouped fields, preview among ghost neighbours. */
+.wf { display: flex; flex-direction: column; }
+.wf { gap: .3rem; }
+.wf h1 { font-size: 1.8rem; margin: .2rem 0 0; }
+.wf > a.label { color: var(--blue); text-decoration: none; margin-bottom: .4rem; }
+.wf fieldset { border: 0; border-top: 1px solid var(--bg2); margin: 1rem 0 0; padding: .6rem 0 0; min-width: 0; }
+.wf legend { font-family: var(--font-heading); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--fg0); padding: 0 .5rem 0 0; }
+.wf-preview-head { display: flex; gap: .8rem; align-items: center; }
+.gal-ghost { min-height: 8rem; background: var(--bg-panel); border-top: 3px solid var(--bg2); opacity: .4; }
+.wf-slot { outline: 2px dashed var(--yellow); outline-offset: 4px; }
+.editor-split:has(#rows option[value="2"]:checked) .wf-slot { grid-row: span 2; }
+.editor-split:has(#rows option[value="2"]:checked) .wf-slot > .card { height: 100%; }
+.editor-split:has(#connection_id option[value=""]:checked) .src-live,
+.editor-split:not(:has(#connection_id option[value=""]:checked)) .src-demo { display: none; }
+
 .rule-params { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
 .rule-params label { display: flex; align-items: center; gap: .4rem; }
 .rule-params input[type=number] { width: 6rem; }

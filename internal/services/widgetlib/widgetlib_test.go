@@ -262,3 +262,31 @@ func TestLinkCountsHintsOfSameHost(t *testing.T) {
 		t.Fatalf("hint count %d on connection %d, want 1 on %d", frag.HintCount, frag.HintConn, conn.ID)
 	}
 }
+
+// Every service-bound type fills its connection queries from demo data,
+// so the gallery can show an example before a connection exists.
+func TestDemoFillsServiceTypes(t *testing.T) {
+	d := openTestDB(t)
+	u := addUser(t, d, "a@b.c")
+	who, _ := access.Load(d, u.ID)
+	space, _ := content.PersonalSpace(d, u.ID)
+
+	for _, kind := range widgets.AllTypes() {
+		if kind.Service == "" {
+			continue
+		}
+		frag, err := widgetlib.Demo(context.Background(), d, who, space.ID, kind.Key, "", nil)
+		if err != nil {
+			t.Fatalf("%s: %v", kind.Key, err)
+		}
+		cfg, _ := widgets.Decode(kind.Key, nil)
+		for _, q := range kind.Queries(cfg) {
+			if q.Conn == widgets.ConnNone {
+				continue
+			}
+			if slot := frag.Slots[q.Name]; slot.Data == nil {
+				t.Errorf("%s/%s: no demo data (%q)", kind.Key, q.Name, slot.Error)
+			}
+		}
+	}
+}

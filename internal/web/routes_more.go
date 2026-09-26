@@ -197,7 +197,18 @@ func (d Deps) handleWidgetCopy(w http.ResponseWriter, r *http.Request) {
 		d.handleBoardError(w, r, err)
 		return
 	}
-	http.Redirect(w, r, "/widgets/"+strconv.FormatInt(newID, 10)+"/edit", http.StatusSeeOther)
+
+	// From the gallery: place the copy, then adjust it on its edit form.
+	edit := "/widgets/" + strconv.FormatInt(newID, 10) + "/edit"
+	target := targetOf(r.FormValue)
+	if target.Place {
+		if err := d.placeNew(ctx, target, newID, ""); err != nil {
+			d.handleBoardError(w, r, err)
+			return
+		}
+		edit += "?board_id=" + strconv.FormatInt(target.BoardID, 10)
+	}
+	http.Redirect(w, r, edit, http.StatusSeeOther)
 }
 
 // handleLocale switches the language and returns to the page it came from.

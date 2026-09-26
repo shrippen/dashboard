@@ -435,6 +435,29 @@ func peerConnection(q db.Queryer, who *access.Principal, widget *model.Widget, s
 // caching and credential resolution apply) and shapes the results via its
 // type's View function.
 func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.Widget, fresh svcdata.Freshness) (*Fragment, error) {
+	return load(ctx, d, who, widget, fresh, originStored)
+}
+
+// origin says where a fragment's connection data comes from.
+type origin int
+
+const (
+	originStored origin = iota // the widget's real connections
+	originDemo                 // generated demo datasets, nothing fetched or stored
+)
+
+// demoURL makes sources return their demo dataset (see sources/demo.go).
+const demoURL = "demo://gallery"
+
+// demoConn is an unsaved connection that yields a service's demo data.
+func demoConn(service enums.ServiceType) *model.Connection {
+	if service == "" {
+		return nil
+	}
+	return &model.Connection{Service: string(service), URL: demoURL}
+}
+
+func load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.Widget, fresh svcdata.Freshness, from origin) (*Fragment, error) {
 	kind, ok := widgets.Get(widget.Type)
 	if !ok {
 		return nil, ErrUnknownType
@@ -483,6 +506,9 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	if settings == nil {
 		settings = map[string]any{}
 	}
+	if from == originDemo {
+		conn = demoConn(kind.Service)
+	}
 
 	live := widgets.LiveData(kind, widget.Config)
 	peerOptions := map[string]map[string]any{}
@@ -494,6 +520,10 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		case widgets.ConnInfo:
 			target = infoConn
 		case widgets.ConnPeer:
+			if from == originDemo {
+				target = demoConn(q.Service)
+				break
+			}
 			if target, err = peerConnection(d, who, widget, q.Service); err != nil {
 				return nil, err
 			}
@@ -503,6 +533,10 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		}
 		if q.Conn != widgets.ConnNone && target == nil {
 			frag.Slots[q.Name] = Slot{Error: "connection.missing"}
+			continue
+		}
+		if from == originDemo && target != nil {
+			frag.Slots[q.Name] = demoQuery(ctx, sourceFor(q, target), q.Params)
 			continue
 		}
 		frag.Slots[q.Name] = runQuery(ctx, d, sourceFor(q, target), q.Params, target, who.UserID, integrationFreshness(q, target, live, fresh))
@@ -515,7 +549,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 	if serviceConn == nil {
 		serviceConn = hostConn
 	}
-	if serviceConn != nil {
+	if serviceConn != nil && from == originStored {
 		count, level, err := hints.CountFor(d, who, serviceConn.ID)
 		if err != nil {
 			return nil, err
@@ -523,7 +557,7 @@ func Load(ctx context.Context, d *sql.DB, who *access.Principal, widget *model.W
 		frag.HintCount, frag.HintLevel, frag.HintConn = count, level, serviceConn.ID
 	}
 
-	if kind.Extra == widgets.ExtraPoints && conn != nil {
+	if kind.Extra == widgets.ExtraPoints && conn != nil && from == originStored {
 		trend := cfg.(widgets.TrendConfig)
 		points, err := loadPoints(d, conn, who.UserID, string(trend.Metric), trend.Days)
 		if err != nil {
@@ -627,6 +661,20 @@ func runQuery(ctx context.Context, d *sql.DB, source string, params map[string]a
 	return Slot{Data: res.Data, Error: res.Error, OkAt: res.OkAt, Pending: res.Pending}
 }
 
+// demoQuery asks a source directly for its demo dataset: no cache, no
+// fetch log, since the connection doesn't exist.
+func demoQuery(ctx context.Context, source string, params map[string]any) Slot {
+	src, err := sources.Get(source)
+	if err != nil {
+		return Slot{Error: "source.unknown"}
+	}
+	out, err := src.Fetch(ctx, sources.Ctx{URL: demoURL, Params: params})
+	if err != nil {
+		return Slot{Error: err.Error()}
+	}
+	return Slot{Data: out, OkAt: time.Now().UTC()}
+}
+
 // loadPoints returns a trend widget's daily snapshots (written by the
 // analysis job), scoped to the connection and credential owner.
 func loadPoints(d *sql.DB, conn *model.Connection, userID int64, metric string, days int) ([][2]any, error) {
@@ -695,6 +743,28 @@ func Preview(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int6
 	}
 	w := &model.Widget{SpaceID: spaceID, Type: typeKey, Title: title, Config: config, ConnectionID: connID}
 	return Load(ctx, d, who, w, svcdata.Cached)
+}
+
+// Demo renders a type with its default config and demo data in place of
+// connections, for the gallery and for a form without a connection.
+// Needs EDIT on the space, like Preview.
+func Demo(ctx context.Context, d *sql.DB, who *access.Principal, spaceID int64, typeKey, title string,
+	config map[string]any) (*Fragment, error) {
+	if _, ok := widgets.Get(typeKey); !ok {
+		return nil, ErrUnknownType
+	}
+	err := db.WithRead(d, func(tx *sql.Tx) error {
+		space, err := access.SpaceOf(tx, who, spaceID)
+		if err != nil {
+			return err
+		}
+		return access.Need(access.SpaceRight(who, space), enums.RightEdit)
+	})
+	if err != nil {
+		return nil, err
+	}
+	w := &model.Widget{SpaceID: spaceID, Type: typeKey, Title: title, Config: config}
+	return load(ctx, d, who, w, svcdata.Cached, originDemo)
 }
 
 // HintGroup is one severity band of the hints widget, highest first.

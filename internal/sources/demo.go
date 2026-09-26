@@ -251,6 +251,23 @@ func DemoKuma() *KumaDataset {
 	}}
 }
 
+// DemoGlances is the demo Glances host: busy CPU, one disk filling up.
+func DemoGlances() *GlancesResult {
+	return &GlancesResult{CPU: 38, Mem: 64, Swap: 4, Load: 1.2,
+		Disks: []GlancesDisk{{Mount: "/", Percent: 52}, {Mount: "/data", Percent: 87}}}
+}
+
+// DemoGlancesHistory is one demo metric over the last hour, a sample a minute.
+func DemoGlancesHistory(now time.Time, metric string, points int) *GlancesHistory {
+	rnd := rand.New(rand.NewSource(demoSeed))
+	out := &GlancesHistory{Metric: metric}
+	for i := points; i > 0; i-- {
+		at := now.UTC().Add(-time.Duration(i) * time.Minute).Format("2006-01-02T15:04:05")
+		out.Samples = append(out.Samples, Sample{At: at, Value: 20 + rnd.Float64()*40})
+	}
+	return out
+}
+
 // DemoProxmox is the demo Proxmox VE dataset.
 func DemoProxmox(now time.Time) *ProxmoxDataset {
 	today := demoDay(now)

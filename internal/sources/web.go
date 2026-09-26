@@ -223,6 +223,9 @@ func (GlancesSource) TTL() time.Duration         { return glancesTTL }
 func (GlancesSource) Service() enums.ServiceType { return enums.ServiceGlances }
 
 func (GlancesSource) Fetch(ctx context.Context, sctx Ctx) (any, error) {
+	if isDemo(sctx) {
+		return DemoGlances(), nil
+	}
 	api := services.GlancesApi{URL: sctx.URL, Token: sctx.Secret, Verify: sctx.VerifyTLS, Version: int(asFloat(sctx.Options["api_version"]))}
 
 	quick, err := api.Get(ctx, "quicklook")

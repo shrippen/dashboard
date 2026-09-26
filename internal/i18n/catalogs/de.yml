@@ -177,9 +177,6 @@ edit:
   history: Verlauf
   share: Freigeben
   code: Code-Ansicht
-  new_widget: Neues Widget
-  from_library: Aus der Bibliothek
-  place: Platzieren
   remove: Entfernen
   hide: Ausblenden
   show: Einblenden
@@ -591,7 +588,6 @@ widget:
   empty: Keine Einträge.
   setup_access: Zugang für {name} einrichten
   setup_access_short: Zugang einrichten
-  choose_type: Widget-Typ wählen.
   unknown_type: Unbekannter Widget-Typ.
   connection_required: Dieses Widget braucht eine Verbindung.
   connection_missing: Verbindung nicht gefunden.
@@ -2198,6 +2194,16 @@ joke:
 stocks:
   source: Daten von stooq, verzögert.
 topic:
+  overview: Überblick
+  work: Arbeit & Geld
+  analysis: Auswertung
+  homelab: Homelab
+  network: Netz
+  security: Sicherheit
+  media: Medien & Lesen
+  home: Zuhause
+  world: Unterwegs & Märkte
+  dev: Entwicklung
   updates_none: Alles aktuell.
 backup:
   ok: aktuell
@@ -2520,3 +2526,36 @@ authentik:
 vault:
   with2fa: 'Konten mit Zwei-Faktor'
   without: 'Ohne'
+
+gallery:
+  existing_links: Schon eingerichtete Links
+  title: Kachel hinzufügen
+  topics: Themen
+  existing: Schon eingerichtet
+  into: in
+  lead: 'Wähle einen Typ. Die Vorschau zeigt deine Daten (Live) oder Beispieldaten.'
+  lead_both: 'Schon eingerichtete Kacheln lassen sich hier noch einmal zeigen, darunter richtest du eine neue ein. Die Vorschau zeigt deine Daten (Live) oder Beispieldaten.'
+  search: 'Suchen: Name, Dienst, Beschreibung'
+  mine: Nur mit meinen Verbindungen
+  uses: '{n}× platziert'
+  unused: Noch nirgends platziert
+  add: Hinzufügen
+  show_here: Hier auch zeigen
+  show_here_hint: 'Dieselbe Kachel. Änderungen an Titel oder Einstellungen gelten überall, wo sie liegt.'
+  copy: Als Kopie einrichten
+  copy_hint: 'Eine unabhängige Kachel mit denselben Einstellungen, die du hier anders einstellen kannst.'
+  live: Live
+  sample: Beispiel
+  setup: Einrichten
+  connect: Verbindung einrichten
+  none: Nichts gefunden.
+  other: Andere Kachel wählen
+  data: Daten
+  display: Anzeige
+  visibility: Sichtbarkeit
+  conn_hint: Ohne Verbindung zeigt die Vorschau Beispieldaten.
+  height: Höhe
+  rows_1: 1 Reihe
+  rows_2: 2 Reihen
+  add_to: 'Zu „{section}“ hinzufügen'
+  preview_hint: So sitzt die Kachel zwischen ihren Nachbarn.

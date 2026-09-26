@@ -12,7 +12,6 @@ import (
 	"dashboard/internal/services/hass"
 	"dashboard/internal/services/svcdata"
 	"dashboard/internal/services/util"
-	"dashboard/internal/services/widgetlib"
 	"dashboard/internal/widgets"
 )
 
@@ -35,7 +34,6 @@ func (d Deps) RegisterBoardRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /boards/{id}/overlay/reset", d.handleOverlayReset)
 	mux.HandleFunc("GET /boards/{id}/history", d.handleHistory)
 	mux.HandleFunc("POST /boards/{id}/restore/{revisionID}", d.handleRestore)
-	mux.HandleFunc("GET /sections/{id}/pick", d.handlePick)
 }
 
 func (d Deps) handleHome(w http.ResponseWriter, r *http.Request) {
@@ -384,27 +382,4 @@ func (d Deps) handleRestore(w http.ResponseWriter, r *http.Request) {
 	d.layoutAction(w, r, "revisionID", func(ctx Ctx, id, revisionID int64) error {
 		return boards.Restore(d.DB, ctx.Who, id, revisionID)
 	}, func(id int64) string { return boardPath(id) + "?edit" })
-}
-
-// handlePick lists the library to place an existing widget into a section.
-func (d Deps) handlePick(w http.ResponseWriter, r *http.Request) {
-	ctx, err := d.Require(r)
-	if err != nil {
-		d.handleAuthError(w, r, err)
-		return
-	}
-	sectionID, err := pathID(r, "id")
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	library, err := widgetlib.Library(d.DB, ctx.Who)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	_ = d.Page(w, ctx, "board_pick", http.StatusOK, map[string]any{
-		"Library": library, "SectionID": sectionID,
-		"BoardID": r.URL.Query().Get("board_id"), "Version": r.URL.Query().Get("version"),
-	})
 }

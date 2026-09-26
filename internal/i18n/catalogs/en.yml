@@ -177,9 +177,6 @@ edit:
   history: History
   share: Share
   code: Code view
-  new_widget: New widget
-  from_library: From library
-  place: Place
   remove: Remove
   hide: Hide
   show: Show
@@ -591,7 +588,6 @@ widget:
   empty: No entries.
   setup_access: Set up access for {name}
   setup_access_short: Set up access
-  choose_type: Choose a widget type.
   unknown_type: Unknown widget type.
   connection_required: This widget needs a connection.
   connection_missing: Connection not found.
@@ -2197,6 +2193,16 @@ joke:
 stocks:
   source: Data from stooq, delayed.
 topic:
+  overview: Overview
+  work: Work & money
+  analysis: Analysis
+  homelab: Homelab
+  network: Network
+  security: Security
+  media: Media & reading
+  home: Home
+  world: Travel & markets
+  dev: Development
   updates_none: Everything up to date.
 backup:
   ok: current
@@ -2519,3 +2525,36 @@ authentik:
 vault:
   with2fa: 'accounts with two-factor'
   without: 'Without'
+
+gallery:
+  existing_links: Links already set up
+  title: Add tile
+  topics: Topics
+  existing: Already set up
+  into: into
+  lead: 'Pick a type. The preview shows your data (live) or sample data.'
+  lead_both: 'Show a tile you already set up here too, or set up a new one below. The preview shows your data (live) or sample data.'
+  search: 'Search: name, service, description'
+  mine: Only with my connections
+  uses: 'placed {n}×'
+  unused: Not placed yet
+  add: Add
+  show_here: Show here too
+  show_here_hint: 'The same tile. Changes to its title or settings apply wherever it is placed.'
+  copy: Set up as a copy
+  copy_hint: 'An independent tile with the same settings, adjustable here.'
+  live: Live
+  sample: Sample
+  setup: Set up
+  connect: Add connection
+  none: Nothing found.
+  other: Pick another tile
+  data: Data
+  display: Display
+  visibility: Visibility
+  conn_hint: Without a connection the preview shows sample data.
+  height: Height
+  rows_1: 1 row
+  rows_2: 2 rows
+  add_to: 'Add to “{section}”'
+  preview_hint: How the tile sits among its neighbours.

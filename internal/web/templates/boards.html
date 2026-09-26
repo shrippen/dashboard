@@ -181,8 +181,7 @@
     {{end}}
     {{if $b.Edit}}
     <div class="add-tile" data-static>
-      <a class="link-btn" href="/widgets/new?space={{$b.Board.Space.ID}}&section={{.ID}}&board={{$b.Board.ID}}&version={{$b.Board.Version}}">+ {{t "edit.new_widget"}}</a>
-      <a class="link-btn" href="/sections/{{.ID}}/pick?board_id={{$b.Board.ID}}&version={{$b.Board.Version}}">{{t "edit.from_library"}}</a>
+      <a class="link-btn" href="/widgets/new?space={{$b.Board.Space.ID}}&section={{.ID}}&board={{$b.Board.ID}}&version={{$b.Board.Version}}">+ {{t "gallery.title"}}</a>
       <form method="post" action="/sections/{{.ID}}/quick-link" class="inline-form quick-link">
         <input type="hidden" name="{{$b.CSRFField}}" value="{{$b.Ctx.CSRF}}">
         <input type="hidden" name="board_id" value="{{$b.Board.ID}}">
@@ -296,40 +295,6 @@
       {{end}}
     </table></div>
     <p><a class="link-btn" href="/boards/{{.Board.ID}}?edit">{{t "action.cancel"}}</a></p>
-  </main>
-</body>
-</html>
-{{end}}
-
-{{define "board_pick"}}
-<!doctype html>
-<html lang="{{.Ctx.Locale}}">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "edit.from_library"}} · dashboard</title>
-  {{template "style" .}}
-</head>
-<body>
-  {{template "header" .}}
-  <main>
-    <h1>{{t "edit.from_library"}}</h1>
-    <div class="table-wrap"><table class="table">
-      <tr><th>{{t "field.title"}}</th><th>{{t "field.type"}}</th><th></th></tr>
-      {{range .Library}}
-      <tr>
-        <td>{{.Title}}</td><td><code>{{.Type}}</code></td>
-        <td>
-          <form method="post" action="/boards/{{$.BoardID}}/sections/{{$.SectionID}}/place" class="inline-form">
-            <input type="hidden" name="{{$.CSRFField}}" value="{{$.Ctx.CSRF}}">
-            <input type="hidden" name="version" value="{{$.Version}}">
-            <input type="hidden" name="widget_id" value="{{.ID}}">
-            <button type="submit" class="ghost">{{t "edit.place"}}</button>
-          </form>
-        </td>
-      </tr>
-      {{else}}<tr><td colspan="3" class="muted">{{t "library.empty"}}</td></tr>{{end}}
-    </table></div>
   </main>
 </body>
 </html>
