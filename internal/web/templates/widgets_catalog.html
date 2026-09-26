@@ -183,6 +183,15 @@
 {{end}}{{end}}
 {{end}}
 
+{{define "widgets/kintsugi"}}
+{{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
+{{with $v := .Frag.View}}{{with $d := $v.Data}}
+<div class="tile-head"><b class="tile-value">{{$d.New}}</b><span class="tile-sub">{{t "kintsugi.open"}}{{if ge $d.Rate 0}} · {{t "kintsugi.rate" "n" $d.Rate}}{{end}}</span></div>
+{{with $v.Open}}<ul class="legend-list">{{range .}}<li><span class="sq" data-tier="{{if eq (print .Kind) "acquisition"}}yellow{{else}}blue{{end}}" title="{{t (print "kintsugi.kind_" .Kind)}}" aria-hidden="true"></span><span class="stack-item"><a href="{{.URL}}" target="_blank" rel="noopener noreferrer">{{.Title}}</a><small class="muted">{{ago .Created}}</small></span></li>{{end}}</ul>{{end}}
+<p class="small muted">{{t "kintsugi.accepted" "n" $d.Accepted}}{{if $d.GapsOpen}} · <a href="{{$d.URL}}/profil">{{t "kintsugi.gaps" "n" $d.GapsOpen}}</a>{{end}}{{if $v.RunFailed}} · <span class="warn-text">{{t "kintsugi.run_failed"}}</span>{{end}}</p>
+{{end}}{{end}}
+{{end}}
+
 {{define "widgets/gitea_reviews"}}
 {{with $slot := index .Frag.Slots "data"}}{{template "widget-slot-state" $slot}}{{end}}
 {{with $v := .Frag.View}}{{with $d := $v.Data}}

@@ -22,6 +22,7 @@ package widgets
 //	dawarich_day    Dawarich: today's places on an hour bar
 //	authentik_logins authentik: logins and failures, latest logins
 //	vaultwarden_2fa Vaultwarden: accounts with and without two-factor
+//	kintsugi        Kintsugi: open acquisition suggestions, take-up, gaps
 
 import (
 	"sort"
@@ -619,6 +620,21 @@ func linkwardenView(_ any, results map[string]any, _ ViewCtx) map[string]any {
 	return map[string]any{"Links": len(data.Links), "Collections": len(names), "Bars": bars}
 }
 
+// ── kintsugi ──
+
+func kintsugiView(_ any, results map[string]any, _ ViewCtx) map[string]any {
+	data, ok := results["data"].(*sources.KintsugiDataset)
+	if !ok {
+		return map[string]any{}
+	}
+	open := data.Open
+	if len(open) > listShown {
+		open = open[:listShown]
+	}
+	failed := data.LastRun != nil && data.LastRun.Status == sources.KintsugiRunFailed
+	return map[string]any{"Data": data, "Open": open, "RunFailed": failed}
+}
+
 // ── gitea_reviews ──
 
 func giteaView(_ any, results map[string]any, _ ViewCtx) map[string]any {
@@ -744,6 +760,7 @@ func init() {
 	on("dawarich_day", enums.ServiceDawarich, 30*minute, decodeEmpty, dawarichDayView)
 	on("authentik_logins", enums.ServiceAuthentik, 15*minute, decodeEmpty, authentikView)
 	on("vaultwarden_2fa", enums.ServiceVaultwarden, hour, decodeEmpty, vaultwardenView)
+	on("kintsugi", enums.ServiceKintsugi, 15*minute, decodeEmpty, kintsugiView)
 
 	Register(WidgetType{Key: "speed_history", Decode: decodeEmpty, Template: "widgets/speed_history", Category: CategoryInsight,
 		Service: enums.ServiceSpeedtest, RefreshS: hour, View: speedHistoryView, Queries: dataQuery, Extra: ExtraHistory})

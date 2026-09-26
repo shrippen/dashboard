@@ -45,6 +45,7 @@ func TestCatalogTilesRender(t *testing.T) {
 		"mail_invoices":    {sources.DemoMail(now), "tile-value"},
 		"freshrss_feeds":   {sources.DemoFreshRSS(now), "hbar"},
 		"linkwarden":       {sources.DemoLinkwarden(), "hbar"},
+		"kintsugi":         {sources.DemoKintsugi(now), "Stadtwerke"},
 		"gitea_reviews":    {sources.DemoGitea(now), "Reviews offen"},
 		"dawarich_day":     {sources.DemoDawarich(now), "kl-day"},
 		"authentik_logins": {sources.DemoAuthentik(now), "Anmeldungen"},

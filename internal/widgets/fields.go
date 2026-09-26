@@ -116,6 +116,7 @@ var fieldsByType = map[string][]Field{
 	"mail_invoices":    {},
 	"freshrss_feeds":   {},
 	"linkwarden":       {},
+	"kintsugi":         {},
 	"gitea_reviews":    {},
 	"dawarich_day":     {},
 	"authentik_logins": {},

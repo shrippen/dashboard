@@ -12,6 +12,7 @@ connections:
   - {id: sure, type: sure, name: Sure, url: "demo://sure", credentials: shared}
   - {id: mail, type: mail, name: Postfach, url: "demo://mail", credentials: shared}
   - {id: paperless, type: paperless, name: Paperless, url: "demo://paperless", credentials: shared}
+  - {id: kintsugi, type: kintsugi, name: Kintsugi, url: "demo://kintsugi", credentials: shared}
   - id: dawarich
     type: dawarich
     name: Dawarich
@@ -46,6 +47,7 @@ widgets:
   - {id: forecast, type: kpi, title: "", connection: invoiceninja, config: {metric: revenue_forecast}}
   - {id: cash, type: kpi, title: "", connection: invoiceninja, config: {metric: cash_30}}
   - {id: open-trend, type: trend, title: Offene Posten (Verlauf), connection: invoiceninja, config: {metric: open_amount, days: 90}}
+  - {id: acquisition, type: kintsugi, title: Akquise, connection: kintsugi, config: {}}
   - {id: shares, type: table, title: Umsatz je Kunde, connection: invoiceninja, config: {table: client_shares}}
 boards:
   - name: Übersicht
@@ -62,6 +64,7 @@ boards:
       - {title: Umsatz, widgets: [forecast, cash, revenue-chart, open-trend]}
       - {title: Offene Posten, widgets: [open-invoices, unbilled]}
       - {title: Kunden, widgets: [shares]}
+      - {title: Akquise, widgets: [acquisition]}
   - name: IT
     slug: it
     sections:

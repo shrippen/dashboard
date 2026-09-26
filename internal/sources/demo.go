@@ -415,6 +415,22 @@ func DemoLinkwarden() *LinkwardenDataset {
 	}}
 }
 
+// DemoKintsugi is the demo Kintsugi dataset: three open suggestions, the
+// oldest a week old, and a failed last run.
+func DemoKintsugi(now time.Time) *KintsugiDataset {
+	ago := func(d int) time.Time { return now.AddDate(0, 0, -d) }
+	base := "https://kintsugi.demo"
+	return &KintsugiDataset{URL: base, New: 3, Accepted: 2, Snoozed: 1, Done: 4, Rejected: 2, Rate: 75, GapsOpen: 2,
+		Open: []KintsugiSuggestion{
+			{ID: 42, Kind: KintsugiAcquisition, Title: "Imagefilm für Stadtwerke anbieten", URL: base + "/vorschlaege#s-42", Created: ago(0)},
+			{ID: 41, Kind: KintsugiDevelopment, Title: "Drohnenführerschein A2 machen", URL: base + "/vorschlaege#s-41", Created: ago(2)},
+			{ID: 37, Kind: KintsugiAcquisition, Title: "Agentur Nordlicht nachfassen", URL: base + "/vorschlaege#s-37", Created: ago(8)},
+		},
+		LastRun:  &KintsugiRun{Status: KintsugiRunFailed, Detail: "LLM nicht erreichbar", At: ago(0)},
+		Research: true, BudgetUSD: 5, UsedUSD: 1.25,
+	}
+}
+
 // DemoPGBack is the demo PG Back Web dataset.
 func DemoPGBack(now time.Time) *PGBackDataset {
 	ago := func(h int) time.Time { return now.UTC().Add(-time.Duration(h) * time.Hour) }

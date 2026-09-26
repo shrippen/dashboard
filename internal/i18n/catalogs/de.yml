@@ -50,6 +50,7 @@ action:
   open_in_authentik: In authentik öffnen
   open_in_pgbackweb: In PG Back Web öffnen
   open_in_linkwarden: In Linkwarden öffnen
+  open_in_kintsugi: In Kintsugi öffnen
   open_in_sure: In Sure öffnen
   open_in_homeassistant: In Home Assistant öffnen
   open_in_freshrss: In FreshRSS öffnen
@@ -411,6 +412,9 @@ wtype:
   linkwarden:
     name: 'Linkwarden'
     desc: 'Links je Sammlung.'
+  kintsugi:
+    name: 'Kintsugi'
+    desc: 'Offene Akquise-Vorschläge, Annahmequote, Profil-Lücken.'
   gitea_reviews:
     name: 'Gitea'
     desc: 'Offene Reviews und zugewiesene Issues.'
@@ -743,6 +747,7 @@ conn:
   what_homeassistant: 'Home Assistant ist eine quelloffene Hausautomation für Sensoren, Schalter und Geräte.'
   what_sure: 'Sure ist eine selbst gehostete Finanzverwaltung für Konten, Budgets und Ausgaben.'
   what_linkwarden: 'Linkwarden sammelt und archiviert Lesezeichen samt Kopie der Seite.'
+  what_kintsugi: 'Kintsugi ist ein Akquise-Copilot: Er baut aus Interview und Dokumenten ein Profil auf und schlägt täglich Akquise- und Entwicklungsschritte vor.'
   what_pgbackweb: 'PG Back Web sichert PostgreSQL-Datenbanken nach Zeitplan über eine Weboberfläche.'
   what_mail: 'Eingebaute Prüfung: Andon liest ein Postfach per IMAP und findet Rechnungen darin.'
   what_truenas: 'TrueNAS ist ein Betriebssystem für Netzwerkspeicher auf Basis von ZFS.'
@@ -794,6 +799,7 @@ conn:
   about_homeassistant: 'Sensoren und Schalter'
   about_sure: 'Konten und Ausgaben'
   about_linkwarden: 'Lesezeichen gegen Kacheln abgleichen'
+  about_kintsugi: 'Akquise-Vorschläge'
   about_pgbackweb: 'Postgres-Backups per Webhook'
   about_mail: 'Rechnungen im Postfach (IMAP)'
   about_truenas: 'Pools, Snapshots, Replikation'
@@ -825,6 +831,7 @@ conn:
   hook: Webhook
   hook_hint: 'In PG Back Web je Ereignis (execution_success, execution_failed, database_unhealthy/healthy, destination_unhealthy/healthy) und Backup einen Webhook anlegen: Methode POST, diese URL, Body wie unten mit Ereignis und Backup-Name. Die URL ist geheim.'
   options_hint_linkwarden: 'collections: [Homelab, Werkzeuge] – Sammlungen, die mit den Link-Kacheln dieses Bereichs abgeglichen werden (leer = alle). Token = Zugriffstoken (Einstellungen → Zugriffstoken).'
+  options_hint_kintsugi: 'Keine Optionen nötig. Token = API-Token aus Kintsugi → Einstellungen → API-Token (nur lesend, wird einmal angezeigt). URL = Adresse der Kintsugi-Oberfläche.'
   options_hint_sure: Keine Optionen nötig. Token = API-Schlüssel mit Leserecht (Einstellungen → API-Schlüssel).
   options_hint_homeassistant: 'Keine Optionen nötig. Token = langlebiges Zugriffstoken (Profil → Sicherheit). Es hat alle Rechte seines Nutzers: am besten ein eigener Nutzer ohne Admin-Rechte. Schalten dürfen nur Nutzer mit Recht „nutzen“ an dieser Verbindung.'
   options_hint_freshrss: 'Keine Optionen nötig. Benutzername und API-Passwort aus FreshRSS → Profil → API-Passwort; dort muss API-Zugriff erlaubt sein.'
@@ -894,6 +901,7 @@ service:
   mail: E-Mail (IMAP)
   pgbackweb: PG Back Web
   linkwarden: Linkwarden
+  kintsugi: Kintsugi
   sure: Sure (Finanzen)
   homeassistant: Home Assistant
   freshrss: FreshRSS
@@ -1397,6 +1405,16 @@ hint:
     unsaved:
       title: '{count} Kacheln nicht in Linkwarden gesichert'
       why: '{names}.'
+  kintsugi:
+    run_failed:
+      title: 'Kintsugi: Tageslauf fehlgeschlagen'
+      why: '{detail}. Heute kommen keine neuen Vorschläge.'
+    budget:
+      title: 'Kintsugi: Recherche-Budget aufgebraucht'
+      why: 'Die {budget} $ für diesen Monat sind verbraucht; Vorschläge kommen bis Monatsende nur aus dem Profil.'
+    stale:
+      title: 'Kintsugi: Vorschläge bleiben liegen'
+      why: 'Offen: {count}, der älteste seit {days} Tagen. Annehmen, zurückstellen oder verwerfen.'
   sure:
     subscription_unused:
       title: '{name}: {amount}/Monat, kaum genutzt'
@@ -1793,6 +1811,8 @@ info:
     invoices: '{count} Rechnungen erkannt'
   linkwarden:
     links: '{count} Links'
+  kintsugi:
+    open: 'Vorschläge offen: {count}'
   sure:
     cash: '{amount} auf Konten'
   hass:
@@ -2080,6 +2100,9 @@ rule_name:
   geo.per_diem: Verpflegungsmehraufwand
   geo.no_data: Keine Standortdaten
   tax.deadlines: Steuerfristen
+  kintsugi.run_failed: Kintsugi-Lauf fehlgeschlagen
+  kintsugi.budget: Kintsugi-Budget aufgebraucht
+  kintsugi.stale: Liegengebliebene Vorschläge
 param:
   new_watts: 'Neues Gerät (W)'
   new_cost: 'Neues Gerät (€)'
@@ -2579,6 +2602,14 @@ rss:
   unread: 'ungelesen in {n} Feeds'
 linkwarden:
   links: 'Links in {n} Sammlungen'
+kintsugi:
+  open: 'Vorschläge offen'
+  rate: '{n} % angenommen'
+  accepted: '{n} in Arbeit'
+  gaps: 'Profil-Lücken: {n}'
+  run_failed: 'Letzter Lauf fehlgeschlagen'
+  kind_acquisition: 'Akquise'
+  kind_development: 'Entwicklung'
 gitea:
   reviews: 'Reviews offen'
   notifications: '{n} Benachrichtigungen'

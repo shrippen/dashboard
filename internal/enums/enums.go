@@ -129,6 +129,7 @@ const (
 	ServiceGitHub        ServiceType = "github"
 	ServiceTibber        ServiceType = "tibber"
 	ServiceCalendar      ServiceType = "calendar"
+	ServiceKintsugi      ServiceType = "kintsugi"
 )
 
 // Services lists every connectable service, in form order.
@@ -141,7 +142,7 @@ var Services = []ServiceType{
 	ServicePihole, ServiceAdGuard, ServiceNextcloud, ServiceSabnzbd, ServiceGluetun, ServiceDomains, ServiceBlacklist,
 	ServiceTailscale, ServiceGateway, ServiceMediaServer, ServiceArr, ServiceVaultwarden,
 	ServiceSpeedtest, ServiceGrocy, ServiceDWD, ServiceGitHub, ServiceTibber, ServiceCalendar,
-	ServiceJSONAPI,
+	ServiceKintsugi, ServiceJSONAPI,
 }
 
 // Known reports whether s is a connectable service.
