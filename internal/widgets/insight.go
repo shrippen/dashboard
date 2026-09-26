@@ -9,10 +9,10 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 const (

@@ -9,7 +9,7 @@ package rules
 import (
 	"time"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 // ConnsDataset is the Env.Datasets key of the space's connection secrets.

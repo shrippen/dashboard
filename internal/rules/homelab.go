@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 const percentScale = 100

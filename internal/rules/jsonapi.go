@@ -7,8 +7,8 @@ package rules
 //	stats.queue = 12 → jsonapi.threshold (warn)
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 const thresholdRule = "jsonapi.threshold"

@@ -5,7 +5,7 @@ package metrics
 import (
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // CheapHours is the default window length for flexible loads.

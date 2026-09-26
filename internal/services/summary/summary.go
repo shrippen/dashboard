@@ -12,11 +12,11 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/drivers/llm"
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/settings"
+	"andon/internal/drivers/llm"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/services/hints"
+	"andon/internal/settings"
 )
 
 // locationRules are never summarised: rule ids starting with it describe

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/services/hooks"
+	"andon/internal/services/hooks"
 )
 
 const hookBodyMax = 16 << 10

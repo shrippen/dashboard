@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
+	"andon/internal/enums"
+	"andon/internal/repos/content"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
 )
 
 func TestBulkMoveRemoveAndDuplicate(t *testing.T) {

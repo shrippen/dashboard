@@ -12,17 +12,17 @@ import (
 	"errors"
 	"strconv"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/model"
-	"dashboard/internal/outbound"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/access"
-	auditsvc "dashboard/internal/services/audit"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/sources"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/model"
+	"andon/internal/outbound"
+	"andon/internal/repos/content"
+	"andon/internal/services/access"
+	auditsvc "andon/internal/services/audit"
+	"andon/internal/services/connections"
+	"andon/internal/services/svcdata"
+	"andon/internal/sources"
 )
 
 var (

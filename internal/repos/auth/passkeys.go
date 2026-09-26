@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/model"
+	"andon/internal/db"
+	"andon/internal/model"
 )
 
 const passkeyCols = "id, user_id, cred_id, name, data, created_at, last_used_at"

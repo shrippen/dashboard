@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"time"
 
-	"dashboard/internal/drivers/httpclient"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/httpclient"
+	"andon/internal/enums"
 )
 
 // SourceError is an expected failure (service down, bad token); its

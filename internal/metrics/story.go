@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // StoryLine is one sentence: catalog key under week.* and typed params.

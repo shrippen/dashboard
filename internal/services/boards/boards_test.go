@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
 )
 
 func openTestDB(t *testing.T) *sql.DB {

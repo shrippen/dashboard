@@ -1,4 +1,4 @@
-// Command dashboard runs the HTTP server.
+// Command andon runs the HTTP server.
 package main
 
 import (
@@ -12,19 +12,19 @@ import (
 	// The image has no zoneinfo; clocks and greetings need Europe/Berlin & co.
 	_ "time/tzdata"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/services/assist"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/icons"
-	"dashboard/internal/services/mail"
-	"dashboard/internal/services/scheduler"
-	"dashboard/internal/services/seed"
-	"dashboard/internal/services/summary"
-	"dashboard/internal/services/system"
-	"dashboard/internal/services/themes"
-	"dashboard/internal/settings"
-	"dashboard/internal/web"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/services/assist"
+	"andon/internal/services/auth"
+	"andon/internal/services/icons"
+	"andon/internal/services/mail"
+	"andon/internal/services/scheduler"
+	"andon/internal/services/seed"
+	"andon/internal/services/summary"
+	"andon/internal/services/system"
+	"andon/internal/services/themes"
+	"andon/internal/settings"
+	"andon/internal/web"
 )
 
 const shutdownTimeout = 10 * time.Second

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func fetch(t *testing.T, key string, params map[string]any) any {

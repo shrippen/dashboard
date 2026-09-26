@@ -1,14 +1,14 @@
 package web
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
+	"andon/internal/enums"
+	"andon/internal/rules"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/spaces"
+	"andon/internal/services/access"
+	"andon/internal/services/spaces"
 )
 
 const (

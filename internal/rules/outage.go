@@ -11,8 +11,8 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 // FailedDataset is the Env.Datasets key of connections that failed to load.

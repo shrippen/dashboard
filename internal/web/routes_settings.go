@@ -1,17 +1,17 @@
 package web
 
 import (
-	"dashboard/internal/services/analysis"
+	"andon/internal/services/analysis"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/admin"
-	"dashboard/internal/services/oidc"
-	"dashboard/internal/services/selfbackup"
-	"dashboard/internal/services/system"
-	"dashboard/internal/services/themes"
+	"andon/internal/enums"
+	"andon/internal/services/admin"
+	"andon/internal/services/oidc"
+	"andon/internal/services/selfbackup"
+	"andon/internal/services/system"
+	"andon/internal/services/themes"
 )
 
 const oidcBlankRules = 2

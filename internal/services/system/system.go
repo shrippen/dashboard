@@ -13,14 +13,14 @@ import (
 	"errors"
 	"strings"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/sources"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/misc"
+	"andon/internal/services/access"
+	"andon/internal/services/audit"
+	"andon/internal/sources"
 )
 
 // Setting keys in the settings table.

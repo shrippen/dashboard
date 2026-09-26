@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/oidc"
+	"andon/internal/services/auth"
+	"andon/internal/services/oidc"
 )
 
 const profileHome = "/me/security"

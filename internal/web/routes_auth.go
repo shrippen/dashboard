@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"dashboard/internal/services/admin"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/oidc"
+	"andon/internal/services/admin"
+	"andon/internal/services/auth"
+	"andon/internal/services/oidc"
 )
 
 // RegisterAuthRoutes wires the login/logout/TOTP/setup endpoints.

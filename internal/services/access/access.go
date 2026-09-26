@@ -14,11 +14,11 @@ package access
 import (
 	"errors"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/repos/users"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/repos/content"
+	"andon/internal/repos/misc"
+	"andon/internal/repos/users"
 )
 
 var teamRank = map[enums.TeamRole]int{

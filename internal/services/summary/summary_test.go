@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/settings"
+	"andon/internal/enums"
+	"andon/internal/services/hints"
+	"andon/internal/settings"
 )
 
 func TestWeeklySendsOnlyCounts(t *testing.T) {

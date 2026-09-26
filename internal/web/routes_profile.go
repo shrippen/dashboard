@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/boards"
+	"andon/internal/enums"
+	"andon/internal/services/accounts"
+	"andon/internal/services/boards"
 )
 
 // RegisterProfileRoutes wires the personal settings page (/me/profile):

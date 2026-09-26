@@ -1,6 +1,6 @@
 package widgets
 
-// Data tiles drawn as bars (see dashboard.css .bars, .seg, .stack):
+// Data tiles drawn as bars (see andon.css .bars, .seg, .stack):
 //
 //	conn_health    every connection's last days as a strip, worst first
 //	invoice_aging  open invoices stacked by how overdue they are
@@ -9,9 +9,9 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 // LoadBar is one column of a load bar chart: height in percent and a colour band.

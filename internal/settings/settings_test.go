@@ -3,7 +3,7 @@ package settings_test
 import (
 	"testing"
 
-	"dashboard/internal/settings"
+	"andon/internal/settings"
 )
 
 // Environment values override defaults; broken numbers and flags keep
@@ -11,14 +11,14 @@ import (
 func TestLoadReadsEnvironment(t *testing.T) {
 	t.Setenv("BASE_URL", "https://dash.example")
 	t.Setenv("DATA_DIR", "/srv/dash")
-	t.Setenv("DASHBOARD_DEV", "yes please")
+	t.Setenv("ANDON_DEV", "yes please")
 	t.Setenv("ANALYSIS_MINUTES", "ten")
 
 	s := settings.Load()
 	if s.BaseURL != "https://dash.example" || !s.SecureCookies() {
 		t.Fatalf("base url: %+v", s)
 	}
-	if s.DBPath() != "/srv/dash/dashboard.db" || s.IconsDir() != "/srv/dash/icons" {
+	if s.DBPath() != "/srv/dash/andon.db" || s.IconsDir() != "/srv/dash/icons" {
 		t.Fatalf("paths: %q %q", s.DBPath(), s.IconsDir())
 	}
 	if s.Dev || s.AnalysisMinutes <= 0 {

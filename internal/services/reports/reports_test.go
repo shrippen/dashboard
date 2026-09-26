@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/metrics"
-	"dashboard/internal/services/reports"
+	"andon/internal/metrics"
+	"andon/internal/services/reports"
 )
 
 // The CSV opens in German Excel: BOM, semicolons, decimal commas, one

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 // series builds daily points ending the day before today.

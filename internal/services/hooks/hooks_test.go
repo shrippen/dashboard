@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/hooks"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/hooks"
+	"andon/internal/testkit"
 )
 
 // Events land only with the right signature and on push services.

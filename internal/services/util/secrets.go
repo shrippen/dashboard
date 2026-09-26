@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"dashboard/internal/crypto"
+	"andon/internal/crypto"
 )
 
 const (

@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/hass"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/services/util"
-	"dashboard/internal/services/widgetlib"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/services/accounts"
+	"andon/internal/services/boards"
+	"andon/internal/services/hass"
+	"andon/internal/services/svcdata"
+	"andon/internal/services/util"
+	"andon/internal/services/widgetlib"
+	"andon/internal/widgets"
 )
 
 const compactView = "compact"

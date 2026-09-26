@@ -13,7 +13,7 @@ import (
 
 	jose "github.com/go-jose/go-jose/v4"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // OpenID Connect provider adapter (authentik): discovery, code exchange,

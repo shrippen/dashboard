@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/drivers/smtp"
+	"andon/internal/drivers/smtp"
 )
 
 func TestParse(t *testing.T) {

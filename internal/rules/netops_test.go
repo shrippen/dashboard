@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 func TestDNSFilterRules(t *testing.T) {

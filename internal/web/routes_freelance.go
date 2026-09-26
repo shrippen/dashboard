@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/assist"
-	"dashboard/internal/services/billing"
-	"dashboard/internal/services/mailfwd"
+	"andon/internal/services/access"
+	"andon/internal/services/assist"
+	"andon/internal/services/billing"
+	"andon/internal/services/mailfwd"
 
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/services/timer"
+	"andon/internal/services/svcdata"
+	"andon/internal/services/timer"
 )
 
 // handleKimaiTimer starts or stops a Kimai timer from its tile and

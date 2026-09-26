@@ -9,13 +9,13 @@ import (
 	"database/sql"
 	"errors"
 
-	"dashboard/internal/outbound"
-	"dashboard/internal/services/access"
-	auditsvc "dashboard/internal/services/audit"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/widgets"
+	"andon/internal/outbound"
+	"andon/internal/services/access"
+	auditsvc "andon/internal/services/audit"
+	"andon/internal/services/boards"
+	"andon/internal/services/connections"
+	"andon/internal/services/svcdata"
+	"andon/internal/widgets"
 )
 
 // ErrNotSwitchable means the entity is not a switchable entry of the widget.

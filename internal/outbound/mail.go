@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"dashboard/internal/drivers/smtp"
-	"dashboard/internal/settings"
+	"andon/internal/drivers/smtp"
+	"andon/internal/settings"
 )
 
 // Mail is one outgoing message: plain text plus optional HTML alternative.
@@ -95,7 +95,7 @@ func compose(from string, m Mail) ([]byte, error) {
 	header("To", m.To)
 	header("Subject", mime.QEncoding.Encode("utf-8", m.Subject))
 	header("Date", time.Now().Format(time.RFC1123Z))
-	header("Message-ID", "<"+randomID()+"@dashboard>")
+	header("Message-ID", "<"+randomID()+"@andon>")
 	header("MIME-Version", "1.0")
 	header("Content-Type", "multipart/alternative; boundary="+writer.Boundary())
 	buf.WriteString("\r\n")

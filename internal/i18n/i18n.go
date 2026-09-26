@@ -17,7 +17,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 //go:embed catalogs/*.yml

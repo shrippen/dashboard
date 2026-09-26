@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/outbound"
+	"andon/internal/outbound"
 )
 
 var linkRe = regexp.MustCompile(`http://dash\.test(/(?:invite|reset)/[A-Za-z0-9_-]+)`)

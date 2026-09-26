@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"dashboard/internal/services/history"
-	"dashboard/internal/services/reports"
+	"andon/internal/services/history"
+	"andon/internal/services/reports"
 )
 
 const (

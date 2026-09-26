@@ -3,9 +3,9 @@
 package rules
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 func taxSettings(env Env) (metrics.TaxSettings, bool) {

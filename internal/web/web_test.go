@@ -14,17 +14,17 @@ import (
 
 	"github.com/pquerna/otp/totp"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/outbound"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/icons"
-	"dashboard/internal/services/mail"
-	"dashboard/internal/services/system"
-	"dashboard/internal/services/themes"
-	"dashboard/internal/settings"
-	"dashboard/internal/web"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/outbound"
+	"andon/internal/services/auth"
+	"andon/internal/services/icons"
+	"andon/internal/services/mail"
+	"andon/internal/services/system"
+	"andon/internal/services/themes"
+	"andon/internal/settings"
+	"andon/internal/web"
 )
 
 // fakeKimaiServer answers the Kimai API with zero of everything, enough
@@ -316,7 +316,7 @@ func TestThemeCSSRoute(t *testing.T) {
 
 // TestAnonymousPageLoadsThemeAndStyles guards Deps.Page's ThemeURL
 // default: even a pre-login page (no principal yet) must link the active
-// theme and dashboard.css, not just the board page.
+// theme and andon.css, not just the board page.
 func TestAnonymousPageLoadsThemeAndStyles(t *testing.T) {
 	srv, client, _ := newTestServer(t)
 
@@ -327,8 +327,8 @@ func TestAnonymousPageLoadsThemeAndStyles(t *testing.T) {
 	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
 
-	if !strings.Contains(string(body), "/static/dashboard.css") {
-		t.Fatalf("expected dashboard.css linked on the login page:\n%s", body)
+	if !strings.Contains(string(body), "/static/andon.css") {
+		t.Fatalf("expected andon.css linked on the login page:\n%s", body)
 	}
 	m := regexp.MustCompile(`href="(/theme/[^"]+\.css[^"]*)"`).FindSubmatch(body)
 	if m == nil {
@@ -345,13 +345,13 @@ func TestAnonymousPageLoadsThemeAndStyles(t *testing.T) {
 		t.Fatalf("expected shrippen tokens in theme css, got %d:\n%s", cssResp.StatusCode, css)
 	}
 
-	dashboardCSS, err := client.Get(srv.URL + "/static/dashboard.css")
+	dashboardCSS, err := client.Get(srv.URL + "/static/andon.css")
 	if err != nil {
-		t.Fatalf("get dashboard.css: %v", err)
+		t.Fatalf("get andon.css: %v", err)
 	}
 	defer dashboardCSS.Body.Close()
 	if dashboardCSS.StatusCode != http.StatusOK {
-		t.Fatalf("expected dashboard.css to be served, got %d", dashboardCSS.StatusCode)
+		t.Fatalf("expected andon.css to be served, got %d", dashboardCSS.StatusCode)
 	}
 }
 

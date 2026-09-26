@@ -13,7 +13,7 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/anthropics/anthropic-sdk-go/shared/constant"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 const (

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/notify"
-	"dashboard/internal/services/summary"
+	"andon/internal/enums"
+	"andon/internal/services/notify"
+	"andon/internal/services/summary"
 )
 
 // RegisterNotifyRoutes wires the "notifications" page under /me: channels

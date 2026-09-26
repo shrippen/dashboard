@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // ── Pi-hole ──

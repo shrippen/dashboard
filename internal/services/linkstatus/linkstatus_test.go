@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/data"
-	"dashboard/internal/services/linkstatus"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/data"
+	"andon/internal/services/linkstatus"
 )
 
 func TestCheckBarsAndDownDays(t *testing.T) {

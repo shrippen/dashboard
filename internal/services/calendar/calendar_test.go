@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/calendar"
-	"dashboard/internal/services/spaces"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/calendar"
+	"andon/internal/services/spaces"
+	"andon/internal/testkit"
 )
 
 // The feed is valid iCalendar with one all-day event per tax deadline.

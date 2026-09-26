@@ -7,8 +7,8 @@ import (
 	"errors"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/model"
+	"andon/internal/db"
+	"andon/internal/model"
 )
 
 const sessionCols = `id, token_hash, user_id, method, csrf, created_at, last_seen,

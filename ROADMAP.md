@@ -1,10 +1,12 @@
-# Roadmap: IT- & Freelance-Dashboard
+# Roadmap: Andon, IT- & Freelance-Dashboard
 
 Ein selbst gehostetes, **mehrbenutzerfähiges** Dashboard. Es löst Dashy als **Startseite mit Links, Statusanzeigen und Feeds** ab, führt zugleich Daten aus **Kimai**, **Invoice Ninja**, **Snipe-IT** und **Dawarich** zusammen und leitet daraus **Hinweise, Erinnerungen und Ratschläge** ab. Konfiguriert wird im **eingebauten Editor**, gestaltet über ein **Theme-System**, von dem nur das Theme **shrippen** mitgeliefert wird. Auslieferung als **ein Docker-Container** mit eigener Anmeldung.
 
-> Stand: v0.4 · Arbeitstitel `dashboard`
+> Stand: v0.4 · Name **Andon** (seit 2026-09-26, vorher Arbeitstitel `dashboard`): die Signaltafel aus der Fertigung, die zeigt, wo es hakt.
 >
-> **Arbeitsort:** Die gesamte Entwicklung findet in diesem Repository (`shrippen/dashboard`) statt. Das Design-System-Repo `shrippen/shrippen.github.io` ist nur Quelle, es wird von hier aus nicht verändert.
+> **Veröffentlichung:** Quelltext und Entwicklung auf `git.arianw.de/shrippen/andon` (privat, Image `git.arianw.de/shrippen/andon`). Gitea spiegelt `main` und Tags nach `github.com/shrippen/andon`; dort baut `.github/workflows/ci.yml` das öffentliche Image `ghcr.io/shrippen/andon`, und GitHub Pages zeigt die Landing Page aus `docs/` unter `shrippen.github.io/andon/`.
+>
+> **Arbeitsort:** Die gesamte Entwicklung findet in diesem Repository (`shrippen/andon`) statt. Das Design-System-Repo `shrippen/shrippen.github.io` ist nur Quelle, es wird von hier aus nicht verändert.
 
 ---
 
@@ -381,7 +383,7 @@ Jedes Widget wird als eigenes HTMX-Fragment geladen und aktualisiert; jede Fragm
 
 ### 7.3 Import-Assistent für `conf.yml`
 
-Im Editor (oder per `dashboard import-dashy conf.yml --space <bereich>`) wird eine Dashy-Konfiguration in einen gewählten Bereich übernommen. Vor dem Speichern zeigt der Assistent eine Vorschau und einen Bericht.
+Im Editor (oder per `andon import-dashy conf.yml --space <bereich>`) wird eine Dashy-Konfiguration in einen gewählten Bereich übernommen. Vor dem Speichern zeigt der Assistent eine Vorschau und einen Bericht.
 
 | Dashy | Dashboard |
 |---|---|
@@ -530,7 +532,7 @@ Das Dashboard ist eine **App** im Sinne des Design Systems und nutzt daher die A
 | Snooze-, Freigabe- und Editor-Dialoge | `.dialog`, `.scrim` |
 | Rückmeldung nach Aktion | `.toast` |
 
-**Neue Komponenten (leben in diesem Repo, `app/static/dashboard.css`)**
+**Neue Komponenten (leben in diesem Repo, `app/static/andon.css`)**
 
 | Komponente | Zweck |
 |---|---|
@@ -600,7 +602,7 @@ Abschnitt vorgesehenen Komponenten (`.launch`, `.kpi`, `.hint`, `.pill`,
 `.progress` …) existieren nirgends im Code. Entwürfe für vier Bildschirme
 (Start, Übersicht, Editor, Anmeldung): <https://claude.ai/artifact/K1SEJhy4Pm4wyn4zDJ9vLH>.
 
-- [x] `dashboard.css` in `internal/web/static/` angelegt: nur Tokens (`var(--…)`), keine Hex-Werte außerhalb `themes/`
+- [x] `andon.css` in `internal/web/static/` angelegt: nur Tokens (`var(--…)`), keine Hex-Werte außerhalb `themes/`
 - [x] `base.html`: `system-ui`-Fallback durch `.app-nav`/`.app-links`/`.app-side` und echte Formularstile ersetzt; jede Seite lädt jetzt ihr aktives Theme (`Deps.Page` setzt `ThemeURL`, vorher nur die Board-Seite)
 - [x] `.launch`: Link-Kachel mit Icon-Quadrat (Monogramm als Rückfall), Status-Punkt, Infozeile und Hinweis-Zähler
 - [x] `.kpi` / `.kpi-row`: Kennzahl-Kacheln (`widgets_insight.html`, bereits vor diesem Abschnitt vorhanden, jetzt mit den echten Tokens statt Fallback-Werten)
@@ -697,7 +699,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Hinweis-Engine: Fingerprint, Zustände je Benutzer/Team, Snooze/Ack
 - [x] Dockerfile (multi-stage, non-root, `HEALTHCHECK`), `docker-compose.example.yml`
 - [x] GitHub Actions: Tests, Image-Build `linux/amd64` + `linux/arm64`, Push nach GHCR
-- [x] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots) *(Go: `DASHBOARD_DEMO=true`, `services/seed`, `sources/demo.go`)*
+- [x] Demo-Modus mit Fixture-Daten und Demo-Benutzern (Entwicklung, Screenshots) *(Go: `ANDON_DEMO=true`, `services/seed`, `sources/demo.go`)*
 
 ### Phase 1: Startseite, Editor und Dashy-Migration (v0.2)
 
@@ -708,7 +710,7 @@ Jede Phase endet mit einem lauffähigen, getaggten Image. Anmeldung und Bereichs
 - [x] Widgets `rss`, `clock`, `weather` (Open-Meteo)
 - [x] Widgets `iframe`, `sysinfo` (Glances), `public_ip`; kompakte Ansicht; PWA-Manifest
 - [x] Konfigurationseditor v1: Board-Editor mit Drag & Drop, Widget-Formulare aus Schema mit Vorschau, Widget-Bibliothek, Verbindungen mit „testen“, Revisionen *(Go: Felder je Typ in `widgets/fields.go`, Vorschau per htmx)*
-- [x] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(Go: `services/porting`, `/import`, `/spaces/{id}/code`, CLI `dashboard import`)*
+- [x] Import/Export YAML, Dashy-Import-Assistent mit Bericht, getestet an der eigenen `conf.yml` *(Go: `services/porting`, `/import`, `/spaces/{id}/code`, CLI `andon import`)*
 - [x] Persönliche Einstellungen: Start-Board, hell/dunkel, Sprache, Suchmaschine
 - [x] Neue Komponenten `.launch`, `.launch-grid`, `.section-fold`, `.search`, `.feed`, `.clock`, `.weather`, Editor-Komponenten
 - [ ] Parallelbetrieb, dann Umstieg nach Checkliste (Abschnitt 7.4)
@@ -951,11 +953,11 @@ Analysen, die erst aus mehreren Diensten zusammen entstehen. Grundlage ist ein K
 ## 11. Betrieb und Sicherheit
 
 - **Anmeldung:** Eigene Anmeldung (Abschnitt 4.6). Der Reverse Proxy terminiert nur TLS; das Dashboard setzt `Secure`-Cookies und erwartet HTTPS (`BASE_URL`).
-- **Zugangsdaten der Dienste:** Werden im Editor eingegeben und mit AES-GCM verschlüsselt in der Datenbank gespeichert. Der Hauptschlüssel kommt aus einem Docker Secret; ohne ihn sind Datenbank-Backups für Tokens wertlos. Schlüsselwechsel per Befehl `dashboard rotate-key`. Empfohlen: pro Dienst ein eigener Benutzer mit Leserechten.
+- **Zugangsdaten der Dienste:** Werden im Editor eingegeben und mit AES-GCM verschlüsselt in der Datenbank gespeichert. Der Hauptschlüssel kommt aus einem Docker Secret; ohne ihn sind Datenbank-Backups für Tokens wertlos. Schlüsselwechsel per Befehl `andon rotate-key`. Empfohlen: pro Dienst ein eigener Benutzer mit Leserechten.
 - **Trennung:** Jede Abfrage ist auf erlaubte Bereiche beschränkt; Tests prüfen für jede Route, dass fremde Bereiche nicht erreichbar sind. Instanz-Admins verwalten Konten, sehen aber keine persönlichen Inhalte.
 - **Netz:** Ausgehende Verbindungen nur zu den konfigurierten Diensten, Feeds, Statuszielen und Icon-Quellen. Keine externen CDNs zur Laufzeit; Icons werden einmal geholt und lokal zwischengespeichert. Weil Benutzer selbst URLs für Statusprüfungen, Feeds und Verbindungen eintragen, kann ein Instanz-Admin festlegen, welche Netze und Hosts erreichbar sein dürfen (Positivliste). Das verhindert, dass eingeladene Benutzer das Dashboard als Scanner für das interne Netz missbrauchen.
 - **Daten:** Datenbank und Icons unter `/data`, Aufbewahrung konfigurierbar (z. B. Snapshots 24 Monate, Dawarich-Aggregate 12 Monate, Audit-Log 12 Monate). Löschen eines Benutzers löscht seinen persönlichen Bereich vollständig.
-- **Backup:** `dashboard backup` erzeugt ein konsistentes Abbild (SQLite-Backup-API) plus Icons und Themes.
+- **Backup:** `andon backup` erzeugt ein konsistentes Abbild (SQLite-Backup-API) plus Icons und Themes.
 - **Robustheit:** Ein ausgefallener Dienst lässt das Dashboard nicht ausfallen. Das Widget zeigt den letzten Stand mit Alter und `.pill[data-state="failed"]`, dazu ein Hinweis `system.connector_down` im Bereich der Verbindung.
 - **Beobachtbarkeit:** `/healthz`, strukturierte Logs, optional `/metrics` (Prometheus, nur mit Token).
 
@@ -963,20 +965,20 @@ Analysen, die erst aus mehreren Diensten zusammen entstehen. Grundlage ist ein K
 
 ```yaml
 services:
-  dashboard:
-    image: git.arianw.de/shrippen/dashboard:latest
+  andon:
+    image: ghcr.io/shrippen/andon:latest
     restart: unless-stopped
     volumes:
       - ./data:/data
       # optional: - ./seed.yml:/app/seed.yml:ro
     environment:
       TZ: Europe/Berlin
-      BASE_URL: https://dashboard.example.lan
-      SMTP_URL: smtp://dashboard@mail.example.lan:587?starttls=true
-      SMTP_FROM: "dashboard <dashboard@example.lan>"
+      BASE_URL: https://andon.example.lan
+      SMTP_URL: smtp://andon@mail.example.lan:587?starttls=true
+      SMTP_FROM: "Andon <andon@example.lan>"
       # optional beim ersten Start, sonst in den Admin-Einstellungen:
-      OIDC_ISSUER: https://auth.example.lan/application/o/dashboard/
-      OIDC_CLIENT_ID: dashboard
+      OIDC_ISSUER: https://auth.example.lan/application/o/andon/
+      OIDC_CLIENT_ID: andon
     secrets: [master_key, smtp_password, oidc_client_secret]
     ports: ["8080:8080"]
 
@@ -1089,9 +1091,9 @@ dashboard/
 │   └── static/
 │       ├── vendor/shrippen/ ← Kopie von shrippen.css / shrippen.js / Schriften + VERSION
 │       ├── vendor/sortable/ ← SortableJS (vorgebaut)
-│       ├── dashboard.js     ← Suche, Hotkeys, Uhr, Einklappen
+│       ├── andon.js     ← Suche, Hotkeys, Uhr, Einklappen
 │       ├── editor.js        ← Drag & Drop, Vorschau (nur im Bearbeitungsmodus geladen)
-│       └── dashboard.css    ← nur neue Komponenten, ausschließlich mit Tokens
+│       └── andon.css    ← nur neue Komponenten, ausschließlich mit Tokens
 ├── themes/
 │   └── shrippen/            ← einziges mitgeliefertes Theme (theme.json, tokens.css)
 ├── tools/

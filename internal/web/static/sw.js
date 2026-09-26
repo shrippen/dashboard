@@ -3,7 +3,7 @@
 // Logout clears it (Clear-Site-Data).
 "use strict";
 
-var CACHE = "dashboard-last";
+var CACHE = "andon-last";
 var KEEP = [/^\/$/, /^\/boards\/\d+$/, /^\/widget-fragments\//, /^\/static\//, /^\/icons\//, /^\/theme\//];
 
 function keepable(url) {

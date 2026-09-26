@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/porting"
+	"andon/internal/services/access"
+	"andon/internal/services/porting"
 )
 
 const (

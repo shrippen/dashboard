@@ -1,7 +1,7 @@
-// Package selfbackup copies the dashboard's own database every day and
+// Package selfbackup copies Andon's own database every day and
 // proves each copy restorable:
 //
-//	VACUUM INTO backups/dashboard-20260925-030000.db
+//	VACUUM INTO backups/andon-20260925-030000.db
 //	open copy read-only ─► integrity ok, same migrations, rows, secrets decrypt
 //	keep the newest Keep copies
 package selfbackup
@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/services/access"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/repos/content"
+	"andon/internal/repos/misc"
+	"andon/internal/services/access"
 )
 
 const (
@@ -27,7 +27,7 @@ const (
 	Keep        = 7
 	JobName     = "selfbackup"
 	Interval    = 24 * time.Hour
-	filePrefix  = "dashboard-"
+	filePrefix  = "andon-"
 	fileExt     = ".db"
 	stampLayout = "20060102-150405"
 	statusKey   = "selfbackup"

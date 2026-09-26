@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/sources"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	data "andon/internal/repos/data"
+	"andon/internal/repos/users"
+	"andon/internal/services/svcdata"
+	"andon/internal/sources"
 )
 
 type budgetSource struct{ calls *int }

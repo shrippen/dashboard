@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/shares"
+	"andon/internal/enums"
+	"andon/internal/services/shares"
 )
 
 // RegisterShareRoutes wires the "who has access?" dialog: view a

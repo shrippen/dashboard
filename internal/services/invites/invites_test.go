@@ -5,9 +5,9 @@ import (
 	"path"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/invites"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/invites"
+	"andon/internal/testkit"
 )
 
 // An invite link works once; only admins create invites.

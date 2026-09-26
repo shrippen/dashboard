@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 const (

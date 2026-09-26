@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func fetchConn(t *testing.T, key string, sctx sources.Ctx) any {

@@ -17,8 +17,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"dashboard/internal/repos/files"
-	"dashboard/internal/sources"
+	"andon/internal/repos/files"
+	"andon/internal/sources"
 )
 
 const (

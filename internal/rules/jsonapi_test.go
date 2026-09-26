@@ -3,8 +3,8 @@ package rules_test
 import (
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 func TestJSONAPIThreshold(t *testing.T) {

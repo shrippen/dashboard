@@ -12,7 +12,7 @@ var (
 	textColor    = regexp.MustCompile(`(?:^|[\s;{])color:\s*var\((--[a-z0-9-]+)\)`)
 	badgeFills   = []string{"--blue", "--yellow", "--orange", "--red"}
 	badgeText    = "--bg-void"
-	dashboardCSS = "../../web/static/dashboard.css"
+	dashboardCSS = "../../web/static/andon.css"
 )
 
 func resolved(tokens map[string]string, name string) string {
@@ -23,7 +23,7 @@ func resolved(tokens map[string]string, name string) string {
 	return v
 }
 
-// TestComponentContrastAA: every text colour dashboard.css uses reaches
+// TestComponentContrastAA: every text colour andon.css uses reaches
 // WCAG AA on the text surfaces, in both modes of the shipped theme.
 func TestComponentContrastAA(t *testing.T) {
 	raw, err := os.ReadFile(dashboardCSS)

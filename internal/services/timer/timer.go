@@ -11,14 +11,14 @@ import (
 	"strconv"
 	"time"
 
-	"dashboard/internal/model"
-	"dashboard/internal/outbound"
-	"dashboard/internal/services/access"
-	auditsvc "dashboard/internal/services/audit"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/sources"
+	"andon/internal/model"
+	"andon/internal/outbound"
+	"andon/internal/services/access"
+	auditsvc "andon/internal/services/audit"
+	"andon/internal/services/boards"
+	"andon/internal/services/connections"
+	"andon/internal/services/svcdata"
+	"andon/internal/sources"
 )
 
 // WidgetType is the widget key the timer actions belong to.

@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // ErrNotifyFailed means the Apprise API reachably rejected the request

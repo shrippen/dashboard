@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/rules"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/services/util"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/repos/content"
+	"andon/internal/rules"
+	"andon/internal/services/access"
+	"andon/internal/services/audit"
+	"andon/internal/services/util"
 )
 
 const enabledKey = "enabled"

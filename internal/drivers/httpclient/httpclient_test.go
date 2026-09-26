@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 func TestGetJSONSuccess(t *testing.T) {

@@ -20,9 +20,9 @@ import (
 
 	"golang.org/x/net/publicsuffix"
 
-	"dashboard/internal/drivers/httpclient"
-	"dashboard/internal/drivers/services"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/httpclient"
+	"andon/internal/drivers/services"
+	"andon/internal/enums"
 )
 
 const (

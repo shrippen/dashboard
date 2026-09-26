@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/metrics"
+	"andon/internal/metrics"
 )
 
 func TestTrendAndVersionEvent(t *testing.T) {

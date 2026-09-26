@@ -2,5 +2,5 @@
 *.db
 *.db-wal
 *.db-shm
-/dashboard
+/andon
 /bin/

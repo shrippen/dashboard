@@ -11,7 +11,7 @@ import (
 	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestInvoiceAmount(t *testing.T) {

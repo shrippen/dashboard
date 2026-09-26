@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 func TestTrueNASRules(t *testing.T) {

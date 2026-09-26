@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/system"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/system"
+	"andon/internal/testkit"
 )
 
 // Only admins change instance settings; a bad network is refused whole.

@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestNinjaDataNormalizesInvoicesAndExpenses(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"time"
 
-	"dashboard/internal/drivers/services"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/services"
+	"andon/internal/enums"
 )
 
 func dawarichAPI(sctx Ctx) (services.DawarichApi, error) {

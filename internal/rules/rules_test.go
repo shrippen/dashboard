@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 func day(s string) time.Time {

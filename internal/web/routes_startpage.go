@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/i18n"
-	"dashboard/internal/services/boards"
+	"andon/internal/i18n"
+	"andon/internal/services/boards"
 )
 
 // RegisterStartPageRoutes wires the start page conveniences: undo, add a

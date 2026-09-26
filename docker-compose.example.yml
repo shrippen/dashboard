@@ -1,20 +1,22 @@
 services:
-  dashboard:
+  andon:
     # latest = current development state (main); for production pin a
     # release: 1.2.3 (exact), 1.2 (patches) or 1 (minor updates).
-    image: git.arianw.de/shrippen/dashboard:${DASHBOARD_TAG:-latest}
+    image: ghcr.io/shrippen/andon:${ANDON_TAG:-latest}
     restart: unless-stopped
     volumes:
       - ./data:/data
     environment:
       TZ: Europe/Berlin
-      BASE_URL: https://dashboard.example.lan
+      BASE_URL: https://andon.example.lan
       # Existing Apprise API instance to send push notifications through
       # (no bundled Apprise container here — reuse what you already run):
       APPRISE_API_URL: https://apprise.example.lan
       # optional at first start; afterwards Admin → Instanz:
-      # OIDC_ISSUER: https://auth.example.lan/application/o/dashboard/
-      # OIDC_CLIENT_ID: dashboard
+      # OIDC_ISSUER: https://auth.example.lan/application/o/andon/
+      # OIDC_CLIENT_ID: andon
+    # Instead of the secret file: MASTER_KEY: ${MASTER_KEY} under
+    # environment (e.g. filled in by Komodo). The file wins if both exist.
     secrets: [master_key]
     ports: ["8080:8080"]
 

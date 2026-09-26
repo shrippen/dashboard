@@ -4,8 +4,8 @@ package widgets
 // monitor list of an Uptime Kuma connection.
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 	"sort"
 )
 

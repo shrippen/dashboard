@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/assist"
-	"dashboard/internal/services/hints"
-	historysvc "dashboard/internal/services/history"
+	"andon/internal/enums"
+	"andon/internal/services/assist"
+	"andon/internal/services/hints"
+	historysvc "andon/internal/services/history"
 )
 
 // RegisterHintRoutes wires the hints overview page, snooze/ack/reopen

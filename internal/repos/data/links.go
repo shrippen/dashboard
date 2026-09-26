@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"dashboard/internal/db"
+	"andon/internal/db"
 )
 
 // ── Clicks ──

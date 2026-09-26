@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/data"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/widgets"
+	"andon/internal/db"
+	"andon/internal/repos/content"
+	"andon/internal/repos/data"
+	"andon/internal/services/svcdata"
+	"andon/internal/widgets"
 )
 
 const (

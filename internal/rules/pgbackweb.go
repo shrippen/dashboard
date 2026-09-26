@@ -3,8 +3,8 @@ package rules
 import (
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 func init() {

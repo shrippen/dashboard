@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 const (

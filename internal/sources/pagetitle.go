@@ -14,7 +14,7 @@ import (
 	"regexp"
 	"strings"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 const titleScan = 256 << 10

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/services/scheduler"
+	"andon/internal/services/scheduler"
 )
 
 func TestJobRunsOnInterval(t *testing.T) {

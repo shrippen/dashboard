@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 // Demo datasets are built relative to now; rules see today's date.

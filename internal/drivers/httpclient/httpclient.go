@@ -22,7 +22,7 @@ import (
 const (
 	ConnectTimeout = 5 * time.Second
 	ReadTimeout    = 15 * time.Second
-	UserAgent      = "dashboard/0.1 (+https://github.com/shrippen/dashboard)"
+	UserAgent      = "andon/0.1 (+https://github.com/shrippen/dashboard)"
 	MaxBody        = 5 * 1024 * 1024
 )
 

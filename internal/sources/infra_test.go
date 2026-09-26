@@ -10,7 +10,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 const testKey = "k"

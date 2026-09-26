@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "nav.admin_settings"}} · dashboard</title>
+  <title>{{t "nav.admin_settings"}} · Andon</title>
   {{template "style" .}}
 </head>
 <body>
@@ -87,7 +87,7 @@
         <label for="label">{{t "admin.oidc_label"}}</label>
         <input id="label" name="label" value="{{.OIDC.Label}}">
         <label for="issuer">{{t "admin.oidc_issuer"}}</label>
-        <input id="issuer" name="issuer" value="{{.OIDC.Issuer}}" placeholder="https://auth.example.lan/application/o/dashboard/">
+        <input id="issuer" name="issuer" value="{{.OIDC.Issuer}}" placeholder="https://auth.example.lan/application/o/andon/">
         <label for="client_id">Client-ID</label>
         <input id="client_id" name="client_id" value="{{.OIDC.ClientID}}">
         <label for="secret">Client-Secret</label>
@@ -127,7 +127,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "admin.reapply"}} · dashboard</title>
+  <title>{{t "admin.reapply"}} · Andon</title>
   {{template "style" .}}
 </head>
 <body>

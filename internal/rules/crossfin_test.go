@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 // sheet books minutes for a customer and project on a day.

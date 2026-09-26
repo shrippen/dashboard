@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestDawarichDataNormalizesVisitsAndAreas(t *testing.T) {

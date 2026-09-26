@@ -10,13 +10,13 @@ import (
 	"errors"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/content"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/services/svcdata"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/repos/content"
+	data "andon/internal/repos/data"
+	"andon/internal/services/access"
+	"andon/internal/services/audit"
+	"andon/internal/services/svcdata"
 )
 
 // healthDays is the window of the health view.

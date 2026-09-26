@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // seasonYears is how many prior years form the seasonal average.

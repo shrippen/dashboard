@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // SureDue sums active recurring expenses expected within days.

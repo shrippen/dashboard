@@ -15,12 +15,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/repos/content"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/repos/users"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/repos/content"
+	data "andon/internal/repos/data"
+	"andon/internal/repos/misc"
+	"andon/internal/repos/users"
 )
 
 // assetDirs are the DATA_DIR folders that exist only on disk: uploaded
@@ -31,8 +31,8 @@ var assetDirs = []string{"icons", "themes"}
 // VACUUM INTO, so it's safe against concurrent writers) plus dataDir's
 // asset folders as a tar.gz under targetDir. Returns the archive's path.
 //
-//	dashboard-20260926-120000.tar.gz
-//	├── dashboard.db
+//	andon-20260926-120000.tar.gz
+//	├── andon.db
 //	├── icons/…
 //	└── themes/…
 func Backup(d *sql.DB, dbPath, targetDir, dataDir string) (string, error) {
@@ -40,8 +40,8 @@ func Backup(d *sql.DB, dbPath, targetDir, dataDir string) (string, error) {
 		return "", err
 	}
 	stamp := time.Now().Format("20060102-150405")
-	copyPath := filepath.Join(targetDir, fmt.Sprintf("dashboard-%s.db", stamp))
-	archivePath := filepath.Join(targetDir, fmt.Sprintf("dashboard-%s.tar.gz", stamp))
+	copyPath := filepath.Join(targetDir, fmt.Sprintf("andon-%s.db", stamp))
+	archivePath := filepath.Join(targetDir, fmt.Sprintf("andon-%s.tar.gz", stamp))
 
 	if err := db.Snapshot(d, copyPath); err != nil {
 		return "", err
@@ -56,7 +56,7 @@ func Backup(d *sql.DB, dbPath, targetDir, dataDir string) (string, error) {
 	gz := gzip.NewWriter(out)
 	tw := tar.NewWriter(gz)
 
-	if err := addFile(tw, copyPath, "dashboard.db"); err != nil {
+	if err := addFile(tw, copyPath, "andon.db"); err != nil {
 		return "", err
 	}
 	for _, dir := range assetDirs {

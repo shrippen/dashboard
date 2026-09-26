@@ -10,14 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/analysis"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	data "andon/internal/repos/data"
+	"andon/internal/services/analysis"
 )
 
 func openTestDB(t *testing.T) *sql.DB {

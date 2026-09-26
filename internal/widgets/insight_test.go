@@ -3,9 +3,9 @@ package widgets_test
 import (
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/sources"
+	"andon/internal/widgets"
 )
 
 func ctxFor(service enums.ServiceType, settings map[string]any) widgets.ViewCtx {

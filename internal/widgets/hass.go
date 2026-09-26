@@ -3,8 +3,8 @@ package widgets
 import (
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 // hassSwitchable are domains the toggle service works on.

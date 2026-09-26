@@ -3,7 +3,7 @@ package outbound
 import (
 	"context"
 
-	"dashboard/internal/drivers/services"
+	"andon/internal/drivers/services"
 )
 
 // PaperlessUpload hands one file to Paperless for consumption and returns

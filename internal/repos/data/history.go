@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/db"
+	"andon/internal/db"
 )
 
 // SamplePoint is one stored daily value.

@@ -3,8 +3,8 @@ package widgets
 // "glances_chart": one Glances metric over the last minutes, as a line.
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 const (

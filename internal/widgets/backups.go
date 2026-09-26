@@ -6,9 +6,9 @@ package widgets
 import (
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 const defaultBackupHours = 26

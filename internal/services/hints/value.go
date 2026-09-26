@@ -12,9 +12,9 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/enums"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/access"
+	"andon/internal/enums"
+	data "andon/internal/repos/data"
+	"andon/internal/services/access"
 )
 
 const (

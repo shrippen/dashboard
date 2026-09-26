@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/audit"
+	"andon/internal/testkit"
 )
 
 // Only admins read the audit log.

@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/admin"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/services/invites"
-	"dashboard/internal/services/teams"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/services/access"
+	"andon/internal/services/admin"
+	"andon/internal/services/audit"
+	"andon/internal/services/invites"
+	"andon/internal/services/teams"
 )
 
 // RegisterAdminRoutes wires the admin-only account pages: user list with

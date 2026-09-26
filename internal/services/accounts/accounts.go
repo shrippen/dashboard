@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/services/mail"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/audit"
+	"andon/internal/services/mail"
 )
 
 // MinPassword is the minimum accepted password length.

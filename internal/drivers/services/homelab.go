@@ -19,7 +19,7 @@ import (
 	"net/url"
 	"strings"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 func joinURL(base, path string) string {

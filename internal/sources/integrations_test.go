@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // fake answers fixed JSON per path and checks one auth header.

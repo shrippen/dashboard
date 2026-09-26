@@ -3,9 +3,9 @@ package spaces_test
 import (
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/spaces"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/spaces"
+	"andon/internal/testkit"
 )
 
 // Nav links keep web and site-relative addresses only; titles default to

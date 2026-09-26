@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"dashboard/internal/drivers/services"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/services"
+	"andon/internal/enums"
 )
 
 func snipeAPI(sctx Ctx) (services.SnipeApi, error) {

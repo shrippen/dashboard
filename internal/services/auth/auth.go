@@ -18,24 +18,24 @@ import (
 
 	"github.com/pquerna/otp/totp"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/auth"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	auditsvc "dashboard/internal/services/audit"
-	"dashboard/internal/services/mail"
-	"dashboard/internal/settings"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/auth"
+	"andon/internal/repos/misc"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	auditsvc "andon/internal/services/audit"
+	"andon/internal/services/mail"
+	"andon/internal/settings"
 )
 
 const (
 	setupKey       = "setup"
 	setupCodeBytes = 5 // hex-encoded -> 10 chars
-	totpIssuer     = "dashboard"
+	totpIssuer     = "Andon"
 	recoveryCodes  = 10
 	tokenPrefixLen = 12
 	touchInterval  = 5 * time.Minute

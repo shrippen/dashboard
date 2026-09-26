@@ -11,8 +11,8 @@ import (
 	"context"
 	"time"
 
-	"dashboard/internal/drivers/httpclient"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/httpclient"
+	"andon/internal/enums"
 )
 
 // calendarDays is the window before and after today.

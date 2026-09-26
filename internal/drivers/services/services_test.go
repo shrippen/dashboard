@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/drivers/services"
+	"andon/internal/drivers/services"
 )
 
 func TestKimaiPagesFollowsXTotalPages(t *testing.T) {

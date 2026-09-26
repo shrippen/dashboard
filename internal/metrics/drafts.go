@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 const draftDay = "02.01."

@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/rules"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/services/history"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	data "andon/internal/repos/data"
+	"andon/internal/rules"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/hints"
+	"andon/internal/services/history"
 )
 
 // TestBeforeShowsUpdateBeforeOutage: an update recorded minutes before a

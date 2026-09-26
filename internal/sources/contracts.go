@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/drivers/services"
+	"andon/internal/drivers/services"
 )
 
 const (

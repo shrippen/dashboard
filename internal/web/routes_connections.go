@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/hooks"
-	"dashboard/internal/services/porting"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/connections"
+	"andon/internal/services/hooks"
+	"andon/internal/services/porting"
+	"andon/internal/widgets"
 )
 
 // RegisterConnectionRoutes wires the connections list/create/edit/delete/test pages.

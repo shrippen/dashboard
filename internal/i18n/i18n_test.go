@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
+	"andon/internal/enums"
+	"andon/internal/i18n"
 )
 
 func TestTFallsBackToDefaultLocaleThenKey(t *testing.T) {

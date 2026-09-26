@@ -4,7 +4,7 @@ import (
 	"net"
 	"strings"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // NetMode is the instance's outbound network mode.

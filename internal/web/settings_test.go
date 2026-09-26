@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 func TestSettingsOpenRegistrationAndCSP(t *testing.T) {

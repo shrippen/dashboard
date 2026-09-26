@@ -13,7 +13,7 @@ package widgets
 import (
 	"sort"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 // ConnUse says whether (and how) a query needs the widget's connection.

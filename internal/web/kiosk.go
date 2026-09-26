@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"dashboard/internal/services/boards"
+	"andon/internal/services/boards"
 )
 
 const (

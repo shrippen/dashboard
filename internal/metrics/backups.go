@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // BackupState is a row's outcome.

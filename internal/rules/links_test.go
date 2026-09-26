@@ -3,8 +3,8 @@ package rules_test
 import (
 	"testing"
 
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 func TestLinksAgainstLinkwardenAndKuma(t *testing.T) {

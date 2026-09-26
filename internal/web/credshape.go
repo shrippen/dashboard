@@ -3,7 +3,7 @@ package web
 import (
 	"net/http"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 // credShape says whether a service's credential is one token or two named

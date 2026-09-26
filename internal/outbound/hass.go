@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"dashboard/internal/drivers/services"
+	"andon/internal/drivers/services"
 )
 
 const hassToggle = "toggle"

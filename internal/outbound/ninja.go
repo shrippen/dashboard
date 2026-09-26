@@ -3,7 +3,7 @@ package outbound
 import (
 	"context"
 
-	"dashboard/internal/drivers/services"
+	"andon/internal/drivers/services"
 )
 
 // NinjaLine is one invoice position to create.

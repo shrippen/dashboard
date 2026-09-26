@@ -8,16 +8,16 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/drivers/llm"
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/settings"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/drivers/llm"
+	"andon/internal/enums"
+	"andon/internal/rules"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/hints"
+	"andon/internal/settings"
 )
 
 func setup(t *testing.T) (*sql.DB, *access.Principal, int64) {

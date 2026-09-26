@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // Icon download adapter: resolves an icon spec to image bytes.

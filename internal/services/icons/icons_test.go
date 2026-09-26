@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/services/icons"
+	"andon/internal/services/icons"
 )
 
 func TestURLDownloadsOnceAndRemembersMisses(t *testing.T) {

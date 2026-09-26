@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/hass"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/hass"
+	"andon/internal/testkit"
 )
 
 // Only switchable entities listed on the tile are toggled.

@@ -11,11 +11,11 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/hints"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	data "andon/internal/repos/data"
+	"andon/internal/services/access"
+	"andon/internal/services/hints"
 )
 
 const (

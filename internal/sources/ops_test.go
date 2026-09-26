@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestKumaParsesMetrics(t *testing.T) {

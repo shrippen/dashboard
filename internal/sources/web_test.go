@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestHTTPStatusUpWithinDefaultRange(t *testing.T) {

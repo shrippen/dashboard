@@ -9,16 +9,16 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"dashboard/internal/model"
+	"andon/internal/model"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/themes"
-	"dashboard/internal/services/widgetlib"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/connections"
+	"andon/internal/services/themes"
+	"andon/internal/services/widgetlib"
+	"andon/internal/widgets"
 )
 
 // RegisterEditorRoutes wires board settings, sections, the widget library

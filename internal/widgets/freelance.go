@@ -7,9 +7,9 @@ package widgets
 //	cashflow      expected balance for the next days (Ninja + Sure + taxes)
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 const minutesPerHour = 60

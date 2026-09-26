@@ -19,14 +19,14 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/services/widgetlib"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/connections"
+	"andon/internal/services/svcdata"
+	"andon/internal/services/widgetlib"
+	"andon/internal/widgets"
 )
 
 // galleryCard is one type to set up. ConnID is the caller's connection of

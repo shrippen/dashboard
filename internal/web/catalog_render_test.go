@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/services/widgetlib"
-	"dashboard/internal/sources"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/services/widgetlib"
+	"andon/internal/sources"
+	"andon/internal/widgets"
 )
 
 // Every catalog tile renders from its service's demo dataset.

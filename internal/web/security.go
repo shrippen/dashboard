@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"dashboard/internal/services/system"
+	"andon/internal/services/system"
 )
 
 const embedPrefix = "/embed/"

@@ -6,13 +6,13 @@ import (
 	"mime"
 	"net/http"
 
-	"dashboard/internal/services/icons"
+	"andon/internal/services/icons"
 )
 
 const (
 	iconCSP     = "default-src 'none'; style-src 'unsafe-inline'"
 	iconCache   = "public, max-age=86400"
-	appName     = "dashboard"
+	appName     = "Andon"
 	appBg       = "#141312"
 	maxIconForm = 1 << 20
 )

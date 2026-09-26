@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/maintenance"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/services/maintenance"
 )
 
 func openTestDB(t *testing.T) (*sql.DB, string) {
@@ -53,7 +53,7 @@ func TestBackupProducesReadableArchive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tar entry: %v", err)
 	}
-	if hdr.Name != "dashboard.db" || hdr.Size == 0 {
+	if hdr.Name != "andon.db" || hdr.Size == 0 {
 		t.Fatalf("unexpected archive entry: %+v", hdr)
 	}
 }
@@ -153,7 +153,7 @@ func TestBackupIncludesAssets(t *testing.T) {
 		}
 		names[hdr.Name] = true
 	}
-	for _, want := range []string{"dashboard.db", "icons/ab/icon.png", "themes/7/Inter-600.woff2"} {
+	for _, want := range []string{"andon.db", "icons/ab/icon.png", "themes/7/Inter-600.woff2"} {
 		if !names[want] {
 			t.Errorf("missing %s in %v", want, names)
 		}

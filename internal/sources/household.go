@@ -17,9 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/drivers/httpclient"
-	"dashboard/internal/drivers/services"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/httpclient"
+	"andon/internal/drivers/services"
+	"andon/internal/enums"
 )
 
 const (
@@ -456,7 +456,7 @@ func DemoDWD(now time.Time) *DWDDataset {
 
 func DemoGitHub(now time.Time) *GitHubDataset {
 	return &GitHubDataset{URL: "https://api.github.com", Notifications: 4, Repos: []GitRepo{
-		{Name: "shrippen/dashboard", Issues: 3, PRs: 1, CI: "success", Release: "v0.12.0", ReleasedAt: now.AddDate(0, 0, -6)},
+		{Name: "shrippen/andon", Issues: 3, PRs: 1, CI: "success", Release: "v0.12.0", ReleasedAt: now.AddDate(0, 0, -6)},
 		{Name: "shrippen/dotfiles", Issues: 0, PRs: 0, CI: "failure"},
 	}}
 }

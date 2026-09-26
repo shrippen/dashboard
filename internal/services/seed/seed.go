@@ -1,4 +1,4 @@
-// Package seed fills a fresh instance: the demo instance (DASHBOARD_DEMO)
+// Package seed fills a fresh instance: the demo instance (ANDON_DEMO)
 // and an optional seed.yml (SEED_FILE) imported into the instance space.
 package seed
 
@@ -10,15 +10,15 @@ import (
 	"os"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/analysis"
-	"dashboard/internal/services/porting"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/analysis"
+	"andon/internal/services/porting"
 )
 
 // Demo accounts (made-up data, connections use demo:// URLs).

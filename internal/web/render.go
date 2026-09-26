@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/themes"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/services/access"
+	"andon/internal/services/themes"
 )
 
 //go:embed templates/*.html

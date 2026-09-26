@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/spaces"
-	"dashboard/internal/services/teams"
-	"dashboard/internal/services/themes"
+	"andon/internal/enums"
+	"andon/internal/repos/users"
+	"andon/internal/services/spaces"
+	"andon/internal/services/teams"
+	"andon/internal/services/themes"
 )
 
 // RegisterTeamRoutes wires /teams: overview, create, rename, member

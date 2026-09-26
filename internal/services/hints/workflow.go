@@ -13,12 +13,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/data"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/data"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
 )
 
 const (

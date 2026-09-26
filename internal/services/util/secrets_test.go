@@ -3,7 +3,7 @@ package util
 import (
 	"testing"
 
-	"dashboard/internal/crypto"
+	"andon/internal/crypto"
 )
 
 func TestHeadersSealed(t *testing.T) {

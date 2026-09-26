@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/themes"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/themes"
 )
 
 const (

@@ -2,7 +2,7 @@
 //
 //	master key ──HKDF("database")──► file key
 //	                                    │
-//	dashboard.db, -wal, backups ◄── Adiantum VFS (4 KiB blocks, encrypted)
+//	andon.db, -wal, backups ◄── Adiantum VFS (4 KiB blocks, encrypted)
 //
 // SQLite runs in WAL mode: readers never wait for the writer. Write
 // transactions begin IMMEDIATE, so writers queue on the lock (busy

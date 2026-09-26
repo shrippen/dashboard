@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/icons"
-	"dashboard/internal/services/spaces"
-	"dashboard/internal/services/themes"
-	"dashboard/internal/services/util"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/icons"
+	"andon/internal/services/spaces"
+	"andon/internal/services/themes"
+	"andon/internal/services/util"
+	"andon/internal/widgets"
 )
 
 // Dashy conf.yml → our import document. Items become link widgets, known

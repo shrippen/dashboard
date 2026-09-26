@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/services/seed"
-	"dashboard/internal/services/system"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/hints"
+	"andon/internal/services/seed"
+	"andon/internal/services/system"
 )
 
 // TestDemoFillsBoardsAndFiresRules: the demo instance imports every widget

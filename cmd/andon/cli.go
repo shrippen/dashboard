@@ -7,15 +7,15 @@ import (
 	"os"
 	"strings"
 
-	"dashboard/internal/services/maintenance"
-	"dashboard/internal/services/porting"
+	"andon/internal/services/maintenance"
+	"andon/internal/services/porting"
 )
 
 const cliUsage = `usage:
-  dashboard                          run the server
-  dashboard backup <dir>             SQLite backup as tar.gz
-  dashboard rotate-key <keyfile>     re-encrypt secrets under a new master key
-  dashboard import --email <e> [--dashy] <file>
+  andon                              run the server
+  andon backup <dir>                 SQLite backup as tar.gz
+  andon rotate-key <keyfile>         re-encrypt secrets under a new master key
+  andon import --email <e> [--dashy] <file>
                                      import YAML or Dashy conf.yml into a personal space`
 
 // runCLI handles the operator subcommands (backup, rotate-key); ok=false

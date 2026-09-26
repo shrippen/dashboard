@@ -3,8 +3,8 @@ package data
 import (
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/model"
+	"andon/internal/db"
+	"andon/internal/model"
 )
 
 // AddHookEvent stores one pushed event.

@@ -10,7 +10,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "nav.import"}} · dashboard</title>
+  <title>{{t "nav.import"}} · Andon</title>
   {{template "style" .}}
 </head>
 <body>
@@ -25,7 +25,7 @@
       <label for="import_space">{{t "field.space"}}</label>
       <select id="import_space" name="space_id">{{range .Spaces}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select>
       <label for="import_kind">{{t "import.kind"}}</label>
-      <select id="import_kind" name="kind"><option value="dashy">Dashy conf.yml</option><option value="yaml">dashboard YAML</option></select>
+      <select id="import_kind" name="kind"><option value="dashy">Dashy conf.yml</option><option value="yaml">Andon YAML</option></select>
       <label for="import_file">{{t "import.file"}}</label>
       <input id="import_file" type="file" name="file" accept=".yml,.yaml" required>
       <button type="submit">{{t "import.run"}}</button>
@@ -41,7 +41,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{t "edit.code"}} · dashboard</title>
+  <title>{{t "edit.code"}} · Andon</title>
   {{template "style" .}}
   {{template "code-editor"}}
 </head>

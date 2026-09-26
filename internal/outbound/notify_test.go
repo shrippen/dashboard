@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/outbound"
+	"andon/internal/outbound"
 )
 
 func TestSendPostsExpectedPayload(t *testing.T) {

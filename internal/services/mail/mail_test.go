@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/mail"
-	"dashboard/internal/settings"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/repos/users"
+	"andon/internal/services/mail"
+	"andon/internal/settings"
+	"andon/internal/testkit"
 )
 
 // Mail text is escaped in HTML and repeated as plain text, button too.

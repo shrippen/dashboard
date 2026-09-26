@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func jsonServer(t *testing.T, routes map[string]any, check func(*http.Request) bool) *httptest.Server {

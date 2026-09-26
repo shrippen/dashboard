@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
 )
 
 // ── Hint history ──

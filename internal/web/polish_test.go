@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/web"
+	"andon/internal/enums"
+	"andon/internal/services/hints"
+	"andon/internal/web"
 )
 
 // With TOTP forced for admins, an admin without it only reaches the

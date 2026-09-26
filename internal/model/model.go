@@ -15,7 +15,7 @@ package model
 import (
 	"time"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 type User struct {

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Cantarell,sans-serif">
+  <rect width="880" height="560" fill="#1d2021"/>
+
+  <!-- top bar: boards as tabs, open hints on the right -->
+  <rect width="880" height="44" fill="#141312"/>
+  <g transform="translate(20 10) scale(0.5)" fill="none" stroke="#E8DCC4" stroke-width="3"><rect x="3" y="7" width="42" height="34" rx="3"/><rect x="9" y="12" width="8" height="11" rx="1.5" fill="#E8DCC4" stroke="none"/><rect x="20" y="12" width="8" height="11" rx="1.5" fill="#E8DCC4" stroke="none"/><rect x="31" y="12" width="8" height="11" rx="1.5" fill="#FABD2F" stroke="none"/><rect x="9" y="26" width="8" height="10" rx="1.5" fill="#E8DCC4" stroke="none"/><rect x="20" y="26" width="8" height="10" rx="1.5" fill="#E8DCC4" stroke="none"/><rect x="31" y="26" width="8" height="10" rx="1.5" fill="#E8DCC4" stroke="none"/></g>
+  <text x="62" y="27" font-size="14" font-weight="600" fill="#fbf1c7">Start</text>
+  <rect x="62" y="41" width="36" height="3" fill="#fabd2f"/>
+  <text x="120" y="27" font-size="14" fill="#a89984">Work</text>
+  <text x="172" y="27" font-size="14" fill="#a89984">Homelab</text>
+  <rect x="770" y="12" width="90" height="22" rx="11" fill="none" stroke="#fabd2f"/>
+  <text x="815" y="27" font-size="12" fill="#fabd2f" text-anchor="middle">3 hints</text>
+
+  <!-- hints -->
+  <rect x="20" y="60" width="500" height="190" fill="#2a2826" stroke="#3c3836"/>
+  <text x="36" y="84" font-size="11" letter-spacing="1.5" fill="#a89984">HINTS</text>
+  <rect x="36" y="98" width="4" height="40" fill="#fb4934"/>
+  <text x="52" y="114" font-size="14" fill="#ebdbb2">Invoice 2026-041 overdue by 12 days</text>
+  <text x="52" y="132" font-size="12" fill="#a89984">Studio Nord · 1,840.00 € · reminder not sent</text>
+  <rect x="36" y="148" width="4" height="40" fill="#fabd2f"/>
+  <text x="52" y="164" font-size="14" fill="#ebdbb2">14.5 h unbilled at Weber GmbH</text>
+  <text x="52" y="182" font-size="12" fill="#a89984">Oldest entry 3 Sep · draft invoice ready</text>
+  <rect x="36" y="198" width="4" height="40" fill="#83a598"/>
+  <text x="52" y="214" font-size="14" fill="#ebdbb2">Certificate for git.example.org expires in 9 days</text>
+  <text x="52" y="232" font-size="12" fill="#a89984">Checked today 06:00</text>
+
+  <!-- this week -->
+  <rect x="536" y="60" width="324" height="190" fill="#2a2826" stroke="#3c3836"/>
+  <text x="552" y="84" font-size="11" letter-spacing="1.5" fill="#a89984">THIS WEEK</text>
+  <text x="552" y="126" font-size="34" font-weight="700" fill="#fbf1c7">31.5 h</text>
+  <text x="672" y="126" font-size="13" fill="#a89984">of 40 h</text>
+  <rect x="552" y="138" width="292" height="6" fill="#1d2021"/>
+  <rect x="552" y="138" width="230" height="6" fill="#8ec07c"/>
+  <g fill="#504945">
+    <rect x="560" y="187" width="36" height="45"/>
+    <rect x="616" y="184" width="36" height="48"/>
+    <rect x="672" y="193" width="36" height="39"/>
+    <rect x="728" y="175" width="36" height="57"/>
+  </g>
+  <rect x="784" y="232" width="36" height="0" fill="#fabd2f"/>
+  <g font-size="11" fill="#a89984" text-anchor="middle">
+    <text x="578" y="246">Mon</text><text x="634" y="246">Tue</text><text x="690" y="246">Wed</text><text x="746" y="246">Thu</text>
+    <text x="802" y="246" fill="#fabd2f">Fri</text>
+  </g>
+
+  <!-- revenue with forecast -->
+  <rect x="20" y="266" width="320" height="274" fill="#2a2826" stroke="#3c3836"/>
+  <text x="36" y="290" font-size="11" letter-spacing="1.5" fill="#a89984">REVENUE 2026</text>
+  <text x="36" y="330" font-size="34" font-weight="700" fill="#fbf1c7">48,200 €</text>
+  <text x="36" y="352" font-size="13" fill="#a89984">Forecast for the year: 71,000 €</text>
+  <line x1="40" y1="520" x2="320" y2="520" stroke="#3c3836"/>
+  <line x1="40" y1="460" x2="320" y2="460" stroke="#3c3836" stroke-dasharray="2 4"/>
+  <line x1="40" y1="400" x2="320" y2="400" stroke="#3c3836" stroke-dasharray="2 4"/>
+  <path d="M40 513.1 L65.5 504.8 L90.9 496 L116.4 486.5 L141.8 479.3 L167.3 469.5 L192.7 460.9 L218.2 449.7 L243.6 438.5 L243.6 520 L40 520 Z" fill="#83a598" fill-opacity="0.18"/>
+  <path d="M40 513.1 L65.5 504.8 L90.9 496 L116.4 486.5 L141.8 479.3 L167.3 469.5 L192.7 460.9 L218.2 449.7 L243.6 438.5" fill="none" stroke="#83a598" stroke-width="2"/>
+  <path d="M243.6 438.5 L269.1 428.7 L294.5 415.2 L320 400" fill="none" stroke="#fabd2f" stroke-width="2" stroke-dasharray="4 4"/>
+  <circle cx="243.6" cy="438.5" r="4" fill="#83a598"/>
+  <g font-size="10" fill="#a89984"><text x="40" y="534">Jan</text><text x="232" y="534">Sep</text><text x="302" y="534">Dec</text></g>
+
+  <!-- services -->
+  <rect x="356" y="266" width="250" height="274" fill="#2a2826" stroke="#3c3836"/>
+  <text x="372" y="290" font-size="11" letter-spacing="1.5" fill="#a89984">SERVICES</text>
+  <g font-size="13" fill="#ebdbb2">
+    <circle cx="378" cy="318" r="5" fill="#8ec07c"/><text x="392" y="323">Proxmox</text>
+    <circle cx="378" cy="352" r="5" fill="#8ec07c"/><text x="392" y="357">Gitea</text>
+    <circle cx="378" cy="386" r="5" fill="#8ec07c"/><text x="392" y="391">Immich</text>
+    <circle cx="378" cy="420" r="5" fill="#fabd2f"/><text x="392" y="425">Borg backup</text>
+    <circle cx="378" cy="454" r="5" fill="#8ec07c"/><text x="392" y="459">Pi-hole</text>
+    <circle cx="378" cy="488" r="5" fill="#8ec07c"/><text x="392" y="493">Home Assistant</text>
+  </g>
+  <g font-size="12" fill="#a89984" text-anchor="end">
+    <text x="590" y="323">14 ms</text><text x="590" y="357">38 ms</text><text x="590" y="391">52 ms</text>
+    <text x="590" y="425" fill="#fabd2f">26 h ago</text><text x="590" y="459">3 ms</text><text x="590" y="493">21 ms</text>
+  </g>
+
+  <!-- links -->
+  <rect x="622" y="266" width="238" height="274" fill="#2a2826" stroke="#3c3836"/>
+  <text x="638" y="290" font-size="11" letter-spacing="1.5" fill="#a89984">LINKS</text>
+  <g fill="#3c3836">
+    <rect x="642" y="308" width="56" height="56" rx="8"/><rect x="713" y="308" width="56" height="56" rx="8"/><rect x="784" y="308" width="56" height="56" rx="8"/>
+    <rect x="642" y="390" width="56" height="56" rx="8"/><rect x="713" y="390" width="56" height="56" rx="8"/><rect x="784" y="390" width="56" height="56" rx="8"/>
+    <rect x="642" y="472" width="56" height="56" rx="8"/><rect x="713" y="472" width="56" height="56" rx="8"/><rect x="784" y="472" width="56" height="56" rx="8"/>
+  </g>
+  <g font-size="16" font-weight="700" fill="#e8dcc4" text-anchor="middle">
+    <text x="670" y="342">Ki</text><text x="741" y="342">IN</text><text x="812" y="342">Pa</text>
+    <text x="670" y="424">Jf</text><text x="741" y="424">Nc</text><text x="812" y="424">HA</text>
+    <text x="670" y="506">Vw</text><text x="741" y="506">Gi</text><text x="812" y="506">Uk</text>
+  </g>
+</svg>

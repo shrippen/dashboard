@@ -9,16 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	authrepo "dashboard/internal/repos/auth"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/audit"
-	"dashboard/internal/services/mail"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	authrepo "andon/internal/repos/auth"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/audit"
+	"andon/internal/services/mail"
 )
 
 const (

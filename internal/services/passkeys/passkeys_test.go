@@ -9,16 +9,16 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	authrepo "dashboard/internal/repos/auth"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/passkeys"
-	"dashboard/internal/services/util"
-	"dashboard/internal/settings"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	authrepo "andon/internal/repos/auth"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/passkeys"
+	"andon/internal/services/util"
+	"andon/internal/settings"
 )
 
 var cfg = settings.Settings{BaseURL: "https://dash.example.org:8443"}

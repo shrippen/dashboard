@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/drivers/imapmail"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/imapmail"
+	"andon/internal/enums"
 )
 
 const (

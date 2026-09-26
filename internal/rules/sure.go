@@ -12,9 +12,9 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 const centTolerance = 0.01

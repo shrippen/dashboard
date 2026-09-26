@@ -15,13 +15,13 @@ import (
 	"fmt"
 	"strings"
 
-	"dashboard/internal/db"
-	"dashboard/internal/drivers/llm"
-	"dashboard/internal/i18n"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/settings"
+	"andon/internal/db"
+	"andon/internal/drivers/llm"
+	"andon/internal/i18n"
+	data "andon/internal/repos/data"
+	"andon/internal/services/access"
+	"andon/internal/services/hints"
+	"andon/internal/settings"
 )
 
 // locationRules never leave the instance (where a user was).

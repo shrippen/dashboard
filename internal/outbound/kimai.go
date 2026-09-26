@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/drivers/services"
+	"andon/internal/drivers/services"
 )
 
 // KimaiStart starts a timer for project and activity (Kimai sets "now").

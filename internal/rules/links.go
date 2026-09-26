@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 // LinksDataset is the Env.Datasets key of the space's link tiles.

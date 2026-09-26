@@ -11,17 +11,17 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/metrics"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/hints"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/metrics"
+	"andon/internal/repos/content"
+	"andon/internal/services/access"
+	"andon/internal/services/hints"
 )
 
 const (
 	feedHorizonDays = 400
-	prodID          = "-//shrippen//dashboard//DE"
+	prodID          = "-//shrippen//andon//DE"
 	dayLayout       = "20060102"
 	stampLayout     = "20060102T150405Z"
 	taxRulePrefix   = "tax."
@@ -99,7 +99,7 @@ func Feed(d *sql.DB, who *access.Principal, now time.Time) (string, error) {
 func event(item Deadline, stamp string) []string {
 	return []string{
 		"BEGIN:VEVENT",
-		"UID:" + item.UID + "@dashboard",
+		"UID:" + item.UID + "@andon",
 		"DTSTAMP:" + stamp,
 		"DTSTART;VALUE=DATE:" + item.Due.Format(dayLayout),
 		"DTEND;VALUE=DATE:" + item.Due.AddDate(0, 0, 1).Format(dayLayout),

@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/oidc"
-	"dashboard/internal/services/passkeys"
+	"andon/internal/enums"
+	"andon/internal/services/accounts"
+	"andon/internal/services/auth"
+	"andon/internal/services/oidc"
+	"andon/internal/services/passkeys"
 )
 
 // RegisterSecurityRoutes wires /me/security: password, TOTP, sessions, API tokens.

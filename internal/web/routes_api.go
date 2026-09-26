@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/calendar"
-	"dashboard/internal/services/hints"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/calendar"
+	"andon/internal/services/hints"
 )
 
 const embedHintLimit = 10

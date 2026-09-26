@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/auth"
-	"dashboard/internal/repos/users"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/auth"
+	"andon/internal/repos/users"
 )
 
 func openTestDB(t *testing.T) db.Queryer {

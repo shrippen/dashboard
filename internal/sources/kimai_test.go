@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestKimaiDataNormalizesSheetsAndProjects(t *testing.T) {

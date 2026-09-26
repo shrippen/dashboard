@@ -61,7 +61,7 @@ func TestBackupNow(t *testing.T) {
 
 	postForm(t, client, srv.URL+"/admin/settings/backup", url.Values{"csrf": {csrfToken(t, srv, client)}})
 	page := string(mustGet(t, srv, client, "/admin/settings"))
-	if !strings.Contains(page, `data-state="ok"`) || !regexp.MustCompile(`dashboard-\d{8}-\d{6}\.db`).MatchString(page) {
+	if !strings.Contains(page, `data-state="ok"`) || !regexp.MustCompile(`andon-\d{8}-\d{6}\.db`).MatchString(page) {
 		t.Fatalf("no verified backup:\n%s", page)
 	}
 }

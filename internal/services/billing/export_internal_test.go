@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 // TestTripRows: one round trip per client day, priced at the km rate.

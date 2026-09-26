@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
-	"dashboard/internal/services/hints"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/rules"
+	"andon/internal/services/hints"
 )
 
 // TestValueAndNoisyRules: hints carry the largest money amount they name;

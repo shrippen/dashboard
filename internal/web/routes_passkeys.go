@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/passkeys"
+	"andon/internal/services/auth"
+	"andon/internal/services/passkeys"
 )
 
 // Request bodies (attestation, assertion) stay far below this.

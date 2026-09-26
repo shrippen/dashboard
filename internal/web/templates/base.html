@@ -1,15 +1,15 @@
 {{/* Shared page fragments: the shrippen tokens (linked per-page via
-     .ThemeURL, see Deps.Page), dashboard.css's components on top, and the
+     .ThemeURL, see Deps.Page), andon.css's components on top, and the
      app nav. Pages include "style" and "header" explicitly rather than
      overriding a {{block}}, so multiple pages parsed into one template
      set never clash over a shared block name. */}}
 {{define "style"}}
 <link rel="stylesheet" href="{{.ThemeURL}}">
-<link rel="stylesheet" href="/static/dashboard.css">
+<link rel="stylesheet" href="/static/andon.css">
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 <meta name="csrf" content="{{.Ctx.CSRF}}">
 <meta name="offline-note" content="{{t "nav.offline"}}">
-<script src="/static/dashboard.js" defer></script>
+<script src="/static/andon.js" defer></script>
 {{end}}
 
 {{/* Loaded only by pages with <textarea data-code>. */}}
@@ -29,7 +29,7 @@
      account behind two menus (native <details>, no script needed). */}}
 {{define "header"}}
 <header class="app-nav">
-  <a class="app-brand" href="/"><span class="mark"></span>dashboard</a>
+  <a class="app-brand" href="/"><span class="mark"></span>Andon</a>
   {{if .Who}}
     <nav class="app-links" aria-label="{{t "nav.main"}}">
       {{range .NavBoards}}<a href="/boards/{{.ID}}"{{if eq .ID $.CurBoard}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}

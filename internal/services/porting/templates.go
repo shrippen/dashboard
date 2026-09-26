@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/services/access"
+	"andon/internal/services/access"
 )
 
 //go:embed templates/*.yml

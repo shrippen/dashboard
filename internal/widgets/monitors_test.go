@@ -3,7 +3,7 @@ package widgets
 import (
 	"testing"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestMonitorsViewSumsUp(t *testing.T) {

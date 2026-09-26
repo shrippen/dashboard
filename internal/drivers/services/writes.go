@@ -13,7 +13,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // Send runs one write against /api/<path> of Kimai.

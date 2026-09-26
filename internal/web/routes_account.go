@@ -3,11 +3,11 @@ package web
 import (
 	"net/http"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/admin"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/invites"
-	"dashboard/internal/services/oidc"
+	"andon/internal/enums"
+	"andon/internal/services/admin"
+	"andon/internal/services/auth"
+	"andon/internal/services/invites"
+	"andon/internal/services/oidc"
 )
 
 // RegisterAccountRoutes wires the public account flows: accept an

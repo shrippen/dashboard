@@ -12,7 +12,7 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 // Scope groups rules that fire together: one per ServiceType, plus these

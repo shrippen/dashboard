@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"dashboard/internal/repos/files"
+	"andon/internal/repos/files"
 )
 
 // Names never leave their key's directory; a round trip keeps the bytes.

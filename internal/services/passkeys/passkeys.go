@@ -24,23 +24,23 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/model"
-	authrepo "dashboard/internal/repos/auth"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	auditsvc "dashboard/internal/services/audit"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/mail"
-	"dashboard/internal/services/util"
-	"dashboard/internal/settings"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/model"
+	authrepo "andon/internal/repos/auth"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	auditsvc "andon/internal/services/audit"
+	"andon/internal/services/auth"
+	"andon/internal/services/mail"
+	"andon/internal/services/util"
+	"andon/internal/settings"
 )
 
 const (
 	ceremonyTTL = 5 * time.Minute
 	maxPending  = 1000 // login begin is public: bound the memory it takes
-	rpName      = "dashboard"
+	rpName      = "Andon"
 	nameMax     = 60
 )
 

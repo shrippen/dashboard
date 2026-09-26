@@ -12,12 +12,12 @@ import (
 	"strings"
 	"sync"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/outbound"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/settings"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/outbound"
+	"andon/internal/repos/users"
+	"andon/internal/settings"
 )
 
 // SecurityKind names a security notice ("mail.security.<kind>").

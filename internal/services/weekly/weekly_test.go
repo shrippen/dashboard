@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/weekly"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/model"
+	data "andon/internal/repos/data"
+	"andon/internal/services/weekly"
+	"andon/internal/testkit"
 )
 
 // The story counts this week's opened and resolved hints of the caller,

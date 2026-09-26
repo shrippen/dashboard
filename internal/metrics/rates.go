@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // Effective hourly rate: what a customer actually paid per hour worked.

@@ -55,7 +55,7 @@
 {{end}}
 
 {{/* Kimai Lite's add-entry form; replaces the tile body until saved or
-     cancelled. Activities of other projects are hidden by dashboard.js. */}}
+     cancelled. Activities of other projects are hidden by andon.js. */}}
 {{define "kimai_new"}}
 <form class="kl kl-new" hx-post="/widget-fragments/{{.PlacementID}}/kimai" hx-target="closest .card-body" hx-swap="innerHTML">
   <input type="hidden" name="{{.CSRFField}}" value="{{.Ctx.CSRF}}">

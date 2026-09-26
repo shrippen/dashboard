@@ -16,8 +16,8 @@ import (
 	"fmt"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 const (

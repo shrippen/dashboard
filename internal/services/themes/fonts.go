@@ -10,11 +10,11 @@ import (
 	"strings"
 	"sync"
 
-	"dashboard/internal/db"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/files"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/services/access"
+	"andon/internal/db"
+	"andon/internal/model"
+	"andon/internal/repos/files"
+	"andon/internal/repos/misc"
+	"andon/internal/services/access"
 )
 
 // Theme fonts: admins upload font files per theme. The file name carries

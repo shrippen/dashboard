@@ -709,7 +709,7 @@ conn:
   budget_today: 'Heute {n} von {max} Abrufen.'
   hygiene: 'Token und Abrufe'
   budget: 'Abrufe je Tag'
-  budget_hint: '0 = unbegrenzt. Danach zeigt das Dashboard den letzten Stand bis morgen.'
+  budget_hint: '0 = unbegrenzt. Danach zeigt Andon den letzten Stand bis morgen.'
   failed: 'Fehlerquote'
   never_ok: 'noch nie erfolgreich'
   no_fetches: 'noch keine Abrufe'
@@ -952,7 +952,7 @@ cred:
 credential:
   missing: Kein persönlicher Zugang hinterlegt.
 admin:
-  backup: 'Sicherung des Dashboards'
+  backup: 'Sicherung von Andon'
   backup_hint: 'Täglich eine Kopie der Datenbank nach data/backups; jede Kopie wird probeweise geöffnet (Integrität, Migrationen, Zeilen, Zugangsdaten entschlüsselbar). Die neuesten {keep} bleiben. Den Master-Schlüssel getrennt aufbewahren.'
   backup_ok: 'Wiederherstellung geprüft'
   backup_failed: 'Sicherung fehlerhaft'
@@ -1004,7 +1004,7 @@ admin:
   oidc_email_link: Bestehende Konten über bestätigte E-Mail verknüpfen
   oidc_only: Nur Single Sign-on (Notzugang über /login?local)
   oidc_rules: Gruppen → Startwerte
-  oidc_rules_hint: Gilt nur beim automatischen Anlegen eines Kontos. Danach werden Rolle und Teams im Dashboard gepflegt.
+  oidc_rules_hint: Gilt nur beim automatischen Anlegen eines Kontos. Danach werden Rolle und Teams in Andon gepflegt.
   group: authentik-Gruppe
   team: Team
 net:
@@ -1068,7 +1068,7 @@ tokens:
   fonts: Schriften
 styleguide:
   title: Komponenten
-  lead: Alle Dashboard-Komponenten im aktuellen Theme.
+  lead: Alle Komponenten von Andon im aktuellen Theme.
 sample:
   revenue: Umsatz 2026
   open: Offene Posten
@@ -1081,10 +1081,10 @@ icon:
 url:
   scheme: URL muss mit http:// oder https:// beginnen.
 mail:
-  footer: dashboard · {url}
+  footer: Andon · {url}
   invite:
-    subject: Einladung zum Dashboard
-    body: '{inviter} hat dich zum Dashboard eingeladen. Der Link ist 7 Tage gültig.'
+    subject: Einladung zu Andon
+    body: '{inviter} hat dich zu Andon eingeladen. Der Link ist 7 Tage gültig.'
     button: Konto anlegen
   reset:
     subject: Passwort zurücksetzen
@@ -1330,10 +1330,10 @@ hint:
       why: 'Seit {day}. Ohne Verbindung laufen keine Backups.'
     silent:
       title: Keine Meldungen von PG Back Web
-      why: 'Seit {days} Tagen kein Webhook. Webhooks eingerichtet, Dashboard erreichbar?'
+      why: 'Seit {days} Tagen kein Webhook. Webhooks eingerichtet, Andon erreichbar?'
   linkwarden:
     missing:
-      title: '{count} Links aus „{collection}“ fehlen im Dashboard'
+      title: '{count} Links aus „{collection}“ fehlen in Andon'
       why: '{names}. Als Kachel anlegen oder in Linkwarden aussortieren.'
     unsaved:
       title: '{count} Kacheln nicht in Linkwarden gesichert'
@@ -2139,10 +2139,10 @@ notify:
   invalid_url: Apprise-URL ungültig.
   failed: Versand fehlgeschlagen.
   bad_time: Zeit ungültig (HH:MM).
-  test_title: 'dashboard: Test'
+  test_title: 'Andon: Test'
   test_body: Dieser Kanal funktioniert.
-  title: 'dashboard: {count} neue Hinweise'
-  digest_subject: 'Dashboard: {count} Punkte'
+  title: 'Andon: {count} neue Hinweise'
+  digest_subject: 'Andon: {count} Punkte'
   digest_body: 'Offene Hinweise und anstehende Fristen:'
 weekday:
   mon: Montag
@@ -2154,7 +2154,7 @@ weekday:
   sun: Sonntag
 calendar:
   all_day: ganztags
-  name: Dashboard-Fristen
+  name: Andon-Fristen
 trend:
   range: '{low} – {high}'
   collecting: Verlauf wird gesammelt (ein Wert pro Tag).
@@ -2366,7 +2366,7 @@ assist:
   why: 'Begründung'
   advice_system: 'Du hilfst jemandem, der ein Homelab und seine Selbständigkeit mit einem Dashboard überwacht. Du erhältst einen Hinweis des Dashboards. Antworte auf Deutsch mit drei bis fünf nummerierten, konkreten Schritten, jeweils eine Zeile: was prüfen, was tun, wo (Menüpfad oder Befehl, falls sinnvoll). Keine Einleitung, kein Markdown, keine Warnhinweise. Erfinde keine Details, die nicht im Hinweis stehen.'
   off: 'Keine KI eingerichtet (ANTHROPIC_API_KEY).'
-  private: 'Standortdaten verlassen das Dashboard nicht.'
+  private: 'Standortdaten verlassen Andon nicht.'
   unreadable: 'Keine Rechnungsdaten erkannt.'
   read: 'Mit KI lesen'
   read_privacy: 'Sendet die Anhänge dieser Mail an Anthropic (Claude).'

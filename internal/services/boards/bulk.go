@@ -11,11 +11,11 @@ import (
 	"errors"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/access"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/services/access"
 )
 
 // BulkAction is what happens to the chosen tiles.

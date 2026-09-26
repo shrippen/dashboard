@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/audit"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/audit"
 )
 
 // ErrNameMissing/ErrNameTaken/ErrNotFound are TeamError equivalents.

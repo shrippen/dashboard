@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/admin"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/admin"
+	"andon/internal/testkit"
 )
 
 // The instance never loses its last admin, and only admins manage users.

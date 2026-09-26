@@ -21,13 +21,13 @@ import (
 	"sync"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/sources"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	data "andon/internal/repos/data"
+	"andon/internal/sources"
 )
 
 // Freshness selects whether a cached result within its TTL is acceptable.

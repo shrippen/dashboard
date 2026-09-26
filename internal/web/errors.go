@@ -3,11 +3,11 @@ package web
 import (
 	"errors"
 
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/shares"
-	"dashboard/internal/services/teams"
-	"dashboard/internal/services/widgetlib"
+	"andon/internal/services/accounts"
+	"andon/internal/services/auth"
+	"andon/internal/services/shares"
+	"andon/internal/services/teams"
+	"andon/internal/services/widgetlib"
 )
 
 // knownErrors maps service errors without a catalog-key message to their

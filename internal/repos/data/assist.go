@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"dashboard/internal/db"
+	"andon/internal/db"
 )
 
 // Advice returns a stored answer for a hint if its digest still matches.

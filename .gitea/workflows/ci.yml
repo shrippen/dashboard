@@ -44,7 +44,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: git.arianw.de/${{ github.repository }}
+          images: git.arianw.de/${{ github.repository_owner }}/andon
           flavor: latest=false
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}

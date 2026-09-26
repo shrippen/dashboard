@@ -3,8 +3,8 @@ package rules_test
 import (
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
+	"andon/internal/enums"
+	"andon/internal/rules"
 )
 
 func TestTokenAgeAndExpiry(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 const (

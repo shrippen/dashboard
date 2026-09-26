@@ -10,8 +10,8 @@ package rules
 import (
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 const discoveryRule = "discovery.no_tile"

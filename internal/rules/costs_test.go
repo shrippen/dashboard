@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 func TestUnusedServiceAndReplacement(t *testing.T) {

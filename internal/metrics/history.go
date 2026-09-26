@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // HistoryDataset is the Env.Datasets key of the scope's History.

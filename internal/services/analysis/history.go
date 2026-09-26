@@ -11,11 +11,11 @@ import (
 	"database/sql"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/metrics"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/history"
-	"dashboard/internal/widgets"
+	"andon/internal/db"
+	"andon/internal/metrics"
+	data "andon/internal/repos/data"
+	"andon/internal/services/history"
+	"andon/internal/widgets"
 )
 
 func ownerID(owner *int64) int64 {

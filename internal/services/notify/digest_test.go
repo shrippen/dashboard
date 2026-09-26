@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/outbound"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/mail"
-	"dashboard/internal/services/notify"
-	"dashboard/internal/settings"
+	"andon/internal/db"
+	"andon/internal/outbound"
+	"andon/internal/repos/content"
+	"andon/internal/services/mail"
+	"andon/internal/services/notify"
+	"andon/internal/settings"
 )
 
 // TestDigestSendsOncePerDayOnChosenWeekday: the digest goes out after the

@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"dashboard/internal/drivers/services"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/services"
+	"andon/internal/enums"
 )
 
 const (

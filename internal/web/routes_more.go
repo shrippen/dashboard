@@ -5,15 +5,15 @@ import (
 	"net/url"
 	"strconv"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/porting"
-	"dashboard/internal/services/spaces"
-	"dashboard/internal/services/widgetlib"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/auth"
+	"andon/internal/services/boards"
+	"andon/internal/services/connections"
+	"andon/internal/services/porting"
+	"andon/internal/services/spaces"
+	"andon/internal/services/widgetlib"
 )
 
 // RegisterMoreRoutes wires the smaller personal and editor actions:

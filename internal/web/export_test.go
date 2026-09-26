@@ -1,6 +1,6 @@
 package web
 
-import "dashboard/internal/services/hints"
+import "andon/internal/services/hints"
 
 // Test-only access to the hints page helpers.
 var GroupHints = groupHints

@@ -12,10 +12,10 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/rules"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/rules"
+	"andon/internal/sources"
 )
 
 const (

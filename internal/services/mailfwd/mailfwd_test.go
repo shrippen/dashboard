@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/mailfwd"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/mailfwd"
+	"andon/internal/testkit"
 )
 
 // Forwarding needs a usable mailbox and a Paperless next to it; both are

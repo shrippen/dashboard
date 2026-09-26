@@ -15,14 +15,14 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/data"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/widgetlib"
-	"dashboard/internal/sources"
-	"dashboard/internal/widgets"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/repos/content"
+	"andon/internal/repos/data"
+	"andon/internal/services/access"
+	"andon/internal/services/widgetlib"
+	"andon/internal/sources"
+	"andon/internal/widgets"
 )
 
 const (

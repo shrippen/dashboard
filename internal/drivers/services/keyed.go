@@ -20,7 +20,7 @@ import (
 	"encoding/base64"
 	"net/url"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 // KeyedApi reads JSON with fixed request headers.

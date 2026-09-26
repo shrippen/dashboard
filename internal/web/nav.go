@@ -1,10 +1,10 @@
 package web
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/hints"
+	"andon/internal/enums"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/hints"
 )
 
 // addNav fills what the app header shows on every page: the viewer's

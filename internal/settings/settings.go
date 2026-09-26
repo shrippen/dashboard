@@ -59,7 +59,7 @@ func (s Settings) DBPath() string {
 	if s.DatabaseURL != "" {
 		return s.DatabaseURL
 	}
-	return filepath.Join(s.DataDir, "dashboard.db")
+	return filepath.Join(s.DataDir, "andon.db")
 }
 
 // SecureCookies reports whether BaseURL is https, so cookies get Secure set.
@@ -122,12 +122,12 @@ func Load() Settings {
 		BaseURL:              envStr("BASE_URL", "http://localhost:8080"),
 		DataDir:              envStr("DATA_DIR", "/data"),
 		DatabaseURL:          envStr("DATABASE_URL", ""),
-		Dev:                  envBool("DASHBOARD_DEV", false),
-		Demo:                 envBool("DASHBOARD_DEMO", false),
-		Testing:              envBool("DASHBOARD_TESTING", false),
+		Dev:                  envBool("ANDON_DEV", false),
+		Demo:                 envBool("ANDON_DEMO", false),
+		Testing:              envBool("ANDON_TESTING", false),
 		MasterKey:            envStr("MASTER_KEY", ""),
 		SMTPURL:              envStr("SMTP_URL", ""),
-		SMTPFrom:             envStr("SMTP_FROM", "dashboard <dashboard@localhost>"),
+		SMTPFrom:             envStr("SMTP_FROM", "Andon <andon@localhost>"),
 		SMTPPassword:         envStr("SMTP_PASSWORD", ""),
 		AnthropicAPIKey:      envStr("ANTHROPIC_API_KEY", ""),
 		OIDCIssuer:           envStr("OIDC_ISSUER", ""),

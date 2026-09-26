@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/services/hints"
-	"dashboard/internal/services/widgetlib"
-	"dashboard/internal/widgets"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/services/hints"
+	"andon/internal/services/widgetlib"
+	"andon/internal/widgets"
 )
 
 // The hint detail fragment renders history, people and states.

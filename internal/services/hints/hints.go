@@ -15,14 +15,14 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/data"
-	"dashboard/internal/rules"
-	"dashboard/internal/services/access"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/data"
+	"andon/internal/rules"
+	"andon/internal/services/access"
 )
 
 const (

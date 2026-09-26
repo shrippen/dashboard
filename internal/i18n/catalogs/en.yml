@@ -709,7 +709,7 @@ conn:
   budget_today: 'Today {n} of {max} fetches.'
   hygiene: 'Token and fetches'
   budget: 'Fetches per day'
-  budget_hint: '0 = unlimited. Beyond it the dashboard shows the last state until tomorrow.'
+  budget_hint: '0 = unlimited. Beyond it Andon shows the last state until tomorrow.'
   failed: 'failure rate'
   never_ok: 'never succeeded'
   no_fetches: 'no fetches yet'
@@ -952,7 +952,7 @@ cred:
 credential:
   missing: No personal access stored.
 admin:
-  backup: 'Dashboard backup'
+  backup: 'Andon backup'
   backup_hint: 'A daily copy of the database in data/backups; each copy is test-opened (integrity, migrations, rows, credentials decryptable). The newest {keep} stay. Keep the master key separately.'
   backup_ok: 'Restore verified'
   backup_failed: 'Backup failed'
@@ -1004,7 +1004,7 @@ admin:
   oidc_email_link: Link existing accounts via verified e-mail
   oidc_only: Single sign-on only (break-glass via /login?local)
   oidc_rules: Groups → initial values
-  oidc_rules_hint: Only applies when an account is created automatically. Afterwards role and teams are managed in the dashboard.
+  oidc_rules_hint: Only applies when an account is created automatically. Afterwards role and teams are managed in Andon.
   group: authentik group
   team: Team
 net:
@@ -1068,7 +1068,7 @@ tokens:
   fonts: Fonts
 styleguide:
   title: Components
-  lead: All dashboard components in the current theme.
+  lead: All Andon components in the current theme.
 sample:
   revenue: Revenue 2026
   open: Receivables
@@ -1081,10 +1081,10 @@ icon:
 url:
   scheme: URL must start with http:// or https://.
 mail:
-  footer: dashboard · {url}
+  footer: Andon · {url}
   invite:
-    subject: Invitation to the dashboard
-    body: '{inviter} invited you to the dashboard. The link is valid for 7 days.'
+    subject: Invitation to Andon
+    body: '{inviter} invited you to Andon. The link is valid for 7 days.'
     button: Create account
   reset:
     subject: Reset password
@@ -1330,10 +1330,10 @@ hint:
       why: 'Since {day}. No backups run without a connection.'
     silent:
       title: No reports from PG Back Web
-      why: 'No webhook for {days} days. Webhooks set up, dashboard reachable?'
+      why: 'No webhook for {days} days. Webhooks set up, Andon reachable?'
   linkwarden:
     missing:
-      title: '{count} links from “{collection}” missing on the dashboard'
+      title: '{count} links from “{collection}” missing in Andon'
       why: '{names}. Add a tile or drop them in Linkwarden.'
     unsaved:
       title: '{count} tiles not saved in Linkwarden'
@@ -2138,10 +2138,10 @@ notify:
   invalid_url: Invalid Apprise URL.
   failed: Delivery failed.
   bad_time: Invalid time (HH:MM).
-  test_title: 'dashboard: test'
+  test_title: 'Andon: test'
   test_body: This channel works.
-  title: 'dashboard: {count} new hints'
-  digest_subject: 'Dashboard: {count} items'
+  title: 'Andon: {count} new hints'
+  digest_subject: 'Andon: {count} items'
   digest_body: 'Open hints and upcoming deadlines:'
 weekday:
   mon: Monday
@@ -2153,7 +2153,7 @@ weekday:
   sun: Sunday
 calendar:
   all_day: all day
-  name: Dashboard deadlines
+  name: Andon deadlines
 trend:
   range: '{low} – {high}'
   collecting: Collecting history (one value per day).
@@ -2365,7 +2365,7 @@ assist:
   why: 'Reason'
   advice_system: 'You help someone who watches a homelab and their freelance business with a dashboard. You get one of its hints. Answer in English with three to five numbered, concrete steps, one line each: what to check, what to do, where (menu path or command if useful). No introduction, no Markdown, no disclaimers. Do not invent details the hint does not state.'
   off: 'No AI configured (ANTHROPIC_API_KEY).'
-  private: 'Location data never leaves the dashboard.'
+  private: 'Location data never leaves Andon.'
   unreadable: 'No invoice data found.'
   read: 'Read with AI'
   read_privacy: 'Sends this mails attachments to Anthropic (Claude).'

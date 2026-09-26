@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // TestJSONAPIShape: fields and list come from the options; the dataset

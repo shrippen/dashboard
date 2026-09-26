@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/model"
-	"dashboard/internal/repos/auth"
+	"andon/internal/model"
+	"andon/internal/repos/auth"
 )
 
 func TestPasskeyLifecycle(t *testing.T) {

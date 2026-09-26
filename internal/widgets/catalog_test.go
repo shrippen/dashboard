@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 // Monday 2026-09-21 … Sunday 2026-09-27; today is Saturday.

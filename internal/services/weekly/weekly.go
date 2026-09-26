@@ -8,14 +8,14 @@ import (
 	"database/sql"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	data "dashboard/internal/repos/data"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/history"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	data "andon/internal/repos/data"
+	"andon/internal/services/access"
+	"andon/internal/services/connections"
+	"andon/internal/services/history"
+	"andon/internal/services/svcdata"
+	"andon/internal/sources"
 )
 
 // storyServices are the services a week story reads.

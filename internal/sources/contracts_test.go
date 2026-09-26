@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 func TestContractTerms(t *testing.T) {

@@ -6,7 +6,7 @@ package metrics
 import (
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // InfoPart is one fact: key -> catalog "info.<key>", with typed params.

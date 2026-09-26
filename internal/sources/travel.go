@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/drivers/httpclient"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/httpclient"
+	"andon/internal/enums"
 )
 
 const (

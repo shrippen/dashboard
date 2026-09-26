@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/sources"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/services/svcdata"
+	"andon/internal/sources"
 )
 
 type countingSource struct{ calls *int }

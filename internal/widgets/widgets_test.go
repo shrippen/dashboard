@@ -3,7 +3,7 @@ package widgets_test
 import (
 	"testing"
 
-	"dashboard/internal/widgets"
+	"andon/internal/widgets"
 )
 
 func TestDecodeLinkDefaults(t *testing.T) {

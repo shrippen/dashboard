@@ -6,15 +6,15 @@ import (
 	"database/sql"
 	"errors"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	authrepo "dashboard/internal/repos/auth"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/audit"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	authrepo "andon/internal/repos/auth"
+	"andon/internal/repos/misc"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/audit"
 )
 
 // Errors carry catalog keys so the web layer shows them translated.

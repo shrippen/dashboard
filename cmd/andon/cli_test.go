@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/testkit"
+	"andon/internal/testkit"
 )
 
 // runCLI handles its subcommands, checks their arguments and leaves
@@ -17,17 +17,17 @@ func TestRunCLI(t *testing.T) {
 	dataDir := t.TempDir()
 	target := t.TempDir()
 
-	if ok, _ := runCLI([]string{"dashboard"}, d, "", dataDir); ok {
+	if ok, _ := runCLI([]string{"andon"}, d, "", dataDir); ok {
 		t.Fatal("no subcommand must start the server")
 	}
-	if ok, code := runCLI([]string{"dashboard", "backup"}, d, "", dataDir); !ok || code != 2 {
+	if ok, code := runCLI([]string{"andon", "backup"}, d, "", dataDir); !ok || code != 2 {
 		t.Fatalf("missing target: ok=%v code=%d", ok, code)
 	}
 
 	stdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
-	ok, code := runCLI([]string{"dashboard", "backup", target}, d, filepath.Join(dataDir, "dashboard.db"), dataDir)
+	ok, code := runCLI([]string{"andon", "backup", target}, d, filepath.Join(dataDir, "andon.db"), dataDir)
 	w.Close()
 	os.Stdout = stdout
 	out, _ := io.ReadAll(r)

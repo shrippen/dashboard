@@ -12,7 +12,7 @@ import (
 	"sort"
 	"time"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 const kimaiCatalogTTL = 10 * time.Minute

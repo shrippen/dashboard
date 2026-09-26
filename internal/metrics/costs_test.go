@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/metrics"
-	"dashboard/internal/sources"
+	"andon/internal/metrics"
+	"andon/internal/sources"
 )
 
 func TestHomelabCostAndShares(t *testing.T) {

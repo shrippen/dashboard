@@ -3,7 +3,7 @@ package util_test
 import (
 	"testing"
 
-	"dashboard/internal/services/util"
+	"andon/internal/services/util"
 )
 
 func TestSlugBasic(t *testing.T) {

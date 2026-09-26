@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	"dashboard/internal/services/access"
+	"andon/internal/services/access"
 )
 
 // Shares of the background mixed into derived colors.

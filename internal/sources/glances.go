@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"dashboard/internal/drivers/services"
-	"dashboard/internal/enums"
+	"andon/internal/drivers/services"
+	"andon/internal/enums"
 )
 
 // GlancesMetrics maps a chart metric to its plugin and field.

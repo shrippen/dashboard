@@ -4,8 +4,8 @@ package widgets
 // define (see sources/jsonapi.go).
 
 import (
-	"dashboard/internal/enums"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/sources"
 )
 
 // jsonAPIRefresh: seconds between reloads, matching the source TTL.

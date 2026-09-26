@@ -8,12 +8,12 @@ import (
 	"net/http"
 	"strings"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/enums"
-	"dashboard/internal/i18n"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/settings"
+	"andon/internal/crypto"
+	"andon/internal/enums"
+	"andon/internal/i18n"
+	"andon/internal/services/access"
+	"andon/internal/services/auth"
+	"andon/internal/settings"
 )
 
 const (
@@ -50,7 +50,7 @@ var safeMethods = map[string]bool{http.MethodGet: true, http.MethodHead: true, h
 
 // ClientIP returns the request's client address. Behind the reverse proxy,
 // the server must be started with trusted proxy headers applied upstream
-// of this handler (see cmd/dashboard's ReverseProxy wiring).
+// of this handler (see cmd/andon's ReverseProxy wiring).
 func ClientIP(r *http.Request) string {
 	host, _, err := splitHostPort(r.RemoteAddr)
 	if err != nil {

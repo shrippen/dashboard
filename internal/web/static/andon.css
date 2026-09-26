@@ -6,7 +6,7 @@
 @font-face { font-family: "JetBrains Mono"; font-weight: 500; font-display: swap; src: url(/static/vendor/shrippen/fonts/JetBrainsMono-500.ttf) format("truetype"); }
 
 /*
- * dashboard.css — app components on shrippen tokens only (var(--…)).
+ * andon.css — app components on shrippen tokens only (var(--…)).
  * No hex values here; the active theme's stylesheet (linked before this
  * file) defines every token. See internal/services/themes/builtin/shrippen.
  */

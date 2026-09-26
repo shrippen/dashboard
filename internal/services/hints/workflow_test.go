@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/hints"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/rules"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/hints"
 )
 
 func person(t *testing.T, d *sql.DB, email string) *access.Principal {

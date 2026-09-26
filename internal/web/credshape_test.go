@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"dashboard/internal/enums"
+	"andon/internal/enums"
 )
 
 func TestCredShapeOf(t *testing.T) {

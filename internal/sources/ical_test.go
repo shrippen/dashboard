@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 const icalText = "BEGIN:VCALENDAR\r\n" +

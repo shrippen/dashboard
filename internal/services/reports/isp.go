@@ -14,13 +14,13 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/metrics"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/connections"
-	"dashboard/internal/services/history"
-	"dashboard/internal/services/svcdata"
-	"dashboard/internal/sources"
+	"andon/internal/enums"
+	"andon/internal/metrics"
+	"andon/internal/services/access"
+	"andon/internal/services/connections"
+	"andon/internal/services/history"
+	"andon/internal/services/svcdata"
+	"andon/internal/sources"
 )
 
 const (

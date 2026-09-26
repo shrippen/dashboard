@@ -15,15 +15,15 @@ import (
 
 	jose "github.com/go-jose/go-jose/v4"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/oidc"
-	"dashboard/internal/settings"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/oidc"
+	"andon/internal/settings"
 )
 
 const clientID = "dash"

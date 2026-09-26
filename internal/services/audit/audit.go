@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"dashboard/internal/db"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/misc"
-	"dashboard/internal/services/access"
+	"andon/internal/db"
+	"andon/internal/model"
+	"andon/internal/repos/misc"
+	"andon/internal/services/access"
 )
 
 // Retention is how long audit entries are kept before Prune removes them.

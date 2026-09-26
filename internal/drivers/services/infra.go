@@ -17,7 +17,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 const (

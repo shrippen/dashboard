@@ -11,7 +11,7 @@ package widgets
 import (
 	"time"
 
-	"dashboard/internal/sources"
+	"andon/internal/sources"
 )
 
 // GreetingSlot names the viewer's greeting data among a widget's results.

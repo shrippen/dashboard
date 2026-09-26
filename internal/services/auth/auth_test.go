@@ -9,15 +9,15 @@ import (
 
 	"github.com/pquerna/otp/totp"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
-	"dashboard/internal/services/auth"
-	"dashboard/internal/settings"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
+	"andon/internal/services/auth"
+	"andon/internal/settings"
 )
 
 func openTestDB(t *testing.T) *sql.DB {

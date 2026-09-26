@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/accounts"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/repos/content"
+	"andon/internal/services/access"
+	"andon/internal/services/accounts"
 )
 
 func openTestDB(t *testing.T) *sql.DB {

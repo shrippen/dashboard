@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"dashboard/internal/crypto"
-	"dashboard/internal/db"
-	"dashboard/internal/db/dbtest"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/selfbackup"
+	"andon/internal/crypto"
+	"andon/internal/db"
+	"andon/internal/db/dbtest"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/users"
+	"andon/internal/services/selfbackup"
 )
 
 // TestRunVerifiesAndPrunes: each run leaves a copy that passes the
@@ -53,7 +53,7 @@ func TestRunVerifiesAndPrunes(t *testing.T) {
 		}
 	}
 	files, _ := selfbackup.Files(dir)
-	if len(files) != selfbackup.Keep || files[0].Name != "dashboard-20260909-030000.db" {
+	if len(files) != selfbackup.Keep || files[0].Name != "andon-20260909-030000.db" {
 		t.Fatalf("files: %+v", files)
 	}
 	last, err := selfbackup.Last(d)

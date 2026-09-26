@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/rules"
+	"andon/internal/enums"
+	"andon/internal/rules"
 )
 
 const (

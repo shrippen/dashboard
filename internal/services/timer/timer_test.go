@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"dashboard/internal/enums"
-	"dashboard/internal/services/timer"
-	"dashboard/internal/testkit"
+	"andon/internal/enums"
+	"andon/internal/services/timer"
+	"andon/internal/testkit"
 )
 
 // A timer tile writes to Kimai; bad ranges and other tiles are refused

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"dashboard/internal/drivers/httpclient"
+	"andon/internal/drivers/httpclient"
 )
 
 const (

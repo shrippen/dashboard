@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Andon — A self-hosted start page that tells you what needs doing</title>
+<meta name="description" content="Self-hosted start page for freelancers and homelabs: links and status like Dashy, plus hints from Kimai, Invoice Ninja, Snipe-IT, Dawarich and 40 other services. Several users, one container.">
+<meta property="og:title" content="Andon — A self-hosted start page that tells you what needs doing">
+<meta property="og:description" content="Self-hosted start page for freelancers and homelabs: links and status like Dashy, plus hints from Kimai, Invoice Ninja, Snipe-IT, Dawarich and 40 other services. Several users, one container.">
+<meta property="og:image" content="https://shrippen.github.io/andon/social-preview.png">
+<meta property="og:url" content="https://shrippen.github.io/andon/">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<!-- Umami tracker: mandatory on every landing page, same tag and ID everywhere, do not change -->
+<script defer src="https://um.arianw.de/script.js" data-website-id="056d39ee-6a9d-4b14-9902-5a1ac399df08"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://shrippen.github.io/v1/shrippen.css">
+<script src="https://shrippen.github.io/v1/shrippen.js"></script>
+</head>
+<body>
+
+<div class="banner" role="note"><div class="banner-inner"><div class="banner-title"><span lang="en">In development</span><span lang="de">In Entwicklung</span></div><p class="banner-text" lang="en">Built and tested with recorded API responses and a few real instances. It is vibe-coded: run the connection test for each service and check the first hints before you rely on them.</p><p class="banner-text" lang="de">Gebaut und getestet mit aufgezeichneten API-Antworten und einigen echten Instanzen. Das Projekt ist vibe-codiert: Führe für jeden Dienst den Verbindungstest aus und prüfe die ersten Hinweise, bevor du dich auf sie verlässt.</p></div></div>
+
+<nav class="nav"><div class="nav-inner">
+  <a class="nav-brand" href="#"><img src="icon.svg" alt="">Andon</a>
+  <div class="nav-links">
+    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#how"><span lang="en">How it works</span><span lang="de">Funktionsweise</span></a><a href="#services"><span lang="en">Services</span><span lang="de">Dienste</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq">FAQ</a>
+    <a class="nav-hl" href="https://github.com/shrippen/andon">GitHub</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="de" aria-pressed="false">DE</button>
+    </div>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <img class="hero-wm" src="icon-mono.svg" alt="" aria-hidden="true">
+  <div class="hero-main">
+    <h1>An<br class="split">don</h1>
+    <p class="tagline" lang="en">Your start page, with links, status and feeds like Dashy. It also reads Kimai, Invoice Ninja and your homelab, and tells you in the morning what needs doing: the overdue invoice, the unbilled hours, the backup that did not run.</p>
+    <p class="tagline" lang="de">Deine Startseite, mit Links, Status und Feeds wie Dashy. Sie liest außerdem Kimai, Invoice Ninja und dein Homelab und sagt dir am Morgen, was zu tun ist: die überfällige Rechnung, die nicht abgerechneten Stunden, das Backup, das nicht lief.</p>
+  </div>
+
+  <div class="hero-side">
+    <div class="install-card">
+      <label><span lang="en">Docker image (amd64, arm64)</span><span lang="de">Docker-Image (amd64, arm64)</span></label>
+      <div class="cmd-row">
+        <div class="cmd-box">docker pull ghcr.io/shrippen/andon:latest</div>
+        <button class="copy-btn" type="button" title="Copy" aria-label="Copy">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+      <p class="install-note" lang="en"><code>latest</code> follows development. For production pin a release, e.g. <code>0.4</code>. Runs on a Raspberry Pi.</p>
+      <p class="install-note" lang="de"><code>latest</code> folgt der Entwicklung. Für den Produktivbetrieb ein Release festlegen, z. B. <code>0.4</code>. Läuft auf einem Raspberry Pi.</p>
+      <div class="install-links">
+        <a class="btn btn-primary" href="#install"><span lang="en">Install</span><span lang="de">Installieren</span></a>
+        <a class="btn btn-ghost" href="https://github.com/shrippen/andon">GitHub</a>
+      </div>
+    </div>
+
+    <div class="hero-shot">
+      <img src="board-preview.svg" alt="A board with four tiles: three hints (an overdue invoice, unbilled hours, an expiring certificate), hours this week, revenue with a forecast, service status and links">
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="facts">
+  <div class="fact"><b>43</b><span><span lang="en">Services it can read</span><span lang="de">Dienste, die es lesen kann</span></span></div>
+  <div class="fact"><b>140</b><span><span lang="en">Rules that turn data into hints</span><span lang="de">Regeln, die aus Daten Hinweise machen</span></span></div>
+  <div class="fact"><b>72</b><span><span lang="en">Tile types, from clock to cash flow</span><span lang="de">Kacheltypen, von Uhr bis Liquidität</span></span></div>
+  <div class="fact"><b>1</b><span><span lang="en">Container, one volume, no database server</span><span lang="de">Container, ein Volume, kein Datenbankserver</span></span></div>
+</section>
+
+<section class="features" id="features">
+  <div class="feat" data-tier="red">
+    <h3 lang="en">Hints that explain themselves</h3><h3 lang="de">Hinweise, die sich erklären</h3>
+    <p lang="en">Each hint says why it appears, which data is behind it and where to click to fix it. Thresholds are set per rule, and a hint can be snoozed until a date.</p><p lang="de">Jeder Hinweis sagt, warum er erscheint, welche Daten dahinterstehen und wohin du klickst, um ihn zu erledigen. Schwellen stellst du je Regel ein, und ein Hinweis lässt sich bis zu einem Datum zurückstellen.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <h3 lang="en">Freelance numbers</h3><h3 lang="de">Freelance-Zahlen</h3>
+    <p lang="en">Unbilled hours, overdue invoices, utilisation, real hourly rate, a forecast for the year and liquidity, from Kimai and Invoice Ninja. Unbilled time becomes a draft invoice with one click.</p><p lang="de">Nicht abgerechnete Stunden, überfällige Rechnungen, Auslastung, echter Stundensatz, Jahresprognose und Liquidität, aus Kimai und Invoice Ninja. Offene Zeit wird mit einem Klick zum Rechnungsentwurf.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <h3 lang="en">Homelab at a glance</h3><h3 lang="de">Homelab auf einen Blick</h3>
+    <p lang="en">Proxmox, TrueNAS, Uptime Kuma, Glances, Borg, Pi-hole, Immich, Home Assistant and more. Backups that are too old and certificates that expire show up as hints, not as a red dot you have to spot.</p><p lang="de">Proxmox, TrueNAS, Uptime Kuma, Glances, Borg, Pi-hole, Immich, Home Assistant und mehr. Zu alte Backups und ablaufende Zertifikate erscheinen als Hinweis, nicht als roter Punkt, den du erst finden musst.</p>
+  </div>
+  <div class="feat" data-tier="red">
+    <h3 lang="en">Data that meets</h3><h3 lang="de">Daten, die sich treffen</h3>
+    <p lang="en">Dawarich says you spent six hours at a customer's office, Kimai has nothing booked for that day. Snipe-IT knows a laptop's warranty ends next month. The value is where two services meet.</p><p lang="de">Laut Dawarich warst du sechs Stunden beim Kunden, in Kimai ist für den Tag nichts gebucht. Snipe-IT weiß, dass die Garantie eines Laptops nächsten Monat endet. Der Mehrwert liegt dort, wo sich zwei Dienste treffen.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <h3 lang="en">Start page like Dashy</h3><h3 lang="de">Startseite wie Dashy</h3>
+    <p lang="en">Links with icons, status checks, search, RSS, clock and weather. Import your Dashy <code>conf.yml</code> and switch over when you are ready.</p><p lang="de">Links mit Icons, Statusprüfung, Suche, RSS, Uhr und Wetter. Importiere deine Dashy-<code>conf.yml</code> und steig um, wenn du so weit bist.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <h3 lang="en">Edit in the browser</h3><h3 lang="de">Im Browser bearbeiten</h3>
+    <p lang="en">Pick tiles from a gallery with live or demo previews, drag them into place, or edit the YAML in the code view. Every change is kept as a revision.</p><p lang="de">Kacheln aus einer Galerie mit Live- oder Demo-Vorschau wählen, an ihren Platz ziehen oder das YAML in der Code-Ansicht bearbeiten. Jede Änderung bleibt als Revision erhalten.</p>
+  </div>
+  <div class="feat" data-tier="red">
+    <h3 lang="en">Users and teams</h3><h3 lang="de">Benutzer und Teams</h3>
+    <p lang="en">People work apart or share connections, tiles and boards in a team. Rights go down to a single tile, and everyone keeps their own layout.</p><p lang="de">Personen arbeiten getrennt oder teilen Verbindungen, Kacheln und Boards im Team. Rechte reichen bis zur einzelnen Kachel, und jeder behält sein eigenes Layout.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <h3 lang="en">Tells you, too</h3><h3 lang="de">Meldet sich auch</h3>
+    <p lang="en">Push through Apprise (ntfy, Gotify, Matrix, Telegram and more), a daily digest by mail, a weekly review with an optional AI summary, and an iCal feed for deadlines.</p><p lang="de">Push über Apprise (ntfy, Gotify, Matrix, Telegram und mehr), ein täglicher Digest per Mail, ein Wochenrückblick mit optionaler KI-Zusammenfassung und ein iCal-Feed für Fristen.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <h3 lang="en">Locked down</h3><h3 lang="de">Abgesichert</h3>
+    <p lang="en">Own login with passkeys, TOTP and OIDC (e.g. authentik). The database file is encrypted, API tokens never reach the browser, and admins must set up a second factor.</p><p lang="de">Eigene Anmeldung mit Passkeys, TOTP und OIDC (z. B. authentik). Die Datenbankdatei ist verschlüsselt, API-Tokens erreichen nie den Browser, und Admins müssen einen zweiten Faktor einrichten.</p>
+  </div>
+</section>
+
+<section class="showcase"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Hints</span><span lang="de">Hinweise</span></span><h2 lang="en">What a morning looks like</h2><h2 lang="de">Wie ein Morgen aussieht</h2><p lang="en">A background run fetches every service at start and then every few minutes. Rules read the same data and write hints. Pages show that stored state, so a board opens at once, even when a service is slow.</p><p lang="de">Ein Hintergrundlauf holt beim Start und danach alle paar Minuten jeden Dienst ab. Regeln lesen dieselben Daten und schreiben Hinweise. Seiten zeigen diesen gespeicherten Stand, deshalb öffnet ein Board sofort, auch wenn ein Dienst langsam ist.</p><ul lang="en"><li>Red: act today, e.g. an invoice 12 days overdue</li><li>Yellow: plan it, e.g. 14.5 unbilled hours at one customer</li><li>Blue: good to know, e.g. a certificate that renews in 9 days</li><li>Every rule has its own thresholds and can be switched off</li></ul><ul lang="de"><li>Rot: heute handeln, z. B. eine Rechnung, die 12 Tage überfällig ist</li><li>Gelb: einplanen, z. B. 14,5 nicht abgerechnete Stunden bei einem Kunden</li><li>Blau: gut zu wissen, z. B. ein Zertifikat, das in 9 Tagen erneuert wird</li><li>Jede Regel hat eigene Schwellen und lässt sich abschalten</li></ul></div><figure><img src="board-preview.svg" alt="Board with hints, hours, revenue, services and links" loading="lazy"><figcaption><span lang="en">Mockup with made-up data</span><span lang="de">Entwurf mit ausgedachten Daten</span></figcaption></figure></section>
+
+<section class="section" id="how">
+  <h2 lang="en">How it works</h2><h2 lang="de">So funktioniert es</h2>
+  <div class="flow">
+    <div class="flow-node"><b><span lang="en">Services</span><span lang="de">Dienste</span></b><span lang="en">Read on the server, with your tokens, on a schedule</span><span lang="de">Serverseitig gelesen, mit deinen Tokens, nach Zeitplan</span></div>
+    <div class="flow-arrow" aria-hidden="true"></div>
+    <div class="flow-node"><b><span lang="en">Snapshots</span><span lang="de">Snapshots</span></b><span lang="en">Stored per connection, kept for trends</span><span lang="de">Je Verbindung gespeichert, für Trends aufbewahrt</span></div>
+    <div class="flow-arrow" aria-hidden="true"></div>
+    <div class="flow-node hl"><b><span lang="en">Rules</span><span lang="de">Regeln</span></b><span lang="en">Turn numbers into hints with a reason</span><span lang="de">Machen aus Zahlen Hinweise mit Begründung</span></div>
+    <div class="flow-arrow" aria-hidden="true"></div>
+    <div class="flow-node"><b><span lang="en">You</span><span lang="de">Du</span></b><span lang="en">On the board, by push or in the digest</span><span lang="de">Auf dem Board, per Push oder im Digest</span></div>
+  </div>
+  <p lang="en">Tiles only display what the server already has. They never call a service from your browser, so no token leaves the container and no CORS proxy is needed.</p>
+  <p lang="de">Kacheln zeigen nur, was der Server schon hat. Sie rufen nie einen Dienst aus deinem Browser auf, deshalb verlässt kein Token den Container, und ein CORS-Proxy ist unnötig.</p>
+</section>
+
+<section class="section" id="services">
+  <h2 lang="en">Services</h2><h2 lang="de">Dienste</h2>
+  <div class="table-wrap"><table class="table">
+    <tr><th><span lang="en">Area</span><span lang="de">Bereich</span></th><th><span lang="en">Services</span><span lang="de">Dienste</span></th></tr>
+    <tr><td><span lang="en">Work</span><span lang="de">Arbeit</span></td><td>Kimai, Invoice Ninja, Snipe-IT, Dawarich, Paperless-ngx, Sure, calendars (iCal), mail (IMAP)</td></tr>
+    <tr><td>Homelab</td><td>Proxmox, TrueNAS, Glances, Scrutiny, Komodo, Borg, pgbackweb, Uptime Kuma, Gitea, GitHub</td></tr>
+    <tr><td><span lang="en">Network</span><span lang="de">Netzwerk</span></td><td>Pi-hole, AdGuard Home, Tailscale, Pangolin, Gluetun, gateway, speed test, domains, certificates, blocklists</td></tr>
+    <tr><td><span lang="en">Security</span><span lang="de">Sicherheit</span></td><td>authentik, Vaultwarden</td></tr>
+    <tr><td><span lang="en">Media and home</span><span lang="de">Medien und Zuhause</span></td><td>Immich, Jellyfin/Plex, *arr, SABnzbd, Nextcloud, Linkwarden, FreshRSS, Home Assistant, Grocy, Tibber, DWD weather, Umami</td></tr>
+    <tr><td><span lang="en">Anything else</span><span lang="de">Alles andere</span></td><td><span lang="en">Any JSON API, with your own fields and rules</span><span lang="de">Jede JSON-API, mit eigenen Feldern und Regeln</span></td></tr>
+  </table></div>
+</section>
+
+<section class="section" id="install">
+  <h2 lang="en">Install</h2><h2 lang="de">Installation</h2>
+  <ol class="steps" lang="en"><li>Create a folder with <code>data</code> and <code>secrets</code>, and a master key. Keep the key safe, but not next to your backups: without it the database cannot be opened.</li><li>Download <code>docker-compose.example.yml</code> as <code>docker-compose.yml</code> and set <code>BASE_URL</code>.</li><li>Start it, then open <code>/setup</code> and enter the code from the log.</li></ol>
+  <ol class="steps" lang="de"><li>Einen Ordner mit <code>data</code> und <code>secrets</code> und einen Hauptschlüssel anlegen. Den Schlüssel sicher aufbewahren, aber nicht neben den Backups: Ohne ihn lässt sich die Datenbank nicht öffnen.</li><li><code>docker-compose.example.yml</code> als <code>docker-compose.yml</code> herunterladen und <code>BASE_URL</code> setzen.</li><li>Starten, dann <code>/setup</code> öffnen und den Code aus dem Log eingeben.</li></ol>
+  <div class="codeblock"><span class="k">mkdir</span> -p andon/{data,secrets} &amp;&amp; <span class="k">cd</span> andon
+<span class="k">openssl</span> rand -base64 32 &gt; secrets/master_key
+<span class="k">sudo chown</span> -R 10001 data secrets &amp;&amp; <span class="k">sudo chmod</span> 400 secrets/master_key
+<span class="k">curl</span> -Lo docker-compose.yml https://raw.githubusercontent.com/shrippen/andon/main/docker-compose.example.yml
+<span class="k">docker compose</span> up -d
+<span class="k">docker compose</span> logs andon | grep "SETUP CODE"</div>
+  <p lang="en">Backups run on a schedule into <code>data/backups</code>. <code>docker compose exec andon andon backup /data/backups</code> writes one now: database, icons and themes in one archive.</p>
+  <p lang="de">Backups laufen nach Zeitplan nach <code>data/backups</code>. <code>docker compose exec andon andon backup /data/backups</code> schreibt sofort eins: Datenbank, Icons und Themes in einem Archiv.</p>
+</section>
+
+<section class="section" id="faq">
+  <h2 lang="en">Questions</h2><h2 lang="de">Fragen</h2>
+  <div class="faq">
+    <details><summary><span lang="en">Does it change anything in my services?</span><span lang="de">Ändert es etwas in meinen Diensten?</span></summary><div><p lang="en">Almost never. It reads. The exceptions are actions you start yourself: a Kimai timer, a draft invoice in Invoice Ninja, marking billed time as exported.</p><p lang="de">Fast nie. Es liest. Ausnahmen sind Aktionen, die du selbst auslöst: ein Kimai-Timer, ein Rechnungsentwurf in Invoice Ninja, abgerechnete Zeit als exportiert markieren.</p></div></details>
+    <details><summary><span lang="en">Do I need Kimai or Invoice Ninja?</span><span lang="de">Brauche ich Kimai oder Invoice Ninja?</span></summary><div><p lang="en">No. Without them it is a start page for your homelab. Each service is optional, and the gallery shows demo previews for the ones you do not have.</p><p lang="de">Nein. Ohne sie ist es eine Startseite für dein Homelab. Jeder Dienst ist optional, und die Galerie zeigt Demo-Vorschauen für die, die du nicht hast.</p></div></details>
+    <details><summary><span lang="en">What about the AI summary?</span><span lang="de">Was ist mit der KI-Zusammenfassung?</span></summary><div><p lang="en">It is off unless you add an Anthropic API key. It only sends hint counts, no names, amounts or tokens.</p><p lang="de">Sie ist aus, bis du einen Anthropic-API-Schlüssel hinterlegst. Sie sendet nur die Anzahl der Hinweise, keine Namen, Beträge oder Tokens.</p></div></details>
+    <details><summary><span lang="en">How many users does it handle?</span><span lang="de">Wie viele Benutzer schafft es?</span></summary><div><p lang="en">It is built for one to ten people on one instance, with SQLite. A Raspberry Pi is enough.</p><p lang="de">Es ist für ein bis zehn Personen auf einer Instanz gebaut, mit SQLite. Ein Raspberry Pi reicht.</p></div></details>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <img src="icon.svg" alt="">
+      <div><span class="foot-name">Andon</span><span class="foot-tag"><span lang="en">A start page that tells you what needs doing</span><span lang="de">Eine Startseite, die sagt, was zu tun ist</span></span></div>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#how"><span lang="en">How it works</span><span lang="de">Funktionsweise</span></a><a href="#services"><span lang="en">Services</span><span lang="de">Dienste</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a></div>
+      <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/andon">GitHub</a><a href="https://github.com/shrippen/andon/issues">Issues</a><a href="https://github.com/shrippen/andon/releases">Releases</a></div>
+    </nav>
+  </div>
+  <div class="foot-meta"><p>GPL-3.0 · shrippen · v0.4</p></div>
+</footer>
+
+</body>
+</html>

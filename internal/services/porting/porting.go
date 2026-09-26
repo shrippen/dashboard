@@ -17,15 +17,15 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"dashboard/internal/db"
-	"dashboard/internal/enums"
-	"dashboard/internal/model"
-	"dashboard/internal/repos/content"
-	"dashboard/internal/repos/users"
-	"dashboard/internal/services/access"
-	"dashboard/internal/services/boards"
-	"dashboard/internal/services/util"
-	"dashboard/internal/widgets"
+	"andon/internal/db"
+	"andon/internal/enums"
+	"andon/internal/model"
+	"andon/internal/repos/content"
+	"andon/internal/repos/users"
+	"andon/internal/services/access"
+	"andon/internal/services/boards"
+	"andon/internal/services/util"
+	"andon/internal/widgets"
 )
 
 const (
